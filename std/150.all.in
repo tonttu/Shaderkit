@@ -1,0 +1,471 @@
+const int gl_MaxVertexAttribs = 16;
+const int gl_MaxVertexUniformComponents = 1024;
+const int gl_MaxVaryingFloats = 60; // Deprecated
+const int gl_MaxVaryingComponents = 60; // Deprecated
+const int gl_MaxVertexOutputComponents = 64;
+const int gl_MaxGeometryInputComponents = 64;
+const int gl_MaxGeometryOutputComponents = 128;
+const int gl_MaxFragmentInputComponents = 128;
+const int gl_MaxVertexTextureImageUnits = 16;
+const int gl_MaxCombinedTextureImageUnits = 48;
+const int gl_MaxTextureImageUnits = 16;
+const int gl_MaxFragmentUniformComponents = 1024;
+const int gl_MaxDrawBuffers = 8;
+const int gl_MaxClipDistances = 8;
+const int gl_MaxGeometryTextureImageUnits = 16;
+const int gl_MaxGeometryOutputVertices = 256;
+const int gl_MaxGeometryTotalOutputComponents = 1024;
+const int gl_MaxGeometryUniformComponents = 1024;
+const int gl_MaxGeometryVaryingComponents = 64;
+
+// Depth range in window coordinates, 
+// section 2.13.1 in the OpenGL Graphics System Specification.
+struct gl_DepthRangeParameters {
+float near; // n
+float far; // f
+float diff; // f - n
+};
+uniform gl_DepthRangeParameters gl_DepthRange;
+
+/**
+* Angle and Trigonometry Functions
+*/
+
+// Converts degrees to radians.
+genType radians(genType degrees);
+// Converts radians to degrees.
+genType degrees(genType radians);
+
+// The standard trigonometric sine function.
+genType sin(genType angle);
+// The standard trigonometric cosine function.
+genType cos(genType angle);
+// The standard trigonometric tangent.
+genType tan(genType angle);
+
+// Arc sine. Returns an angle whose sine is x.
+genType asin(genType x);
+// Arc cosine. Returns an angle whose cosine is x.
+genType acos(genType x);
+// Arc tangent. Returns an angle whose tangent is y/x.
+genType atan(genType y, genType x);
+// Arc tangent. Returns an angle whose tangent is y_over_x.
+genType atan(genType y_over_x);
+
+// Returns the hyperbolic sine function
+genType sinh(genType x);
+// Returns the hyperbolic cosine function
+genType cosh(genType x);
+// Returns the hyperbolic tangent function
+genType tanh(genType x);
+// Arc hyperbolic sine; returns the inverse of sinh.
+genType asinh(genType x);
+// Arc hyperbolic cosine; returns the non-negative inverse of cosh.
+genType acosh(genType x);
+// Arc hyperbolic tangent; returns the inverse of tanh.
+genType atanh(genType x);
+
+/**
+* Exponential Functions
+*/
+
+// Returns x raised to the y power.
+genType pow(genType x, genType y);
+// Returns the natural exponentiation of x.
+genType exp(genType x);
+// Returns the natural logarithm of x.
+genType log(genType x);
+// Returns 2 raised to the x power.
+genType exp2(genType x);
+// Returns the base 2 logarithm of x.
+genType log2(genType x);
+// Returns  x .
+genType sqrt(genType x);
+// Returns 1/x
+genType inversesqrt(genType x);
+
+/**
+* Common Functions
+*/
+
+// Returns x if x >= 0, otherwise it returns –x.
+genType abs(genType x);
+genIType abs(genIType x);
+// Returns 1.0 if x > 0, 0.0 if x = 0, or –1.0 if x < 0.
+genType sign(genType x);
+genIType sign(genIType x);
+// Returns a value equal to the nearest integer that is less than or equal to x.
+genType floor(genType x);
+// Returns a value equal to the nearest integer to x whose absolute value is not larger than the absolute value of x.
+genType trunc(genType x);
+// Returns a value equal to the nearest integer to x. The fraction 0.5 will round in a direction chosen by the implementation, presumably the direction that is fastest.
+genType round(genType x);
+// Returns a value equal to the nearest integer to x.
+genType roundEven(genType x);
+// Returns a value equal to the nearest integer that is greater than or equal to x.
+genType ceil(genType x);
+// Returns x – floor(x).
+genType fract(genType x);
+// Modulus. Returns x – y ∗ floor(x/y).
+genType mod(genType x, float y);
+genType mod(genType x, genType y);
+//Returns the fractional part of x and sets i to the integer part(as a whole number floating point value).
+genType modf(genType x, out genType i);
+// Returns y if y < x, otherwise it returns x.
+genType min(genType x, genType y);
+genType min(genType x, float y);
+genIType min(genIType x, genIType y);
+genIType min(genIType x, int y);
+genUType min(genUType x, genUType y);
+genUType min(genUType x, uint y);
+// Returns y if x < y, otherwise it returns x.
+genType max(genType x, genType y);
+genType max(genType x, float y);
+genIType max(genIType x, genIType y);
+genIType max(genIType x, int y);
+genUType max(genUType x, genUType y);
+genUType max(genUType x, uint y);
+// Returns min(max(x, minVal), maxVal).
+genType clamp(genType x, genType minVal, genType maxVal);
+genType clamp(genType x, float minVal, float maxVal);
+genIType clamp(genIType x, genIType minVal, genIType maxVal);
+genIType clamp(genIType x, int minVal, int maxVal);
+genUType clamp(genUType x, genUType minVal, genUType maxVal);
+genUType clamp(genUType x, uint minVal, uint maxVal);
+
+// Returns the linear blend of x and y, i.e., 1−a y⋅a
+genType mix(genType x, genType y, genType a);
+genType mix(genType x, genType y, float a);
+// Selects which vector each returned component comes from.
+genType mix(genType x, genType y, genBType a);
+// Returns 0.0 if x < edge, otherwise it returns 1.0.
+genType step(genType edge, genType x);
+genType step(float edge, genType x);
+// Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth Hermite interpolation between 0 and 1 when edge0 < x < edge1.
+genType smoothstep(genType edge0, genType edge1, genType x);
+genType smoothstep(float edge0, float edge1, genType x);
+// Returns true if x holds a NaN(not a number) representation in the underlying implementation's set of floating point representations.
+genBType isnan(genType x);
+// Returns true if x holds a positive infinity or negative infinity representation in the underlying implementation's set of floating point representations.
+genBType isinf(genType x);
+
+/**
+* Geometric Functions
+*/
+
+// Returns the length of vector x.
+float length(genType x);
+// Returns the distance between p0 and p1;
+float distance(genType p0, genType p1);
+// Returns the dot product of x and y.
+float dot(genType x, genType y);
+// Returns the cross product of x and y.
+vec3 cross(vec3 x, vec3 y);
+// Returns a vector in the same direction as x but with a length of 1.
+genType normalize(genType x);
+// If dot(Nref, I) < 0 return N, otherwise return –N.
+genType faceforward(genType N, genType I, genType Nref);
+// For the incident vector I and surface orientation N, returns the reflection direction: I – 2 ∗ dot(N, I) ∗ N.
+genType reflect(genType I, genType N);
+// For the incident vector I and surface normal N, and the ratio of indices of refraction eta, return the refraction vector.
+genType refract(genType I, genType N, float eta);
+
+/**
+* Matrix Functions
+*/
+
+// Multiply matrix x by matrix y component-wise.
+mat matrixCompMult(mat x, mat y);
+// Treats the first parameter c as a column vector(matrix with one column) and the second parameter r as a row vector(matrix with one row) and does a linear algebraic matrix multiply c * r, yielding a matrix whose number of rows is the number of components in c and whose number of columns is the number of components in r.
+mat2 outerProduct(vec2 c, vec2 r);
+mat3 outerProduct(vec3 c, vec3 r);
+mat4 outerProduct(vec4 c, vec4 r);
+mat2x3 outerProduct(vec3 c, vec2 r);
+mat3x2 outerProduct(vec2 c, vec3 r);
+mat2x4 outerProduct(vec4 c, vec2 r);
+mat4x2 outerProduct(vec2 c, vec4 r);
+mat3x4 outerProduct(vec4 c, vec3 r);
+mat4x3 outerProduct(vec3 c, vec4 r);
+// Returns a matrix that is the transpose of m. The input matrix m is not modified.
+mat2 transpose(mat2 m);
+mat3 transpose(mat3 m);
+mat4 transpose(mat4 m);
+mat2x3 transpose(mat3x2 m);
+mat3x2 transpose(mat2x3 m);
+mat2x4 transpose(mat4x2 m);
+mat4x2 transpose(mat2x4 m);
+mat3x4 transpose(mat4x3 m);
+mat4x3 transpose(mat3x4 m);
+// Returns the determinant of m.
+float determinant(mat2 m);
+float determinant(mat3 m);
+float determinant(mat4 m);
+// Returns a matrix that is the inverse of m. The input matrix m is not modified.
+mat2 inverse(mat2 m);
+mat3 inverse(mat3 m);
+mat4 inverse(mat4 m);
+
+/**
+* Vector Relational Functions
+*/
+
+// Returns the component-wise compare of x < y.
+bvec lessThan(vec x, vec y);
+bvec lessThan(ivec x, ivec y);
+bvec lessThan(uvec x, uvec y)
+// Returns the component-wise compare of x <= y.
+bvec lessThanEqual(vec x, vec y);
+bvec lessThanEqual(ivec x, ivec y);
+bvec lessThanEqual(uvec x, uvec y);
+// Returns the component-wise compare of x > y.
+bvec greaterThan(vec x, vec y);
+bvec greaterThan(ivec x, ivec y);
+bvec greaterThan(uvec x, uvec y);
+// Returns the component-wise compare of x >= y.
+bvec greaterThanEqual(vec x, vec y);
+bvec greaterThanEqual(ivec x, ivec y);
+bvec greaterThanEqual(uvec x, uvec y);
+// Returns the component-wise compare of x == y.
+bvec equal(vec x, vec y);
+bvec equal(ivec x, ivec y);
+bvec equal(uvec x, uvec y);
+bvec equal(bvec x, bvec y);
+// Returns the component-wise compare of x != y.
+bvec notEqual(vec x, vec y);
+bvec notEqual(ivec x, ivec y);
+bvec notEqual(uvec x, uvec y);
+bvec notEqual(bvec x, bvec y);
+//Returns true if any component of x is true.
+bool any(bvec x);
+// Returns true only if all components of x are true.
+bool all(bvec x);
+// Returns the component-wise logical complement of x.
+bvec not(bvec x);
+
+/**
+* Texture Lookup Functions
+*/
+
+// Returns the dimensions of level lod(if present) for the texture bound to sampler.
+int textureSize(gsampler1D sampler, int lod);
+ivec2 textureSize(gsampler2D sampler, int lod);
+ivec3 textureSize(gsampler3D sampler, int lod);
+ivec2 textureSize(gsamplerCube sampler, int lod);
+int textureSize(sampler1DShadow sampler, int lod);
+ivec2 textureSize(sampler2DShadow sampler, int lod);
+ivec2 textureSize(samplerCubeShadow sampler, int lod);
+ivec2 textureSize(gsampler2DRect sampler);
+ivec2 textureSize(sampler2DRectShadow sampler);
+ivec2 textureSize(gsampler1DArray sampler, int lod);
+ivec3 textureSize(gsampler2DArray sampler, int lod);
+ivec2 textureSize(sampler1DArrayShadow sampler, int lod);
+ivec3 textureSize(sampler2DArrayShadow sampler, int lod);
+int textureSize(gsamplerBuffer sampler);
+ivec2 textureSize(gsampler2DMS sampler);
+ivec2 textureSize(gsampler2DMSArray sampler);
+
+// Use the texture coordinate P to do a texture lookup in the texture currently bound to sampler.
+gvec4 texture(gsampler1D sampler, float P [, float bias] );
+gvec4 texture(gsampler2D sampler, vec2 P [, float bias] );
+gvec4 texture(gsampler3D sampler, vec3 P [, float bias] );
+gvec4 texture(gsamplerCube sampler, vec3 P [, float bias] );
+float texture(sampler1DShadow sampler, vec3 P [, float bias] );
+float texture(sampler2DShadow sampler, vec3 P [, float bias] );
+float texture(samplerCubeShadow sampler, vec4 P [, float bias] );
+gvec4 texture(gsampler1DArray sampler, vec2 P [, float bias] );
+gvec4 texture(gsampler2DArray sampler, vec3 P [, float bias] );
+float texture(sampler1DArrayShadow sampler, vec3 P [, float bias] );
+float texture(sampler2DArrayShadow sampler, vec4 P);
+gvec4 texture(gsampler2DRect sampler, vec2 P);
+float texture(sampler2DRectShadow sampler, vec3 P);
+
+// Do a texture lookup with projection.
+gvec4 textureProj(gsampler1D sampler, vec2 P [, float bias] );
+gvec4 textureProj(gsampler1D sampler, vec4 P [, float bias] );
+gvec4 textureProj(gsampler2D sampler, vec3 P [, float bias] );
+gvec4 textureProj(gsampler2D sampler, vec4 P [, float bias] );
+gvec4 textureProj(gsampler3D sampler, vec4 P [, float bias] );
+float textureProj(sampler1DShadow sampler, vec4 P [, float bias] );
+float textureProj(sampler2DShadow sampler, vec4 P [, float bias] );
+gvec4 textureProj(gsampler2DRect sampler, vec3 P);
+gvec4 textureProj(gsampler2DRect sampler, vec4 P);
+float textureProj(sampler2DRectShadow sampler, vec4 P);
+
+// Do a texture lookup as in texture but with explicit LOD.
+gvec4 textureLod(gsampler1D sampler, float P, float lod);
+gvec4 textureLod(gsampler2D sampler, vec2 P, float lod);
+gvec4 textureLod(gsampler3D sampler, vec3 P, float lod);
+gvec4 textureLod(gsamplerCube sampler, vec3 P, float lod);
+float textureLod(sampler1DShadow sampler, vec3 P, float lod);
+float textureLod(sampler2DShadow sampler, vec3 P, float lod);
+gvec4 textureLod(gsampler1DArray sampler, vec2 P, float lod);
+gvec4 textureLod(gsampler2DArray sampler, vec3 P, float lod);
+float textureLod(sampler1DArrayShadow sampler, vec3 P, float lod);
+
+// Do a texture lookup as in texture but with offset added to the(u, v, w) texel coordinates before looking up each texel.
+gvec4 textureOffset(gsampler1D sampler, float P, int offset [, float bias] );
+gvec4 textureOffset(gsampler2D sampler, vec2 P, ivec2 offset [, float bias] );
+gvec4 textureOffset(gsampler3D sampler, vec3 P, ivec3 offset [, float bias] );
+gvec4 textureOffset(gsampler2DRect sampler, vec2 P, ivec2 offset );
+float textureOffset(sampler2DRectShadow sampler, vec3 P, ivec2 offset );
+float textureOffset(sampler1DShadow sampler, vec3 P, int offset [, float bias] );
+float textureOffset(sampler2DShadow sampler, vec3 P, ivec2 offset [, float bias] );
+gvec4 textureOffset(gsampler1DArray sampler, vec2 P, int offset [, float bias] );
+gvec4 textureOffset(gsampler2DArray sampler, vec3 P, ivec2 offset [, float bias] );
+float textureOffset(sampler1DArrayShadow sampler, vec3 P, int offset [, float bias] );
+// Use integer texture coordinate P to lookup a single texel from sampler.
+gvec4 texelFetch(gsampler1D sampler, int P, int lod);
+gvec4 texelFetch(gsampler2D sampler, ivec2 P, int lod);
+gvec4 texelFetch(gsampler3D sampler, ivec3 P, int lod);
+gvec4 texelFetch(gsampler2DRect sampler, ivec2 P);
+gvec4 texelFetch(gsampler1DArray sampler, ivec2 P, int lod);
+gvec4 texelFetch(gsampler2DArray sampler, ivec3 P, int lod);
+gvec4 texelFetch(gsamplerBuffer sampler, int P);
+gvec4 texelFetch(gsampler2DMS sampler, ivec2 P, int sample);
+gvec4 texelFetch(gsampler2DMSArray sampler, ivec3 P, int sample);
+
+// Fetch a single texel as in texelFetch offset by offset as described in textureOffset.
+gvec4 texelFetchOffset(gsampler1D sampler, int P, int lod, int offset);
+gvec4 texelFetchOffset(gsampler2D sampler, ivec2 P, int lod, ivec2 offset);
+gvec4 texelFetchOffset(gsampler3D sampler, ivec3 P, int lod, ivec3 offset);
+gvec4 texelFetchOffset(gsampler2DRect sampler, ivec2 P, ivec2 offset);
+gvec4 texelFetchOffset(gsampler1DArray sampler, ivec2 P, int lod, int offset);
+gvec4 texelFetchOffset(gsampler2DArray sampler, ivec3 P, int lod, ivec2 offset);
+// Do a projective texture lookup as described in textureProj offset by offset as described in textureOffset.
+gvec4 textureProjOffset(gsampler1D sampler, vec2 P, int offset [, float bias] );
+gvec4 textureProjOffset(gsampler1D sampler, vec4 P, int offset [, float bias] );
+gvec4 textureProjOffset(gsampler2D sampler, vec3 P, ivec2 offset [, float bias] );
+gvec4 textureProjOffset(gsampler2D sampler, vec4 P, ivec2 offset [, float bias] );
+gvec4 textureProjOffset(gsampler3D sampler, vec4 P, ivec3 offset [, float bias] );
+gvec4 textureProjOffset(gsampler2DRect sampler, vec3 P, ivec2 offset );
+gvec4 textureProjOffset(gsampler2DRect sampler, vec4 P, ivec2 offset );
+float textureProjOffset(sampler2DRectShadow sampler, vec4 P, ivec2 offset );
+float textureProjOffset(sampler1DShadow sampler, vec4 P, int offset [, float bias] );
+float textureProjOffset(sampler2DShadow sampler, vec4 P, ivec2 offset [, float bias] );
+(( Do an offset texture lookup with explicit LOD.
+gvec4 textureLodOffset(gsampler1D sampler, float P, float lod, int offset);
+gvec4 textureLodOffset(gsampler2D sampler, vec2 P, float lod, ivec2 offset);
+gvec4 textureLodOffset(gsampler3D sampler, vec3 P, float lod, ivec3 offset);
+float textureLodOffset(sampler1DShadow sampler, vec3 P, float lod, int offset);
+float textureLodOffset(sampler2DShadow sampler, vec3 P, float lod, ivec2 offset);
+gvec4 textureLodOffset(gsampler1DArray sampler, vec2 P, float lod, int offset);
+gvec4 textureLodOffset(gsampler2DArray sampler, vec3 P, float lod, ivec2 offset);
+float textureLodOffset(sampler1DArrayShadow sampler, vec3 P, float lod, int offset);
+// Do a projective texture lookup with explicit LOD.
+gvec4 textureProjLod(gsampler1D sampler, vec2 P, float lod);
+gvec4 textureProjLod(gsampler1D sampler, vec4 P, float lod);
+gvec4 textureProjLod(gsampler2D sampler, vec3 P, float lod);
+gvec4 textureProjLod(gsampler2D sampler, vec4 P, float lod);
+gvec4 textureProjLod(gsampler3D sampler, vec4 P, float lod);
+float textureProjLod(sampler1DShadow sampler, vec4 P, float lod);
+float textureProjLod(sampler2DShadow sampler, vec4 P, float lod);
+// Do an offset projective texture lookup with explicit LOD.
+gvec4 textureProjLodOffset(gsampler1D sampler, vec2 P, float lod, int offset);
+gvec4 textureProjLodOffset(gsampler1D sampler, vec4 P, float lod, int offset);
+gvec4 textureProjLodOffset(gsampler2D sampler, vec3 P, float lod, ivec2 offset);
+gvec4 textureProjLodOffset(gsampler2D sampler, vec4 P, float lod, ivec2 offset);
+gvec4 textureProjLodOffset(gsampler3D sampler, vec4 P, float lod, ivec3 offset);
+float textureProjLodOffset(sampler1DShadow sampler, vec4 P, float lod, int offset);
+float textureProjLodOffset(sampler2DShadow sampler, vec4 P, float lod, ivec2 offset);
+// Do a texture lookup as in texture but with explicit gradients.
+gvec4 textureGrad(gsampler1D sampler, float P, float dPdx, float dPdy);
+gvec4 textureGrad(gsampler2D sampler, vec2 P, vec2 dPdx, vec2 dPdy);
+gvec4 textureGrad(gsampler3D sampler, vec3 P, vec3 dPdx, vec3 dPdy);
+gvec4 textureGrad(gsamplerCube sampler, vec3 P, vec3 dPdx, vec3 dPdy);
+gvec4 textureGrad(gsampler2DRect sampler, vec2 P, vec2 dPdx, vec2 dPdy);
+float textureGrad(sampler2DRectShadow sampler, vec3 P, vec2 dPdx, vec2 dPdy);
+float textureGrad(sampler1DShadow sampler, vec3 P, float dPdx, float dPdy);
+float textureGrad(sampler2DShadow sampler, vec3 P, vec2 dPdx, vec2 dPdy);
+float textureGrad(samplerCubeShadow sampler, vec4 P, vec3 dPdx, vec3 dPdy);
+gvec4 textureGrad(gsampler1DArray sampler, vec2 P, float dPdx, float dPdy);
+gvec4 textureGrad(gsampler2DArray sampler, vec3 P, vec2 dPdx, vec2 dPdy);
+float textureGrad(sampler1DArrayShadow sampler, vec3 P, float dPdx, float dPdy);
+float textureGrad(sampler2DArrayShadow sampler, vec4 P, vec2 dPdx, vec2 dPdy);
+// Do a texture lookup with both explicit gradient and offset, as described in textureGrad and textureOffset.
+gvec4 textureGradOffset(gsampler1D sampler, float P, float dPdx, float dPdy, int offset);
+gvec4 textureGradOffset(gsampler2D sampler, vec2 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+gvec4 textureGradOffset(gsampler3D sampler, vec3 P, vec3 dPdx, vec3 dPdy, ivec3 offset);
+gvec4 textureGradOffset(gsampler2DRect sampler, vec2 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+float textureGradOffset(sampler2DRectShadow sampler, vec3 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+float textureGradOffset(sampler1DShadow sampler, vec3 P, float dPdx, float dPdy, int offset );
+float textureGradOffset(sampler2DShadow sampler, vec3 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+float textureGradOffset(samplerCubeShadow sampler, vec4 P, vec3 dPdx, vec3 dPdy, ivec2 offset);
+gvec4 textureGradOffset(gsampler1DArray sampler, vec2 P, float dPdx, float dPdy, int offset);
+gvec4 textureGradOffset(gsampler2DArray sampler, vec3 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+float textureGradOffset(sampler1DArrayShadow sampler, vec3 P, float dPdx, float dPdy, int offset);
+float textureGradOffset(sampler2DArrayShadow sampler, vec4 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+
+// Do a texture lookup both projectively, as described in textureProj, and with explicit gradient as described in textureGrad.
+gvec4 textureProjGrad(gsampler1D sampler, vec2 P, float dPdx, float dPdy);
+gvec4 textureProjGrad(gsampler1D sampler, vec4 P, float dPdx, float dPdy);
+gvec4 textureProjGrad(gsampler2D sampler, vec3 P, vec2 dPdx, vec2 dPdy);
+gvec4 textureProjGrad(gsampler2D sampler, vec4 P, vec2 dPdx, vec2 dPdy);
+gvec4 textureProjGrad(gsampler3D sampler, vec4 P, vec3 dPdx, vec3 dPdy);
+gvec4 textureProjGrad(gsampler2DRect sampler, vec3 P, vec2 dPdx, vec2 dPdy);
+gvec4 textureProjGrad(gsampler2DRect sampler, vec4 P, vec2 dPdx, vec2 dPdy);
+float textureProjGrad(sampler2DRectShadow sampler, vec4 P, vec2 dPdx, vec2 dPdy);
+float textureProjGrad(sampler1DShadow sampler, vec4 P, float dPdx, float dPdy);
+float textureProjGrad(sampler2DShadow sampler, vec4 P, vec2 dPdx, vec2 dPdy);
+// Do a texture lookup projectively and with explicit gradient as described in textureProjGrad, as well as with offset, as described in textureOffset.
+gvec4 textureProjGradOffset(gsampler1D sampler, vec2 P, float dPdx, float dPdy, int offset);
+gvec4 textureProjGradOffset(gsampler1D sampler, vec4 P, float dPdx, float dPdy, int offset);
+gvec4 textureProjGradOffset(gsampler2D sampler, vec3 P, vec2 dPdx, vec2 dPdy, vec2 offset);
+gvec4 textureProjGradOffset(gsampler2D sampler, vec4 P, vec2 dPdx, vec2 dPdy, vec2 offset);
+gvec4 textureProjGradOffset(gsampler2DRect sampler, vec3 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+gvec4 textureProjGradOffset(gsampler2DRect sampler, vec4 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+float textureProjGradOffset(sampler2DRectShadow sampler, vec4 P, vec2 dPdx, vec2 dPdy, ivec2 offset);
+gvec4 textureProjGradOffset(gsampler3D sampler, vec4 P, vec3 dPdx, vec3 dPdy, vec3 offset);
+float textureProjGradOffset(sampler1DShadow sampler, vec4 P, float dPdx, float dPdy, int offset);
+float textureProjGradOffset(sampler2DShadow sampler, vec4 P, vec2 dPdx, vec2 dPdy, vec2 offset);
+
+
+/// Deprecated
+
+// Deprecated. See corresponding signature without “1D” in the name.
+vec4 texture1D(sampler1D sampler, float coord [, float bias] );
+vec4 texture1DProj(sampler1D sampler, vec2 coord [, float bias] );
+vec4 texture1DProj(sampler1D sampler, vec4 coord [, float bias] );
+vec4 texture1DLod(sampler1D sampler, float coord, float lod);
+vec4 texture1DProjLod(sampler1D sampler, vec2 coord, float lod);
+vec4 texture1DProjLod(sampler1D sampler, vec4 coord, float lod);
+
+// Deprecated. See corresponding signature without “2D” in the name.
+vec4 texture2D(sampler2D sampler, vec2 coord [, float bias] );
+vec4 texture2DProj(sampler2D sampler, vec3 coord [, float bias] );
+vec4 texture2DProj(sampler2D sampler, vec4 coord [, float bias] );
+vec4 texture2DLod(sampler2D sampler, vec2 coord, float lod);
+vec4 texture2DProjLod(sampler2D sampler, vec3 coord, float lod);
+vec4 texture2DProjLod(sampler2D sampler, vec4 coord, float lod);
+
+// Deprecated. See corresponding signature without “3D” in the name.
+vec4 texture3D(sampler3D sampler, vec3 coord [, float bias] );
+vec4 texture3DProj(sampler3D sampler, vec4 coord [, float bias] );
+vec4 texture3DLod(sampler3D sampler, vec3 coord, float lod);
+vec4 texture3DProjLod(sampler3D sampler, vec4 coord, float lod);
+
+// Deprecated. See corresponding signature without “Cube” in the name.
+vec4 textureCube(samplerCube sampler, vec3 coord [, float bias] );
+vec4 textureCubeLod(samplerCube sampler, vec3 coord, float lod);
+
+// Deprecated. Same functionality as the “texture” based names above with the same signature.
+vec4 shadow1D(sampler1DShadow sampler, vec3 coord [, float bias] );
+vec4 shadow2D(sampler2DShadow sampler, vec3 coord [, float bias] );
+vec4 shadow1DProj(sampler1DShadow sampler, vec4 coord [, float bias] );
+vec4 shadow2DProj(sampler2DShadow sampler, vec4 coord [, float bias] );
+vec4 shadow1DLod(sampler1DShadow sampler, vec3 coord, float lod);
+vec4 shadow2DLod(sampler2DShadow sampler, vec3 coord, float lod);
+vec4 shadow1DProjLod(sampler1DShadow sampler, vec4 coord, float lod);
+vec4 shadow2DProjLod(sampler2DShadow sampler, vec4 coord, float lod);
+
+/**
+* Noise Functions
+*/
+
+// Returns a 1D noise value based on the input value x.
+float noise1(genType x);
+// Returns a 2D noise value based on the input value x.
+vec2 noise2(genType x);
+// Returns a 3D noise value based on the input value x.
+vec3 noise3(genType x);
+// Returns a 4D noise value based on the input value x.
+vec4 noise4(genType x);
