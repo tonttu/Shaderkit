@@ -44,8 +44,8 @@
 // OpenGL(TM) is a trademark of Silicon Graphics, Inc.
 //
 
-#ifndef __GLUT_TEAPOT_H__
-#define __GLUT_TEAPOT_H__
+#ifndef __GLUT_TEAPOT_HPP__
+#define __GLUT_TEAPOT_HPP__
 
 extern "C" {
 
