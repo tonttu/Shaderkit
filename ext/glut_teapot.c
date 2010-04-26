@@ -49,9 +49,7 @@
 // handle and spout data across the y axis only.
 //
 
-#include <OpenGL/gl.h>
-
-#include "glut_teapot.h"
+#include <GL/gl.h>
 
 #define NumTeapotPoints 135
 
@@ -260,6 +258,7 @@ int teapot(GLint grid, GLdouble scale, GLenum type)
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_MAP2_VERTEX_3);
 	glEnable(GL_MAP2_TEXTURE_COORD_2);
+
 	glPushMatrix();
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glScalef(0.5 * scale, 0.5 * scale, 0.5 * scale);
@@ -326,16 +325,15 @@ int teapot(GLint grid, GLdouble scale, GLenum type)
 	glVertex3f(.03f,0,cpdata[131][2]);
 	glVertex3f(0,.03f,cpdata[131][2]);
 
-#if 0
 	// Close off the spout.
 	glNormal3f(0, 0, 1);
-	for (int i = 135; i < 143; ++i)
+	for (i= 135; i < 143; ++i)
 		glVertex3fv(cpdata[i]);
-#endif
 
 	glEnd();
 
 	glPopMatrix();
 	glPopAttrib();
+
 	return numVertices;
 }

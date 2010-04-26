@@ -47,7 +47,10 @@
 #ifndef __GLUT_TEAPOT_H__
 #define __GLUT_TEAPOT_H__
 
+extern "C" {
+
 // Returns the number of vertices sent to GL.
 int teapot(GLint grid, GLdouble scale, GLenum type);
 
+}
 #endif
