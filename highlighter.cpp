@@ -84,30 +84,30 @@ void Highlighter::loadConfig() {
   /// @todo All these should be loadable from some kind of config file run time,
   //        maybe with the help of setProperty and QVariant.
 
-  errorFormat.setUnderlineColor(Qt::red);
-  errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+  m_errorFormat.setUnderlineColor(Qt::red);
+  m_errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
 
-  commentFormat.setFontItalic(true);
-  commentFormat.setForeground(Qt::darkGray);
+  m_commentFormat.setFontItalic(true);
+  m_commentFormat.setForeground(Qt::darkGray);
 
-  ppFormat.setForeground(Qt::darkMagenta);
+  m_ppFormat.setForeground(Qt::darkMagenta);
 
-  typeFormat.setForeground(Qt::darkBlue);
+  m_typeFormat.setForeground(Qt::darkBlue);
 
-  constantFormat.setForeground(QColor(100, 30, 30));
+  m_constantFormat.setForeground(QColor(100, 30, 30));
 
-  keywordFormat.setFontWeight(QFont::Bold);
+  m_keywordFormat.setFontWeight(QFont::Bold);
 
-  qualifierFormat.setForeground(Qt::darkCyan);
+  m_qualifierFormat.setForeground(Qt::darkCyan);
 
-  /* operatorFormat, parenthesesFormat, buildinVarFormat, idFormat */
+  /* m_operatorFormat, m_parenthesesFormat, m_buildinVarFormat, m_idFormat */
 }
 
 void Highlighter::highlightBlock(const QString &text) {
   // Maps SyntaxType to format
-  static QTextCharFormat* formats[] = { &errorFormat, &commentFormat, &ppFormat, &typeFormat,
-    &qualifierFormat, &keywordFormat, &constantFormat, &operatorFormat, &parenthesesFormat,
-    &buildinVarFormat, &idFormat };
+  static QTextCharFormat* formats[] = { &m_errorFormat, &m_commentFormat, &m_ppFormat,
+    &m_typeFormat, &m_qualifierFormat, &m_keywordFormat, &m_constantFormat, &m_operatorFormat,
+    &m_parenthesesFormat, &m_buildinVarFormat, &m_idFormat };
 
   std::string ascii = text.toStdString();
   yyset_scan_string(ascii.c_str(), ascii.size());

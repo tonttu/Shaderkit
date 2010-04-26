@@ -5,7 +5,7 @@
 
 class Watchable;
 typedef boost::shared_ptr<Watchable> WatchablePtr;
-class Watcher
+class Watcher;
 
 class ShaderLexer;
 

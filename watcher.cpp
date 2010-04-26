@@ -1,11 +1,13 @@
 #include "watcher.hpp"
 
 #include <QDir>
+#include <QDebug>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+Watcher::WatchableObj::WatchableObj() : inode(0) {}
 Watcher::WatchableObj::WatchableObj(WatchablePtr obj_, ino_t inode_)
   : obj(obj_), inode(inode_) {}
 
@@ -31,8 +33,8 @@ void Watcher::add(WatchablePtr obj, const QString& filename) {
   // (first renaming the old one to backup file and then renaming temp file to the
   // target file), normal inotify watching fails. We make extra check for inode changes.
   struct stat buf;
-  if (stat(file.toStdString().c_str(), &buf)) {
-    qDebug() << "Could not watch" << file;
+  if (stat(filename.toStdString().c_str(), &buf)) {
+    qDebug() << "Could not watch" << filename;
     return;
   }
 
@@ -83,7 +85,7 @@ void Watcher::forgetDir(const QString& filename) {
   QFileInfo info(filename);
   QString dir = info.absolutePath();
 
-  m_directories[dir].remove(file);
+  m_directories[dir].remove(filename);
 
   // Forget the directory watch, if there aren't any interesting files left
   if (m_directories[dir].empty()) {
@@ -97,7 +99,7 @@ void Watcher::updateDir(const QString& dir) {
 
   // tmp is a set of missing files in the directory. We try to update() every
   // one of these. If any of those succeed, the update will forgetDir it.
-  QSet<QString> tmp = m_directories[path];
+  QSet<QString> tmp = m_directories[dir];
   for (QSet<QString>::iterator it = tmp.begin(); it != tmp.end(); it++)
     update(*it);
 }

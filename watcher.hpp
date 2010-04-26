@@ -5,7 +5,7 @@
 
 #include <QFileSystemWatcher>
 #include <QMap>
-#include <QPair>
+#include <QSet>
 
 /**
  * Watchable interface for every object that uses Watcher.
@@ -38,6 +38,7 @@ private:
 
   /// Every listening object have one of these in the m_objects map
   struct WatchableObj {
+    WatchableObj();
     WatchableObj(WatchablePtr obj, ino_t inode);
     WatchablePtr obj;
     ino_t inode; /// last known inode number for the file
