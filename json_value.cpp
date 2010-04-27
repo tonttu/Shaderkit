@@ -1,7 +1,9 @@
 #include "json_value.hpp"
 
+#include <QStringList>
+
 #include <string>
-#include <ostream>
+#include <sstream>
 
 /// Encodes string like specified in the JSON specification
 /// @todo actually fails if there is a unicode character, that has one
@@ -47,40 +49,96 @@ static void save_array(std::ostream& os, const Value::Vector& array) {
   os << ']';
 }
 
-Value::Value(Type t) : type(t) {
-  if (type == String) data.s = new QString;
-  else if (type == Object) data.o = new Map;
-  else if (type == Array) data.a = new Vector;
-  else if (type == Double) data.d = 0.0;
-  else if (type == Integer) data.i = 0;
+template <typename T> static T convert(const QString& str) {
+  std::istringstream ss(str.toStdString());
+  T t;
+  ss >> t;
+  return t;
+}
+template <typename T> static QString convert(const T& t) {
+  std::ostringstream ss;
+  ss << t;
+  return QString::fromStdString(ss.str());
 }
 
-Value::Value(double d) : type(Double) {
-  data.d = d;
+
+Value::Value(Type t) : m_type(t) {
+  if (t == String) m_data.s = new QString;
+  else if (t == Object) m_data.o = new Map;
+  else if (t == Array) m_data.a = new Vector;
+  else if (t == Double) m_data.d = 0.0;
+  else if (t == Integer) m_data.i = 0;
 }
 
-Value::Value(const QString& str) : type(String) {
-  data.s = new QString(str);
+Value::Value(double d) : m_type(Double) {
+  m_data.d = d;
 }
 
-Value::Value(const std::string& str) : type(String) {
-  data.s = new QString(str.c_str());
+Value::Value(const QString& str) : m_type(String) {
+  m_data.s = new QString(str);
+}
+
+Value::Value(const std::string& str) : m_type(String) {
+  m_data.s = new QString(str.c_str());
 }
 
 Value::~Value() {
-  if (type == String) delete data.s;
-  else if (type == Object) delete data.o;
-  else if (type == Array) delete data.a;
+  if (m_type == String) delete m_data.s;
+  else if (m_type == Object) delete m_data.o;
+  else if (m_type == Array) delete m_data.a;
 }
 
 /// @todo actually use level for something
 void Value::save(std::ostream& os, int /* level */) const {
-  if (type == String) save_str(os, *data.s);
-  else if (type == Double) os << data.d;
-  else if (type == Integer) os << data.i;
-  else if (type == Object) save_object(os, *data.o);
-  else if (type == Array) save_array(os, *data.a);
-  else if (type == True) os << "true";
-  else if (type == False) os << "false";
-  else if (type == Null) os << "null";
+  if (m_type == String) save_str(os, *m_data.s);
+  else if (m_type == Double) os << m_data.d;
+  else if (m_type == Integer) os << m_data.i;
+  else if (m_type == Object) save_object(os, *m_data.o);
+  else if (m_type == Array) save_array(os, *m_data.a);
+  else if (m_type == True) os << "true";
+  else if (m_type == False) os << "false";
+  else if (m_type == Null) os << "null";
+}
+
+QString Value::str(const QString& path, const QString& def, bool* ok) const {
+  Value v = find(path);
+  if (v.m_type == String) { if (ok) *ok = true; return *v.m_data.s; }
+  if (v.m_type == Double) { if (ok) *ok = true; return convert(v.m_data.d); }
+  if (v.m_type == Integer) { if (ok) *ok = true; return convert(v.m_data.i); }
+  if (v.m_type == True) { if (ok) *ok = true; return convert(true); }
+  if (v.m_type == False) { if (ok) *ok = true; return convert(false); }
+  if (ok) *ok = false;
+  return def;
+}
+
+Value Value::find(const QString &path) const {
+  QStringList pieces = path.split(".", QString::SkipEmptyParts);
+  QStringList::iterator it = pieces.begin();
+
+  if (it == pieces.end()) return *this;
+
+  Value out = operator[](*it++);
+  while (it != pieces.end()) out = out[*it++];
+  return out;
+}
+
+bool Value::valid() const {
+  return m_type != None;
+}
+
+Value Value::operator[](const QString& key) const {
+  if (m_type == Object) {
+    Value::Map& map = *m_data.o;
+    Value::Map::const_iterator it = map.find(key);
+    if (it != map.end()) return it->second;
+  }
+  return Value();
+}
+
+Value Value::operator[](size_t index) const {
+  if (m_type == Array) {
+    Value::Vector& array = *m_data.a;
+    if (index < array.size()) return array[index];
+  }
+  return Value();
 }
