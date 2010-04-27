@@ -22,7 +22,8 @@ HEADERS += forward.hpp \
     ext/glut_teapot.hpp \
     glsl.tab.hpp \
     state.hpp \
-    json_value.hpp
+    json_value.hpp \
+    light.hpp
 
 SOURCES += glsl.tab.cpp \
     lex.yy.c \
@@ -32,7 +33,8 @@ SOURCES += glsl.tab.cpp \
     ext/glut_teapot.c \
     main.cpp \
     state.cpp \
-    json_value.cpp
+    json_value.cpp \
+    light.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

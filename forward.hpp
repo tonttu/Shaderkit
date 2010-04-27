@@ -11,6 +11,9 @@ class ShaderLexer;
 
 class Highlighter;
 
+class Light;
+typedef boost::shared_ptr<Light> LightPtr;
+
 class State;
 
 struct Value;
