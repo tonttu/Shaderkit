@@ -13,4 +13,6 @@ class Highlighter;
 
 class State;
 
+struct Value;
+
 #endif
