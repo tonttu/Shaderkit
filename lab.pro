@@ -20,7 +20,8 @@ HEADERS += forward.hpp \
     lexer.hpp \
     watcher.hpp \
     ext/glut_teapot.hpp \
-    glsl.tab.hpp
+    glsl.tab.hpp \
+    state.hpp
 
 SOURCES += glsl.tab.cpp \
     lex.yy.c \
@@ -28,7 +29,8 @@ SOURCES += glsl.tab.cpp \
     highlighter.cpp \
     watcher.cpp \
     ext/glut_teapot.c \
-    main.cpp
+    main.cpp \
+    state.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

@@ -11,4 +11,6 @@ class ShaderLexer;
 
 class Highlighter;
 
+class State;
+
 #endif
