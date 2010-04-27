@@ -18,4 +18,8 @@ class State;
 
 struct Value;
 
+class QColor;
+class QVector3D;
+class QVector4D;
+
 #endif

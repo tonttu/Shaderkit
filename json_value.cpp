@@ -1,6 +1,9 @@
 #include "json_value.hpp"
 
 #include <QStringList>
+#include <QColor>
+#include <QVector3D>
+#include <QVector4D>
 
 #include <string>
 #include <sstream>
@@ -101,17 +104,12 @@ void Value::save(std::ostream& os, int /* level */) const {
 }
 
 QString Value::str(const QString& path, const QString& def, bool* ok) const {
-  Value v = find(path);
-  if (v.m_type == String) { if (ok) *ok = true; return *v.m_data.s; }
-  if (v.m_type == Double) { if (ok) *ok = true; return convert(v.m_data.d); }
-  if (v.m_type == Integer) { if (ok) *ok = true; return convert(v.m_data.i); }
-  if (v.m_type == True) { if (ok) *ok = true; return convert(true); }
-  if (v.m_type == False) { if (ok) *ok = true; return convert(false); }
-  if (ok) *ok = false;
-  return def;
+  QString out = def;
+  if (ok) *ok = to(out, path); else to(out, path);
+  return out;
 }
 
-Value Value::find(const QString &path) const {
+Value Value::find(const QString& path) const {
   QStringList pieces = path.split(".", QString::SkipEmptyParts);
   QStringList::iterator it = pieces.begin();
 
@@ -120,6 +118,72 @@ Value Value::find(const QString &path) const {
   Value out = operator[](*it++);
   while (it != pieces.end()) out = out[*it++];
   return out;
+}
+
+bool Value::to(QColor& color, const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == Array && v.m_data.a->size() == 4) {
+    Vector& array = *v.m_data.a;
+    double f[4];
+    for (int i = 0; i < 4; i++) if (!array[i].to(f[i])) return false;
+    color.setRgbF(f[0], f[1], f[2], f[3]);
+    return true;
+  }
+  return false;
+}
+
+bool Value::to(QVector3D& vector, const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == Array && v.m_data.a->size() == 3) {
+    Vector& array = *v.m_data.a;
+    double f[3];
+    for (int i = 0; i < 3; i++) if (!array[i].to(f[i])) return false;
+    vector = QVector3D(f[0], f[1], f[2]);
+    return true;
+  }
+  return false;
+}
+
+bool Value::to(QVector4D& vector, const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == Array && v.m_data.a->size() == 4) {
+    Vector& array = *v.m_data.a;
+    double f[4];
+    for (int i = 0; i < 4; i++) if (!array[i].to(f[i])) return false;
+    vector = QVector4D(f[0], f[1], f[2], f[3]);
+    return true;
+  }
+  return false;
+}
+
+bool Value::to(double& f, const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == String) { f = convert<double>(*v.m_data.s); return true; }
+  if (v.m_type == Double) { f = v.m_data.d; return true; }
+  if (v.m_type == Integer) { f = static_cast<double>(v.m_data.i); return true; }
+  if (v.m_type == True) { f = 1.0; return true; }
+  if (v.m_type == False) { f = 0.0; return true; }
+  return false;
+}
+
+bool Value::to(float& f, const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == String) { f = convert<float>(*v.m_data.s); return true; }
+  if (v.m_type == Double) { f = static_cast<float>(v.m_data.d); return true; }
+  if (v.m_type == Integer) { f = static_cast<float>(v.m_data.i); return true; }
+  if (v.m_type == True) { f = 1.0f; return true; }
+  if (v.m_type == False) { f = 0.0f; return true; }
+  return false;
+}
+
+bool Value::to(QString& str, const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == String) { str = *v.m_data.s; return true; }
+  if (v.m_type == Double) { str = convert(v.m_data.d); return true; }
+  if (v.m_type == Integer) { str = convert(v.m_data.i); return true; }
+  if (v.m_type == True) { str = "1"; return true; }
+  if (v.m_type == False) { str = "0"; return true; }
+  return false;
 }
 
 bool Value::valid() const {

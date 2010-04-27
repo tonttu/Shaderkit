@@ -56,6 +56,19 @@ public:
    */
   Value find(const QString &path) const;
 
+  /// Converts find(path) to color, returns if the conversion was successful
+  bool to(QColor& color, const QString& path = "") const;
+  /// Converts find(path) to vector, returns if the conversion was successful
+  bool to(QVector3D& vector, const QString& path = "") const;
+  /// Converts find(path) to vector, returns if the conversion was successful
+  bool to(QVector4D& vector, const QString& path = "") const;
+  /// Converts find(path) to float, returns if the conversion was successful
+  bool to(float& f, const QString& path = "") const;
+  /// Converts find(path) to double, returns if the conversion was successful
+  bool to(double& f, const QString& path = "") const;
+  /// Converts find(path) to string, returns if the conversion was successful
+  bool to(QString& str, const QString& path = "") const;
+
   /// Returns if this a valid Value (m_type != None)
   bool valid() const;
 

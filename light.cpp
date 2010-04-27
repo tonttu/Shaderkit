@@ -1,5 +1,6 @@
 #include "light.hpp"
 #include "state.hpp"
+#include "json_value.hpp"
 
 #include <QtOpenGL>
 #include <iostream>
@@ -55,4 +56,17 @@ void Light::activate(State& state) {
 void Light::deactivate(State& state) {
   state.setLight(m_id, false);
   m_id = -1;
+}
+
+void Light::load(const Value& value) {
+  if (value.str("type") == "spot") m_type = Light::Spot;
+  if (value.str("type") == "direction") m_type = Light::Direction;
+
+  value.to(m_ambient, "ambient");
+  value.to(m_diffuse, "diffuse");
+  value.to(m_specular, "specular");
+  value.to(m_position, "position");
+  value.to(m_target, "target");
+  value.to(m_direction, "direction");
+  value.to(m_spot_cutoff, "spot cutoff");
 }

@@ -21,6 +21,9 @@ public:
   /// Disables the light
   void deactivate(State& state);
 
+  /// Load the light from JSON Value
+  void load(const Value& value);
+
 protected:
   QString m_name;
   Type m_type;
