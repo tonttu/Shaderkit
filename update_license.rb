@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+
+$license =<<EOL
 /**
  * Copyright 2010 Riku Palomäki.
  * This file is part of GLSL Lab.
@@ -16,8 +19,20 @@
  * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-in float gl_FogFragCoord;
-in vec4 gl_TexCoord[];
-in vec4 gl_Color;
-in vec4 gl_SecondaryColor;
+EOL
 
+if ARGV.empty?
+  puts "Usage: #{$0} <files>"
+  exit 1
+end
+
+ARGV.each do |filename|
+  txt = File.read filename
+  old = nil
+  if txt.sub!(%r{\A(?:/\*.*?\*/|\s)*}m){|str| old = str; $license } && old != $license
+    File.open(filename, 'w') {|f| f.write txt}
+    puts "Updated   #{filename}"
+  else
+    puts "Unchanged #{filename}"
+  end
+end
