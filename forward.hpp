@@ -9,6 +9,7 @@ class Watcher;
 
 class ShaderLexer;
 class ShaderError;
+class ShaderCompilerOutputParser;
 
 class Highlighter;
 
