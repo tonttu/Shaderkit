@@ -31,7 +31,8 @@ HEADERS += forward.hpp \
     shader/uniform.hpp \
     shader/shader.hpp \
     shader/program.hpp \
-    editor.hpp
+    editor.hpp \
+    renderpass.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -51,7 +52,8 @@ SOURCES += shader/glsl.tab.cpp \
     shader/uniform.cpp \
     shader/shader.cpp \
     shader/program.cpp \
-    editor.cpp
+    editor.cpp \
+    renderpass.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

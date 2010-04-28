@@ -38,9 +38,12 @@ class Highlighter;
 
 class Light;
 typedef boost::shared_ptr<Light> LightPtr;
-
 class Camera;
 typedef boost::shared_ptr<Camera> CameraPtr;
+class Scene;
+typedef boost::shared_ptr<Scene> ScenePtr;
+class RenderPass;
+typedef boost::shared_ptr<RenderPass> RenderPassPtr;
 
 class State;
 
