@@ -2,7 +2,7 @@
 #define LEXER_HPP
 
 extern "C" {
-#include "glsl.tab.hpp"
+#include "shader/glsl.tab.hpp"
 
   void yyset_scan_string(const char *str, int len);
 

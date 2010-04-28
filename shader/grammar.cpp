@@ -1,5 +1,5 @@
-#include "grammar.hpp"
-#include "lexer.hpp"
+#include "shader/grammar.hpp"
+#include "shader/lexer.hpp"
 
 #include <QFile>
 

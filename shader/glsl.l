@@ -1,5 +1,5 @@
 %{
-#include "glsl.tab.hpp"
+#include "shader/glsl.tab.hpp"
 static int s_column, s_line, s_pos;
 %}
 

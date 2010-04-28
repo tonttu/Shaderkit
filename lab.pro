@@ -1,26 +1,26 @@
 QT += opengl
 
 QMAKE_EXTRA_COMPILERS += bison
-bison.output = glsl.tab.cpp glsl.tab.hpp
-bison.commands = bison -v -d -t -o glsl.tab.cpp ${QMAKE_FILE_IN}
+bison.output = shader/glsl.tab.cpp shader/glsl.tab.hpp
+bison.commands = bison -v -d -t -o shader/glsl.tab.cpp ${QMAKE_FILE_IN}
 bison.input = BISON_FILES
 bison.CONFIG = no_link
-BISON_FILES = glsl.y
+BISON_FILES = shader/glsl.y
 
 QMAKE_EXTRA_COMPILERS += flex
-flex.output = lex.yy.c
-flex.commands = flex ${QMAKE_FILE_IN}
+flex.output = shader/lex.yy.c
+flex.commands = flex -o shader/lex.yy.c ${QMAKE_FILE_IN}
 flex.input = FLEX_FILES
 flex.CONFIG = no_link
-FLEX_FILES = glsl.l
+FLEX_FILES = shader/glsl.l
 
 HEADERS += forward.hpp \
-    grammar.hpp \
+    shader/grammar.hpp \
     highlighter.hpp \
-    lexer.hpp \
+    shader/lexer.hpp \
     watcher.hpp \
     ext/glut_teapot.hpp \
-    glsl.tab.hpp \
+    shader/glsl.tab.hpp \
     state.hpp \
     json_value.hpp \
     light.hpp \
@@ -28,9 +28,9 @@ HEADERS += forward.hpp \
     object3d.hpp \
     shader/error.hpp
 
-SOURCES += glsl.tab.cpp \
-    lex.yy.c \
-    grammar.cpp \
+SOURCES += shader/glsl.tab.cpp \
+    shader/lex.yy.c \
+    shader/grammar.cpp \
     highlighter.cpp \
     watcher.cpp \
     ext/glut_teapot.c \
