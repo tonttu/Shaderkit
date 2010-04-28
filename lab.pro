@@ -34,7 +34,8 @@ SOURCES += glsl.tab.cpp \
     main.cpp \
     state.cpp \
     json_value.cpp \
-    light.cpp
+    light.cpp \
+    json_parser.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

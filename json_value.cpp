@@ -206,3 +206,13 @@ Value Value::operator[](size_t index) const {
   }
   return Value();
 }
+
+Value::Map& Value::getMap() {
+  assert(m_type == Object);
+  return *m_data.o;
+}
+
+Value::Vector& Value::getArray() {
+  assert(m_type == Array);
+  return *m_data.a;
+}

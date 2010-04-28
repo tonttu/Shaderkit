@@ -77,6 +77,15 @@ public:
   /// If this is an "Array", return the Value with at the position index
   Value operator[](size_t index) const;
 
+  /// Loads the file, parses it and stores it into this
+  /// Implementation in json_parser.cpp
+  bool load(const QString& filename);
+
+  /// Returns the reference to the Map. Precondition: m_type == Object
+  Value::Map& getMap();
+  /// Returns the reference to the Vector. Precondition: m_type == Array
+  Value::Vector& getArray();
+
 protected:
 
   Type m_type;
