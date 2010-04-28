@@ -30,7 +30,8 @@ HEADERS += forward.hpp \
     shader/compiler_output_parser.hpp \
     shader/uniform.hpp \
     shader/shader.hpp \
-    shader/program.hpp
+    shader/program.hpp \
+    editor.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -49,7 +50,8 @@ SOURCES += shader/glsl.tab.cpp \
     shader/compiler_output_parser.cpp \
     shader/uniform.cpp \
     shader/shader.cpp \
-    shader/program.cpp
+    shader/program.cpp \
+    editor.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

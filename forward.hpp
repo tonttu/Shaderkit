@@ -51,6 +51,9 @@ typedef boost::shared_ptr<Object3D> ObjectPtr;
 class Teapot;
 class Box;
 
+class Editor;
+class EditorMargin;
+
 class QColor;
 class QVector3D;
 class QVector4D;
