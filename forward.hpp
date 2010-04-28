@@ -14,6 +14,9 @@ class Highlighter;
 class Light;
 typedef boost::shared_ptr<Light> LightPtr;
 
+class Camera;
+typedef boost::shared_ptr<Camera> CameraPtr;
+
 class State;
 
 struct Value;

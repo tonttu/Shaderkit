@@ -59,8 +59,8 @@ void Light::deactivate(State& state) {
 }
 
 void Light::load(const Value& value) {
-  if (value.str("type") == "spot") m_type = Light::Spot;
-  if (value.str("type") == "direction") m_type = Light::Direction;
+  if (value.str("type") == "spot") m_type = Spot;
+  if (value.str("type") == "direction") m_type = Direction;
 
   value.to(m_ambient, "ambient");
   value.to(m_diffuse, "diffuse");

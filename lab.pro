@@ -23,7 +23,8 @@ HEADERS += forward.hpp \
     glsl.tab.hpp \
     state.hpp \
     json_value.hpp \
-    light.hpp
+    light.hpp \
+    camera.hpp
 
 SOURCES += glsl.tab.cpp \
     lex.yy.c \
@@ -35,7 +36,8 @@ SOURCES += glsl.tab.cpp \
     state.cpp \
     json_value.cpp \
     light.cpp \
-    json_parser.cpp
+    json_parser.cpp \
+    camera.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \
