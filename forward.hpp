@@ -25,4 +25,9 @@ class QColor;
 class QVector3D;
 class QVector4D;
 
+class Object3D;
+typedef boost::shared_ptr<Object3D> ObjectPtr;
+class Teapot;
+class Box;
+
 #endif
