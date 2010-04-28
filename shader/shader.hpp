@@ -20,6 +20,7 @@
 #define SHADER_SHADER_HPP
 
 #include "forward.hpp"
+#include "shader/error.hpp"
 
 #include <QObject>
 #include <QGLShader>
@@ -53,17 +54,25 @@ public:
    */
   bool loadSrc(const QString& data);
 
+  /// compile() returns the compile status
+  enum CompileStatus {
+    NONE,     /// Nothing was made, m_needCompile was already false
+    ERRORS,   /// The program was compiled with errors or there was an internal error
+              /// (couldn't parse the output, wrong OpenGL context or something similar)
+    WARNINGS, /// The program was compiled with non-fatal errors or warnings
+    OK        /// The program was compiled successfully
+  };
+
   /**
-   * Compiles the shader, if m_needCompile is true. Returns list of compile errors.
+   * Compiles the shader, if m_needCompile is true. Returns the outcome of the
+   * compiling and fills the ErrorList given as a reference.
    *
    * Sets the m_needCompile to false even if the compiling failed, since broken
    * code won't work even if compiled many times..
    *
-   * @param compiled Will be set to true if the shader was compiled successfully,
-   *                 false means that either the shader was already compiled, or
-   *                 there was an error while compiling.
+   * @param errors All the compile errors will be appended to the list.
    */
-  QList<ShaderError> compile(bool& compiled);
+  CompileStatus compile(ShaderError::List& errors);
 
   /**
    * If the shader was once loaded from a file, return the original filename or
@@ -81,8 +90,10 @@ protected:
   /**
    * Recompiles the shader in a way that the error list can be generated.
    * Call this only if there are some errors with the shader.
+   *
+   * Returns true if the output parsing is successful.
    */
-  static QList<ShaderError> handleCompilerOutput(QGLShader& shader, const QString& src);
+  static bool handleCompilerOutput(QGLShader& shader, const QString& src, ShaderError::List& errors);
 
   /// The actual wrapped shader object
   /// @todo should we just use plain OpenGL API, since QGLShader hardly gives

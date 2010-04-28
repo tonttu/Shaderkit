@@ -27,6 +27,10 @@
  */
 class ShaderError {
 public:
+  /// @todo move to global namespace, so we don't need to include this file
+  ///       to use the typedef
+  typedef QList<ShaderError> List;
+
   ShaderError();
   /**
    * @param type Should be "error" or "warning", but might also be

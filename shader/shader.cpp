@@ -17,6 +17,7 @@
  */
 
 #include "shader/shader.hpp"
+#include "shader/program.hpp"
 #include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
 
@@ -40,32 +41,35 @@ bool Shader::loadSrc(const QString& data) {
   if (m_src != data) {
     m_src = data;
     m_needCompile = true;
-    // m_prog->setIsCompiled(false);
+    // Tell the program object, that it needs to recompile stuff
+    m_prog->setIsCompiled(false);
     return true;
   }
   return false;
 }
 
-QList<ShaderError> Shader::compile(bool& compiled) {
+Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
   if (m_needCompile) {
     m_needCompile = false;
     if (!m_shader) m_shader = new QGLShader(m_type, this);
 
-    compiled = m_shader->compileSourceCode(m_src);
+    bool ok = m_shader->compileSourceCode(m_src);
 
     GLint len = 0;
     glGetShaderiv(m_shader->shaderId(), GL_INFO_LOG_LENGTH, &len);
     // len may include the zero byte
-    if (len > 1) return handleCompilerOutput(*m_shader, m_src);
+    if (len > 1) {
+      bool parse_ok = handleCompilerOutput(*m_shader, m_src, errors);
+      return ok && parse_ok ? WARNINGS : ERRORS;
+    } else {
+      return ok ? OK : ERRORS;
+    }
   } else {
-    compiled = false;
+    return NONE;
   }
-  return QList<ShaderError>();
 }
 
-QList<ShaderError> Shader::handleCompilerOutput(QGLShader& shader, const QString& src) {
-  QList<ShaderError> errors;
-
+bool Shader::handleCompilerOutput(QGLShader& shader, const QString& src, ShaderError::List& errors) {
   // Split the source tokens to lines so that we can find the exact error location
   ShaderLexer lexer;
   lexer.loadSrc(src);
@@ -81,11 +85,14 @@ QList<ShaderError> Shader::handleCompilerOutput(QGLShader& shader, const QString
 
   // Usually this shouldn't happen, since this function is called only
   // when there actually are some errors in the source code.
-  if (len < 1) return errors;
+  if (len < 1) return false;
 
   // Read the info log
   GLchar log[len];
   glGetShaderInfoLog(shader.shaderId(), len, &len, log);
+
+  // unless we get something parsed from the output, we think this as a failure
+  bool ok = false;
 
   ShaderCompilerOutputParser parser(QString::fromAscii(log, len));
   while (parser.left()) {
@@ -95,6 +102,7 @@ QList<ShaderError> Shader::handleCompilerOutput(QGLShader& shader, const QString
     e.setColumn(token.column);
     e.setLength(token.len);
     errors.push_back(e);
+    ok = true;
   }
-  return errors;
+  return ok;
 }

@@ -32,6 +32,8 @@
  */
 class UniformVar {
 public:
+  typedef QVector<UniformVar> List;
+
   /// Constructs an invalid variable, exists only for QMap etc.
   UniformVar();
 

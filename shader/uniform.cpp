@@ -119,6 +119,8 @@ const ShaderTypeInfo& ShaderTypeInfo::typeInfo(GLenum type) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+UniformVar::UniformVar() : m_type(0), m_size(0) {}
+
 UniformVar::UniformVar(QGLShaderProgram& prog, QString name, GLenum type)
     : m_name(name), m_type(type), m_size(1) {
   const ShaderTypeInfo& info = ShaderTypeInfo::typeInfo(type);
