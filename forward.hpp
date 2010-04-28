@@ -8,6 +8,7 @@ typedef boost::shared_ptr<Watchable> WatchablePtr;
 class Watcher;
 
 class ShaderLexer;
+class ShaderError;
 
 class Highlighter;
 

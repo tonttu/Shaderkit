@@ -25,7 +25,8 @@ HEADERS += forward.hpp \
     json_value.hpp \
     light.hpp \
     camera.hpp \
-    object3d.hpp
+    object3d.hpp \
+    shader/error.hpp
 
 SOURCES += glsl.tab.cpp \
     lex.yy.c \
@@ -39,7 +40,8 @@ SOURCES += glsl.tab.cpp \
     light.cpp \
     json_parser.cpp \
     camera.cpp \
-    object3d.cpp
+    object3d.cpp \
+    shader/error.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \
