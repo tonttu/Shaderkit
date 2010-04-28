@@ -28,6 +28,7 @@ class Watcher;
 class ShaderLexer;
 class ShaderError;
 class ShaderCompilerOutputParser;
+class UniformVar;
 
 class Highlighter;
 
@@ -41,13 +42,14 @@ class State;
 
 struct Value;
 
-class QColor;
-class QVector3D;
-class QVector4D;
-
 class Object3D;
 typedef boost::shared_ptr<Object3D> ObjectPtr;
 class Teapot;
 class Box;
+
+class QColor;
+class QVector3D;
+class QVector4D;
+class QGLShaderProgram;
 
 #endif

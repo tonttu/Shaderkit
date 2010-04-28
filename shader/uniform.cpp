@@ -20,14 +20,16 @@
 
 #include <QtOpenGL>
 
+#include <stdexcept>
+
 /**
  * Uniform variable type info class, makes easier to implement more generic
  * code that does something with uniform variables.
  */
 struct ShaderTypeInfo {
-  typedef void (*FloatSetter)(GLint, GLsizei, const GLfloat *);
-  typedef void (*IntSetter)(GLint, GLsizei, const GLint *);
-  typedef void (*MatrixSetter)(GLint, GLsizei, GLboolean, const GLfloat *);
+  typedef void (*FloatSetter)(GLint, GLsizei, const GLfloat*);
+  typedef void (*IntSetter)(GLint, GLsizei, const GLint*);
+  typedef void (*MatrixSetter)(GLint, GLsizei, GLboolean, const GLfloat*);
 
   /**
    * Constructor that also stores all the type information of given OpenGL type.
@@ -112,4 +114,95 @@ const ShaderTypeInfo& ShaderTypeInfo::typeInfo(GLenum type) {
   QMap<GLenum, ShaderTypeInfo>::const_iterator it = types.find(type);
   if (it != types.end()) return *it;
   return types[GL_FALSE];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+UniformVar::UniformVar(QGLShaderProgram& prog, QString name, GLenum type)
+    : m_name(name), m_type(type), m_size(1) {
+  const ShaderTypeInfo& info = ShaderTypeInfo::typeInfo(type);
+  if (info.size <= 0) throw std::runtime_error("Unknown Uniform variable type");
+
+  m_location.push_back(glGetUniformLocation(prog.programId(), name.toStdString().c_str()));
+
+  /// @todo Do we know if the array locations are in adjacent locations?
+  ///       location[n] seems to be always location[0] + n, and glUniform*v
+  ///       -functions allow changing the whole array with only the location
+  ///       of the first element.
+  for (int i = 1;; ++i) {
+    GLint l = glGetUniformLocation(prog.programId(),
+        (name + '[' + QString::number(i) + ']').toStdString().c_str());
+    if (l >= 0) {
+      m_location.push_back(l);
+      ++m_size;
+    } else break; // the end of the array, or not an array at all
+  }
+
+  if (info.is_float) {
+    // For example vec3[6] needs 6*3 floats
+    m_floatdata.resize(m_size * info.size);
+    for (size_t i = 0; i < m_size; ++i) {
+      glGetUniformfv(prog.programId(), m_location[i], &m_floatdata.front() + i * info.size);
+    }
+  } else {
+    m_intdata.resize(m_size * info.size);
+    for (size_t i = 0; i < m_size; i++) {
+      glGetUniformiv(prog.programId(), m_location[i], &m_intdata.front() + i * info.size);
+    }
+  }
+}
+
+void UniformVar::set(QGLShaderProgram& prog, bool relocate) {
+  const ShaderTypeInfo& info = ShaderTypeInfo::typeInfo(m_type);
+
+  /// @todo should we set every array element one by one?
+  ///       Things wouldn't break so easy if the array size changes.
+  /*
+  for (int i = 0; i < m_size; ++i) {
+    GLint loc = m_location[i];
+    if (relocate) loc = glGetUniformLocation(prog.programId(), (i == 0 ? m_name :
+        m_name + '[' + QString::number(i) + ']').toStdString().c_str());
+
+    if (loc == -1) continue;
+  }
+  */
+
+  GLint loc = m_location[0];
+  if (relocate) loc = glGetUniformLocation(prog.programId(), m_name.toStdString().c_str());
+
+  if (loc == -1) return;
+
+  if (info.is_matrix) {
+    info.matrix_setter(loc, m_size, 0, &m_floatdata.front());
+  } else if (info.is_float) {
+    assert(!m_floatdata.empty());
+    info.float_setter(loc, m_size, &m_floatdata.front());
+  } else {
+    assert(!m_intdata.empty());
+    info.int_setter(loc, m_size, &m_intdata.front());
+  }
+}
+
+QVariant UniformVar::getValue(QVariant::Type t, int idx) {
+  const ShaderTypeInfo& info = ShaderTypeInfo::typeInfo(m_type);
+
+  QVariant qv;
+  if (info.size == 1) {
+    qv = QVariant(t);
+    if (info.is_float) {
+      qv.setValue(m_floatdata[idx]);
+    } else {
+      qv.setValue(m_intdata[idx]);
+    }
+  } else {
+    QString tmp;
+    for (int i = 0; i < info.size; i++) {
+      if (i != 0) tmp += ", ";
+      tmp += info.is_float ? QString::number(m_floatdata[info.size*idx+i])
+        : QString::number(m_intdata[info.size*idx+i]);
+    }
+    qv = QVariant(tmp);
+  }
+  return qv;
 }
