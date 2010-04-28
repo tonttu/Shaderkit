@@ -29,6 +29,10 @@ class ShaderLexer;
 class ShaderError;
 class ShaderCompilerOutputParser;
 class UniformVar;
+class Shader;
+typedef boost::shared_ptr<Shader> ShaderPtr;
+class GLProgram;
+typedef boost::shared_ptr<GLProgram> ProgramPtr;
 
 class Highlighter;
 
@@ -51,5 +55,6 @@ class QColor;
 class QVector3D;
 class QVector4D;
 class QGLShaderProgram;
+class QGLShader;
 
 #endif
