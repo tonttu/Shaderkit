@@ -26,7 +26,7 @@
 #include <unistd.h>
 
 Watcher::WatchableObj::WatchableObj() : inode(0) {}
-Watcher::WatchableObj::WatchableObj(WatchablePtr obj_, ino_t inode_)
+Watcher::WatchableObj::WatchableObj(Watchable* obj_, ino_t inode_)
   : obj(obj_), inode(inode_) {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ Watcher::Watcher() {
           this, SLOT(updateDir(QString)));
 }
 
-void Watcher::add(WatchablePtr obj, const QString& filename) {
+void Watcher::add(Watchable* obj, const QString& filename) {
   // Since vim/gedit/"almost any decent text editor" save files using temporary files
   // (first renaming the old one to backup file and then renaming temp file to the
   // target file), normal inotify watching fails. We make extra check for inode changes.

@@ -22,7 +22,6 @@
 #include <boost/shared_ptr.hpp>
 
 class Watchable;
-typedef boost::shared_ptr<Watchable> WatchablePtr;
 class Watcher;
 
 class ShaderLexer;

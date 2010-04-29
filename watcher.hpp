@@ -49,7 +49,7 @@ public:
   static Watcher& instance();
 
   /// Adds a new object with filename to watchlist
-  void add(WatchablePtr obj, const QString& filename);
+  void add(Watchable* obj, const QString& filename);
 
 private:
   QFileSystemWatcher m_watcher;
@@ -57,8 +57,8 @@ private:
   /// Every listening object have one of these in the m_objects map
   struct WatchableObj {
     WatchableObj();
-    WatchableObj(WatchablePtr obj, ino_t inode);
-    WatchablePtr obj;
+    WatchableObj(Watchable* obj, ino_t inode);
+    Watchable* obj;
     ino_t inode; /// last known inode number for the file
   };
   typedef QMap<QString, WatchableObj> Objects;

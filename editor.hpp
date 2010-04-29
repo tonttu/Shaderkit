@@ -22,6 +22,7 @@
 #include "forward.hpp"
 #include "highlighter.hpp"
 #include "shader/error.hpp"
+#include "watcher.hpp"
 
 #include <QPlainTextEdit>
 
@@ -52,7 +53,7 @@ protected:
  * @todo Split Editor to GLSLEditor and Editor, so we could make plain text editor,
  *       JSON editor and maybe even C++ editor.
  */
-class Editor : public QPlainTextEdit {
+class Editor : public QPlainTextEdit, public Watchable {
   Q_OBJECT
 
 public:
@@ -69,6 +70,9 @@ public:
 
   /// Opens the editor with the contents of filename.
   void readFile(const QString& filename);
+
+  /// The file was changed on the disk.
+  void fileUpdated(const QString& filename);
 
   /// Moves the focus to error number idx, starting from zero.
   /// @todo some other way to identify the errors would be better than index.
@@ -124,6 +128,7 @@ private:
 
   QVector<ShaderError> m_errors;
 
+  /// Set on readFile()
   QString m_filename;
 
   /// Currently for every keypress we are updating the whole data to this

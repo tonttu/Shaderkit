@@ -22,6 +22,7 @@
 #include <QTextBlock>
 #include <QFile>
 #include <QToolTip>
+#include <QMessageBox>
 
 EditorMargin::EditorMargin(Editor* editor) : QWidget(editor), m_editor(editor) {}
 
@@ -100,7 +101,29 @@ void Editor::readFile(const QString& filename) {
     if (m_lastdata != tmp) {
       setPlainText(tmp);
     }
+    Watcher::instance().add(this, filename);
     // clearErrors();
+  }
+}
+
+void Editor::fileUpdated(const QString& filename) {
+  QFile qfile(filename);
+  if (qfile.open(QFile::ReadOnly | QFile::Text)) {
+    m_filename = filename;
+    QString tmp = qfile.readAll();
+    if (m_lastdata == tmp) return;
+
+    if (!document()->isModified()) {
+      setPlainText(tmp);
+      document()->setModified(false);
+      /// @todo signal something that forces recompile
+    } else if (QMessageBox::question(this,
+          tr("File change"),
+          tr("<p>File %1 was changed on the disk, but there are some unsaved changed to the code in the editor.<p>Load the file from the disk and discard all the changes?").arg(filename),
+          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+      setPlainText(tmp);
+      document()->setModified(false);
+    }
   }
 }
 
