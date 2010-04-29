@@ -18,11 +18,12 @@
 
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
+#include "properties.hpp"
 
 GLProgram::GLProgram(const QString& name)
     : m_name(name), m_prog(0), m_compiled(false) {
-/*  connect(this, SIGNAL(linked(ProgramPtr)),
-          &Properties::instance(), SLOT(update(ProgramPtr)));*/
+  connect(this, SIGNAL(linked(ProgramPtr)),
+          &Properties::instance(), SLOT(update(ProgramPtr)));
 }
 
 void GLProgram::bind() {
