@@ -56,7 +56,7 @@ void GLProgram::unbind() {
 
 void GLProgram::setUniform(UniformVar::List list, bool relocate) {
   for (UniformVar::List::iterator it = list.begin(); it != list.end(); ++it) {
-    it->set(*m_prog, relocate);
+    it->set(shared_from_this(), relocate);
   }
 }
 
@@ -102,7 +102,12 @@ UniformVar::List GLProgram::getUniformList() {
     glGetActiveUniform(m_prog->programId(), i, buffer_size,
                        &length, &size, &type, name);
 
-    list.push_back(UniformVar(*m_prog, name, type));
+    list.push_back(UniformVar(shared_from_this(), name, type));
   }
   return list;
+}
+
+int GLProgram::id() const {
+  if (m_prog) return m_prog->programId();
+  return -1;
 }

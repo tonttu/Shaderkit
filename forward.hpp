@@ -29,6 +29,7 @@ class ShaderLexer;
 class ShaderError;
 class ShaderCompilerOutputParser;
 class UniformVar;
+class ShaderTypeInfo;
 class Shader;
 typedef boost::shared_ptr<Shader> ShaderPtr;
 class GLProgram;

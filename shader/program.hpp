@@ -92,6 +92,9 @@ public:
   /// Returns the current state of all uniform variables
   UniformVar::List getUniformList();
 
+  /// Returns the actual OpenGL program id, or -1 if there is no program created yet.
+  int id() const;
+
 signals:
   /// Emitted every time the program is successfully linked
   void linked(ProgramPtr);
