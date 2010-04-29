@@ -91,7 +91,7 @@ private:
   Highlighter* m_highlighter;
 
   /// Extra selections are used to highlight the current line and show
-  /// compiler errors. When m_currentLineSelection or m_errorSelections
+  /// compiler errors. When m_currentLineSelection or m_errorSelections etc
   /// are changed, this should be called to update the change to editor.
   void updateExtraSelections();
 

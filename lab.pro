@@ -32,7 +32,8 @@ HEADERS += forward.hpp \
     shader/shader.hpp \
     shader/program.hpp \
     editor.hpp \
-    renderpass.hpp
+    renderpass.hpp \
+    scene.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -53,7 +54,8 @@ SOURCES += shader/glsl.tab.cpp \
     shader/shader.cpp \
     shader/program.cpp \
     editor.cpp \
-    renderpass.cpp
+    renderpass.cpp \
+    scene.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \
