@@ -34,8 +34,6 @@ typedef boost::shared_ptr<Shader> ShaderPtr;
 class GLProgram;
 typedef boost::shared_ptr<GLProgram> ProgramPtr;
 
-class Highlighter;
-
 class Light;
 typedef boost::shared_ptr<Light> LightPtr;
 class Camera;
@@ -56,6 +54,9 @@ class Box;
 
 class Editor;
 class EditorMargin;
+class Highlighter;
+
+class GLWidget;
 
 class Project;
 typedef boost::shared_ptr<Project> ProjectPtr;

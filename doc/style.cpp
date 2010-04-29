@@ -54,4 +54,16 @@ public:
                   // with multiple variables in same line
 };
 
+Foo::Foo() : m_var_name(1.0) {}
+
+Bar::Bar() : Foo(1.0), m_small(0.0) {
+  do_stuff();
+}
+
+Zoo::Zoo()
+  : SomeNamespace::SomeClass(Something::Long("zombie")),
+    m_something(1.0), m_small(0.0) {
+  do_stuff();
+}
+
 }

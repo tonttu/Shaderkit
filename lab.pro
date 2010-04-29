@@ -34,7 +34,8 @@ HEADERS += forward.hpp \
     editor.hpp \
     renderpass.hpp \
     scene.hpp \
-    project.hpp
+    project.hpp \
+    glwidget.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -57,7 +58,8 @@ SOURCES += shader/glsl.tab.cpp \
     editor.cpp \
     renderpass.cpp \
     scene.cpp \
-    project.cpp
+    project.cpp \
+    glwidget.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \
