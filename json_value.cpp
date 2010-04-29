@@ -138,6 +138,10 @@ Value Value::find(const QString& path) const {
   return out;
 }
 
+bool Value::have(const QString& path) const {
+  return find(path).valid();
+}
+
 bool Value::to(QColor& color, const QString& path) const {
   Value v = find(path);
   if (v.m_type == Array && v.m_data.a->size() == 4) {
@@ -213,6 +217,10 @@ Value Value::operator[](const QString& key) const {
     Value::Map& map = *m_data.o;
     Value::Map::const_iterator it = map.find(key);
     if (it != map.end()) return it->second;
+  } else if (m_type == Array) {
+    bool ok;
+    size_t index = key.toULong(&ok);
+    if (ok) return operator[](index);
   }
   return Value();
 }
@@ -233,4 +241,18 @@ Value::Map& Value::getMap() {
 Value::Vector& Value::getArray() {
   assert(m_type == Array);
   return *m_data.a;
+}
+
+Value::Vector Value::array(const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == Array) return v.getArray();
+  return Vector();
+}
+
+Value::operator QString() const {
+  return str();
+}
+
+bool Value::operator==(const QString& value) const {
+  return str() == value;
 }

@@ -70,9 +70,17 @@ public:
    * child object, that has a Value with name "bar". Either the result is
    * returned, or an invalid Value.
    *
+   * Array items are indexed with number starting from zero. For example
+   * find("foo.5") will search the sixth value of array "foo".
+   *
    * If path is empty, returns this object.
    */
-  Value find(const QString &path) const;
+  Value find(const QString& path) const;
+
+  /**
+   * Searches with path and returns true if the object was found.
+   */
+  bool have(const QString& path) const;
 
   /// Converts find(path) to color, returns if the conversion was successful
   bool to(QColor& color, const QString& path = "") const;
@@ -102,10 +110,20 @@ public:
   /// Returns the reference to the Map. Precondition: m_type == Object
   Value::Map& getMap();
   /// Returns the reference to the Vector. Precondition: m_type == Array
+  /// Use array() instead of this unless you know what you are doing.
   Value::Vector& getArray();
 
-protected:
+  /// If find(path) is an array, returns copy of the actual vector,
+  /// otherwise return an empty vector.
+  Value::Vector array(const QString& path) const;
 
+  /// Typecast to QString, same as str()
+  operator QString() const;
+
+  /// Same as str() == value
+  bool operator==(const QString& value) const;
+
+protected:
   Type m_type;
 
   /// The actual value stored as a union
