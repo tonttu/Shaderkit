@@ -108,10 +108,15 @@ public:
   bool load(const QString& filename);
 
   /// Returns the reference to the Map. Precondition: m_type == Object
+  /// Use map() instead of this unless you know what you are doing.
   Value::Map& getMap();
   /// Returns the reference to the Vector. Precondition: m_type == Array
   /// Use array() instead of this unless you know what you are doing.
   Value::Vector& getArray();
+
+  /// If find(path) is a map, returns copy of the actual Map,
+  /// otherwise return an empty map.
+  Value::Map map(const QString& path) const;
 
   /// If find(path) is an array, returns copy of the actual vector,
   /// otherwise return an empty vector.

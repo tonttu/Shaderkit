@@ -5,6 +5,8 @@
 
 #include <QString>
 
+#include <boost/enable_shared_from_this.hpp>
+
 #include <map>
 #include <vector>
 
@@ -14,7 +16,7 @@
  * the JSON loading. Currently the whole JSON project-file only contains
  * stuff that are actually only in Scene.
  */
-class Scene {
+class Scene : public boost::enable_shared_from_this<Scene> {
 public:
   Scene();
 
@@ -34,6 +36,9 @@ public:
   ObjectPtr object(QString name) { return m_objects[name]; }
   LightPtr light(QString name) { return m_lights[name]; }
   CameraPtr camera(QString name) { return m_cameras[name]; }
+
+  /// Load the scene from JSON Value
+  void load(const Value& value);
 
 protected:
   typedef std::vector<RenderPassPtr> RenderPasses;

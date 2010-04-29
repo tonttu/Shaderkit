@@ -243,6 +243,12 @@ Value::Vector& Value::getArray() {
   return *m_data.a;
 }
 
+Value::Map Value::map(const QString& path) const {
+  Value v = find(path);
+  if (v.m_type == Object) return v.getMap();
+  return Map();
+}
+
 Value::Vector Value::array(const QString& path) const {
   Value v = find(path);
   if (v.m_type == Array) return v.getArray();
