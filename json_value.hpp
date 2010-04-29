@@ -103,8 +103,9 @@ public:
   /// If this is an "Array", return the Value with at the position index
   Value operator[](size_t index) const;
 
-  /// Loads the file, parses it and stores it into this
-  /// Implementation in json_parser.cpp
+  /// Loads the file, parses it and stores it into this.
+  /// Returns true if loading was successful.
+  /// Implementation in json_parser.cpp.
   bool load(const QString& filename);
 
   /// Returns the reference to the Map. Precondition: m_type == Object

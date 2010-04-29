@@ -57,6 +57,9 @@ class Box;
 class Editor;
 class EditorMargin;
 
+class Project;
+typedef boost::shared_ptr<Project> ProjectPtr;
+
 class QColor;
 class QVector3D;
 class QVector4D;
