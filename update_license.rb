@@ -21,12 +21,26 @@ $license =<<EOL
 
 EOL
 
-if ARGV.empty?
-  puts "Usage: #{$0} <files>"
-  exit 1
+def auto
+  def glob lst
+    len = File.expand_path('x').size-1
+    lst.split.inject([]){|s,p| s += Dir[p]}.map{|d| File.expand_path(d)[len..-1]}.uniq
+  end
+  files = glob '{.,shader}/*.{cpp,hpp} doc/*.cpp std/*.* shader/*.[yl]'
+  ignored = glob File.read('.gitignore')
+  files-ignored
 end
 
-ARGV.each do |filename|
+if ARGV.size == 1 && ARGV.first == '-a'
+  files = auto
+elsif ARGV.empty?
+  puts "Usage: #{$0} <files>"
+  exit 1
+else
+  files = ARGV
+end
+
+files.each do |filename|
   txt = File.read filename
   old = nil
   if txt.sub!(%r{\A(?:/\*.*?\*/|\s)*}m){|str| old = str; $license } && old != $license

@@ -72,3 +72,6 @@ OTHER_FILES += doc/style.cpp \
 QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES
 
 include(qtpropertybrowser/src/qtpropertybrowser.pri)
+
+QMAKE_EXTRA_TARGETS += license
+license.commands = ./update_license.rb -a
