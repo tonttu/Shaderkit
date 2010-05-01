@@ -25,13 +25,15 @@
 #include <QObject>
 #include <QGLShader>
 
+#include <boost/enable_shared_from_this.hpp>
+
 /**
  * GLSL Shader.
  *
  * It is safe to create Shader objects before actually having an OpenGL context.
  * The actual shader object is created only when the shader is compiled the first time.
  */
-class Shader : public QObject {
+class Shader : public QObject, public boost::enable_shared_from_this<Shader> {
   Q_OBJECT
 
 public:
@@ -86,6 +88,9 @@ public:
   /// Typecast operator to QGLShader, since currently the Shader is a wrapper for that.
   operator QGLShader*() { return m_shader; }
 
+  /// Returns the actual OpenGL shader id, or -1 if there is no shader created yet.
+  int id() const;
+
 protected:
   /**
    * Recompiles the shader in a way that the error list can be generated.
@@ -93,7 +98,7 @@ protected:
    *
    * Returns true if the output parsing is successful.
    */
-  static bool handleCompilerOutput(QGLShader& shader, const QString& src, ShaderError::List& errors);
+  bool handleCompilerOutput(const QString& src, ShaderError::List& errors);
 
   /// The actual wrapped shader object
   /// @todo should we just use plain OpenGL API, since QGLShader hardly gives

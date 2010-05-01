@@ -51,6 +51,6 @@ ShaderError ShaderCompilerOutputParser::next() {
   /// @todo assert is way too strong for this, fix this
   assert(list.size() == 4);
 
-  return ShaderError(list[3], list[2], list[1].toInt()-1);
+  return ShaderError(ShaderPtr(), list[3], list[2], list[1].toInt()-1);
 }
 

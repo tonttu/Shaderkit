@@ -44,6 +44,8 @@ class GLProgram : public QObject, public boost::enable_shared_from_this<GLProgra
   Q_OBJECT
 
 public:
+  typedef std::set<ShaderPtr> Shaders;
+
   /// Creates an empty program object and connects linked-signal to Properties::update.
   GLProgram(const QString& name);
   virtual ~GLProgram() {}
@@ -95,6 +97,8 @@ public:
   /// Returns the actual OpenGL program id, or -1 if there is no program created yet.
   int id() const;
 
+  Shaders shaders() const { return m_shaders; }
+
 signals:
   /// Emitted every time the program is successfully linked
   void linked(ProgramPtr);
@@ -105,7 +109,6 @@ protected:
   QString m_name;
   QGLShaderProgram* m_prog;
 
-  typedef std::set<ShaderPtr> Shaders;
   Shaders m_shaders;
 
   /// Are all shaders compiled

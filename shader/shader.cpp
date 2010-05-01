@@ -59,7 +59,7 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
     glGetShaderiv(m_shader->shaderId(), GL_INFO_LOG_LENGTH, &len);
     // len may include the zero byte
     if (len > 1) {
-      bool parse_ok = handleCompilerOutput(*m_shader, m_src, errors);
+      bool parse_ok = handleCompilerOutput(m_src, errors);
       return ok && parse_ok ? WARNINGS : ERRORS;
     } else {
       return ok ? OK : ERRORS;
@@ -69,7 +69,12 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
   }
 }
 
-bool Shader::handleCompilerOutput(QGLShader& shader, const QString& src, ShaderError::List& errors) {
+int Shader::id() const {
+  if (m_shader) return m_shader->shaderId();
+  return -1;
+}
+
+bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors) {
   // Split the source tokens to lines so that we can find the exact error location
   ShaderLexer lexer;
   lexer.loadSrc(src);
@@ -78,10 +83,10 @@ bool Shader::handleCompilerOutput(QGLShader& shader, const QString& src, ShaderE
   GLint len = data.length();
 
   // Recompile
-  glShaderSource(shader.shaderId(), 1, &str, &len);
-  glCompileShader(shader.shaderId());
+  glShaderSource(id(), 1, &str, &len);
+  glCompileShader(id());
 
-  glGetShaderiv(shader.shaderId(), GL_INFO_LOG_LENGTH, &len);
+  glGetShaderiv(id(), GL_INFO_LOG_LENGTH, &len);
 
   // Usually this shouldn't happen, since this function is called only
   // when there actually are some errors in the source code.
@@ -89,7 +94,7 @@ bool Shader::handleCompilerOutput(QGLShader& shader, const QString& src, ShaderE
 
   // Read the info log
   GLchar log[len];
-  glGetShaderInfoLog(shader.shaderId(), len, &len, log);
+  glGetShaderInfoLog(id(), len, &len, log);
 
   // unless we get something parsed from the output, we think this as a failure
   bool ok = false;
@@ -98,6 +103,7 @@ bool Shader::handleCompilerOutput(QGLShader& shader, const QString& src, ShaderE
   while (parser.left()) {
     ShaderError e = parser.next();
     const ShaderLexer::Token& token = lexer.transform(e.line());
+    e.setShader(shared_from_this());
     e.setLine(token.line);
     e.setColumn(token.column);
     e.setLength(token.len);

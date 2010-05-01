@@ -55,6 +55,8 @@ public:
   LightPtr light(QString name) { return m_lights[name]; }
   CameraPtr camera(QString name) { return m_cameras[name]; }
 
+  std::map<QString, ProgramPtr> shaders() { return m_shaders; }
+
   /// Load the scene from JSON Value
   void load(const Value& value);
 

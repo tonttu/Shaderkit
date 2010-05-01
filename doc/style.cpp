@@ -45,6 +45,9 @@ public:
     }
   }
 
+  void operator+=(int i);
+  operator Bar() const;
+
   void functionName(int param_name);
 
   int m_var_name;
