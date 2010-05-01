@@ -53,11 +53,11 @@ protected:
  * @todo Split Editor to GLSLEditor and Editor, so we could make plain text editor,
  *       JSON editor and maybe even C++ editor.
  */
-class Editor : public QPlainTextEdit, public Watchable {
+class Editor : public QPlainTextEdit {
   Q_OBJECT
 
 public:
-  Editor(QWidget* parent = 0);
+  Editor(QWidget* parent, ShaderPtr shader);
 
   /// Renders the line numbers.
   void marginPaintEvent(QPaintEvent* event);
@@ -68,15 +68,14 @@ public:
   /// The filename of the file that is open in the editor.
   const QString& filename() const { return m_filename; }
 
-  /// Opens the editor with the contents of filename.
+  /// Opens the editor with the contents of file.
   void readFile(const QString& filename);
 
   /// The file was changed on the disk.
   void fileUpdated(const QString& filename);
 
-  /// Moves the focus to error number idx, starting from zero.
-  /// @todo some other way to identify the errors would be better than index.
-  void focusOnError(int idx);
+  /// Moves the focus to given error
+  void focusOnError(ShaderError error);
 
   /// Forgets all compile errors.
   void clearErrors();
@@ -84,11 +83,15 @@ public:
   /// We capture all events on the viewport to be able to show smart tooltips.
   virtual bool viewportEvent(QEvent* event);
 
+  /// Return the shader the object is editing.
+  ShaderPtr shader() { return m_shader; }
+
+  /// Does the editor ask for autocompiling the shader after codeChanged().
+  bool sync() const { return m_sync; }
+
 signals:
-  /// When signaled, the code could be recompiled.
-  void canRecompile(Editor&);
   /// Code was changed.
-  void codeChange(Editor&);
+  void codeChanged(Editor&);
 
 protected:
   /// Capture the resize event to set the margin geometry correctly.
@@ -99,6 +102,8 @@ public slots:
   void compileError(const ShaderError& e);
   /// For internal use, we wan't to separate real text changes from format changes.
   void textChangedSlot();
+  /// Sync status (autocompile on text change) change.
+  void syncToggled(bool sync);
 
 private slots:
   /// Called when line number is changed
@@ -111,6 +116,10 @@ private:
   EditorMargin* m_margin;
   /// Syntax Highlight provider
   Highlighter* m_highlighter;
+
+  ShaderPtr m_shader;
+
+  bool m_sync;
 
   /// Extra selections are used to highlight the current line and show
   /// compiler errors. When m_currentLineSelection or m_errorSelections etc
@@ -126,7 +135,8 @@ private:
   /// All lines that have a warning, starting from zero
   QSet<int> m_warningLines;
 
-  QVector<ShaderError> m_errors;
+  /// All errors and their locations
+  QMap<ShaderError, QTextCursor> m_errors;
 
   /// Set on readFile()
   QString m_filename;

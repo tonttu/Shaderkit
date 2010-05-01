@@ -37,9 +37,9 @@ void EditorMargin::paintEvent(QPaintEvent* event) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Editor::Editor(QWidget* parent)
+Editor::Editor(QWidget* parent, ShaderPtr shader)
   : QPlainTextEdit(parent), m_margin(new EditorMargin(this)),
-    m_highlighter(new Highlighter(this->document())) {
+    m_highlighter(new Highlighter(this->document())), m_shader(shader) {
   connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateMarginWidth(int)));
   connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateMargin(QRect,int)));
   connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
@@ -101,8 +101,6 @@ void Editor::readFile(const QString& filename) {
     if (m_lastdata != tmp) {
       setPlainText(tmp);
     }
-    Watcher::instance().add(this, filename);
-    // clearErrors();
   }
 }
 
@@ -127,13 +125,8 @@ void Editor::fileUpdated(const QString& filename) {
   }
 }
 
-void Editor::focusOnError(int idx) {
-  const ShaderError& e = m_errors[idx];
-  int pos = document()->findBlockByLineNumber(e.line()).position() + e.column();
-
-  QTextCursor newCursor(document());
-  newCursor.setPosition(pos);
-  setTextCursor(newCursor);
+void Editor::focusOnError(ShaderError error) {
+  setTextCursor(m_errors[error]);
   centerCursor();
 }
 
@@ -187,8 +180,6 @@ void Editor::highlightCurrentLine() {
 void Editor::compileError(const ShaderError& e) {
   if (isReadOnly()) return;
 
-  m_errors.push_back(e);
-
   bool warning = e.type() == "warning";
   QSet<int>& lines = warning ? m_warningLines : m_errorLines;
   QList<QTextEdit::ExtraSelection>& sel = warning ? m_warningSelections : m_errorSelections;
@@ -218,6 +209,9 @@ void Editor::compileError(const ShaderError& e) {
 
   selection.cursor = QTextCursor(document());
   selection.cursor.setPosition(anchor);
+  // Save the beginning position as the error position
+  m_errors[e] = selection.cursor;
+
   selection.cursor.setPosition(anchor + e.length(), QTextCursor::KeepAnchor);
   selection.format.setToolTip(e.msg());
 
@@ -230,8 +224,12 @@ void Editor::textChangedSlot() {
   QString tmp = toPlainText();
   if (m_lastdata != tmp) {
     m_lastdata = tmp;
-    emit codeChange(*this);
+    emit codeChanged(*this);
   }
+}
+
+void Editor::syncToggled(bool sync) {
+  m_sync = sync;
 }
 
 void Editor::marginPaintEvent(QPaintEvent* event) {
