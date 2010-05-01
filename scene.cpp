@@ -24,6 +24,7 @@
 #include "light.hpp"
 #include "camera.hpp"
 #include "shader/program.hpp"
+#include "shader/shader.hpp"
 
 #include <QtOpenGL>
 
@@ -54,6 +55,16 @@ void Scene::render() {
   for (RenderPasses::iterator it = m_render_passes.begin(); it != m_render_passes.end(); ++it) {
     (*it)->render(state);
   }
+}
+
+ShaderPtr Scene::shaderByFilename(const QString& filename) {
+  for (std::map<QString, ProgramPtr>::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
+    GLProgram::Shaders shaders = it->second->shaders();
+    for (GLProgram::Shaders::iterator it2 = shaders.begin(); it2 != shaders.end(); ++it2) {
+      if ((*it2)->filename() == filename) return *it2;
+    }
+  }
+  return ShaderPtr();
 }
 
 void Scene::load(const Value& value) {

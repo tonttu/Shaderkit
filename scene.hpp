@@ -50,11 +50,15 @@ public:
   /// Current viewport height
   int height() const { return m_height; }
 
-  ProgramPtr shader(QString name) { return m_shaders[name]; }
-  ObjectPtr object(QString name) { return m_objects[name]; }
-  LightPtr light(QString name) { return m_lights[name]; }
-  CameraPtr camera(QString name) { return m_cameras[name]; }
+  ProgramPtr shader(const QString& name) { return m_shaders[name]; }
+  ObjectPtr object(const QString& name) { return m_objects[name]; }
+  LightPtr light(const QString& name) { return m_lights[name]; }
+  CameraPtr camera(const QString& name) { return m_cameras[name]; }
 
+  /// Finds the shader with given file name.
+  ShaderPtr shaderByFilename(const QString& filename);
+
+  /// Name -> shader mapping
   std::map<QString, ProgramPtr> shaders() { return m_shaders; }
 
   /// Load the scene from JSON Value
