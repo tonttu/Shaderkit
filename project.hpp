@@ -20,12 +20,58 @@
 #define PROJECT_HPP
 
 #include "forward.hpp"
+#include "watcher.hpp"
+#include "shader/error.hpp"
 
 #include <QString>
 
-class Project {
+#include <boost/enable_shared_from_this.hpp>
+
+/**
+ * One project means a set of scenes where only one can be active at time.
+ * Project is basically everything that is stored in the project file, although
+ * large part of the functionality is actually implemented in Scene.
+ */
+class Project : public QObject, public boost::enable_shared_from_this<Project>,
+    public Watchable {
+  Q_OBJECT
+
 public:
-  ScenePtr load(const QString& filename);
+  Project(MainWindow& main_window);
+
+  /// Loads a scene from JSON file.
+  static ScenePtr load(const QString& filename);
+
+  /// Sets the active scene, connects to all necessary signals, creates editors etc.
+  void setScene(ScenePtr scene);
+
+  /// A file was changed on the disk.
+  /// Delegates handling the event to right editor, or if no editor is open
+  /// with this file, forces the shader to reload the file.
+  void fileUpdated(const QString& filename);
+
+signals:
+  void sceneChanged(ScenePtr);
+
+public slots:
+  /// Shader code was changed on the editor
+  void codeChanged(Editor& editor);
+  void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
+
+protected:
+  /// Creates a new editor for a shader
+  void addShader(ShaderPtr shader);
+
+  Editor* findEditor(ShaderPtr shader);
+  Editor* findEditor(const QString& filename);
+
+  typedef QMap<QString, ShaderPtr> Files;
+
+  /// Maps filename to shader
+  Files m_shaders;
+
+  MainWindow& m_main_window;
+  ScenePtr m_active_scene;
 };
 
 #endif // PROJECT_HPP

@@ -57,6 +57,10 @@ class Editor;
 class EditorMargin;
 class Highlighter;
 
+namespace Ui {
+  class MainWindow;
+}
+class MainWindow;
 class GLWidget;
 
 class Project;

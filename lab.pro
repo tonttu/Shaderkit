@@ -36,7 +36,8 @@ HEADERS += forward.hpp \
     scene.hpp \
     project.hpp \
     glwidget.hpp \
-    properties.hpp
+    properties.hpp \
+    mainwindow.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -61,7 +62,8 @@ SOURCES += shader/glsl.tab.cpp \
     scene.cpp \
     project.cpp \
     glwidget.cpp \
-    properties.cpp
+    properties.cpp \
+    mainwindow.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \
@@ -72,6 +74,8 @@ OTHER_FILES += doc/style.cpp \
     std/150.frag \
     std/150.geom \
     std/150.vert
+
+FORMS += mainwindow.ui
 
 QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES
 

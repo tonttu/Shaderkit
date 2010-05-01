@@ -9,3 +9,4 @@ lex.yy.c
 moc_*.cpp
 qrc_qtpropertybrowser.cpp
 *.moc
+ui_*.h

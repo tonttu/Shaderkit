@@ -17,8 +17,18 @@
  */
 
 #include "project.hpp"
+#include "mainwindow.hpp"
+#include "editor.hpp"
+#include "shader/program.hpp"
+#include "shader/shader.hpp"
 #include "scene.hpp"
 #include "json_value.hpp"
+
+#include <set>
+
+Project::Project(MainWindow& main_window) : m_main_window(main_window) {
+  m_main_window.setProject(shared_from_this());
+}
 
 ScenePtr Project::load(const QString& filename) {
   ScenePtr scene;
@@ -28,4 +38,75 @@ ScenePtr Project::load(const QString& filename) {
     scene->load(v);
   }
   return scene;
+}
+
+void Project::codeChanged(Editor& editor) {
+  ShaderPtr shader = editor.shader();
+
+  if (editor.sync()) shader->loadSrc(editor.toPlainText());
+}
+
+void Project::addShader(ShaderPtr shader) {
+  Watcher::instance().add(this, shader->filename());
+  Editor* editor = m_main_window.createEditor(shader);
+  connect(editor, SIGNAL(codeChanged(Editor&)), this, SLOT(codeChanged(Editor&)));
+}
+
+Editor* Project::findEditor(ShaderPtr shader) {
+  QList<Editor*> editors = m_main_window.editors();
+  for (int i = 0; i < editors.size(); ++i) {
+    if (editors[i]->shader() == shader) return editors[i];
+  }
+  return 0;
+}
+
+Editor* Project::findEditor(const QString& filename) {
+  QList<Editor*> editors = m_main_window.editors();
+  for (int i = 0; i < editors.size(); ++i) {
+    if (editors[i]->shader()->filename() == filename) return editors[i];
+  }
+  return 0;
+}
+
+void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
+  Editor* editor = findEditor(shader);
+
+  if (editor) {
+    editor->clearErrors();
+    for (int i = 0; i < errors.size(); ++i) {
+      editor->compileError(errors[i]);
+    }
+  }
+
+  m_main_window.shaderCompiled(shader, errors);
+}
+
+void Project::setScene(ScenePtr scene) {
+  m_active_scene = scene;
+
+  std::map<QString, ProgramPtr> prog = scene->shaders();
+  for (std::map<QString, ProgramPtr>::iterator it = prog.begin(); it != prog.end(); ++it) {
+    connect(it->second.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
+            this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+
+    GLProgram::Shaders shaders = it->second->shaders();
+    for (GLProgram::Shaders::iterator it2 = shaders.begin(); it2 != shaders.end(); ++it2) {
+      if (!findEditor(*it2)) {
+        addShader(*it2);
+      }
+    }
+  }
+
+  emit sceneChanged(scene);
+}
+
+void Project::fileUpdated(const QString& filename) {
+  Editor* editor = findEditor(filename);
+  // If there is an editor, it is a job for it to handle the reloading
+  if (editor) {
+    editor->fileUpdated(filename);
+  } else {
+    ShaderPtr shader = m_active_scene->shaderByFilename(filename);
+    if (shader) shader->loadFile(filename);
+  }
 }
