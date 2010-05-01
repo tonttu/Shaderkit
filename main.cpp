@@ -16,9 +16,18 @@
  * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "mainwindow.hpp"
+#include "project.hpp"
+
 #include <QApplication>
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
+  MainWindow window;
+  ProjectPtr project(new Project(window));
+  window.setProject(project);
+  project->setScene(Project::load("test.lab"));
+  window.resize(window.sizeHint());
+  window.show();
   return app.exec();
 }

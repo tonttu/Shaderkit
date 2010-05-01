@@ -26,9 +26,7 @@
 
 #include <set>
 
-Project::Project(MainWindow& main_window) : m_main_window(main_window) {
-  m_main_window.setProject(shared_from_this());
-}
+Project::Project(MainWindow& main_window) : m_main_window(main_window) {}
 
 ScenePtr Project::load(const QString& filename) {
   ScenePtr scene;
