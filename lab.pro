@@ -22,7 +22,6 @@ HEADERS += forward.hpp \
     ext/glut_teapot.hpp \
     shader/glsl.tab.hpp \
     state.hpp \
-    json_value.hpp \
     light.hpp \
     camera.hpp \
     object3d.hpp \
@@ -47,9 +46,7 @@ SOURCES += shader/glsl.tab.cpp \
     ext/glut_teapot.c \
     main.cpp \
     state.cpp \
-    json_value.cpp \
     light.cpp \
-    json_parser.cpp \
     camera.cpp \
     object3d.cpp \
     shader/error.cpp \
@@ -76,6 +73,8 @@ OTHER_FILES += doc/style.cpp \
     std/150.vert
 
 FORMS += mainwindow.ui
+
+LIBS += -lqjson
 
 QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES
 

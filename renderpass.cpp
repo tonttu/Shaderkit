@@ -22,7 +22,6 @@
 #include "light.hpp"
 #include "shader/program.hpp"
 #include "object3d.hpp"
-#include "json_value.hpp"
 
 RenderPass::RenderPass(ScenePtr scene) : m_scene(scene), m_clear(0) {}
 
@@ -60,27 +59,21 @@ void RenderPass::render(State& state) {
   if (m_shader) m_shader->unbind();
 }
 
-void RenderPass::load(const Value& value) {
-  if (value.have("shader")) m_shader = m_scene->shader(value.str("shader"));
+void RenderPass::load(QVariantMap map) {
+  if (map.contains("shader")) m_shader = m_scene->shader(map["shader"].toString());
 
-  Value::Vector vv = value.array("objects");
-  for (Value::Vector::iterator it = vv.begin(); it != vv.end(); ++it) {
-    m_objects.insert(m_scene->object(*it));
-  }
+  foreach (QString name, map["objects"].toStringList())
+    m_objects.insert(m_scene->object(name));
 
-  vv = value.array("lights");
-  for (Value::Vector::iterator it = vv.begin(); it != vv.end(); ++it) {
-    m_lights.insert(m_scene->light(*it));
-  }
+  foreach (QString name, map["lights"].toStringList())
+    m_lights.insert(m_scene->light(name));
 
-  if (value.str("viewport.0") == "camera") {
-    m_viewport = m_scene->camera(value.str("viewport.1"));
-  }
+  QStringList tmp = map["viewport"].toStringList();
+  if (tmp.size() == 2 && tmp[0] == "camera") m_viewport = m_scene->camera(tmp[1]);
 
-  vv = value.array("clear");
-  for (Value::Vector::iterator it = vv.begin(); it != vv.end(); ++it) {
-    if (*it == "color") m_clear |= GL_COLOR_BUFFER_BIT;
-    else if (*it == "depth") m_clear |= GL_DEPTH_BUFFER_BIT;
-    else if (*it == "stencil") m_clear |= GL_STENCIL_BUFFER_BIT;
+  foreach (QString name, map["clear"].toStringList()) {
+    if (name == "color") m_clear |= GL_COLOR_BUFFER_BIT;
+    else if (name == "depth") m_clear |= GL_DEPTH_BUFFER_BIT;
+    else if (name == "stencil") m_clear |= GL_STENCIL_BUFFER_BIT;
   }
 }

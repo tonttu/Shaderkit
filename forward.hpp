@@ -45,8 +45,6 @@ typedef boost::shared_ptr<RenderPass> RenderPassPtr;
 
 class State;
 
-struct Value;
-
 class Object3D;
 typedef boost::shared_ptr<Object3D> ObjectPtr;
 class Teapot;

@@ -18,7 +18,6 @@
 
 #include "light.hpp"
 #include "state.hpp"
-#include "json_value.hpp"
 
 #include <QtOpenGL>
 #include <iostream>
@@ -76,15 +75,15 @@ void Light::deactivate(State& state) {
   m_id = -1;
 }
 
-void Light::load(const Value& value) {
-  if (value.str("type") == "spot") m_type = Spot;
-  if (value.str("type") == "direction") m_type = Direction;
+void Light::load(QVariantMap map) {
+  if (map["type"] == "spot") m_type = Spot;
+  if (map["type"] == "direction") m_type = Direction;
 
-  value.to(m_ambient, "ambient");
-  value.to(m_diffuse, "diffuse");
-  value.to(m_specular, "specular");
-  value.to(m_position, "position");
-  value.to(m_target, "target");
-  value.to(m_direction, "direction");
-  value.to(m_spot_cutoff, "spot cutoff");
+  m_ambient = map["ambient"].value<QColor>();
+  m_diffuse = map["diffuse"].value<QColor>();
+  m_specular = map["specular"].value<QColor>();
+  m_position = map["position"].value<QVector3D>();
+  m_target = map["target"].value<QVector3D>();
+  m_direction = map["direction"].value<QVector3D>();
+  m_spot_cutoff = map["spot cutoff"].toFloat();
 }

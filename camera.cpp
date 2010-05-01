@@ -17,7 +17,6 @@
  */
 
 #include "camera.hpp"
-#include "json_value.hpp"
 
 #include <QtOpenGL>
 
@@ -46,14 +45,14 @@ void Camera::prepare(int width, int height) {
   }
 }
 
-void Camera::load(const Value& value) {
-  if (value.str("type") == "perspective") m_type = Perspective;
-  if (value.str("type") == "ortho") m_type = Ortho;
+void Camera::load(QVariantMap map) {
+  if (map["type"] == "perspective") m_type = Perspective;
+  if (map["type"] == "ortho") m_type = Ortho;
 
-  value.to(m_position, "position");
-  value.to(m_target, "target");
-  value.to(m_up, "up");
-  value.to(m_fov, "fov");
-  value.to(m_near, "near");
-  value.to(m_far, "far");
+  m_position = map["position"].value<QVector3D>();
+  m_target = map["target"].value<QVector3D>();
+  m_up = map["up"].value<QVector3D>();
+  m_fov = map["fov"].toFloat();
+  m_near = map["near"].toFloat();
+  m_far = map["far"].toFloat();
 }

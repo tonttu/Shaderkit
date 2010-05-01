@@ -57,8 +57,8 @@ public:
   /// Render the pass
   void render(State& state);
 
-  /// Load the render pass from JSON Value
-  void load(const Value& value);
+  /// Load the render pass from map
+  void load(QVariantMap map);
 
 protected:
   /// All objects that are rendered in this pass

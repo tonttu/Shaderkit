@@ -22,6 +22,7 @@
 #include "forward.hpp"
 
 #include <QString>
+#include <QVariantMap>
 
 #include <boost/enable_shared_from_this.hpp>
 
@@ -61,8 +62,8 @@ public:
   /// Name -> shader mapping
   std::map<QString, ProgramPtr> shaders() { return m_shaders; }
 
-  /// Load the scene from JSON Value
-  void load(const Value& value);
+  /// Load the scene from map
+  void load(QVariantMap map);
 
 protected:
   typedef std::vector<RenderPassPtr> RenderPasses;

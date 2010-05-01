@@ -22,6 +22,7 @@
 #include "forward.hpp"
 
 #include <QVector3D>
+#include <QVariant>
 
 /**
  * OpenGL Camera class, handles perspective and ortho projections.
@@ -35,8 +36,8 @@ public:
   /// Set the camera with screen size width x height
   void prepare(int width, int height);
 
-  /// Load the light from JSON Value
-  void load(const Value& value);
+  /// Load the light from map
+  void load(QVariantMap map);
 
 protected:
   QString m_name;

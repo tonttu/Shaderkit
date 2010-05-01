@@ -20,13 +20,13 @@
 #include "state.hpp"
 #include "renderpass.hpp"
 #include "object3d.hpp"
-#include "json_value.hpp"
 #include "light.hpp"
 #include "camera.hpp"
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 
 #include <QtOpenGL>
+#include <QVariantMap>
 
 /// @todo move to Object3D
 static ObjectPtr createObject(const QString& name) {
@@ -67,51 +67,51 @@ ShaderPtr Scene::shaderByFilename(const QString& filename) {
   return ShaderPtr();
 }
 
-void Scene::load(const Value& value) {
-  Value::Map vm = value.map("objects");
-  for (Value::Map::iterator it = vm.begin(); it != vm.end(); ++it) {
+void Scene::load(QVariantMap map) {
+  QVariantMap tmp = map["objects"].toMap();
+  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    QVariantMap item = it->toMap();
     ObjectPtr object;
-    QString type = it->second.str("model.0");
-    QString name = it->second.str("model.1");
-    if (type == "built-in") {
-      object = createObject(name);
-    } else if (type == "file") {
-      //object = loadModel(name);
+    QStringList model = item["model"].toStringList();
+    if (model.size() == 2) {
+      if (model[0] == "built-in") {
+        object = createObject(model[1]);
+      } else if (model[0] == "file") {
+        // object = loadModel(model[1]);
+      }
     }
-
-    if (object) m_objects[it->first] = object;
+    if (object) m_objects[it.key()] = object;
   }
 
-  vm = value.map("lights");
-  for (Value::Map::iterator it = vm.begin(); it != vm.end(); ++it) {
-    LightPtr light(new Light(it->first));
-    light->load(it->second);
-    m_lights[it->first] = light;
+  tmp = map["lights"].toMap();
+  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    LightPtr light(new Light(it.key()));
+    light->load(it->toMap());
+    m_lights[it.key()] = light;
   }
 
-
-  vm = value.map("cameras");
-  for (Value::Map::iterator it = vm.begin(); it != vm.end(); ++it) {
-    CameraPtr camera(new Camera(it->first));
-    camera->load(it->second);
-    m_cameras[it->first] = camera;
+  tmp = map["cameras"].toMap();
+  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    CameraPtr camera(new Camera(it.key()));
+    camera->load(it->toMap());
+    m_cameras[it.key()] = camera;
   }
 
-  vm = value.map("shaders");
-  for (Value::Map::iterator it = vm.begin(); it != vm.end(); ++it) {
-    ProgramPtr shader(new GLProgram(it->first));
-    Value& v = it->second;
-    /// @todo change the format so that there can be many shaders of same type
-    if (v.have("fragment")) shader->addShader(v.str("fragment"), QGLShader::Fragment);
-    if (v.have("vertex")) shader->addShader(v.str("vertex"), QGLShader::Vertex);
-    if (v.have("geometry")) shader->addShader(v.str("geometry"), QGLShader::Geometry);
-    m_shaders[it->first] = shader;
+  tmp = map["shaders"].toMap();
+  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    ProgramPtr shader(new GLProgram(it.key()));
+    foreach (QString name, it->toMap()["fragment"].toStringList())
+      shader->addShader(name, QGLShader::Fragment);
+    foreach (QString name, it->toMap()["vertex"].toStringList())
+      shader->addShader(name, QGLShader::Vertex);
+    foreach (QString name, it->toMap()["geometry"].toStringList())
+      shader->addShader(name, QGLShader::Geometry);
+    m_shaders[it.key()] = shader;
   }
 
-  vm = value.map("render passes");
-  for (Value::Map::iterator it = vm.begin(); it != vm.end(); ++it) {
+  foreach (QVariant item, map["render passes"].toList()) {
     RenderPassPtr pass(new RenderPass(shared_from_this()));
-    pass->load(it->second);
+    pass->load(item.toMap());
     m_render_passes.push_back(pass);
   }
 }

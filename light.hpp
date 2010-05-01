@@ -23,6 +23,7 @@
 
 #include <QColor>
 #include <QVector3D>
+#include <QVariant>
 
 /**
  * OpenGL Light.
@@ -39,8 +40,8 @@ public:
   /// Disables the light
   void deactivate(State& state);
 
-  /// Load the light from JSON Value
-  void load(const Value& value);
+  /// Load the light from map
+  void load(QVariantMap map);
 
 protected:
   QString m_name;

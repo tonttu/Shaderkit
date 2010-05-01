@@ -22,7 +22,8 @@
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 #include "scene.hpp"
-#include "json_value.hpp"
+
+#include <qjson/parser.h>
 
 #include <set>
 
@@ -30,10 +31,13 @@ Project::Project(MainWindow& main_window) : m_main_window(main_window) {}
 
 ScenePtr Project::load(const QString& filename) {
   ScenePtr scene;
-  Value v;
-  if (v.load(filename)) {
+  QJson::Parser parser;
+  bool ok;
+  QFile file(filename);
+  QVariant data = parser.parse(&file, &ok);
+  if (ok) {
     scene.reset(new Scene);
-    scene->load(v);
+    scene->load(data.toMap());
   }
   return scene;
 }
