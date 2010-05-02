@@ -22,6 +22,7 @@
 #include "forward.hpp"
 #include "shader/uniform.hpp"
 #include "shader/error.hpp"
+#include "opengl.hpp"
 
 #include <QObject>
 
@@ -67,13 +68,14 @@ public:
   /// and restores the old state before returning.
   template <typename T>
   void setUniform(GLint location, T t) {
+    glCheck("setUniform");
     GLint prog = 0;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
+    glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
     if (!m_prog || prog != (GLint)m_prog->programId()) bind();
-    m_prog->setUniformValue(location, t);
+    glRun(m_prog->setUniformValue(location, t));
 
     // restore the old state
-    if (prog != (GLint)m_prog->programId()) glUseProgram(prog);
+    if (prog != (GLint)m_prog->programId()) glRun(glUseProgram(prog));
   }
 
   /// Restore the uniform state stored in list.

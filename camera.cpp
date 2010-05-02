@@ -18,8 +18,7 @@
 
 #include "camera.hpp"
 #include "scene.hpp"
-
-#include <QtOpenGL>
+#include "opengl.hpp"
 
 Camera::Camera(const QString &name)
   : m_name(name), m_type(Perspective),
@@ -27,6 +26,7 @@ Camera::Camera(const QString &name)
     m_fov(45), m_near(0.1), m_far(1000.0) {}
 
 void Camera::prepare(int width, int height) {
+  glCheck("Camera::prepare");
   glViewport(0, 0, width, height);
   if (m_type == Perspective) {
     glMatrixMode(GL_PROJECTION);

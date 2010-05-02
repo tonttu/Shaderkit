@@ -20,6 +20,7 @@
 #include "shader/program.hpp"
 #include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
+#include "opengl.hpp"
 
 #include <QFile>
 
@@ -53,10 +54,10 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
     m_needCompile = false;
     if (!m_shader) m_shader = new QGLShader(m_type, this);
 
-    bool ok = m_shader->compileSourceCode(m_src);
+    bool ok = glRun2(m_shader->compileSourceCode(m_src));
 
     GLint len = 0;
-    glGetShaderiv(m_shader->shaderId(), GL_INFO_LOG_LENGTH, &len);
+    glRun(glGetShaderiv(m_shader->shaderId(), GL_INFO_LOG_LENGTH, &len));
     // len may include the zero byte
     if (len > 1) {
       bool parse_ok = handleCompilerOutput(m_src, errors);
@@ -75,6 +76,8 @@ int Shader::id() const {
 }
 
 bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors) {
+  glCheck("handleCompilerOutput");
+
   // Split the source tokens to lines so that we can find the exact error location
   ShaderLexer lexer;
   lexer.loadSrc(src);
@@ -83,10 +86,10 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
   GLint len = data.length();
 
   // Recompile
-  glShaderSource(id(), 1, &str, &len);
-  glCompileShader(id());
+  glRun(glShaderSource(id(), 1, &str, &len));
+  glRun(glCompileShader(id()));
 
-  glGetShaderiv(id(), GL_INFO_LOG_LENGTH, &len);
+  glRun(glGetShaderiv(id(), GL_INFO_LOG_LENGTH, &len));
 
   // Usually this shouldn't happen, since this function is called only
   // when there actually are some errors in the source code.
@@ -94,7 +97,7 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
 
   // Read the info log
   GLchar log[len];
-  glGetShaderInfoLog(id(), len, &len, log);
+  glRun(glGetShaderInfoLog(id(), len, &len, log));
 
   // unless we get something parsed from the output, we think this as a failure
   bool ok = false;

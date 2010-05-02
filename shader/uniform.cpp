@@ -18,8 +18,7 @@
 
 #include "shader/uniform.hpp"
 #include "shader/program.hpp"
-
-#include <QtOpenGL>
+#include "opengl.hpp"
 
 #include <stdexcept>
 
@@ -43,6 +42,7 @@ const ShaderTypeInfo& ShaderTypeInfo::typeInfo(GLenum type) {
 
   if (types.empty()) {
     // Add all known uniform types to the list
+    /// @todo this is OpenGL 2.0 list, update the list with OpenGL 3.2 or ever newer.
     types[GL_FLOAT]             = P(1, glUniform1fv, 0, 0, GL_FLOAT, GL_FLOAT);
     types[GL_FLOAT_VEC2]        = P(2, glUniform2fv, 0, 0, GL_FLOAT_VEC2, GL_FLOAT);
     types[GL_FLOAT_VEC3]        = P(3, glUniform3fv, 0, 0, GL_FLOAT_VEC3, GL_FLOAT);
@@ -83,22 +83,34 @@ const ShaderTypeInfo& ShaderTypeInfo::typeInfo(GLenum type) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-UniformVar::UniformVar() : m_type(0), m_size(0) {}
+UniformVar::UniformVar() : m_type(0), m_size(0), m_builtin(false) {}
 
 UniformVar::UniformVar(ProgramPtr prog, QString name, GLenum type)
-    : m_name(name), m_type(type), m_size(1), m_prog(prog) {
+    : m_name(name), m_type(type), m_size(1), m_prog(prog), m_builtin(name.startsWith("gl_")) {
   const ShaderTypeInfo& info = typeinfo();
   if (info.size <= 0) throw std::runtime_error("Unknown Uniform variable type");
+  glCheck("UniformVar");
 
-  m_location.push_back(glGetUniformLocation(prog->id(), name.toStdString().c_str()));
+  // built-in var, we can't set/get it with this class.
+  if (m_builtin) return;
+
+  /// @todo don't use assert
+  assert(glRun2(glIsProgram(prog->id())));
+
+  GLint b = 0;
+  glRun(glGetProgramiv(prog->id(), GL_LINK_STATUS, &b));
+  /// @todo don't use assert
+  assert(b);
+
+  m_location.push_back(glRun2(glGetUniformLocation(prog->id(), name.toStdString().c_str())));
 
   /// @todo Do we know if the array locations are in adjacent locations?
   ///       location[n] seems to be always location[0] + n, and glUniform*v
   ///       -functions allow changing the whole array with only the location
   ///       of the first element.
   for (int i = 1;; ++i) {
-    GLint l = glGetUniformLocation(prog->id(),
-        (name + '[' + QString::number(i) + ']').toStdString().c_str());
+    GLint l = glRun2(glGetUniformLocation(prog->id(),
+        (name + '[' + QString::number(i) + ']').toStdString().c_str()));
     if (l >= 0) {
       m_location.push_back(l);
       ++m_size;
@@ -109,18 +121,22 @@ UniformVar::UniformVar(ProgramPtr prog, QString name, GLenum type)
     // For example vec3[6] needs 6*3 floats
     m_floatdata.resize(m_size * info.size);
     for (size_t i = 0; i < m_size; ++i) {
-      glGetUniformfv(prog->id(), m_location[i], &m_floatdata.front() + i * info.size);
+      glRun(glGetUniformfv(prog->id(), m_location[i], &m_floatdata.front() + i * info.size));
     }
   } else {
     m_intdata.resize(m_size * info.size);
     for (size_t i = 0; i < m_size; i++) {
-      glGetUniformiv(prog->id(), m_location[i], &m_intdata.front() + i * info.size);
+      glRun(glGetUniformiv(prog->id(), m_location[i], &m_intdata.front() + i * info.size));
     }
   }
 }
 
 void UniformVar::set(ProgramPtr prog, bool relocate) {
+  glCheck("UniformVar::set");
   const ShaderTypeInfo& info = typeinfo();
+
+  // built-in var, we can't set/get it with this class.
+  if (m_builtin) return;
 
   if (!prog) prog = m_prog;
   if (!m_prog) return;
@@ -138,25 +154,35 @@ void UniformVar::set(ProgramPtr prog, bool relocate) {
   */
 
   GLint loc = m_location[0];
-  if (relocate) loc = glGetUniformLocation(prog->id(), m_name.toStdString().c_str());
+  if (relocate) loc = glRun2(glGetUniformLocation(prog->id(), m_name.toStdString().c_str()));
 
   if (loc == -1) return;
 
-  /// @todo bind the shader program
+  GLint oldprog = 0;
+  glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &oldprog));
+  if (oldprog != prog->id()) prog->bind();
+
   if (info.matrix_setter) {
-    info.matrix_setter(loc, m_size, 0, &m_floatdata.front());
+    glRun(info.matrix_setter(loc, m_size, 0, &m_floatdata.front()));
   } else if (info.float_setter) {
     assert(!m_floatdata.empty());
-    info.float_setter(loc, m_size, &m_floatdata.front());
+    glRun(info.float_setter(loc, m_size, &m_floatdata.front()));
   } else {
     assert(!m_intdata.empty());
     assert(info.int_setter);
-    info.int_setter(loc, m_size, &m_intdata.front());
+    glRun(info.int_setter(loc, m_size, &m_intdata.front()));
+  }
+
+  if (oldprog != prog->id()) {
+    glRun(glUseProgram(oldprog));
   }
 }
 
 QVariant UniformVar::get(size_t array_idx, size_t vector_idx) {
   const ShaderTypeInfo& info = typeinfo();
+
+  // built-in var, we can't set/get it with this class.
+  if (m_builtin) return QVariant();
 
   QVariant qv(info.variant());
 
@@ -170,6 +196,9 @@ QVariant UniformVar::get(size_t array_idx, size_t vector_idx) {
 bool UniformVar::set(QVariant value, size_t array_idx, size_t vector_idx,
     ProgramPtr prog, bool relocate) {
   const ShaderTypeInfo& info = typeinfo();
+
+  // built-in var, we can't set/get it with this class.
+  if (m_builtin) return false;
 
   if (info.single_type == GL_FLOAT)
     m_floatdata[info.size * array_idx + vector_idx] = value.toFloat();

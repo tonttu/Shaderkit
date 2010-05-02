@@ -36,7 +36,8 @@ HEADERS += forward.hpp \
     project.hpp \
     glwidget.hpp \
     properties.hpp \
-    mainwindow.hpp
+    mainwindow.hpp \
+    opengl.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -60,7 +61,8 @@ SOURCES += shader/glsl.tab.cpp \
     project.cpp \
     glwidget.cpp \
     properties.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    opengl.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

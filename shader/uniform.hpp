@@ -162,6 +162,14 @@ private:
   QVector<GLfloat> m_floatdata;
   /// The actual uniform data, if this is a int type
   QVector<GLint> m_intdata;
+
+  /// Name of the uniform block where this variable belongs to.
+  /// Empty string means the default block.
+  QString m_uniform_block;
+
+  /// Is this a built-in "gl_*" uniform. Currently the class doesn't know
+  /// how to handle those correctly.
+  bool m_builtin;
 };
 
 #endif
