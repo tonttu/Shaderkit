@@ -83,4 +83,9 @@ protected:
   int m_width, m_height;
 };
 
+/// Convert array of three doubles to vector
+QVector3D toVector(QVariant in);
+/// Convert array of four doubles to color
+QColor toColor(QVariant in);
+
 #endif // SCENE_HPP

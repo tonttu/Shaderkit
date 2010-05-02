@@ -18,6 +18,7 @@
 
 #include "light.hpp"
 #include "state.hpp"
+#include "scene.hpp"
 
 #include <QtOpenGL>
 #include <iostream>
@@ -79,11 +80,13 @@ void Light::load(QVariantMap map) {
   if (map["type"] == "spot") m_type = Spot;
   if (map["type"] == "direction") m_type = Direction;
 
-  m_ambient = map["ambient"].value<QColor>();
-  m_diffuse = map["diffuse"].value<QColor>();
-  m_specular = map["specular"].value<QColor>();
-  m_position = map["position"].value<QVector3D>();
-  m_target = map["target"].value<QVector3D>();
-  m_direction = map["direction"].value<QVector3D>();
+  // At least Qt 4.7 saves color as "#RRGGBB" without alpha,
+  // so we don't use native implementation.
+  m_ambient = toColor(map["ambient"]);
+  m_diffuse = toColor(map["diffuse"]);
+  m_specular = toColor(map["specular"]);
+  m_position = toVector(map["position"]);
+  m_target = toVector(map["target"]);
+  m_direction = toVector(map["direction"]);
   m_spot_cutoff = map["spot cutoff"].toFloat();
 }

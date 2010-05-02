@@ -29,10 +29,10 @@ Shader::Shader(ProgramPtr prog, QGLShader::ShaderTypeBit type)
 
 bool Shader::loadFile(const QString& filename) {
   bool changed = false;
+  m_filename = filename;
   QFile file(filename);
   if (file.open(QFile::ReadOnly | QFile::Text)) {
     changed = loadSrc(file.readAll());
-    m_filename = filename;
   }
   return changed;
 }

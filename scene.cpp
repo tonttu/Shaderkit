@@ -38,6 +38,22 @@ static ObjectPtr createObject(const QString& name) {
   return ObjectPtr();
 }
 
+QVector3D toVector(QVariant in) {
+  QVariantList lst = in.toList();
+  if (lst.size() == 3) {
+    return QVector3D(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
+  }
+  return QVector3D();
+}
+
+QColor toColor(QVariant in) {
+  QVariantList lst = in.toList();
+  if (lst.size() == 4) {
+    return QColor::fromRgbF(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat(), lst[3].toFloat());
+  }
+  return QColor();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 

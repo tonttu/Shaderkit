@@ -69,6 +69,7 @@ void Properties::update(ProgramPtr shader) {
       if (item) {
         m_properties[item] = *it;
         item->setValue(it->get());
+        objProperty->addSubProperty(item);
       }
     } else {
       /// @todo implement
@@ -79,7 +80,7 @@ void Properties::update(ProgramPtr shader) {
 void Properties::valueChanged(QtProperty* property, const QVariant& variant) {
   PropertyMap::iterator it = m_properties.find(property);
   if (it == m_properties.end()) return;
-
+qDebug() << variant.toFloat();
   it->set(variant);
 }
 

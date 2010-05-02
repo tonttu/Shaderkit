@@ -133,8 +133,7 @@ void MainWindow::modificationChanged(bool b) {
   Editor* editor = dynamic_cast<Editor*>(sender());
   if (editor) {
     QFileInfo fi(editor->filename());
-
-    m_ui->editor_tabs->setTabText(m_ui->editor_tabs->currentIndex(),
+    m_ui->editor_tabs->setTabText(m_editors.indexOf(editor),
                                   fi.fileName() + (b ? "*" : ""));
   }
 }
@@ -144,6 +143,7 @@ void MainWindow::save() {
   QFile file(editor->filename());
   if (file.open(QIODevice::WriteOnly)) {
     file.write(editor->toPlainText().toUtf8());
+    editor->document()->setModified(false);
   }
 }
 

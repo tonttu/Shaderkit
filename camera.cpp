@@ -17,6 +17,7 @@
  */
 
 #include "camera.hpp"
+#include "scene.hpp"
 
 #include <QtOpenGL>
 
@@ -49,9 +50,10 @@ void Camera::load(QVariantMap map) {
   if (map["type"] == "perspective") m_type = Perspective;
   if (map["type"] == "ortho") m_type = Ortho;
 
-  m_position = map["position"].value<QVector3D>();
-  m_target = map["target"].value<QVector3D>();
-  m_up = map["up"].value<QVector3D>();
+  /// At least Qt 4.7 doesn't convert anything to QVector3D
+  m_position = toVector(map["position"]);
+  m_target = toVector(map["target"]);
+  m_up = toVector(map["up"]);
   m_fov = map["fov"].toFloat();
   m_near = map["near"].toFloat();
   m_far = map["far"].toFloat();
