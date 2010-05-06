@@ -26,14 +26,15 @@ GLProgram::GLProgram(const QString& name)
           &Properties::instance(), SLOT(update(ProgramPtr)));
 }
 
+GLProgram::~GLProgram() {
+  if (m_prog) glDeleteProgram(m_prog);
+}
+
 void GLProgram::bind() {
   if (!m_compiled) {
     if (!m_prog) {
       glCheck("GLProgram::bind");
-      m_prog = glRun2(new QGLShaderProgram(this));
-      /*m_prog->setGeometryInputType(GL_TRIANGLES);
-      m_prog->setGeometryOutputType(GL_TRIANGLE_STRIP);
-      m_prog->setGeometryOutputVertexCount(1024);*/
+      m_prog = glRun2(glCreateProgram());
     }
 
     for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
@@ -41,20 +42,20 @@ void GLProgram::bind() {
       Shader::CompileStatus status = (*it)->compile(errors);
       if (status != Shader::NONE) emit shaderCompiled(*it, errors);
       if (status == Shader::OK || status == Shader::WARNINGS)
-        m_prog->addShader(**it);
+        glAttachShader(m_prog, (*it)->id());
     }
 
     m_compiled = true;
     /// @todo should we link only when there was a successful compiling?
     link();
   }
-  if (m_prog->isLinked())
-    glRun(m_prog->bind());
+  if (isLinked())
+    glRun(glUseProgram(m_prog));
 }
 
 void GLProgram::unbind() {
   glCheck("GLProgram::unbind");
-  if (m_prog) glRun(m_prog->release());
+  glRun(glUseProgram(0));
 }
 
 void GLProgram::setUniform(UniformVar::List list, bool relocate) {
@@ -63,7 +64,7 @@ void GLProgram::setUniform(UniformVar::List list, bool relocate) {
   }
 }
 
-ShaderPtr GLProgram::addShader(const QString& filename, QGLShader::ShaderTypeBit type) {
+ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type) {
   ShaderPtr shader(new Shader(shared_from_this(), type));
   shader->loadFile(filename);
   m_shaders.insert(shader);
@@ -75,15 +76,27 @@ void GLProgram::link() {
   glCheck("GLProgram::link");
   GLint prog = 0;
   glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
-  if (m_prog->isLinked()) {
-    glRun(m_prog->bind()); /// @todo Do we need this?
+  if (isLinked()) {
+    glRun(glUseProgram(m_prog)); /// @todo Do we need this?
     m_uniformList = getUniformList();
   }
 
-  bool ok = glRun2(m_prog->link());
+  glRun(glLinkProgram(m_prog));
+  GLint ok = 0;
+  glRun(glGetProgramiv(m_prog, GL_LINK_STATUS, &ok));
+
+  GLint len = 0;
+  glRun(glGetProgramiv(m_prog, GL_INFO_LOG_LENGTH, &len));
+  // len may include the zero byte
+  if (len > 1) {
+    GLchar log[len];
+    /// @todo generate shadererrors
+    glRun(glGetProgramInfoLog(m_prog, len, &len, log));
+    qDebug() << log;
+  }
 
   if (ok) {
-    glRun(m_prog->bind()); /// @todo Do we need this?
+    glRun(glUseProgram(m_prog)); /// @todo Do we need this?
     setUniform(m_uniformList);
     emit linked(shared_from_this());
   }
@@ -96,15 +109,15 @@ UniformVar::List GLProgram::getUniformList() {
   UniformVar::List list;
 
   GLint num = 0, buffer_size = 0;
-  glRun(glGetProgramiv(m_prog->programId(), GL_ACTIVE_UNIFORMS, &num));
-  glRun(glGetProgramiv(m_prog->programId(), GL_ACTIVE_UNIFORM_MAX_LENGTH, &buffer_size));
+  glRun(glGetProgramiv(m_prog, GL_ACTIVE_UNIFORMS, &num));
+  glRun(glGetProgramiv(m_prog, GL_ACTIVE_UNIFORM_MAX_LENGTH, &buffer_size));
 
   for (GLint i = 0; i < num; i++) {
     GLchar name[buffer_size];
     GLsizei length;
     GLint size;
     GLenum type;
-    glRun(glGetActiveUniform(m_prog->programId(), i, buffer_size,
+    glRun(glGetActiveUniform(m_prog, i, buffer_size,
                              &length, &size, &type, name));
 
     list.push_back(UniformVar(shared_from_this(), name, type));
@@ -112,7 +125,14 @@ UniformVar::List GLProgram::getUniformList() {
   return list;
 }
 
-int GLProgram::id() const {
-  if (m_prog) return m_prog->programId();
-  return -1;
+bool GLProgram::isLinked() {
+  glCheck("GLProgram::isLinked");
+  if (!m_prog) return false;
+  GLint b = 0;
+  glRun(glGetProgramiv(m_prog, GL_LINK_STATUS, &b));
+  return b;
+}
+
+GLuint GLProgram::id() const {
+  return m_prog;
 }

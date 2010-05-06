@@ -39,6 +39,8 @@ public:
   QSize minimumSizeHint() const;
   QSize sizeHint() const;
 
+  static QGLFormat defaultFormat();
+
 public slots:
   void sceneChange(ScenePtr);
 

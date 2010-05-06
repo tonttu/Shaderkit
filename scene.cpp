@@ -117,11 +117,11 @@ void Scene::load(QVariantMap map) {
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
     ProgramPtr shader(new GLProgram(it.key()));
     foreach (QString name, it->toMap()["fragment"].toStringList())
-      shader->addShader(name, QGLShader::Fragment);
+      shader->addShader(name, Shader::Fragment);
     foreach (QString name, it->toMap()["vertex"].toStringList())
-      shader->addShader(name, QGLShader::Vertex);
+      shader->addShader(name, Shader::Vertex);
     foreach (QString name, it->toMap()["geometry"].toStringList())
-      shader->addShader(name, QGLShader::Geometry);
+      shader->addShader(name, Shader::Geometry);
     m_shaders[it.key()] = shader;
   }
 

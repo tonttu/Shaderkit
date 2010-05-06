@@ -21,9 +21,9 @@
 
 #include "forward.hpp"
 #include "shader/error.hpp"
+#include "opengl.hpp"
 
 #include <QObject>
-#include <QGLShader>
 
 #include <boost/enable_shared_from_this.hpp>
 
@@ -37,8 +37,24 @@ class Shader : public QObject, public boost::enable_shared_from_this<Shader> {
   Q_OBJECT
 
 public:
+  /// Supported shader types
+  enum Type {
+    Vertex, Fragment, Geometry
+  };
+
+  /// compile() returns the compile status
+  enum CompileStatus {
+    NONE,     /// Nothing was made, m_needCompile was already false
+    ERRORS,   /// The program was compiled with errors or there was an internal error
+              /// (couldn't parse the output, wrong OpenGL context or something similar)
+    WARNINGS, /// The program was compiled with non-fatal errors or warnings
+    OK        /// The program was compiled successfully
+  };
+
   /// Creates a new shader of type `type' that is part of program `prog'
-  Shader(ProgramPtr prog, QGLShader::ShaderTypeBit type);
+  Shader(ProgramPtr prog, Type type);
+
+  virtual ~Shader();
 
   /**
    * Loads shader from file, and stages the shader for recompiling.
@@ -55,15 +71,6 @@ public:
    * the shader will compile/link correctly.
    */
   bool loadSrc(const QString& data);
-
-  /// compile() returns the compile status
-  enum CompileStatus {
-    NONE,     /// Nothing was made, m_needCompile was already false
-    ERRORS,   /// The program was compiled with errors or there was an internal error
-              /// (couldn't parse the output, wrong OpenGL context or something similar)
-    WARNINGS, /// The program was compiled with non-fatal errors or warnings
-    OK        /// The program was compiled successfully
-  };
 
   /**
    * Compiles the shader, if m_needCompile is true. Returns the outcome of the
@@ -85,11 +92,8 @@ public:
    */
   QString filename() const { return m_filename; }
 
-  /// Typecast operator to QGLShader, since currently the Shader is a wrapper for that.
-  operator QGLShader*() { return m_shader; }
-
-  /// Returns the actual OpenGL shader id, or -1 if there is no shader created yet.
-  int id() const;
+  /// Returns the actual OpenGL shader id, or 0 if there is no shader created yet.
+  GLuint id() const;
 
 protected:
   /**
@@ -101,9 +105,7 @@ protected:
   bool handleCompilerOutput(const QString& src, ShaderError::List& errors);
 
   /// The actual wrapped shader object
-  /// @todo should we just use plain OpenGL API, since QGLShader hardly gives
-  ///       us anything useful, and we have our own wrapper classes in any case.
-  QGLShader* m_shader;
+  GLuint m_shader;
 
   /// The shader program this shader belongs to.
   /// @todo can there actually be many programs? We don't probably want that?
@@ -122,7 +124,7 @@ protected:
   QString m_src;
 
   /// The type of the shader
-  QGLShader::ShaderTypeBit m_type;
+  Type m_type;
 };
 
 #endif

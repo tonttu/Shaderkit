@@ -67,7 +67,5 @@ typedef boost::shared_ptr<Project> ProjectPtr;
 class QColor;
 class QVector3D;
 class QVector4D;
-class QGLShaderProgram;
-class QGLShader;
 
 #endif

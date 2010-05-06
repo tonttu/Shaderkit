@@ -21,6 +21,7 @@
 
 #include "forward.hpp"
 #include "shader/uniform.hpp"
+#include "shader/shader.hpp"
 #include "shader/error.hpp"
 #include "opengl.hpp"
 
@@ -49,7 +50,7 @@ public:
 
   /// Creates an empty program object and connects linked-signal to Properties::update.
   GLProgram(const QString& name);
-  virtual ~GLProgram() {}
+  virtual ~GLProgram();
 
   /**
    * Binds the program object. On the first run time creates the real shader
@@ -66,23 +67,23 @@ public:
 
   /// Sets a uniform variable, binds the object if needed,
   /// and restores the old state before returning.
-  template <typename T>
+/*  template <typename T>
   void setUniform(GLint location, T t) {
     glCheck("setUniform");
     GLint prog = 0;
     glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
-    if (!m_prog || prog != (GLint)m_prog->programId()) bind();
+    if (!m_prog || prog != m_prog) bind();
     glRun(m_prog->setUniformValue(location, t));
 
     // restore the old state
     if (prog != (GLint)m_prog->programId()) glRun(glUseProgram(prog));
-  }
+  }*/
 
   /// Restore the uniform state stored in list.
   void setUniform(UniformVar::List list, bool relocate = true);
 
   /// Creates a new Shader and adds it to this program.
-  virtual ShaderPtr addShader(const QString& filename, QGLShader::ShaderTypeBit type);
+  virtual ShaderPtr addShader(const QString& filename, Shader::Type type);
 
   /**
    * (Re)Links the program. If the program is currently linked, saves the uniform
@@ -90,14 +91,16 @@ public:
    */
   virtual void link();
 
+  bool isLinked();
+
   /// Object name, like "Phong"
   const QString& name() const { return m_name; }
 
   /// Returns the current state of all uniform variables
   UniformVar::List getUniformList();
 
-  /// Returns the actual OpenGL program id, or -1 if there is no program created yet.
-  int id() const;
+  /// Returns the actual OpenGL program id, or 0 if there is no program created yet.
+  GLuint id() const;
 
   Shaders shaders() const { return m_shaders; }
 
@@ -109,7 +112,7 @@ signals:
 
 protected:
   QString m_name;
-  QGLShaderProgram* m_prog;
+  GLuint m_prog;
 
   Shaders m_shaders;
 

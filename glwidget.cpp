@@ -23,13 +23,21 @@
 #include <QtOpenGL>
 
 GLWidget::GLWidget(QWidget *parent)
-  : QGLWidget(QGLFormat(QGL::SampleBuffers), parent),
+  : QGLWidget(defaultFormat(), parent),
     m_timer(new QTimer(this)) {
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
 }
 
 GLWidget::~GLWidget() {}
+
+QGLFormat GLWidget::defaultFormat() {
+  QGLFormat format(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba |
+                   QGL::AlphaChannel | QGL::DirectRendering | QGL::SampleBuffers);
+  format.setVersion(3, 2);
+  format.setProfile(QGLFormat::CompatibilityProfile);
+  return format;
+}
 
 QSize GLWidget::minimumSizeHint() const {
   return QSize(64, 36);
@@ -40,6 +48,16 @@ QSize GLWidget::sizeHint() const {
 }
 
 void GLWidget::initializeGL() {
+  /*int major = 0, minor = 0, profile = 0;
+  glGetIntegerv(GL_MAJOR_VERSION, &major);
+  glGetIntegerv(GL_MINOR_VERSION, &minor);
+  glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+
+  qDebug() << "OpenGL" << (QString::number(major) + "." + QString::number(minor)).toStdString().c_str() <<
+      (profile == GL_CONTEXT_CORE_PROFILE_BIT ? "Core" :
+       profile == GL_CONTEXT_COMPATIBILITY_PROFILE_BIT ? "Compatibility" :
+      (major > 3 || (major >= 3 && minor >= 2)) ? "Core (default)" : "Unknown") << "profile initialized";*/
+
   /// @todo this should be in RenderPass
   qglClearColor(QColor(0,0,0));
   m_timer->start();

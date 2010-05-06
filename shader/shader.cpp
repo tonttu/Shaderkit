@@ -24,8 +24,13 @@
 
 #include <QFile>
 
-Shader::Shader(ProgramPtr prog, QGLShader::ShaderTypeBit type)
+Shader::Shader(ProgramPtr prog, Shader::Type type)
   : m_shader(0), m_prog(prog), m_needCompile(false), m_type(type) {
+}
+
+Shader::~Shader() {
+  if (m_shader)
+    glDeleteShader(m_shader);
 }
 
 bool Shader::loadFile(const QString& filename) {
@@ -50,14 +55,31 @@ bool Shader::loadSrc(const QString& data) {
 }
 
 Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
+  glCheck("Shader::compile");
   if (m_needCompile) {
     m_needCompile = false;
-    if (!m_shader) m_shader = new QGLShader(m_type, this);
+    if (!m_shader) {
+      if (m_type == Vertex)
+        m_shader = glRun2(glCreateShader(GL_VERTEX_SHADER));
+      else if (m_type == Geometry)
+        m_shader = glRun2(glCreateShader(GL_GEOMETRY_SHADER_EXT));
+      else
+        m_shader = glRun2(glCreateShader(GL_FRAGMENT_SHADER));
+      if (!m_shader) {
+        qWarning() << "Shader: could not create shader";
+        return ERRORS;
+      }
+    }
 
-    bool ok = glRun2(m_shader->compileSourceCode(m_src));
+    QByteArray src_ = m_src.toAscii();
+    const char* src = src_.data();
+    GLint len = src_.length();
+    glRun(glShaderSource(m_shader, 1, &src, &len));
+    glRun(glCompileShader(m_shader));
 
-    GLint len = 0;
-    glRun(glGetShaderiv(m_shader->shaderId(), GL_INFO_LOG_LENGTH, &len));
+    GLint ok = 0;
+    glRun(glGetShaderiv(m_shader, GL_COMPILE_STATUS, &ok));
+    glRun(glGetShaderiv(m_shader, GL_INFO_LOG_LENGTH, &len));
     // len may include the zero byte
     if (len > 1) {
       bool parse_ok = handleCompilerOutput(m_src, errors);
@@ -70,9 +92,8 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
   }
 }
 
-int Shader::id() const {
-  if (m_shader) return m_shader->shaderId();
-  return -1;
+GLuint Shader::id() const {
+  return m_shader;
 }
 
 bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors) {
