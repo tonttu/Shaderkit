@@ -19,9 +19,7 @@
 #include "light.hpp"
 #include "state.hpp"
 #include "scene.hpp"
-
-#include <QtOpenGL>
-#include <iostream>
+#include "opengl.hpp"
 
 /// helper method to convert QColor to 4 element GLfloat array
 inline void getColor(const QColor& color, GLfloat* tmp) {
@@ -44,30 +42,30 @@ void Light::activate(State& state) {
   GLfloat tmp[4];
 
   getColor(m_ambient, tmp);
-  glLightfv(m_id, GL_AMBIENT, tmp);
+  glRun(glLightfv(GL_LIGHT0+m_id, GL_AMBIENT, tmp));
 
   getColor(m_diffuse, tmp);
-  glLightfv(m_id, GL_DIFFUSE, tmp);
+  glRun(glLightfv(GL_LIGHT0+m_id, GL_DIFFUSE, tmp));
 
   getColor(m_specular, tmp);
-  glLightfv(m_id, GL_SPECULAR, tmp);
+  glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, tmp));
 
   if (m_type == Spot) {
     tmp[0] = m_position.x(); tmp[1] = m_position.y(); tmp[2] = m_position.z();
     tmp[3] = 1.0f;
-    glLightfv(m_id, GL_POSITION, tmp);
+    glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
 
     QVector3D n = m_target - m_position;
     n.normalize();
 
     tmp[0] = n.x(); tmp[1] = n.y(); tmp[2] = n.z();
-    glLightfv(m_id, GL_SPOT_DIRECTION, tmp);
+    glRun(glLightfv(GL_LIGHT0+m_id, GL_SPOT_DIRECTION, tmp));
 
-    glLightf(m_id, GL_SPOT_CUTOFF, m_spot_cutoff);
+    glRun(glLightf(GL_LIGHT0+m_id, GL_SPOT_CUTOFF, m_spot_cutoff));
   } else {
     tmp[0] = m_direction.x(); tmp[1] = m_direction.y(); tmp[2] = m_direction.z();
     tmp[3] = 0.0f;
-    glLightfv(m_id, GL_POSITION, tmp);
+    glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
   }
 }
 
