@@ -40,11 +40,26 @@ void Camera::prepare(int width, int height) {
     gluLookAt(m_position.x(), m_position.y(), m_position.z(),
               m_target.x(), m_target.y(), m_target.z(),
               m_up.x(), m_up.y(), m_up.z());
+  } else if (m_type == Rect) {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, width, 0, height, m_near, m_far);
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glLoadIdentity();
   } else {
     /// @todo implement ortho camera
     assert(false && "Ortho Camera not implemented");
   }
 }
+
+void Camera::setRect(float near, float far) {
+  m_type = Rect;
+  m_near = near;
+  m_far = far;
+}
+
 
 void Camera::load(QVariantMap map) {
   if (map["type"] == "perspective") m_type = Perspective;

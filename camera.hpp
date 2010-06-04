@@ -29,15 +29,18 @@
  */
 class Camera {
 public:
-  enum Type { Perspective, Ortho };
+  enum Type { Perspective, Ortho, Rect };
 
   Camera(const QString& name);
 
   /// Set the camera with screen size width x height
   void prepare(int width, int height);
 
-  /// Load the light from map
+  /// Load the camera from map
   void load(QVariantMap map);
+
+  /// Sets this camera to use orthographic matrix that fills the screen
+  void setRect(float near = -1.0f, float far = 1.0f);
 
 protected:
   QString m_name;

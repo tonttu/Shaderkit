@@ -67,6 +67,11 @@ protected:
   void beginFBO();
   void endFBO();
 
+  enum Type {
+    Normal,
+    PostProc
+  } m_type;
+
   /// All objects that are rendered in this pass
   Objects m_objects;
   /// All enabled lights
@@ -82,7 +87,9 @@ protected:
 
   int m_width, m_height; /// Output size, if zero, use scene size.
   FBOPtr m_fbo;
-  TexturePtr m_depth, m_color;
+  FBOImagePtr m_depth, m_color;
+
+  QMap<QString, TexturePtr> m_in;
 };
 
 #endif // RENDERPASS_HPP

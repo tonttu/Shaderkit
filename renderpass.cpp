@@ -26,7 +26,7 @@
 #include "texture.hpp"
 #include <iostream>
 
-RenderPass::RenderPass(ScenePtr scene) : m_scene(scene), m_clear(0) {}
+RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0) {}
 
 int RenderPass::width() const {
   return m_width > 0 ? m_width : m_scene->width();
@@ -39,41 +39,65 @@ int RenderPass::height() const {
 void RenderPass::render(State& state) {
   beginFBO();
 
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  glFrontFace(GL_CCW);
-
-  glShadeModel(GL_SMOOTH);
-  glEnable(GL_MULTISAMPLE);
-
   if (m_clear) glClear(m_clear);
-
   if (m_shader) m_shader->bind();
-
   m_viewport->prepare(width(), height());
 
-  /// @todo remove this, only for testing
-  static float f = 0.0f;
-  f += 0.2f;
-  glRotatef(f, 0, 1, 0);
+  if (m_type == PostProc) {
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glEnable(GL_TEXTURE_2D);
 
-  for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
-    (*it)->activate(state);
+    if (m_in.contains("texture0"))
+      m_in["texture0"]->bind();
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(0.0f, 0.0f);
+
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(width(), 0.0f);
+
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(width(), height());
+
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(0.0f, height());
+
+    glEnd();
+    if (m_in.contains("texture0"))
+      m_in["texture0"]->unbind();
+  } else {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_MULTISAMPLE);
+
+    /// @todo remove this, only for testing
+    static float f = 0.0f;
+    f += 0.2f;
+    glRotatef(f, 0, 1, 0);
+
+    for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
+      (*it)->activate(state);
+    }
+
+    for (Objects::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+      glPushMatrix();
+      glPushAttrib(GL_ALL_ATTRIB_BITS);
+      (*it)->render(state);
+      glPopAttrib();
+      glPopMatrix();
+    }
+
+    for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
+      (*it)->deactivate(state);
+    }
   }
-
-  for (Objects::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
-    glPushMatrix();
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    (*it)->render(state);
-    glPopAttrib();
-    glPopMatrix();
-  }
-
-  for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
-    (*it)->deactivate(state);
-  }
-
   if (m_shader) m_shader->unbind();
 
   endFBO();
@@ -107,7 +131,15 @@ void RenderPass::load(QVariantMap map) {
     m_lights.insert(m_scene->light(name));
 
   QStringList tmp = map["viewport"].toStringList();
-  if (tmp.size() == 2 && tmp[0] == "camera") m_viewport = m_scene->camera(tmp[1]);
+  if (tmp.size() == 2 && tmp[0] == "camera") {
+    m_viewport = m_scene->camera(tmp[1]);
+    m_type = Normal;
+  }
+  if (tmp.size() == 1 && tmp[0] == "post") {
+    m_viewport.reset(new Camera("post"));
+    m_viewport->setRect();
+    m_type = PostProc;
+  }
 
   foreach (QString name, map["clear"].toStringList()) {
     if (name == "color") m_clear |= GL_COLOR_BUFFER_BIT;
@@ -125,7 +157,19 @@ void RenderPass::load(QVariantMap map) {
   if (tmp.size() == 2 && tmp[0] == "texture")
     m_depth = m_scene->texture(tmp[1]);
 
+  if (tmp.size() == 1 && tmp[0] == "renderbuffer")
+    m_depth.reset(new RenderBuffer);
+
   tmp = out["color0"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "texture")
     m_color = m_scene->texture(tmp[1]);
+
+  if (tmp.size() == 1 && tmp[0] == "renderbuffer")
+    m_color.reset(new RenderBuffer);
+
+  for (QVariantMap::iterator it = in.begin(); it != in.end(); ++it) {
+    tmp = it->toStringList();
+    if (tmp.size() == 2 && tmp[0] == "texture")
+      m_in[it.key()] = m_scene->texture(tmp[1]);
+  }
 }

@@ -29,12 +29,12 @@ public:
 
   void setup(unsigned int fbo, int width, int height);
 
+  void bind();
+  void unbind();
+
 private:
   QString m_name;
   unsigned int m_id;
-
-  void bind();
-  void unbind();
 };
 
 #endif // TEXTURE_HPP
