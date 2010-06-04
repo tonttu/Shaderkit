@@ -60,7 +60,13 @@ public:
   /// Load the render pass from map
   void load(QVariantMap map);
 
+  int height() const;
+  int width() const;
+
 protected:
+  void beginFBO();
+  void endFBO();
+
   /// All objects that are rendered in this pass
   Objects m_objects;
   /// All enabled lights
@@ -73,6 +79,10 @@ protected:
   /// Bitwise OR of GL_{COLOR,DEPTH,STENCIL}_BUFFER_BIT, or zero if we don't
   /// want to clear the buffer before rendering.
   GLbitfield m_clear;
+
+  int m_width, m_height; /// Output size, if zero, use scene size.
+  FBOPtr m_fbo;
+  TexturePtr m_depth, m_color;
 };
 
 #endif // RENDERPASS_HPP

@@ -55,6 +55,7 @@ public:
   ObjectPtr object(const QString& name) { return m_objects[name]; }
   LightPtr light(const QString& name) { return m_lights[name]; }
   CameraPtr camera(const QString& name) { return m_cameras[name]; }
+  TexturePtr texture(const QString& name);
 
   /// Finds the shader with given file name.
   ShaderPtr shaderByFilename(const QString& filename);
@@ -79,6 +80,7 @@ protected:
   std::map<QString, LightPtr> m_lights;
   std::map<QString, CameraPtr> m_cameras;
   std::map<QString, ProgramPtr> m_shaders;
+  QMap<QString, TexturePtr> m_textures;
   
   int m_width, m_height;
 };

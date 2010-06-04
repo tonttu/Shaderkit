@@ -24,6 +24,7 @@
 #include "camera.hpp"
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
+#include "texture.hpp"
 
 #include <QtOpenGL>
 #include <QVariantMap>
@@ -71,6 +72,14 @@ void Scene::render() {
   for (RenderPasses::iterator it = m_render_passes.begin(); it != m_render_passes.end(); ++it) {
     (*it)->render(state);
   }
+}
+
+TexturePtr Scene::texture(const QString& name) {
+  if (m_textures.contains(name)) return m_textures[name];
+
+  TexturePtr tex(new Texture(name));
+  m_textures[name] = tex;
+  return tex;
 }
 
 ShaderPtr Scene::shaderByFilename(const QString& filename) {

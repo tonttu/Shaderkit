@@ -34,8 +34,8 @@ GLWidget::~GLWidget() {}
 QGLFormat GLWidget::defaultFormat() {
   QGLFormat format(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba |
                    QGL::AlphaChannel | QGL::DirectRendering | QGL::SampleBuffers);
-  format.setVersion(3, 2);
-  format.setProfile(QGLFormat::CompatibilityProfile);
+  //format.setVersion(3, 2);
+  //format.setProfile(QGLFormat::CompatibilityProfile);
   return format;
 }
 

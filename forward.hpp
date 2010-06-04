@@ -44,6 +44,12 @@ class RenderPass;
 typedef boost::shared_ptr<RenderPass> RenderPassPtr;
 
 class State;
+class FBOImage;
+typedef boost::shared_ptr<FBOImage> FBOImagePtr;
+class Texture;
+typedef boost::shared_ptr<Texture> TexturePtr;
+class FrameBufferObject;
+typedef boost::shared_ptr<FrameBufferObject> FBOPtr;
 
 class Object3D;
 typedef boost::shared_ptr<Object3D> ObjectPtr;

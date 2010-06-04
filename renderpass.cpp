@@ -22,10 +22,23 @@
 #include "light.hpp"
 #include "shader/program.hpp"
 #include "object3d.hpp"
+#include "fbo.hpp"
+#include "texture.hpp"
+#include <iostream>
 
 RenderPass::RenderPass(ScenePtr scene) : m_scene(scene), m_clear(0) {}
 
+int RenderPass::width() const {
+  return m_width > 0 ? m_width : m_scene->width();
+}
+
+int RenderPass::height() const {
+  return m_height > 0 ? m_height : m_scene->height();
+}
+
 void RenderPass::render(State& state) {
+  beginFBO();
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
@@ -38,7 +51,12 @@ void RenderPass::render(State& state) {
 
   if (m_shader) m_shader->bind();
 
-  m_viewport->prepare(m_scene->width(), m_scene->height());
+  m_viewport->prepare(width(), height());
+
+  /// @todo remove this, only for testing
+  static float f = 0.0f;
+  f += 0.2f;
+  glRotatef(f, 0, 1, 0);
 
   for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
     (*it)->activate(state);
@@ -57,6 +75,26 @@ void RenderPass::render(State& state) {
   }
 
   if (m_shader) m_shader->unbind();
+
+  endFBO();
+}
+
+void RenderPass::beginFBO() {
+  if (!m_depth && !m_color)
+    return;
+
+  if (!m_fbo) {
+    m_fbo.reset(new FrameBufferObject);
+    if (m_depth) m_fbo->set(GL_DEPTH_ATTACHMENT, m_depth);
+    if (m_color) m_fbo->set(GL_COLOR_ATTACHMENT0 + 0, m_color);
+  }
+
+  m_fbo->resize(width(), height());
+  m_fbo->bind();
+}
+
+void RenderPass::endFBO() {
+  if (m_fbo) m_fbo->unbind();
 }
 
 void RenderPass::load(QVariantMap map) {
@@ -76,4 +114,18 @@ void RenderPass::load(QVariantMap map) {
     else if (name == "depth") m_clear |= GL_DEPTH_BUFFER_BIT;
     else if (name == "stencil") m_clear |= GL_STENCIL_BUFFER_BIT;
   }
+
+  QVariantMap in = map["in"].toMap();
+  QVariantMap out = map["out"].toMap();
+
+  m_width = out["width"].toInt();
+  m_height = out["height"].toInt();
+
+  tmp = out["depth"].toStringList();
+  if (tmp.size() == 2 && tmp[0] == "texture")
+    m_depth = m_scene->texture(tmp[1]);
+
+  tmp = out["color0"].toStringList();
+  if (tmp.size() == 2 && tmp[0] == "texture")
+    m_color = m_scene->texture(tmp[1]);
 }
