@@ -1,0 +1,75 @@
+{
+  "objects" : {
+    "teapot" : {
+      "model" : ["built-in", "teapot"]
+    },
+    "box" : {
+      "model" : ["built-in", "box"]
+    }
+  },
+  "lights" : {
+    "light1" : {
+      "type" : "direction",
+      "ambient" : [0.2, 0.2, 0.2, 1.0],
+      "diffuse" : [1.0, 1.0, 1.0, 1.0],
+      "specular" : [1.0, 1.0, 1.0, 1.0],
+      "direction" : [0.5, 0.5, 0.5]
+    }
+  },
+  "cameras" : {
+    "camera1" : {
+      "type" : "perspective",
+      "fov" : 45,
+      "near" : 0.01,
+      "far" : 100.0,
+      "position" : [10,6,10],
+      "target" : [0,-1,0],
+      "up" : [0,1,0]
+    }
+  },
+  "shaders" : {
+    "phong" : {
+      "geometry" : ["examples/default.geom"],
+      "fragment" : ["examples/default.frag"],
+      "vertex" : ["examples/default.vert"]
+    },
+    "gaussian-y" : {
+      "vertex" : ["examples/post.vert"],
+      "fragment" : ["examples/gaussian-y.frag"]
+    },
+    "gaussian-x" : {
+      "vertex" : ["examples/post.vert"],
+      "fragment" : ["examples/gaussian-x.frag"]
+    }
+  },
+  "render passes" : [
+    {
+      "clear" : ["color", "depth"],
+      "shader" : "phong",
+      "objects" : ["teapot", "box"],
+      "viewport" : ["camera", "camera1"],
+      "lights" : ["light1"],
+      "out" : {
+        "depth" : ["renderbuffer"],
+        "color0" : ["texture", "img"]
+      }
+    },
+    {
+      "shader" : "gaussian-y",
+      "viewport" : ["post"],
+      "in" : {
+        "texture0" : ["texture", "img"]
+      },
+      "out" : {
+        "color0" : ["texture", "img2"]
+      }
+    },
+    {
+      "shader" : "gaussian-x",
+      "viewport" : ["post"],
+      "in" : {
+        "texture0" : ["texture", "img2"]
+      }
+    }
+  ]
+}

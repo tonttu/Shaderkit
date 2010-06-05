@@ -1,6 +1,7 @@
 #include "opengl.hpp"
 
 #include <QMap>
+#include <iostream>
 
 void _check_gl(const char* str, const char* file, int line) {
   static QMap<QString, int> s_errors;

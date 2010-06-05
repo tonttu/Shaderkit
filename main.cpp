@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   MainWindow window;
   ProjectPtr project(new Project(window));
   window.setProject(project);
-  project->setScene(Project::load("test.lab"));
+  project->setScene(Project::load("examples/phong-teapot.lab"));
   window.resize(window.sizeHint());
   window.show();
   return app.exec();
