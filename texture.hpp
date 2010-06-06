@@ -33,7 +33,6 @@ public:
   void unbind();
 
 private:
-  QString m_name;
   unsigned int m_id;
 };
 

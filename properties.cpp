@@ -19,6 +19,8 @@
 #include "properties.hpp"
 #include "shader/shader.hpp"
 #include "shader/program.hpp"
+#include "renderpass.hpp"
+#include "texture.hpp"
 
 #include "qtpropertymanager.h"
 #include "qtvariantproperty.h"
@@ -27,6 +29,8 @@ Properties* Properties::s_instance = 0;
 
 Properties::Properties(QWidget *parent)
   : QtTreePropertyBrowser(parent),
+    m_shaders_title(0),
+    m_renderpasses_title(0),
     m_factory(new QtVariantEditorFactory()),
     m_manager(new QtVariantPropertyManager()) {
   if (!s_instance) s_instance = this;
@@ -37,6 +41,12 @@ Properties::Properties(QWidget *parent)
   setFactoryForManager(m_manager, m_factory);
   setPropertiesWithoutValueMarked(true);
   setResizeMode(Interactive);
+
+  m_shaders_title = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "Shaders");
+  m_renderpasses_title = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "Render passes");
+
+  addProperty(m_shaders_title);
+  addProperty(m_renderpasses_title);
 }
 
 Properties::~Properties() {
@@ -49,7 +59,7 @@ void Properties::update(ProgramPtr shader) {
   // Ensure the existence of the shader group property
   if (!objProperty) {
     m_shaders[shader] = objProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), shader->name());
-    addProperty(objProperty);
+    m_shaders_title->addSubProperty(objProperty);
   }
 
   // Remove all old subproperties
@@ -74,6 +84,47 @@ void Properties::update(ProgramPtr shader) {
     } else {
       /// @todo implement
     }
+  }
+}
+
+void Properties::update(RenderPassPtr pass) {
+  QtVariantProperty* objProperty = m_renderpasses[pass];
+
+  // Ensure the existence of the render pass group property
+  if (!objProperty) {
+    m_renderpasses[pass] = objProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
+    m_renderpasses_title->addSubProperty(objProperty);
+  }
+
+  // Remove all old subproperties
+  QList<QtProperty*> sub = objProperty->subProperties();
+  for (QList<QtProperty*>::iterator it = sub.begin(); it != sub.end(); ++it) {
+    objProperty->removeSubProperty(*it);
+    m_properties.remove(*it);
+  }
+
+  QtVariantProperty* item = m_manager->addProperty(QVariant::Int, "width");
+  item->setValue(pass->width());
+  objProperty->addSubProperty(item);
+
+  item = m_manager->addProperty(QVariant::Int, "height");
+  item->setValue(pass->height());
+  objProperty->addSubProperty(item);
+
+  QtVariantProperty* in = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "in");
+  objProperty->addSubProperty(in);
+  foreach (QString name, pass->in()) {
+    item = m_manager->addProperty(QVariant::String, name);
+    item->setValue(pass->in(name)->name());
+    in->addSubProperty(item);
+  }
+
+  QtVariantProperty* out = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "out");
+  objProperty->addSubProperty(out);
+  foreach (QString name, pass->out()) {
+    item = m_manager->addProperty(QVariant::String, name);
+    item->setValue(pass->out(name)->name());
+    in->addSubProperty(item);
   }
 }
 

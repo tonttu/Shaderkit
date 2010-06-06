@@ -1,7 +1,7 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 
-Texture::Texture(QString name) : m_name(name), m_id(0) {}
+Texture::Texture(QString name) : FBOImage(name), m_id(0) {}
 
 Texture::~Texture() {
   if (m_id)

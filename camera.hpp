@@ -42,6 +42,8 @@ public:
   /// Sets this camera to use orthographic matrix that fills the screen
   void setRect(float near = -1.0f, float far = 1.0f);
 
+  QString name() const { return m_name; }
+
 protected:
   QString m_name;
   Type m_type;

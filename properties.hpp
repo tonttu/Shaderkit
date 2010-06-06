@@ -46,12 +46,17 @@ public:
 public slots:
   /// This shader program has changed (usually just relinked)
   void update(ProgramPtr shader);
+  void update(RenderPassPtr pass);
   /// User changed property value (to variant)
   void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
   /// Every shader has one group property whose children are the actual uniform variables
   QMap<ProgramPtr, QtVariantProperty*> m_shaders;
+
+  QMap<RenderPassPtr, QtVariantProperty*> m_renderpasses;
+
+  QtVariantProperty *m_shaders_title, *m_renderpasses_title;
 
   /// When a property is being edited, this factory is used to create editor widgets.
   /// Custom editors should be implemented by subclassing QtVariantEditorFactory.

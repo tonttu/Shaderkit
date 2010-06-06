@@ -24,9 +24,14 @@
 #include "object3d.hpp"
 #include "fbo.hpp"
 #include "texture.hpp"
+#include "properties.hpp"
 #include <iostream>
 
-RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0) {}
+RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0) {
+  connect(this, SIGNAL(changed(RenderPassPtr)),
+          &Properties::instance(), SLOT(update(RenderPassPtr)));
+
+}
 
 int RenderPass::width() const {
   return m_width > 0 ? m_width : m_scene->width();
@@ -35,6 +40,30 @@ int RenderPass::width() const {
 int RenderPass::height() const {
   return m_height > 0 ? m_height : m_scene->height();
 }
+
+QStringList RenderPass::out() const {
+  /// @todo put these in a map, and make sure the names are unique
+  QStringList tmp;
+  if (m_color) tmp.append(m_color->name());
+  if (m_depth) tmp.append(m_depth->name());
+  return tmp;
+}
+
+FBOImagePtr RenderPass::out(const QString& name) const {
+  if (m_color->name() == name) return m_color;
+  if (m_depth->name() == name) return m_depth;
+  return FBOImagePtr();
+}
+
+
+QString RenderPass::name() const {
+  if (m_viewport)
+    return m_shader ? m_viewport->name() + " (" + m_shader->name() + ")"
+      : m_viewport->name();
+
+  return m_shader ? "Shader " + m_shader->name() : "Pass";
+}
+
 
 void RenderPass::render(State& state) {
   beginFBO();
@@ -158,18 +187,25 @@ void RenderPass::load(QVariantMap map) {
     m_depth = m_scene->texture(tmp[1]);
 
   if (tmp.size() == 1 && tmp[0] == "renderbuffer")
-    m_depth.reset(new RenderBuffer);
+    m_depth.reset(new RenderBuffer("Depth Render Buffer"));
+
+  if (tmp.size() == 2 && tmp[0] == "renderbuffer")
+    m_depth.reset(new RenderBuffer(tmp[1]));
 
   tmp = out["color0"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "texture")
     m_color = m_scene->texture(tmp[1]);
 
   if (tmp.size() == 1 && tmp[0] == "renderbuffer")
-    m_color.reset(new RenderBuffer);
+    m_color.reset(new RenderBuffer("Color Render Buffer"));
+
+  if (tmp.size() == 2 && tmp[0] == "renderbuffer")
+    m_color.reset(new RenderBuffer(tmp[1]));
 
   for (QVariantMap::iterator it = in.begin(); it != in.end(); ++it) {
     tmp = it->toStringList();
     if (tmp.size() == 2 && tmp[0] == "texture")
       m_in[it.key()] = m_scene->texture(tmp[1]);
   }
+  emit changed(shared_from_this());
 }

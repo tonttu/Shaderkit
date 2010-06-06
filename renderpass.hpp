@@ -20,8 +20,9 @@
 #define RENDERPASS_HPP
 
 #include "forward.hpp"
+#include "opengl.hpp"
 
-#include <QtOpenGL>
+#include <boost/enable_shared_from_this.hpp>
 
 #include <set>
 
@@ -45,7 +46,9 @@
  *
  * @todo implement that stuff ^
  */
-class RenderPass {
+class RenderPass : public QObject, public boost::enable_shared_from_this<RenderPass> {
+  Q_OBJECT
+
 public:
   /// @todo separate Object from Model. Object is an instance of Model, including
   ///       the transformation matrix etc.
@@ -62,6 +65,22 @@ public:
 
   int height() const;
   int width() const;
+
+  QStringList in() const {
+    return m_in.keys();
+  }
+
+  TexturePtr in(const QString& name) const {
+    return m_in[name];
+  }
+
+  QStringList out() const;
+  FBOImagePtr out(const QString& name) const;
+
+  QString name() const;
+
+signals:
+  void changed(RenderPassPtr);
 
 protected:
   void beginFBO();

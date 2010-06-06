@@ -82,7 +82,7 @@ FORMS += mainwindow.ui
 
 LIBS += -lqjson
 
-QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES
+QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES -O0
 
 include(qtpropertybrowser/src/qtpropertybrowser.pri)
 

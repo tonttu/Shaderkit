@@ -1,9 +1,10 @@
 #include "fbo.hpp"
 #include "opengl.hpp"
 
-FBOImage::FBOImage() : m_id(0), m_type(0), m_active_type(0), m_width(0), m_height(0) {}
+FBOImage::FBOImage(QString name) : m_name(name),
+  m_id(0), m_type(0), m_active_type(0), m_width(0), m_height(0) {}
 
-RenderBuffer::RenderBuffer() {}
+RenderBuffer::RenderBuffer(QString name) : FBOImage(name) {}
 
 RenderBuffer::~RenderBuffer() {
   if (m_id)

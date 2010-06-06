@@ -26,12 +26,16 @@
 
 class FBOImage {
 public:
-  FBOImage();
+  FBOImage(QString name);
   virtual ~FBOImage() {}
   virtual void setup(unsigned int fbo, int width, int height) = 0;
   void setType(int type) { m_type = type; }
 
+  QString name() const { return m_name; }
+
 protected:
+  QString m_name;
+
   unsigned int m_id;
   int m_type, m_active_type;
   int m_width, m_height;
@@ -40,7 +44,7 @@ protected:
 
 class RenderBuffer : public FBOImage {
 public:
-  RenderBuffer();
+  RenderBuffer(QString name);
   virtual ~RenderBuffer();
 
   void setup(unsigned int fbo, int width, int height);
