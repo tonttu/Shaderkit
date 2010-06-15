@@ -82,14 +82,15 @@ TexturePtr Scene::texture(const QString& name) {
   return tex;
 }
 
-ShaderPtr Scene::shaderByFilename(const QString& filename) {
+QList<ShaderPtr> Scene::shadersByFilename(const QString& filename) {
+  QList<ShaderPtr> res;
   for (std::map<QString, ProgramPtr>::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
     GLProgram::Shaders shaders = it->second->shaders();
     for (GLProgram::Shaders::iterator it2 = shaders.begin(); it2 != shaders.end(); ++it2) {
-      if ((*it2)->filename() == filename) return *it2;
+      if ((*it2)->filename() == filename) res << *it2;
     }
   }
-  return ShaderPtr();
+  return res;
 }
 
 void Scene::load(QVariantMap map) {

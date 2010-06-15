@@ -43,9 +43,13 @@ ScenePtr Project::load(const QString& filename) {
 }
 
 void Project::codeChanged(Editor& editor) {
-  ShaderPtr shader = editor.shader();
-
-  if (editor.sync()) shader->loadSrc(editor.toPlainText());
+  if (editor.sync()) {
+    QList<ShaderPtr> lst = m_active_scene->shadersByFilename(editor.filename());
+    if (lst.empty()) return;
+    QString plain = editor.toPlainText();
+    foreach (ShaderPtr s, lst)
+      s->loadSrc(plain);
+  }
 }
 
 void Project::addShader(ShaderPtr shader) {
@@ -93,7 +97,7 @@ void Project::setScene(ScenePtr scene) {
 
     GLProgram::Shaders shaders = it->second->shaders();
     for (GLProgram::Shaders::iterator it2 = shaders.begin(); it2 != shaders.end(); ++it2) {
-      if (!findEditor(*it2)) {
+      if (!findEditor(*it2) && !findEditor((*it2)->filename())) {
         addShader(*it2);
       }
     }
@@ -108,7 +112,8 @@ void Project::fileUpdated(const QString& filename) {
   if (editor) {
     editor->fileUpdated(filename);
   } else {
-    ShaderPtr shader = m_active_scene->shaderByFilename(filename);
-    if (shader) shader->loadFile(filename);
+    QList<ShaderPtr> lst = m_active_scene->shadersByFilename(filename);
+    foreach (ShaderPtr s, lst)
+      s->loadFile(filename);
   }
 }

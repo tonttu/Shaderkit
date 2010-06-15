@@ -57,8 +57,8 @@ public:
   CameraPtr camera(const QString& name) { return m_cameras[name]; }
   TexturePtr texture(const QString& name);
 
-  /// Finds the shader with given file name.
-  ShaderPtr shaderByFilename(const QString& filename);
+  /// Finds all the shaders with given file name.
+  QList<ShaderPtr> shadersByFilename(const QString& filename);
 
   /// Name -> shader mapping
   std::map<QString, ProgramPtr> shaders() { return m_shaders; }
