@@ -39,7 +39,8 @@ HEADERS += forward.hpp \
     mainwindow.hpp \
     opengl.hpp \
     texture.hpp \
-    fbo.hpp
+    fbo.hpp \
+    shaderdb/shaderdb.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -66,7 +67,8 @@ SOURCES += shader/glsl.tab.cpp \
     mainwindow.cpp \
     opengl.cpp \
     texture.cpp \
-    fbo.cpp
+    fbo.cpp \
+    shaderdb/shaderdb.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \

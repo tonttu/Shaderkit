@@ -92,7 +92,7 @@ void GLProgram::link() {
     GLchar log[len];
     /// @todo generate shadererrors
     glRun(glGetProgramInfoLog(m_prog, len, &len, log));
-    qDebug() << log;
+    //qDebug() << log;
   }
 
   if (ok) {
