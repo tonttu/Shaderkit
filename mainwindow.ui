@@ -14,68 +14,12 @@
    <string>GLSL Lab</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="main_layout">
+   <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QSplitter" name="vsplitter">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+     <widget class="QTabWidget" name="editor_tabs">
+      <property name="tabsClosable">
+       <bool>true</bool>
       </property>
-      <widget class="QSplitter" name="hsplitter">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <widget class="GLWidget" name="gl_widget" native="true"/>
-       <widget class="Properties" name="properties" native="true"/>
-      </widget>
-      <widget class="QTabWidget" name="editor_tabs">
-       <property name="tabsClosable">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QTableWidget" name="error_list">
-       <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
-       </property>
-       <property name="showDropIndicator" stdset="0">
-        <bool>false</bool>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::SingleSelection</enum>
-       </property>
-       <property name="selectionBehavior">
-        <enum>QAbstractItemView::SelectRows</enum>
-       </property>
-       <property name="verticalScrollMode">
-        <enum>QAbstractItemView::ScrollPerPixel</enum>
-       </property>
-       <property name="horizontalScrollMode">
-        <enum>QAbstractItemView::ScrollPerPixel</enum>
-       </property>
-       <property name="showGrid">
-        <bool>false</bool>
-       </property>
-       <property name="rowCount">
-        <number>0</number>
-       </property>
-       <property name="columnCount">
-        <number>3</number>
-       </property>
-       <attribute name="horizontalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="verticalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="verticalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="horizontalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <column/>
-       <column/>
-       <column/>
-      </widget>
      </widget>
     </item>
    </layout>
@@ -98,6 +42,7 @@
     <addaction name="action_open"/>
     <addaction name="separator"/>
     <addaction name="action_saveproject"/>
+    <addaction name="action_autosave"/>
     <addaction name="action_save"/>
     <addaction name="action_saveas"/>
     <addaction name="action_export"/>
@@ -112,17 +57,104 @@
    </widget>
    <widget class="QMenu" name="menuShader_Library">
     <property name="title">
-     <string>&amp;Shader Library</string>
+     <string>Shader Library</string>
     </property>
     <addaction name="action_libopen"/>
     <addaction name="action_libexample"/>
     <addaction name="action_import"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="actionOpenGL_Render_Window"/>
+    <addaction name="actionProperty_Manager"/>
+    <addaction name="actionErrorlog"/>
+    <addaction name="actionAutosave_Layout"/>
+    <addaction name="actionReset_Layout"/>
+   </widget>
    <addaction name="menu_file"/>
    <addaction name="menuShader_Library"/>
+   <addaction name="menuTools"/>
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="errordock">
+   <property name="minimumSize">
+    <size>
+     <width>84</width>
+     <height>95</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>Compiler log</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QTableWidget" name="error_list">
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
+    <property name="showDropIndicator" stdset="0">
+     <bool>false</bool>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::SingleSelection</enum>
+    </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectRows</enum>
+    </property>
+    <property name="verticalScrollMode">
+     <enum>QAbstractItemView::ScrollPerPixel</enum>
+    </property>
+    <property name="horizontalScrollMode">
+     <enum>QAbstractItemView::ScrollPerPixel</enum>
+    </property>
+    <property name="showGrid">
+     <bool>false</bool>
+    </property>
+    <property name="rowCount">
+     <number>0</number>
+    </property>
+    <property name="columnCount">
+     <number>3</number>
+    </property>
+    <attribute name="horizontalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="horizontalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <column/>
+    <column/>
+    <column/>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="gldock">
+   <property name="windowTitle">
+    <string>OpenGL render</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="GLWidget" name="gl_widget"/>
+  </widget>
+  <widget class="QDockWidget" name="propertydock">
+   <property name="windowTitle">
+    <string>Properties</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="Properties" name="properties"/>
+  </widget>
   <action name="action_save">
    <property name="text">
     <string>&amp;Save File</string>
@@ -188,17 +220,77 @@
   </action>
   <action name="action_libexample">
    <property name="text">
-    <string>Open &amp;Example</string>
+    <string>Open Example</string>
    </property>
   </action>
   <action name="action_libopen">
    <property name="text">
-    <string>Open &amp;Library</string>
+    <string>Open Library</string>
    </property>
   </action>
   <action name="action_import">
    <property name="text">
-    <string>&amp;Import</string>
+    <string>Import</string>
+   </property>
+  </action>
+  <action name="action_autosave">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Autosave Project</string>
+   </property>
+  </action>
+  <action name="actionOpenGL_Render_Window">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>OpenGL Render Window</string>
+   </property>
+  </action>
+  <action name="actionProperty_Manager">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Property Manager</string>
+   </property>
+  </action>
+  <action name="actionErrorlog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Errorlog</string>
+   </property>
+  </action>
+  <action name="actionAutosave_Layout">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Autosave Layout</string>
+   </property>
+  </action>
+  <action name="actionReset_Layout">
+   <property name="text">
+    <string>Reset Layout</string>
    </property>
   </action>
  </widget>
