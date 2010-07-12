@@ -93,6 +93,9 @@ MainWindow::MainWindow(QWidget* parent)
           this, SLOT(logToggled(bool)));
   connect(m_ui->errordock, SIGNAL(visibilityChanged(bool)),
           this, SLOT(logToggled(bool)));
+
+  connect(m_ui->action_about, SIGNAL(triggered()),
+          this, SLOT(about()));
 }
 
 MainWindow::~MainWindow() {}
@@ -167,6 +170,11 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   }
 }
 
+void MainWindow::about() {
+  About about(this);
+  about.exec();
+}
+
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   ShaderError err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
 
@@ -233,4 +241,25 @@ void MainWindow::changeEvent(QEvent* e) {
   default:
     break;
   }
+}
+
+About::About(QWidget* parent) : QDialog(parent) {
+  setWindowTitle(tr("About GLSL Lab"));
+
+  QHBoxLayout* layout1 = new QHBoxLayout(this);
+  QWidget* container = new QWidget;
+  QVBoxLayout* layout2 = new QVBoxLayout(container);
+
+  QLabel* text = new QLabel(tr("<h1>GLSL Lab</h1>"));
+  text->setWordWrap(true);
+
+  QDialogButtonBox* bbox = new QDialogButtonBox(QDialogButtonBox::Close);
+  connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
+
+  layout2->addWidget(text);
+  layout2->addWidget(bbox);
+
+  QLabel* logo = new QLabel;
+  layout1->addWidget(logo);
+  layout1->addWidget(container);
 }

@@ -26,6 +26,8 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 
+#include <QtGui/QDialog>
+
 /// Clickable custom button used in the editor status bar inside the tab widget.
 class IconBtn : public QPushButton {
   Q_OBJECT
@@ -59,6 +61,7 @@ public:
 public slots:
   /// Updates the error list
   void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
+  void about();
 
 protected:
   void keyPressEvent(QKeyEvent* event);
@@ -90,6 +93,13 @@ private:
 
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
+};
+
+class About : public QDialog
+{
+  Q_OBJECT
+public:
+  About(QWidget* parent);
 };
 
 #endif // MAINWINDOW_HPP
