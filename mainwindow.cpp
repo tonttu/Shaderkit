@@ -27,6 +27,20 @@
 #include <QFileInfo>
 #include <QLabel>
 
+namespace {
+  void handleToggle(QAction* action, QDockWidget* dock, bool state) {
+    if (action->isChecked() != state) {
+      action->setChecked(state);
+    }
+
+    if (dock->isVisible() != state) {
+      if (state) dock->show();
+      else dock->hide();
+    }
+  }
+}
+
+
 IconBtn::~IconBtn() {}
 
 void IconBtn::paintEvent(QPaintEvent*) {
@@ -54,6 +68,31 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
+
+  connect(m_ui->action_glwidget, SIGNAL(toggled(bool)),
+          this, SLOT(renderToggled(bool)));
+  connect(m_ui->gldock, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(renderToggled(bool)));
+
+  connect(m_ui->action_shaders_properties, SIGNAL(toggled(bool)),
+          this, SLOT(shaderPMToggled(bool)));
+  connect(m_ui->shaderdock, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(shaderPMToggled(bool)));
+
+  connect(m_ui->action_render_properties, SIGNAL(toggled(bool)),
+          this, SLOT(renderPMToggled(bool)));
+  connect(m_ui->renderdock, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(renderPMToggled(bool)));
+
+  connect(m_ui->action_file_list, SIGNAL(toggled(bool)),
+          this, SLOT(filelistToggled(bool)));
+  connect(m_ui->filesdock, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(filelistToggled(bool)));
+
+  connect(m_ui->action_error_log, SIGNAL(toggled(bool)),
+          this, SLOT(logToggled(bool)));
+  connect(m_ui->errordock, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(logToggled(bool)));
 }
 
 MainWindow::~MainWindow() {}
@@ -156,6 +195,26 @@ void MainWindow::save() {
     file.write(editor->toPlainText().toUtf8());
     editor->document()->setModified(false);
   }
+}
+
+void MainWindow::renderToggled(bool state) {
+  handleToggle(m_ui->action_glwidget, m_ui->gldock, state);
+}
+
+void MainWindow::shaderPMToggled(bool state) {
+  handleToggle(m_ui->action_shaders_properties, m_ui->shaderdock, state);
+}
+
+void MainWindow::renderPMToggled(bool state) {
+  handleToggle(m_ui->action_render_properties, m_ui->renderdock, state);
+}
+
+void MainWindow::filelistToggled(bool state) {
+  handleToggle(m_ui->action_file_list, m_ui->filesdock, state);
+}
+
+void MainWindow::logToggled(bool state) {
+  handleToggle(m_ui->action_error_log, m_ui->errordock, state);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e) {

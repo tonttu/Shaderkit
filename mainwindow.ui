@@ -67,15 +67,23 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
-    <addaction name="actionOpenGL_Render_Window"/>
-    <addaction name="actionProperty_Manager"/>
-    <addaction name="actionErrorlog"/>
     <addaction name="actionAutosave_Layout"/>
     <addaction name="actionReset_Layout"/>
+   </widget>
+   <widget class="QMenu" name="menu_Window">
+    <property name="title">
+     <string>&amp;Window</string>
+    </property>
+    <addaction name="action_glwidget"/>
+    <addaction name="action_shaders_properties"/>
+    <addaction name="action_render_properties"/>
+    <addaction name="action_file_list"/>
+    <addaction name="action_error_log"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menuShader_Library"/>
    <addaction name="menuTools"/>
+   <addaction name="menu_Window"/>
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -146,7 +154,7 @@
    </attribute>
    <widget class="GLWidget" name="gl_widget"/>
   </widget>
-  <widget class="QDockWidget" name="propertydock">
+  <widget class="QDockWidget" name="shaderdock">
    <property name="windowTitle">
     <string>Shaders</string>
    </property>
@@ -155,7 +163,7 @@
    </attribute>
    <widget class="ShaderProperties" name="shader_properties"/>
   </widget>
-  <widget class="QDockWidget" name="propertydock2">
+  <widget class="QDockWidget" name="renderdock">
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
@@ -165,10 +173,9 @@
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
-   <widget class="RenderPassProperties" name="renderpass_properties">
-   </widget>
+   <widget class="RenderPassProperties" name="renderpass_properties"/>
   </widget>
-  <widget class="QDockWidget" name="propertydock3">
+  <widget class="QDockWidget" name="filesdock">
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
@@ -179,14 +186,6 @@
     <number>4</number>
    </attribute>
    <widget class="FileList" name="filelist">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>0</y>
-      <width>256</width>
-      <height>192</height>
-     </rect>
-    </property>
     <property name="selectionBehavior">
      <enum>QAbstractItemView::SelectRows</enum>
     </property>
@@ -303,7 +302,7 @@
     <string>Autosave Project</string>
    </property>
   </action>
-  <action name="actionOpenGL_Render_Window">
+  <action name="action_glwidget">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -314,7 +313,7 @@
     <string>OpenGL Render Window</string>
    </property>
   </action>
-  <action name="actionProperty_Manager">
+  <action name="action_shaders_properties">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -322,10 +321,13 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Property Manager</string>
+    <string>Shader Properties</string>
+   </property>
+   <property name="toolTip">
+    <string>Shader Property Manager</string>
    </property>
   </action>
-  <action name="actionErrorlog">
+  <action name="action_error_log">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -333,7 +335,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Errorlog</string>
+    <string>Error Log</string>
    </property>
   </action>
   <action name="actionAutosave_Layout">
@@ -350,6 +352,31 @@
   <action name="actionReset_Layout">
    <property name="text">
     <string>Reset Layout</string>
+   </property>
+  </action>
+  <action name="action_render_properties">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Render Properties</string>
+   </property>
+   <property name="toolTip">
+    <string>Render Properties</string>
+   </property>
+  </action>
+  <action name="action_file_list">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>File List</string>
    </property>
   </action>
  </widget>

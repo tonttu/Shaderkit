@@ -72,6 +72,12 @@ protected slots:
   /// Save the current file (the file open in the active editor)
   void save();
 
+  void renderToggled(bool);
+  void shaderPMToggled(bool);
+  void renderPMToggled(bool);
+  void filelistToggled(bool);
+  void logToggled(bool);
+
 private:
   /// Main layout generated from the .ui -file.
   std::auto_ptr<Ui::MainWindow> m_ui;
