@@ -29,7 +29,7 @@
 
 RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
-          &Properties::instance(), SLOT(update(RenderPassPtr)));
+          &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
 
 }
 

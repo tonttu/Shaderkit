@@ -25,15 +25,31 @@
 #include "qtpropertymanager.h"
 #include "qtvariantproperty.h"
 
-Properties* Properties::s_instance = 0;
+#define SINGLETON()
 
-Properties::Properties(QWidget *parent)
+ShaderProperties* ShaderProperties::s_instance = 0;
+RenderPassProperties* RenderPassProperties::s_instance = 0;
+FileList* FileList::s_instance = 0;
+
+ShaderProperties &ShaderProperties::instance() {
+  if (s_instance) return *s_instance;
+  return *(new ShaderProperties);
+}
+
+RenderPassProperties &RenderPassProperties::instance() {
+  if (s_instance) return *s_instance;
+  return *(new RenderPassProperties);
+}
+
+FileList &FileList::instance() {
+  if (s_instance) return *s_instance;
+  return *(new FileList);
+}
+
+Properties::Properties(QWidget* parent)
   : QtTreePropertyBrowser(parent),
-    m_shaders_title(0),
-    m_renderpasses_title(0),
     m_factory(new QtVariantEditorFactory()),
     m_manager(new QtVariantPropertyManager()) {
-  if (!s_instance) s_instance = this;
 
   connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
           this, SLOT(valueChanged(QtProperty*, const QVariant&)));
@@ -41,25 +57,30 @@ Properties::Properties(QWidget *parent)
   setFactoryForManager(m_manager, m_factory);
   setPropertiesWithoutValueMarked(true);
   setResizeMode(Interactive);
-
-  m_shaders_title = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "Shaders");
-  m_renderpasses_title = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "Render passes");
-
-  addProperty(m_shaders_title);
-  addProperty(m_renderpasses_title);
 }
 
-Properties::~Properties() {
+void Properties::valueChanged(QtProperty* property, const QVariant& variant) {
+  PropertyMap::iterator it = m_properties.find(property);
+  if (it == m_properties.end()) return;
+  it->set(variant);
+}
+
+ShaderProperties::ShaderProperties(QWidget* parent)
+  : Properties(parent) {
+  if (!s_instance) s_instance = this;
+}
+
+ShaderProperties::~ShaderProperties() {
   if (s_instance == this) s_instance = 0;
 }
 
-void Properties::update(ProgramPtr shader) {
+void ShaderProperties::update(ProgramPtr shader) {
   QtVariantProperty* objProperty = m_shaders[shader];
 
   // Ensure the existence of the shader group property
   if (!objProperty) {
     m_shaders[shader] = objProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), shader->name());
-    m_shaders_title->addSubProperty(objProperty);
+    addProperty(objProperty);
   }
 
   // Remove all old subproperties
@@ -87,13 +108,25 @@ void Properties::update(ProgramPtr shader) {
   }
 }
 
-void Properties::update(RenderPassPtr pass) {
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+RenderPassProperties::RenderPassProperties(QWidget* parent)
+  : Properties(parent) {
+  if (!s_instance) s_instance = this;
+}
+
+RenderPassProperties::~RenderPassProperties() {
+  if (s_instance == this) s_instance = 0;
+}
+
+void RenderPassProperties::update(RenderPassPtr pass) {
   QtVariantProperty* objProperty = m_renderpasses[pass];
 
   // Ensure the existence of the render pass group property
   if (!objProperty) {
     m_renderpasses[pass] = objProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
-    m_renderpasses_title->addSubProperty(objProperty);
+    addProperty(objProperty);
   }
 
   // Remove all old subproperties
@@ -128,14 +161,37 @@ void Properties::update(RenderPassPtr pass) {
   }
 }
 
-void Properties::valueChanged(QtProperty* property, const QVariant& variant) {
-  PropertyMap::iterator it = m_properties.find(property);
-  if (it == m_properties.end()) return;
-qDebug() << variant.toFloat();
-  it->set(variant);
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+FileList::FileList(QWidget* parent)
+  : QTableWidget(parent) {
+  if (!s_instance) s_instance = this;
+
+  connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
+          this, SLOT(activateFile(QTableWidgetItem*)));
 }
 
-Properties &Properties::instance() {
-  if (s_instance) return *s_instance;
-  return *(new Properties);
+FileList::~FileList() {
+  if (s_instance == this) s_instance = 0;
+}
+
+void FileList::update(const QString& filename) {
+  QTableWidgetItem* item = m_files[filename];
+
+  if (!item) {
+    m_files[filename] = item = new QTableWidgetItem(filename);
+    setRowCount(rowCount()+1);
+    setItem(rowCount()-1, 0, item);
+
+    resizeColumnsToContents();
+    QTableWidget::update();
+  }
+}
+
+void FileList::activateFile(QTableWidgetItem* item) {
+  QString filename = m_files.key(item);
+  if(!filename.isEmpty()) {
+    emit openFile(filename);
+  }
 }

@@ -56,7 +56,7 @@ typedef boost::shared_ptr<Object3D> ObjectPtr;
 class Teapot;
 class Box;
 
-class Properties;
+class ShaderProperties;
 class Editor;
 class EditorMargin;
 class Highlighter;

@@ -160,7 +160,7 @@ void UniformVar::set(ProgramPtr prog, bool relocate) {
 
   GLint oldprog = 0;
   glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &oldprog));
-  if (oldprog != prog->id()) prog->bind();
+  if (oldprog != GLint(prog->id())) prog->bind();
 
   if (info.matrix_setter) {
     glRun(info.matrix_setter(loc, m_size, 0, &m_floatdata.front()));

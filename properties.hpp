@@ -20,6 +20,7 @@
 #define PROPERTIES_HPP
 
 #include "forward.hpp"
+#include "shader/uniform.hpp"
 
 #include "qttreepropertybrowser.h"
 
@@ -29,47 +30,102 @@ class QtVariantEditorFactory;
 class QtVariantPropertyManager;
 class QtVariantProperty;
 
-/**
- * Real-time property editor for different properties, including shader
- * uniform variables.
- *
- * This is a singleton class.
- */
 class Properties : public QtTreePropertyBrowser {
   Q_OBJECT
 
 public:
-  static Properties& instance();
   Properties(QWidget* parent = 0);
-  virtual ~Properties();
+  virtual ~Properties() {}
 
 public slots:
-  /// This shader program has changed (usually just relinked)
-  void update(ProgramPtr shader);
-  void update(RenderPassPtr pass);
   /// User changed property value (to variant)
   void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
-  /// Every shader has one group property whose children are the actual uniform variables
-  QMap<ProgramPtr, QtVariantProperty*> m_shaders;
+  typedef QMap<QtProperty*, UniformVar> PropertyMap;
 
-  QMap<RenderPassPtr, QtVariantProperty*> m_renderpasses;
-
-  QtVariantProperty *m_shaders_title, *m_renderpasses_title;
+  /// Maps the property to uniform variable
+  PropertyMap m_properties;
 
   /// When a property is being edited, this factory is used to create editor widgets.
   /// Custom editors should be implemented by subclassing QtVariantEditorFactory.
   QtVariantEditorFactory* m_factory;
 
   QtVariantPropertyManager* m_manager;
+};
 
-  static Properties* s_instance;
+/**
+ * Real-time property editor for shader properties, like uniform variables.
+ *
+ * This is a singleton class.
+ */
+class ShaderProperties : public Properties {
+  Q_OBJECT
 
-  typedef QMap<QtProperty*, UniformVar> PropertyMap;
+public:
+  static ShaderProperties& instance();
+  ShaderProperties(QWidget* parent = 0);
+  virtual ~ShaderProperties();
 
-  /// Maps the property to uniform variable
-  PropertyMap m_properties;
+public slots:
+  /// This shader program has changed (usually just relinked)
+  void update(ProgramPtr shader);
+
+protected:
+  /// Every shader has one group property whose children are the actual uniform variables
+  QMap<ProgramPtr, QtVariantProperty*> m_shaders;
+
+  static ShaderProperties* s_instance;
+};
+
+/**
+ * Real-time property editor for render passes.
+ *
+ * This is a singleton class.
+ */
+class RenderPassProperties : public Properties {
+  Q_OBJECT
+
+public:
+  static RenderPassProperties& instance();
+  RenderPassProperties(QWidget* parent = 0);
+  virtual ~RenderPassProperties();
+
+public slots:
+  /// This render pass has been changed / created
+  void update(RenderPassPtr pass);
+
+protected:
+  /// Every render pass has one group property whose children are the actual passes
+  QMap<RenderPassPtr, QtVariantProperty*> m_renderpasses;
+
+  static RenderPassProperties* s_instance;
+};
+
+/**
+ * List of all available editable files.
+ *
+ * This is a singleton class.
+ */
+class FileList : public QTableWidget {
+  Q_OBJECT
+
+public:
+  static FileList& instance();
+  FileList(QWidget* parent = 0);
+  virtual ~FileList();
+
+signals:
+  void openFile(QString);
+
+public slots:
+  void update(const QString& filename);
+  void activateFile(QTableWidgetItem * item);
+
+protected:
+  QMap<QString, QTableWidgetItem*> m_files;
+
+  static FileList* s_instance;
 };
 
 #endif // PROPERTIES_HPP

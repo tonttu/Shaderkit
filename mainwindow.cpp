@@ -40,9 +40,20 @@ void IconBtn::paintEvent(QPaintEvent*) {
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent), m_ui(new Ui::MainWindow) {
   m_ui->setupUi(this);
+/*  QDockWidget *dw = new QDockWidget;
+  dw->setObjectName("Foo");
+  dw->setWindowTitle("Bar");
+  dw->setWidget(new QTextEdit);
+
+             addDockWidget(Qt::LeftDockWidgetArea, dw);*/
+  //m_ui->properties
   connect(m_ui->error_list, SIGNAL(itemActivated(QTableWidgetItem*)),
           this, SLOT(errorItemActivated(QTableWidgetItem*)));
   connect(m_ui->action_save, SIGNAL(triggered()), this, SLOT(save()));
+  /*connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));
+  connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
+  connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
+  connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
 }
 
 MainWindow::~MainWindow() {}
@@ -113,7 +124,7 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
 
   if (changed) {
     m_ui->error_list->resizeColumnsToContents();
-    m_ui->error_list->repaint();
+    m_ui->error_list->update();
   }
 }
 

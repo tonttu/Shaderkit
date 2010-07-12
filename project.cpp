@@ -22,6 +22,7 @@
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 #include "scene.hpp"
+#include "properties.hpp"
 
 #include <qjson/parser.h>
 
@@ -56,6 +57,7 @@ void Project::addShader(ShaderPtr shader) {
   Watcher::instance().add(this, shader->filename());
   Editor* editor = m_main_window.createEditor(shader);
   connect(editor, SIGNAL(codeChanged(Editor&)), this, SLOT(codeChanged(Editor&)));
+  FileList::instance().update(shader->filename());
 }
 
 Editor* Project::findEditor(ShaderPtr shader) {
