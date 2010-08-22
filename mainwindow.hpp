@@ -66,6 +66,7 @@ public slots:
 protected:
   void keyPressEvent(QKeyEvent* event);
   void changeEvent(QEvent* e);
+  void restore();
 
 protected slots:
   /// Focus the correct tab and line for selected error.
@@ -74,6 +75,8 @@ protected slots:
   void modificationChanged(bool b);
   /// Save the current file (the file open in the active editor)
   void save();
+
+  void closeEvent(QCloseEvent* event);
 
 private:
   /// Main layout generated from the .ui -file.

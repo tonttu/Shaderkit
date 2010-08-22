@@ -73,6 +73,7 @@ void MainWindow::setProject(ProjectPtr p) {
   m_project = p;
   connect(p.get(), SIGNAL(sceneChanged(ScenePtr)),
           m_ui->gl_widget, SLOT(sceneChange(ScenePtr)));
+  restore();
 }
 
 Editor* MainWindow::createEditor(ShaderPtr shader) {
@@ -172,6 +173,20 @@ void MainWindow::save() {
     file.write(editor->toPlainText().toUtf8());
     editor->document()->setModified(false);
   }
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+  /// @todo these should be project-specific
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  settings.setValue("core/geometry", saveGeometry());
+  settings.setValue("core/windowState", saveState());
+  QMainWindow::closeEvent(event);
+}
+
+void MainWindow::restore() {
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  restoreGeometry(settings.value("core/geometry").toByteArray());
+  restoreState(settings.value("core/windowState").toByteArray());
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e) {
