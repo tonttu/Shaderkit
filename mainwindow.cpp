@@ -65,6 +65,8 @@ MainWindow::MainWindow(QWidget* parent)
 
   connect(m_ui->action_about, SIGNAL(triggered()),
           this, SLOT(about()));
+  connect(m_ui->editor_tabs, SIGNAL(tabCloseRequested(int)),
+         this, SLOT(closeEditor(int)));
 }
 
 MainWindow::~MainWindow() {}
@@ -107,6 +109,10 @@ Editor* MainWindow::createEditor(ShaderPtr shader) {
   m_ui->editor_tabs->addTab(widget, fi.fileName());
   m_ui->editor_tabs->setCurrentIndex(m_ui->editor_tabs->count()-1);
   return editor;
+}
+
+void MainWindow::activateEditor(Editor* editor) {
+  m_ui->editor_tabs->setCurrentWidget(editor->parentWidget());
 }
 
 void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
@@ -166,12 +172,38 @@ void MainWindow::modificationChanged(bool b) {
   }
 }
 
-void MainWindow::save() {
-  Editor* editor = m_editors[m_ui->editor_tabs->currentIndex()];
+void MainWindow::save(int index) {
+  if (index == -1)
+    index = m_ui->editor_tabs->currentIndex();
+  Editor* editor = m_editors[index];
   QFile file(editor->filename());
   if (file.open(QIODevice::WriteOnly)) {
     file.write(editor->toPlainText().toUtf8());
     editor->document()->setModified(false);
+  }
+}
+
+void MainWindow::closeEditor(int index) {
+  if (index < 0)
+    index = m_ui->editor_tabs->currentIndex();
+
+  QWidget* widget = m_ui->editor_tabs->widget(index);
+  if (widget) {
+    Editor* editor = widget->findChild<Editor*>("editor");
+    if (editor) {
+      if (editor->document()->isModified()) {
+        int ret = QMessageBox::question(this, "Unsaved changes", "The file has some unsaved changes, what to do?",
+                                        QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save) {
+          save(index);
+        } else if (ret != QMessageBox::Close) {
+          return;
+        }
+      }
+
+      m_editors.removeAll(editor);
+      m_ui->editor_tabs->removeTab(index);
+    }
   }
 }
 

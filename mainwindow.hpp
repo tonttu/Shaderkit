@@ -56,6 +56,8 @@ public:
   /// Creates a new editor widget for given shader, and add the editor to a new tab.
   Editor* createEditor(ShaderPtr shader);
 
+  void activateEditor(Editor* editor);
+
   QList<Editor*> editors() { return m_editors; }
 
 public slots:
@@ -74,7 +76,8 @@ protected slots:
   /// An editors modification status is changed and the star after the tab name is added/removed.
   void modificationChanged(bool b);
   /// Save the current file (the file open in the active editor)
-  void save();
+  void save(int index = -1);
+  void closeEditor(int index);
 
   void closeEvent(QCloseEvent* event);
 

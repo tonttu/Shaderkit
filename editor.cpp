@@ -40,6 +40,8 @@ void EditorMargin::paintEvent(QPaintEvent* event) {
 Editor::Editor(QWidget* parent, ShaderPtr shader)
   : QPlainTextEdit(parent), m_margin(new EditorMargin(this)),
     m_highlighter(new Highlighter(this->document())), m_shader(shader), m_sync(true) {
+  setObjectName("editor");
+
   connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateMarginWidth(int)));
   connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateMargin(QRect,int)));
   connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));

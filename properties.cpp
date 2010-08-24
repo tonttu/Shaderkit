@@ -25,8 +25,6 @@
 #include "qtpropertymanager.h"
 #include "qtvariantproperty.h"
 
-#define SINGLETON()
-
 ShaderProperties* ShaderProperties::s_instance = 0;
 RenderPassProperties* RenderPassProperties::s_instance = 0;
 FileList* FileList::s_instance = 0;
@@ -165,33 +163,35 @@ void RenderPassProperties::update(RenderPassPtr pass) {
 ///////////////////////////////////////////////////////////////////////////////
 
 FileList::FileList(QWidget* parent)
-  : QTableWidget(parent) {
+  : QTreeWidget(parent),
+    m_src(new QTreeWidgetItem(this)) {
   if (!s_instance) s_instance = this;
 
-  connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
-          this, SLOT(activateFile(QTableWidgetItem*)));
+  m_src->setText(0, "Sources");
+  connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
+          this, SLOT(activateFile(QTreeWidgetItem*, int)));
 }
 
 FileList::~FileList() {
   if (s_instance == this) s_instance = 0;
 }
 
-void FileList::update(const QString& filename) {
-  QTableWidgetItem* item = m_files[filename];
+void FileList::update(ShaderPtr shader) {
+  QTreeWidgetItem* item = m_files[shader->filename()];
 
   if (!item) {
-    m_files[filename] = item = new QTableWidgetItem(filename);
-    setRowCount(rowCount()+1);
-    setItem(rowCount()-1, 0, item);
+    item = new QTreeWidgetItem(m_src);
+    m_files[shader->filename()] = item;
+    m_items[item] = shader;
+    item->setText(0, shader->filename());
 
-    resizeColumnsToContents();
-    QTableWidget::update();
+//    QTreeWidget::update();
   }
 }
 
-void FileList::activateFile(QTableWidgetItem* item) {
-  QString filename = m_files.key(item);
-  if(!filename.isEmpty()) {
-    emit openFile(filename);
+void FileList::activateFile(QTreeWidgetItem* item, int column) {
+  ShaderPtr shader = m_items[item];
+  if(shader) {
+    emit openFile(shader);
   }
 }

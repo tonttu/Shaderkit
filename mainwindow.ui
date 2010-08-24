@@ -30,7 +30,7 @@
      <x>0</x>
      <y>0</y>
      <width>799</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -134,12 +134,6 @@
     <attribute name="verticalHeaderVisible">
      <bool>false</bool>
     </attribute>
-    <attribute name="verticalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
-    <attribute name="horizontalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
     <column/>
     <column/>
     <column/>
@@ -195,22 +189,20 @@
     <property name="horizontalScrollMode">
      <enum>QAbstractItemView::ScrollPerPixel</enum>
     </property>
+    <property name="sortingEnabled">
+     <bool>true</bool>
+    </property>
     <property name="columnCount">
      <number>1</number>
     </property>
-    <attribute name="horizontalHeaderVisible">
+    <attribute name="headerVisible">
      <bool>false</bool>
     </attribute>
-    <attribute name="verticalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
-    <attribute name="verticalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
-    <attribute name="horizontalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
-    <column/>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
    </widget>
   </widget>
   <action name="action_save">
@@ -401,7 +393,7 @@
   </customwidget>
   <customwidget>
    <class>FileList</class>
-   <extends>QTableWidget</extends>
+   <extends>QTreeWidget</extends>
    <header>properties.hpp</header>
   </customwidget>
  </customwidgets>

@@ -57,6 +57,7 @@ public slots:
   /// Shader code was changed on the editor
   void codeChanged(Editor& editor);
   void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
+  void openShader(ShaderPtr shader);
 
 protected:
   /// Creates a new editor for a shader

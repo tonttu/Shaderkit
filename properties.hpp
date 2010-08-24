@@ -107,7 +107,7 @@ protected:
  *
  * This is a singleton class.
  */
-class FileList : public QTableWidget {
+class FileList : public QTreeWidget {
   Q_OBJECT
 
 public:
@@ -116,14 +116,16 @@ public:
   virtual ~FileList();
 
 signals:
-  void openFile(QString);
+  void openFile(ShaderPtr);
 
 public slots:
-  void update(const QString& filename);
-  void activateFile(QTableWidgetItem * item);
+  void update(ShaderPtr shader);
+  void activateFile(QTreeWidgetItem* item, int column);
 
 protected:
-  QMap<QString, QTableWidgetItem*> m_files;
+  QMap<QString, QTreeWidgetItem*> m_files;
+  QMap<QTreeWidgetItem*, ShaderPtr> m_items;
+  QTreeWidgetItem* m_src;
 
   static FileList* s_instance;
 };

@@ -53,11 +53,21 @@ void Project::codeChanged(Editor& editor) {
   }
 }
 
+void Project::openShader(ShaderPtr shader) {
+  Editor* editor = findEditor(shader);
+  if (!editor) {
+    editor = m_main_window.createEditor(shader);
+    connect(editor, SIGNAL(codeChanged(Editor&)), this, SLOT(codeChanged(Editor&)));
+  } else {
+    m_main_window.activateEditor(editor);
+  }
+}
+
 void Project::addShader(ShaderPtr shader) {
   Watcher::instance().add(this, shader->filename());
-  Editor* editor = m_main_window.createEditor(shader);
-  connect(editor, SIGNAL(codeChanged(Editor&)), this, SLOT(codeChanged(Editor&)));
-  FileList::instance().update(shader->filename());
+  FileList::instance().update(shader);
+  connect(&FileList::instance(), SIGNAL(openFile(ShaderPtr)),
+          this, SLOT(openShader(ShaderPtr)));
 }
 
 Editor* Project::findEditor(ShaderPtr shader) {
