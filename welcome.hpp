@@ -36,6 +36,7 @@ public:
 
 public slots:
   void open(QString filename);
+  void load();
 
 private:
   Ui::Welcome* m_ui;

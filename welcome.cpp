@@ -18,6 +18,9 @@ void WelcomeButton::receiveClick() {
 Welcome::Welcome(MainWindow & mainwindow) : QFrame(), m_ui(new Ui::Welcome),
     m_mainwindow(mainwindow) {
   m_ui->setupUi(this);
+
+  connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
+
   QStringList files = ShaderDB::instance().localProjects();
   int count = 0;
   foreach (QString file, files) {
@@ -44,4 +47,9 @@ void Welcome::open(QString filename) {
     hide();
     //deleteLater();
   }
+}
+
+void Welcome::load() {
+  if (m_mainwindow.load())
+    hide();
 }

@@ -66,6 +66,8 @@ public slots:
   void about();
 
   bool openProject(QString filename);
+  /// Load a new project from file, open a file browser
+  bool load();
 
 protected:
   void keyPressEvent(QKeyEvent* event);

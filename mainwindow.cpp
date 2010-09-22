@@ -21,6 +21,7 @@
 #include "editor.hpp"
 #include "shader/shader.hpp"
 #include "project.hpp"
+#include "scene.hpp"
 
 #include <QKeyEvent>
 #include <QFile>
@@ -50,8 +51,8 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->error_list, SIGNAL(itemActivated(QTableWidgetItem*)),
           this, SLOT(errorItemActivated(QTableWidgetItem*)));
   connect(m_ui->action_save, SIGNAL(triggered()), this, SLOT(save()));
-  /*connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));
-  connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
+  connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(load()));
+  /*connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
 
@@ -156,6 +157,8 @@ bool MainWindow::openProject(QString filename) {
   if (!scene)
     return false;
 
+  setWindowTitle(scene->metainfo().name + " - GLSL Lab");
+
   ProjectPtr project(new Project(*this));
   setProject(project);
   project->setScene(scene);
@@ -195,6 +198,17 @@ void MainWindow::save(int index) {
     file.write(editor->toPlainText().toUtf8());
     editor->document()->setModified(false);
   }
+}
+
+bool MainWindow::load() {
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QString dir = settings.value("history/last_dir", QVariant(QDir::currentPath())).toString();
+  QString file = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
+                                              tr("GLSL Lab projects (*.lab *.zip)"));
+  if (!file.isEmpty())
+    return openProject(file);
+
+  return false;
 }
 
 void MainWindow::closeEditor(int index) {

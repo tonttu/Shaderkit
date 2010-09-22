@@ -67,6 +67,9 @@ public:
   /// Load the scene from map
   void load(QVariantMap map);
 
+  /// Returns the metainfo loaded from the project file
+  MetaInfo & metainfo() { return m_metainfo; }
+
 protected:
   typedef std::vector<RenderPassPtr> RenderPasses;
   /**
