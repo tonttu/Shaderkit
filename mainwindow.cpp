@@ -75,10 +75,12 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindow::~MainWindow() {}
 
 void MainWindow::setProject(ProjectPtr p) {
+  bool should_restore = !m_project;
   m_project = p;
   connect(p.get(), SIGNAL(sceneChanged(ScenePtr)),
           m_ui->gl_widget, SLOT(sceneChange(ScenePtr)));
-  restore();
+  if (should_restore)
+    restore();
 }
 
 Editor* MainWindow::createEditor(ShaderPtr shader) {
@@ -255,17 +257,22 @@ void MainWindow::closeEditor(int index) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-  /// @todo these should be project-specific
+  /// @todo some of these should be project-specific
   QSettings settings("GLSL-Lab", "GLSL-Lab");
-  settings.setValue("core/geometry", saveGeometry());
-  settings.setValue("core/windowState", saveState());
+  if (m_ui->action_autosave->isChecked()) {
+    settings.setValue("gui/geometry", saveGeometry());
+    settings.setValue("gui/windowState", saveState());
+  }
+  /// @todo rest of the gui options here
+  settings.setValue("gui/autosave_layout", m_ui->action_autosave->isChecked());
   QMainWindow::closeEvent(event);
 }
 
 void MainWindow::restore() {
   QSettings settings("GLSL-Lab", "GLSL-Lab");
-  restoreGeometry(settings.value("core/geometry").toByteArray());
-  restoreState(settings.value("core/windowState").toByteArray());
+  m_ui->action_autosave->setChecked(settings.value("gui/autosave_layout", true).toBool());
+  restoreGeometry(settings.value("gui/geometry").toByteArray());
+  restoreState(settings.value("gui/windowState").toByteArray());
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e) {

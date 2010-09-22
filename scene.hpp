@@ -27,9 +27,6 @@
 
 #include <boost/enable_shared_from_this.hpp>
 
-#include <map>
-#include <vector>
-
 /**
  * Scene is a data structure that stores all objects by name, and controls
  * the rendering. Scene also knows the actual viewport size and handles
@@ -38,6 +35,8 @@
  */
 class Scene : public boost::enable_shared_from_this<Scene> {
 public:
+  typedef QList<RenderPassPtr> RenderPasses;
+
   Scene();
 
   /// Set the viewport size
@@ -62,7 +61,10 @@ public:
   QList<ShaderPtr> shadersByFilename(const QString& filename);
 
   /// Name -> shader mapping
-  std::map<QString, ProgramPtr> shaders() { return m_shaders; }
+  QMap<QString, ProgramPtr> shaders() { return m_shaders; }
+
+  /// Ordered list of all render passes
+  RenderPasses renderPasses() { return m_render_passes; }
 
   /// Load the scene from map
   void load(QVariantMap map);
@@ -71,7 +73,6 @@ public:
   MetaInfo & metainfo() { return m_metainfo; }
 
 protected:
-  typedef std::vector<RenderPassPtr> RenderPasses;
   /**
    * RenderPasses is defined as an ordered list of passes, while actually the
    * render passes form a directed dependency graph (without loops).
@@ -80,10 +81,10 @@ protected:
    */
   RenderPasses m_render_passes;
 
-  std::map<QString, ObjectPtr> m_objects;
-  std::map<QString, LightPtr> m_lights;
-  std::map<QString, CameraPtr> m_cameras;
-  std::map<QString, ProgramPtr> m_shaders;
+  QMap<QString, ObjectPtr> m_objects;
+  QMap<QString, LightPtr> m_lights;
+  QMap<QString, CameraPtr> m_cameras;
+  QMap<QString, ProgramPtr> m_shaders;
   QMap<QString, TexturePtr> m_textures;
 
   MetaInfo m_metainfo;

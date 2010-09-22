@@ -24,8 +24,6 @@
 
 #include <boost/enable_shared_from_this.hpp>
 
-#include <set>
-
 /**
  * Render pass represents one renderable image that might only be a small part
  * of the whole composition. Different kinds of render passes could be for
@@ -52,8 +50,8 @@ class RenderPass : public QObject, public boost::enable_shared_from_this<RenderP
 public:
   /// @todo separate Object from Model. Object is an instance of Model, including
   ///       the transformation matrix etc.
-  typedef std::set<ObjectPtr> Objects;
-  typedef std::set<LightPtr> Lights;
+  typedef QSet<ObjectPtr> Objects;
+  typedef QSet<LightPtr> Lights;
 
   RenderPass(ScenePtr scene);
 

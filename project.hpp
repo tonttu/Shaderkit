@@ -72,6 +72,7 @@ protected:
   typedef QMap<QString, ShaderPtr> Files;
 
   /// Maps filename to shader
+  /// @todo use this for something
   Files m_shaders;
 
   MainWindow& m_main_window;

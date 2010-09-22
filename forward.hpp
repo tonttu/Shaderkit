@@ -20,6 +20,7 @@
 #define FORWARD_HPP
 
 #include <boost/shared_ptr.hpp>
+#include <limits>
 
 class Watchable;
 class Watcher;
@@ -73,5 +74,11 @@ typedef boost::shared_ptr<Project> ProjectPtr;
 class QColor;
 class QVector3D;
 class QVector4D;
+
+/// Hash for QSet etc
+template <typename T>
+uint qHash(boost::shared_ptr<T> t) {
+  return uint((long)t.get() & std::numeric_limits<uint>::max());
+}
 
 #endif

@@ -84,12 +84,9 @@ TexturePtr Scene::texture(const QString& name) {
 
 QList<ShaderPtr> Scene::shadersByFilename(const QString& filename) {
   QList<ShaderPtr> res;
-  for (std::map<QString, ProgramPtr>::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
-    GLProgram::Shaders shaders = it->second->shaders();
-    for (GLProgram::Shaders::iterator it2 = shaders.begin(); it2 != shaders.end(); ++it2) {
-      if ((*it2)->filename() == filename) res << *it2;
-    }
-  }
+  foreach (ProgramPtr p, m_shaders)
+    foreach (ShaderPtr s, p->shaders())
+      if (s->filename() == filename) res << s;
   return res;
 }
 

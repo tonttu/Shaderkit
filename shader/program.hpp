@@ -47,7 +47,7 @@ class GLProgram : public QObject, public boost::enable_shared_from_this<GLProgra
   Q_OBJECT
 
 public:
-  typedef std::set<ShaderPtr> Shaders;
+  typedef QSet<ShaderPtr> Shaders;
 
   /// Creates an empty program object and connects linked-signal to Properties::update.
   GLProgram(const QString& name);

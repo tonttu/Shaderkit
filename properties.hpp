@@ -70,6 +70,8 @@ public:
 public slots:
   /// This shader program has changed (usually just relinked)
   void update(ProgramPtr shader);
+  /// Remove a shader from the property list
+  void remove(ProgramPtr shader);
 
 protected:
   /// Every shader has one group property whose children are the actual uniform variables
@@ -94,6 +96,8 @@ public:
 public slots:
   /// This render pass has been changed / created
   void update(RenderPassPtr pass);
+  /// Removes the render pass
+  void remove(RenderPassPtr pass);
 
 protected:
   /// Every render pass has one group property whose children are the actual passes
@@ -121,6 +125,7 @@ signals:
 public slots:
   void update(ShaderPtr shader);
   void activateFile(QTreeWidgetItem* item, int column);
+  void remove(ShaderPtr shader);
 
 protected:
   QMap<QString, QTreeWidgetItem*> m_files;

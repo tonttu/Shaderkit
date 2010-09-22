@@ -101,18 +101,31 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
 }
 
 void Project::setScene(ScenePtr scene) {
+  if (m_active_scene) {
+    foreach (ProgramPtr prog, m_active_scene->shaders()) {
+      disconnect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
+              this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+
+      foreach (ShaderPtr shader, prog->shaders()) {
+        FileList::instance().remove(shader);
+      }
+
+      ShaderProperties::instance().remove(prog);
+    }
+
+    foreach (RenderPassPtr pass, m_active_scene->renderPasses()) {
+      RenderPassProperties::instance().remove(pass);
+    }
+  }
+
   m_active_scene = scene;
 
-  std::map<QString, ProgramPtr> prog = scene->shaders();
-  for (std::map<QString, ProgramPtr>::iterator it = prog.begin(); it != prog.end(); ++it) {
-    connect(it->second.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
+  foreach (ProgramPtr prog, scene->shaders()) {
+    connect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
             this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
 
-    GLProgram::Shaders shaders = it->second->shaders();
-    for (GLProgram::Shaders::iterator it2 = shaders.begin(); it2 != shaders.end(); ++it2) {
-      if (!findEditor(*it2) && !findEditor((*it2)->filename())) {
-        addShader(*it2);
-      }
+    foreach (ShaderPtr shader, prog->shaders()) {
+      addShader(shader);
     }
   }
 

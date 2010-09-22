@@ -73,19 +73,18 @@ ShaderProperties::~ShaderProperties() {
 }
 
 void ShaderProperties::update(ProgramPtr shader) {
-  QtVariantProperty* objProperty = m_shaders[shader];
+  QtVariantProperty* obj = m_shaders[shader];
 
   // Ensure the existence of the shader group property
-  if (!objProperty) {
-    m_shaders[shader] = objProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), shader->name());
-    addProperty(objProperty);
+  if (!obj) {
+    m_shaders[shader] = obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), shader->name());
+    addProperty(obj);
   }
 
   // Remove all old subproperties
-  QList<QtProperty*> sub = objProperty->subProperties();
-  for (QList<QtProperty*>::iterator it = sub.begin(); it != sub.end(); ++it) {
-    objProperty->removeSubProperty(*it);
-    m_properties.remove(*it);
+  foreach (QtProperty* sub, obj->subProperties()) {
+    obj->removeSubProperty(sub);
+    m_properties.remove(sub);
   }
 
   UniformVar::List list = shader->getUniformList();
@@ -98,11 +97,27 @@ void ShaderProperties::update(ProgramPtr shader) {
       if (item) {
         m_properties[item] = *it;
         item->setValue(it->get());
-        objProperty->addSubProperty(item);
+        obj->addSubProperty(item);
       }
     } else {
       /// @todo implement
     }
+  }
+}
+
+void ShaderProperties::remove(ProgramPtr shader) {
+  QtVariantProperty* obj = m_shaders[shader];
+  if (obj) {
+    m_shaders.remove(shader);
+
+    // Remove all old subproperties
+    foreach (QtProperty* sub, obj->subProperties()) {
+      obj->removeSubProperty(sub);
+      m_properties.remove(sub);
+    }
+
+    removeProperty(obj);
+    delete obj;
   }
 }
 
@@ -119,31 +134,30 @@ RenderPassProperties::~RenderPassProperties() {
 }
 
 void RenderPassProperties::update(RenderPassPtr pass) {
-  QtVariantProperty* objProperty = m_renderpasses[pass];
+  QtVariantProperty* obj = m_renderpasses[pass];
 
   // Ensure the existence of the render pass group property
-  if (!objProperty) {
-    m_renderpasses[pass] = objProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
-    addProperty(objProperty);
+  if (!obj) {
+    m_renderpasses[pass] = obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
+    addProperty(obj);
   }
 
   // Remove all old subproperties
-  QList<QtProperty*> sub = objProperty->subProperties();
-  for (QList<QtProperty*>::iterator it = sub.begin(); it != sub.end(); ++it) {
-    objProperty->removeSubProperty(*it);
-    m_properties.remove(*it);
+  foreach (QtProperty* sub, obj->subProperties()) {
+    obj->removeSubProperty(sub);
+    m_properties.remove(sub);
   }
 
   QtVariantProperty* item = m_manager->addProperty(QVariant::Int, "width");
   item->setValue(pass->width());
-  objProperty->addSubProperty(item);
+  obj->addSubProperty(item);
 
   item = m_manager->addProperty(QVariant::Int, "height");
   item->setValue(pass->height());
-  objProperty->addSubProperty(item);
+  obj->addSubProperty(item);
 
   QtVariantProperty* in = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "in");
-  objProperty->addSubProperty(in);
+  obj->addSubProperty(in);
   foreach (QString name, pass->in()) {
     item = m_manager->addProperty(QVariant::String, name);
     item->setValue(pass->in(name)->name());
@@ -151,11 +165,29 @@ void RenderPassProperties::update(RenderPassPtr pass) {
   }
 
   QtVariantProperty* out = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "out");
-  objProperty->addSubProperty(out);
+  obj->addSubProperty(out);
   foreach (QString name, pass->out()) {
     item = m_manager->addProperty(QVariant::String, name);
     item->setValue(pass->out(name)->name());
     in->addSubProperty(item);
+  }
+}
+
+void RenderPassProperties::remove(RenderPassPtr pass) {
+  QtVariantProperty* obj = m_renderpasses[pass];
+
+  if (obj) {
+    m_renderpasses.remove(pass);
+
+    // Remove all old subproperties
+    foreach (QtProperty* sub, obj->subProperties()) {
+      obj->removeSubProperty(sub);
+      m_properties.remove(sub);
+      /// @todo should we delete sub, also many other places in this file
+    }
+
+    removeProperty(obj);
+    delete obj;
   }
 }
 
@@ -193,5 +225,15 @@ void FileList::activateFile(QTreeWidgetItem* item, int /*column*/) {
   ShaderPtr shader = m_items[item];
   if(shader) {
     emit openFile(shader);
+  }
+}
+
+void FileList::remove(ShaderPtr shader) {
+  QTreeWidgetItem* item = m_files[shader->filename()];
+  if (item) {
+    m_items.remove(item);
+    m_files.remove(shader->filename());
+    m_src->removeChild(item);
+    delete item;
   }
 }

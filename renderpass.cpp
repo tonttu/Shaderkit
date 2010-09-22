@@ -116,21 +116,19 @@ void RenderPass::render(State& state) {
     f += 0.2f;
     glRotatef(f, 0, 1, 0);
 
-    for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
-      (*it)->activate(state);
-    }
+    foreach (LightPtr light, m_lights)
+      light->activate(state);
 
-    for (Objects::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+    foreach (ObjectPtr obj, m_objects) {
       glPushMatrix();
       glPushAttrib(GL_ALL_ATTRIB_BITS);
-      (*it)->render(state);
+      obj->render(state);
       glPopAttrib();
       glPopMatrix();
     }
 
-    for (Lights::iterator it = m_lights.begin(); it != m_lights.end(); ++it) {
-      (*it)->deactivate(state);
-    }
+    foreach (LightPtr light, m_lights)
+      light->deactivate(state);
   }
   if (shader) m_shader->unbind();
 

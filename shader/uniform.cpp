@@ -173,7 +173,7 @@ void UniformVar::set(ProgramPtr prog, bool relocate) {
     glRun(info.int_setter(loc, m_size, &m_intdata.front()));
   }
 
-  if (oldprog != prog->id()) {
+  if (oldprog != GLint(prog->id())) {
     glRun(glUseProgram(oldprog));
   }
 }
