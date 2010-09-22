@@ -20,6 +20,7 @@
 #define SCENE_HPP
 
 #include "forward.hpp"
+#include "shaderdb/metainfo.hpp"
 
 #include <QString>
 #include <QVariantMap>
@@ -81,6 +82,8 @@ protected:
   std::map<QString, CameraPtr> m_cameras;
   std::map<QString, ProgramPtr> m_shaders;
   QMap<QString, TexturePtr> m_textures;
+
+  MetaInfo m_metainfo;
   
   int m_width, m_height;
 };

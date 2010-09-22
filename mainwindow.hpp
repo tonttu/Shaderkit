@@ -65,6 +65,8 @@ public slots:
   void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
   void about();
 
+  bool openProject(QString filename);
+
 protected:
   void keyPressEvent(QKeyEvent* event);
   void changeEvent(QEvent* e);

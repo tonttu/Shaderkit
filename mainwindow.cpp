@@ -151,6 +151,20 @@ void MainWindow::about() {
   about.exec();
 }
 
+bool MainWindow::openProject(QString filename) {
+  ScenePtr scene = Project::load(filename);
+  if (!scene)
+    return false;
+
+  ProjectPtr project(new Project(*this));
+  setProject(project);
+  project->setScene(scene);
+  resize(sizeHint());
+  show();
+
+  return true;
+}
+
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   ShaderError err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
 

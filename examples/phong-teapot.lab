@@ -1,4 +1,20 @@
 {
+  "lab" : {
+    "lab version" : "0.0.1-alpha",
+    "name" : "Phong Shader",
+    "description" : "Simple Phong shaded teapot",
+    "id" : "unique string",
+    "revision" : 24,
+    "release" : "stable",
+    "server" : "glsl-lab.com",
+    "category" : "example",
+    "dependencies" : {
+      "shared" : "unique id of shared",
+      "shared-12" : ["unique id of shared", 12]
+    },
+    "license" : "GPL",
+    "author" : "Riku Palomäki <riku@palomaki.fi>"
+  },
   "objects" : {
     "teapot" : {
       "model" : ["built-in", "teapot"]

@@ -40,7 +40,9 @@ HEADERS += forward.hpp \
     opengl.hpp \
     texture.hpp \
     fbo.hpp \
-    shaderdb/shaderdb.hpp
+    shaderdb/shaderdb.hpp \
+    welcome.hpp \
+    shaderdb/metainfo.hpp
 
 SOURCES += shader/glsl.tab.cpp \
     shader/lex.yy.c \
@@ -68,7 +70,9 @@ SOURCES += shader/glsl.tab.cpp \
     opengl.cpp \
     texture.cpp \
     fbo.cpp \
-    shaderdb/shaderdb.cpp
+    shaderdb/shaderdb.cpp \
+    welcome.cpp \
+    shaderdb/metainfo.cpp
 
 OTHER_FILES += doc/style.cpp \
     std/150.all \
@@ -80,7 +84,8 @@ OTHER_FILES += doc/style.cpp \
     std/150.geom \
     std/150.vert
 
-FORMS += mainwindow.ui
+FORMS += mainwindow.ui \
+    welcome.ui
 
 LIBS += -lqjson
 

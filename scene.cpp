@@ -140,4 +140,6 @@ void Scene::load(QVariantMap map) {
     pass->load(item.toMap());
     m_render_passes.push_back(pass);
   }
+
+  m_metainfo.load(map["lab"].toMap());
 }

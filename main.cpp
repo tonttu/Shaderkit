@@ -17,17 +17,31 @@
  */
 
 #include "mainwindow.hpp"
+#include "welcome.hpp"
 #include "project.hpp"
+#include "shaderdb/shaderdb.hpp"
 
 #include <QApplication>
+#include <QDir>
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
+  ShaderDB db;
+  {
+    db.addPath(QDir::currentPath());
+    db.addPath(QDir::currentPath() + "/examples");
+    QDir dir(argv[0]);
+    if (dir.cdUp()) {
+      db.addPath(dir.path());
+      if (dir.cd("../share/glsl-lab/examples"))
+        db.addPath(dir.path());
+    }
+    db.addPath(QDir::homePath() + "/.glsl-lab/shaderdb");
+  }
+
   MainWindow window;
-  ProjectPtr project(new Project(window));
-  window.setProject(project);
-  project->setScene(Project::load("examples/phong-teapot.lab"));
-  window.resize(window.sizeHint());
-  window.show();
+  Welcome welcome(window);
+  welcome.show();
+
   return app.exec();
 }
