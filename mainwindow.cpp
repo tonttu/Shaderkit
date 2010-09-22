@@ -259,18 +259,18 @@ void MainWindow::closeEditor(int index) {
 void MainWindow::closeEvent(QCloseEvent* event) {
   /// @todo some of these should be project-specific
   QSettings settings("GLSL-Lab", "GLSL-Lab");
-  if (m_ui->action_autosave->isChecked()) {
+  if (m_ui->action_autosave_layout->isChecked()) {
     settings.setValue("gui/geometry", saveGeometry());
     settings.setValue("gui/windowState", saveState());
   }
   /// @todo rest of the gui options here
-  settings.setValue("gui/autosave_layout", m_ui->action_autosave->isChecked());
+  settings.setValue("gui/autosave_layout", m_ui->action_autosave_layout->isChecked());
   QMainWindow::closeEvent(event);
 }
 
 void MainWindow::restore() {
   QSettings settings("GLSL-Lab", "GLSL-Lab");
-  m_ui->action_autosave->setChecked(settings.value("gui/autosave_layout", true).toBool());
+  m_ui->action_autosave_layout->setChecked(settings.value("gui/autosave_layout", true).toBool());
   restoreGeometry(settings.value("gui/geometry").toByteArray());
   restoreState(settings.value("gui/windowState").toByteArray());
 }

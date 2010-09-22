@@ -137,6 +137,9 @@
       </item>
       <item row="0" column="1">
        <widget class="QLabel" name="label_3">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="font">
          <font>
           <family>Sans Serif</family>
@@ -161,6 +164,9 @@
         <layout class="QVBoxLayout" name="example_layout">
          <item>
           <widget class="QPushButton" name="pushButton_3">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>More examples...</string>
            </property>
@@ -238,6 +244,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="new_button">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>New project...</string>
            </property>

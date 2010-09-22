@@ -67,8 +67,8 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
-    <addaction name="actionAutosave_Layout"/>
-    <addaction name="actionReset_Layout"/>
+    <addaction name="action_autosave_layout"/>
+    <addaction name="action_reset_layout"/>
     <addaction name="separator"/>
     <addaction name="action_reload"/>
    </widget>
@@ -227,6 +227,9 @@
    </property>
   </action>
   <action name="action_newproject">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>&amp;New Project</string>
    </property>
@@ -235,6 +238,9 @@
    </property>
   </action>
   <action name="action_saveas">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save File &amp;As...</string>
    </property>
@@ -243,6 +249,9 @@
    </property>
   </action>
   <action name="action_quit">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>&amp;Quit</string>
    </property>
@@ -256,31 +265,49 @@
    </property>
   </action>
   <action name="action_new">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>New &amp;File</string>
    </property>
   </action>
   <action name="action_saveproject">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save Project</string>
    </property>
   </action>
   <action name="action_export">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Export...</string>
    </property>
   </action>
   <action name="action_libexample">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Open Example</string>
    </property>
   </action>
   <action name="action_libopen">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Open Library</string>
    </property>
   </action>
   <action name="action_import">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Import</string>
    </property>
@@ -291,6 +318,9 @@
    </property>
    <property name="checked">
     <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Autosave Project</string>
@@ -332,7 +362,7 @@
     <string>Error Log</string>
    </property>
   </action>
-  <action name="actionAutosave_Layout">
+  <action name="action_autosave_layout">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -343,7 +373,10 @@
     <string>Autosave Layout</string>
    </property>
   </action>
-  <action name="actionReset_Layout">
+  <action name="action_reset_layout">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Reset Layout</string>
    </property>

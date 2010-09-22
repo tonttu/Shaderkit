@@ -126,6 +126,9 @@ UniformVar::List GLProgram::getUniformList() {
     glRun(glGetActiveUniform(m_prog, i, buffer_size,
                              &length, &size, &type, name));
 
+    // For now skip build-in uniforms, since those can't be changed the same way as others.
+    if (strncmp(name, "gl_", 3) == 0)
+      continue;
     list.push_back(UniformVar(shared_from_this(), name, type));
   }
   return list;
