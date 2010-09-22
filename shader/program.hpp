@@ -30,6 +30,7 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include <set>
+#include <iostream>
 
 /**
  * GLSL Program object.
@@ -57,7 +58,7 @@ public:
    * program object. Also (re)compiles all the shaders and (re)links the program
    * if needed. For every compiled shader the shaderCompiled()-signal is emitted.
    */
-  void bind();
+  bool bind();
 
   /// Unbinds the program object.
   void unbind();
@@ -66,18 +67,35 @@ public:
   void setIsCompiled(bool state) { m_compiled = state; }
 
   /// Sets a uniform variable, binds the object if needed,
-  /// and restores the old state before returning.
-/*  template <typename T>
-  void setUniform(GLint location, T t) {
+  /// and restores the active program before returning.
+  template <typename T>
+  void setUniform(QString name, T t, bool restore = false) {
     glCheck("setUniform");
     GLint prog = 0;
     glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
-    if (!m_prog || prog != m_prog) bind();
-    glRun(m_prog->setUniformValue(location, t));
+    if (!prog != m_prog)
+      bind();
+
+    GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
+    if(loc == -1) {
+      std::cerr << "Failed to query uniform variable " << name.toStdString() << " location" << std::endl;
+    } else {
+      setUniform(loc, t);
+    }
 
     // restore the old state
-    if (prog != (GLint)m_prog->programId()) glRun(glUseProgram(prog));
-  }*/
+    if (restore && prog != (GLint)m_prog)
+      glRun(glUseProgram(prog));
+  }
+
+  void setUniform(GLint loc, GLfloat v0) { glRun(glUniform1f(loc, v0)); }
+  void setUniform(GLint loc, GLfloat v0, GLfloat v1) { glRun(glUniform2f(loc, v0, v1)); }
+  void setUniform(GLint loc, GLfloat v0, GLfloat v1, GLfloat v2) { glRun(glUniform3f(loc, v0, v1, v2)); }
+  void setUniform(GLint loc, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) { glRun(glUniform4f(loc, v0, v1, v2, v3)); }
+  void setUniform(GLint loc, GLint v0) { glRun(glUniform1i(loc, v0)); }
+  void setUniform(GLint loc, GLint v0, GLint v1) { glRun(glUniform2i(loc, v0, v1)); }
+  void setUniform(GLint loc, GLint v0, GLint v1, GLint v2) { glRun(glUniform3i(loc, v0, v1, v2)); }
+  void setUniform(GLint loc, GLint v0, GLint v1, GLint v2, GLint v3) { glRun(glUniform4i(loc, v0, v1, v2, v3)); }
 
   /// Restore the uniform state stored in list.
   void setUniform(UniformVar::List list, bool relocate = true);

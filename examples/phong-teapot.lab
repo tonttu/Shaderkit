@@ -67,24 +67,24 @@
       "lights" : ["light1"],
       "out" : {
         "depth" : ["renderbuffer"],
-        "color0" : ["texture", "img"]
+        "color0" : ["texture", "image"]
       }
     },
     {
       "shader" : "gaussian-y",
       "viewport" : ["post"],
       "in" : {
-        "texture0" : ["texture", "img"]
+        "texture0" : ["texture", "image"]
       },
       "out" : {
-        "color0" : ["texture", "img2"]
+        "color0" : ["texture", "image2"]
       }
     },
     {
       "shader" : "gaussian-x",
       "viewport" : ["post"],
       "in" : {
-        "texture0" : ["texture", "img2"]
+        "texture0" : ["texture", "image2"]
       }
     }
   ]

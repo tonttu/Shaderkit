@@ -3,10 +3,11 @@
 precision highp float;
 
 uniform sampler2D image;
+uniform float s = 5.0;
 in vec2 uv;
 
 void main() {
-  float y = 5.0 / 768.0;
+  float y = s / 768.0;
   gl_FragColor = texture2D(image, uv + vec2(0.0, -16.0 * y)) * 0.00418146514886757
     + texture2D(image, uv + vec2(0.0, -15.0 * y)) * 0.00573729720806776
     + texture2D(image, uv + vec2(0.0, -14.0 * y)) * 0.00771299521877476

@@ -1,20 +1,21 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 
-Texture::Texture(QString name) : FBOImage(name), m_id(0) {}
+Texture::Texture(QString name) : FBOImage(name), m_id(0), m_bindedTexture(0) {}
 
 Texture::~Texture() {
   if (m_id)
     glDeleteTextures(1, &m_id);
 }
 
-void Texture::bind() {
-  glRun(glActiveTexture(GL_TEXTURE0));
+void Texture::bind(int texture) {
+  m_bindedTexture = texture;
+  glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
   glRun(glBindTexture(GL_TEXTURE_2D, m_id));
 }
 
 void Texture::unbind() {
-  glRun(glActiveTexture(GL_TEXTURE0));
+  glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
   glRun(glBindTexture(GL_TEXTURE_2D, 0));
 }
 

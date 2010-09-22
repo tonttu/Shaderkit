@@ -4,7 +4,7 @@ precision highp float;
 
 uniform sampler2D texture;
 
-uniform float shininess;
+uniform float shininess = 1.0;
 
 in vec3 light_dir2;
 in vec3 surface_normal2;

@@ -29,11 +29,11 @@ public:
 
   void setup(unsigned int fbo, int width, int height);
 
-  void bind();
+  void bind(int texture = 0);
   void unbind();
 
 private:
-  unsigned int m_id;
+  unsigned int m_id, m_bindedTexture;
 };
 
 #endif // TEXTURE_HPP

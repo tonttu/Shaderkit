@@ -189,7 +189,7 @@ void FileList::update(ShaderPtr shader) {
   }
 }
 
-void FileList::activateFile(QTreeWidgetItem* item, int column) {
+void FileList::activateFile(QTreeWidgetItem* item, int /*column*/) {
   ShaderPtr shader = m_items[item];
   if(shader) {
     emit openFile(shader);

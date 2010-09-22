@@ -69,7 +69,8 @@ void RenderPass::render(State& state) {
   beginFBO();
 
   if (m_clear) glClear(m_clear);
-  if (m_shader) m_shader->bind();
+  bool shader = false;
+  if (m_shader) shader = m_shader->bind();
   m_viewport->prepare(width(), height());
 
   if (m_type == PostProc) {
@@ -78,8 +79,12 @@ void RenderPass::render(State& state) {
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_TEXTURE_2D);
 
-    if (m_in.contains("texture0"))
-      m_in["texture0"]->bind();
+    if (m_in.contains("texture0")) {
+      TexturePtr tex = m_in["texture0"];
+      tex->bind(0);
+      if (shader)
+        m_shader->setUniform(tex->name(), 0);
+    }
     glBegin(GL_QUADS);
 
     glTexCoord2f(0.0f, 0.0f);
@@ -127,7 +132,7 @@ void RenderPass::render(State& state) {
       (*it)->deactivate(state);
     }
   }
-  if (m_shader) m_shader->unbind();
+  if (shader) m_shader->unbind();
 
   endFBO();
 }

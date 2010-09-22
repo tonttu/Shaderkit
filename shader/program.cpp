@@ -30,12 +30,15 @@ GLProgram::~GLProgram() {
   if (m_prog) glDeleteProgram(m_prog);
 }
 
-void GLProgram::bind() {
+bool GLProgram::bind() {
   if (!m_compiled) {
     if (!m_prog) {
       glCheck("GLProgram::bind");
       m_prog = glRun2(glCreateProgram());
     }
+
+    if (!m_prog)
+      return false;
 
     for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
       ShaderError::List errors;
@@ -49,8 +52,11 @@ void GLProgram::bind() {
     /// @todo should we link only when there was a successful compiling?
     link();
   }
-  if (isLinked())
+  if (isLinked()) {
     glRun(glUseProgram(m_prog));
+    return true;
+  } else
+    return false;
 }
 
 void GLProgram::unbind() {
