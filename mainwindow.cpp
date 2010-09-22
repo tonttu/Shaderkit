@@ -56,6 +56,8 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
 
+  connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
+
   QAction* actions[] = {m_ui->action_glwidget, m_ui->action_shaders_properties,
       m_ui->action_render_properties, m_ui->action_file_list, m_ui->action_error_log};
   QDockWidget* widgets[] = {m_ui->gldock, m_ui->shaderdock, m_ui->renderdock, m_ui->filesdock, m_ui->errordock};
@@ -159,11 +161,28 @@ bool MainWindow::openProject(QString filename) {
 
   setWindowTitle(scene->metainfo().name + " - GLSL Lab");
 
-  ProjectPtr project(new Project(*this));
+  ProjectPtr project(new Project(*this, filename));
   setProject(project);
   project->setScene(scene);
   resize(sizeHint());
+
+  m_ui->statusbar->showMessage("Opened project " + m_project->filename(), 5000);
   show();
+
+  return true;
+}
+
+bool MainWindow::reload() {
+  ScenePtr scene = Project::load(m_project->filename());
+  if (!scene) {
+    m_ui->statusbar->showMessage("Failed to reload " + m_project->filename(), 5000);
+    return false;
+  }
+
+  setWindowTitle(scene->metainfo().name + " - GLSL Lab");
+  m_project->setScene(scene);
+
+  m_ui->statusbar->showMessage("Reloaded " + m_project->filename(), 5000);
 
   return true;
 }

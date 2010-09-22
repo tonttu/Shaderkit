@@ -28,7 +28,8 @@
 
 #include <set>
 
-Project::Project(MainWindow& main_window) : m_main_window(main_window) {}
+Project::Project(MainWindow& main_window, QString filename)
+  : m_main_window(main_window), m_filename(filename) {}
 
 ScenePtr Project::load(const QString& filename) {
   ScenePtr scene;
@@ -128,4 +129,8 @@ void Project::fileUpdated(const QString& filename) {
     foreach (ShaderPtr s, lst)
       s->loadFile(filename);
   }
+}
+
+QString Project::filename() const {
+  return m_filename;
 }

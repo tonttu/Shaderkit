@@ -68,6 +68,9 @@ public slots:
   bool openProject(QString filename);
   /// Load a new project from file, open a file browser
   bool load();
+  /// Reloads the project file, basically just loads the same file again,
+  /// but tries to keep the same state
+  bool reload();
 
 protected:
   void keyPressEvent(QKeyEvent* event);

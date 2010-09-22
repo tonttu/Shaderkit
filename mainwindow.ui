@@ -69,6 +69,8 @@
     </property>
     <addaction name="actionAutosave_Layout"/>
     <addaction name="actionReset_Layout"/>
+    <addaction name="separator"/>
+    <addaction name="action_reload"/>
    </widget>
    <widget class="QMenu" name="menu_Window">
     <property name="title">
@@ -369,6 +371,14 @@
    </property>
    <property name="text">
     <string>File List</string>
+   </property>
+  </action>
+  <action name="action_reload">
+   <property name="text">
+    <string>&amp;Reload Project File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

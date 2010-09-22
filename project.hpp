@@ -37,7 +37,7 @@ class Project : public QObject, public boost::enable_shared_from_this<Project>,
   Q_OBJECT
 
 public:
-  Project(MainWindow& main_window);
+  Project(MainWindow& main_window, QString filename);
 
   /// Loads a scene from JSON file.
   static ScenePtr load(const QString& filename);
@@ -49,6 +49,9 @@ public:
   /// Delegates handling the event to right editor, or if no editor is open
   /// with this file, forces the shader to reload the file.
   void fileUpdated(const QString& filename);
+
+  /// Returns the project (*.lab or *.zip) filename
+  QString filename() const;
 
 signals:
   void sceneChanged(ScenePtr);
@@ -73,6 +76,7 @@ protected:
 
   MainWindow& m_main_window;
   ScenePtr m_active_scene;
+  QString m_filename;
 };
 
 #endif // PROJECT_HPP
