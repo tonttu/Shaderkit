@@ -11,6 +11,9 @@ glsl.tab.hpp
 lab
 lab.pro.user*
 lex.yy.c
+lib*.a
+lib*.so
+lib*.so.*
 moc_*.cpp
 qrc_qtpropertybrowser.cpp
 ui_*.h

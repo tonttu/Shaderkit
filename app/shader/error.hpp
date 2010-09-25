@@ -19,7 +19,7 @@
 #ifndef SHADER_ERROR_HPP
 #define SHADER_ERROR_HPP
 
-#include "forward.hpp"
+#include "app/forward.hpp"
 
 #include <QString>
 

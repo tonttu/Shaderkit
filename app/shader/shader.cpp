@@ -20,7 +20,7 @@
 #include "shader/program.hpp"
 #include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
-#include "opengl.hpp"
+#include "app/opengl.hpp"
 
 #include <QFile>
 

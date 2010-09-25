@@ -18,7 +18,7 @@
 
 #include "shader/uniform.hpp"
 #include "shader/program.hpp"
-#include "opengl.hpp"
+#include "app/opengl.hpp"
 
 #include <stdexcept>
 #include <cassert>

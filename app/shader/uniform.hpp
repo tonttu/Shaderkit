@@ -19,8 +19,8 @@
 #ifndef SHADER_UNIFORM_HPP
 #define SHADER_UNIFORM_HPP
 
-#include "forward.hpp"
-#include "opengl.hpp"
+#include "app/forward.hpp"
+#include "app/opengl.hpp"
 
 #include <QVector>
 

@@ -590,7 +590,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = . \
+INPUT                  = app \
                          shader \
                          ext
 

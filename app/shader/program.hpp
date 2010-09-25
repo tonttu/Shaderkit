@@ -19,11 +19,11 @@
 #ifndef SHADER_PROGRAM_HPP
 #define SHADER_PROGRAM_HPP
 
-#include "forward.hpp"
+#include "app/forward.hpp"
 #include "shader/uniform.hpp"
 #include "shader/shader.hpp"
 #include "shader/error.hpp"
-#include "opengl.hpp"
+#include "app/opengl.hpp"
 
 #include <QObject>
 

@@ -18,7 +18,7 @@
 
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
-#include "properties.hpp"
+#include "app/properties.hpp"
 
 GLProgram::GLProgram(const QString& name)
     : m_name(name), m_prog(0), m_compiled(false) {
