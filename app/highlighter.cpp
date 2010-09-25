@@ -128,11 +128,11 @@ void Highlighter::highlightBlock(const QString &text) {
     &m_parenthesesFormat, &m_buildinVarFormat, &m_idFormat };
 
   std::string ascii = text.toStdString();
-  yyset_scan_string(ascii.c_str(), ascii.size());
+  glslset_scan_string(ascii.c_str(), ascii.size());
 
   int token;
-  while ((token = yylex_wrapper())) {
-    size_t len = yyget_leng();
-    setFormat(yyget_column() - len, len, *formats[getSyntaxType(token)]);
+  while ((token = glsllex_wrapper())) {
+    size_t len = glslget_leng();
+    setFormat(glslget_column() - len, len, *formats[getSyntaxType(token)]);
   }
 }

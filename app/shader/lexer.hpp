@@ -19,17 +19,15 @@
 #ifndef LEXER_HPP
 #define LEXER_HPP
 
-extern "C" {
-#include "shader/glsl.tab.hpp"
+#include "glsl_yacc.h"
 
-  void yyset_scan_string(const char *str, int len);
+void glslset_scan_string(const char *str, int len);
 
-  int yylex_wrapper(void);
-  int yyget_leng(void);
-  int yyget_column(void);
-  int yyget_line(void);
-  int yyget_pos(void);
-  char *yyget_text(void);
-}
+int glsllex_wrapper(void);
+int glslget_leng(void);
+int glslget_column(void);
+int glslget_line(void);
+int glslget_pos(void);
+char *glslget_text(void);
 
 #endif // LEXER_HPP

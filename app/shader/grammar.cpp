@@ -45,13 +45,13 @@ void ShaderLexer::loadSrc(const QString& src) {
 
 void ShaderLexer::tokenize() {
   /// @todo flex code is not thread safe
-  yyset_scan_string(m_data.data(), m_data.length());
+  glslset_scan_string(m_data.data(), m_data.length());
   m_tokenized_length = 0;
 
   int token;
-  while ((token = yylex_wrapper())) {
-    int l = yyget_leng();
-    m_tokens.push_back(Token(token, yyget_pos()-l, l, yyget_column() - l, yyget_line()));
+  while ((token = glsllex_wrapper())) {
+    int l = glslget_leng();
+    m_tokens.push_back(Token(token, glslget_pos()-l, l, glslget_column() - l, glslget_line()));
     m_tokenized_length += l;
   }
 }

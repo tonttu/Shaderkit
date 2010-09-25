@@ -17,7 +17,7 @@
  */
 
 %{
-#include "shader/glsl.tab.hpp"
+#include "glsl_yacc.h"
 static int s_column, s_line, s_pos;
 %}
 
@@ -226,27 +226,27 @@ static int s_column, s_line, s_pos;
 
 %%
 
-int yylex_wrapper(void) {
+int glsllex_wrapper(void) {
   int tmp = yylex();
   s_column += yyleng;
   return tmp;
 }
 
-void yyset_scan_string(const char *str, int len) {
+void glslset_scan_string(const char *str, int len) {
   yy_scan_bytes(str, len);
   s_column = 0;
   s_line = 0;
   s_pos = 0;
 }
 
-int yyget_column(void) {
+int glslget_column(void) {
   return s_column;
 }
 
-int yyget_line(void) {
+int glslget_line(void) {
   return s_line;
 }
 
-int yyget_pos(void) {
+int glslget_pos(void) {
   return s_pos+s_column;
 }
