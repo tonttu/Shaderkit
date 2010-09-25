@@ -57,6 +57,8 @@ protected:
 
   ScenePtr m_scene;
   QTimer* m_timer;
+
+  bool m_initialized;
 };
 
 #endif // GLWIDGET_HPP

@@ -114,9 +114,9 @@ SOURCES += ext/qjson/src/json_parser.cc \
 FORMS += mainwindow.ui \
     welcome.ui
 
-QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES
-
 include(qtpropertybrowser/src/qtpropertybrowser.pri)
+
+LIBS += -lGLEW
 
 INCLUDEPATH += ext/qjson/src
 

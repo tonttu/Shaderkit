@@ -19,11 +19,14 @@
 #include "glwidget.hpp"
 #include "scene.hpp"
 
+/// @todo include something less massive
 #include <QtGui>
+
+#include <iostream>
 
 GLWidget::GLWidget(QWidget *parent)
   : QGLWidget(defaultFormat(), parent),
-    m_timer(new QTimer(this)) {
+    m_timer(new QTimer(this)), m_initialized(false) {
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
 }
@@ -47,6 +50,17 @@ QSize GLWidget::sizeHint() const {
 }
 
 void GLWidget::initializeGL() {
+  static GLenum s_glew_status = GLEW_OK + 1;
+  if (s_glew_status != GLEW_OK) {
+    s_glew_status = glewInit();
+    if (s_glew_status == GLEW_OK) {
+      std::cout << "GLEW " << glewGetString(GLEW_VERSION) << " initialized" << std::endl;
+      m_initialized = true;
+    } else {
+      std::cerr << "Failed to initialize GLEW: " << glewGetErrorString(s_glew_status) << std::endl;
+    }
+  }
+
   /*int major = 0, minor = 0, profile = 0;
   glGetIntegerv(GL_MAJOR_VERSION, &major);
   glGetIntegerv(GL_MINOR_VERSION, &minor);
@@ -63,7 +77,7 @@ void GLWidget::initializeGL() {
 }
 
 void GLWidget::paintGL() {
-  if (m_scene) m_scene->render();
+  if (m_scene && m_initialized) m_scene->render();
 }
 
 void GLWidget::resizeGL(int width, int height) {
