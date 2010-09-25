@@ -49,6 +49,10 @@
 // handle and spout data across the y axis only.
 //
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <GL/gl.h>
 
 #define NumTeapotPoints 135
@@ -244,14 +248,14 @@ static float tex[2][2][2] =
 };
 
 // Returns the number of vertices sent to GL.
-int teapot(GLint grid, GLdouble scale, GLenum type)
+int teapot(GLint grid, GLfloat scale, GLenum type)
 {
 	float p[4][4][3], q[4][4][3], r[4][4][3], s[4][4][3];
 	long i, j, k, l;
 	int numVertices = 0;
 
 	// Make polygons wind CCW by scaling by -1.
-	scale *= -1;
+	scale *= -1.0f;
 
 	glPushAttrib(GL_ENABLE_BIT | GL_EVAL_BIT);
 	glEnable(GL_AUTO_NORMAL);
@@ -260,9 +264,9 @@ int teapot(GLint grid, GLdouble scale, GLenum type)
 	glEnable(GL_MAP2_TEXTURE_COORD_2);
 
 	glPushMatrix();
-	glRotatef(90.0, 1.0, 0.0, 0.0);
-	glScalef(0.5 * scale, 0.5 * scale, 0.5 * scale);
-	glTranslatef(0.0, 0.0, -1.5);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	glScalef(0.5f * scale, 0.5f * scale, 0.5f * scale);
+	glTranslatef(0.0f, 0.0f, -1.5f);
 
 	for (i = 0; i < 10; i++)
 	{
@@ -275,17 +279,17 @@ int teapot(GLint grid, GLdouble scale, GLenum type)
 					p[j][k][l] = cpdata[patchdata[i][j * 4 + k]][l];
 					q[j][k][l] = cpdata[patchdata[i][j * 4 + (3 - k)]][l];
 					if (l == 1)
-						q[j][k][l] *= -1.0;
+						q[j][k][l] *= -1.0f;
 					if (i < 6)
 					{
 						r[j][k][l] = cpdata[patchdata[i][j * 4 + (3 - k)]][l];
 						if (l == 0)
-							r[j][k][l] *= -1.0;
+							r[j][k][l] *= -1.0f;
 						s[j][k][l] = cpdata[patchdata[i][j * 4 + k]][l];
 						if (l == 0)
-							s[j][k][l] *= -1.0;
+							s[j][k][l] *= -1.0f;
 						if (l == 1)
-							s[j][k][l] *= -1.0;
+							s[j][k][l] *= -1.0f;
 					}
 				}
 			}
@@ -313,13 +317,13 @@ int teapot(GLint grid, GLdouble scale, GLenum type)
 	glBegin(GL_QUADS);
 	glTexCoord2f(.025f,.025f);
 
-	glNormal3f(0, 0, 1);
+	glNormal3f(0, 0, 1.0f);
 	glVertex3f(0,.03f,cpdata[127][2]);
 	glVertex3f(.03f,0,cpdata[127][2]);
 	glVertex3f(0,-.03f,cpdata[127][2]);
 	glVertex3f(-.03f,0,cpdata[127][2]);
 
-	glNormal3f(0, 0, -1);
+	glNormal3f(0, 0, -1.0f);
 	glVertex3f(-.03f,0,cpdata[131][2]);
 	glVertex3f(0,-.03f,cpdata[131][2]);
 	glVertex3f(.03f,0,cpdata[131][2]);

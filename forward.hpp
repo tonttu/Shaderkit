@@ -32,7 +32,7 @@ class ShaderLexer;
 class ShaderError;
 class ShaderCompilerOutputParser;
 class UniformVar;
-class ShaderTypeInfo;
+struct ShaderTypeInfo;
 class Shader;
 typedef std::shared_ptr<Shader> ShaderPtr;
 class GLProgram;

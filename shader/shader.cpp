@@ -117,7 +117,11 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
   if (len < 1) return false;
 
   // Read the info log
+#ifdef _MSC_VER
+  GLchar* log = new GLchar[len];
+#else
   GLchar log[len];
+#endif
   glRun(glGetShaderInfoLog(id(), len, &len, log));
 
   // unless we get something parsed from the output, we think this as a failure
@@ -134,5 +138,10 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
     errors.push_back(e);
     ok = true;
   }
+
+#ifdef _MSC_VER
+  delete[] log;
+#endif
+
   return ok;
 }

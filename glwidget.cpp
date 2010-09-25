@@ -20,7 +20,6 @@
 #include "scene.hpp"
 
 #include <QtGui>
-#include <QtOpenGL>
 
 GLWidget::GLWidget(QWidget *parent)
   : QGLWidget(defaultFormat(), parent),

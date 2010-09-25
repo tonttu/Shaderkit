@@ -23,7 +23,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 Watcher::WatchableObj::WatchableObj() : inode(0) {}
 Watcher::WatchableObj::WatchableObj(Watchable* obj_, ino_t inode_)

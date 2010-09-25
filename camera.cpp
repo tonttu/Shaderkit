@@ -25,7 +25,7 @@
 Camera::Camera(const QString &name)
   : m_name(name), m_type(Perspective),
     m_position(3, 1, 2), m_target(0, 0, 0), m_up(0, 1, 0),
-    m_fov(45), m_near(0.1), m_far(1000.0) {}
+    m_fov(45), m_near(0.1f), m_far(1000.0f) {}
 
 void Camera::prepare(int width, int height) {
   glCheck("Camera::prepare");
@@ -56,10 +56,10 @@ void Camera::prepare(int width, int height) {
   }
 }
 
-void Camera::setRect(float near, float far) {
+void Camera::setRect(float near_, float far_) {
   m_type = Rect;
-  m_near = near;
-  m_far = far;
+  m_near = near_;
+  m_far = far_;
 }
 
 

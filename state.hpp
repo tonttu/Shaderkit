@@ -19,8 +19,9 @@
 #ifndef STATE_HPP
 #define STATE_HPP
 
+#include "opengl.hpp"
+
 #include <QSet>
-#include <QtOpenGL>
 
 /**
  * Represents OpenGL state.

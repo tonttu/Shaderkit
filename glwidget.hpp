@@ -20,6 +20,7 @@
 #define GLWIDGET_HPP
 
 #include "forward.hpp"
+#include "opengl.hpp"
 
 #include <QGLWidget>
 

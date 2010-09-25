@@ -30,6 +30,8 @@ int main(int argc, char* argv[]) {
   {
     db.addPath(QDir::currentPath());
     db.addPath(QDir::currentPath() + "/examples");
+    db.addPath(QDir::currentPath() + "/..");
+    db.addPath(QDir::currentPath() + "/../examples");
     QDir dir(argv[0]);
     if (dir.cdUp()) {
       db.addPath(dir.path());

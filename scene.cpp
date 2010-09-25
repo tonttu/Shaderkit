@@ -25,8 +25,8 @@
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 #include "texture.hpp"
+#include "opengl.hpp"
 
-#include <QtOpenGL>
 #include <QVariantMap>
 
 /// @todo move to Object3D

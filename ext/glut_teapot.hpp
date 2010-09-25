@@ -48,9 +48,8 @@
 #define __GLUT_TEAPOT_HPP__
 
 extern "C" {
-
 // Returns the number of vertices sent to GL.
-int teapot(GLint grid, GLdouble scale, GLenum type);
+int teapot(GLint grid, GLfloat scale, GLenum type);
 
 }
 #endif

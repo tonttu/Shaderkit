@@ -20,18 +20,23 @@
 #define SHADER_UNIFORM_HPP
 
 #include "forward.hpp"
+#include "opengl.hpp"
 
 #include <QVector>
-#include <QtOpenGL>
+
+#ifdef _WIN32
+#undef GLAPIENTRY
+#define GLAPIENTRY __stdcall
+#endif
 
 /**
  * Uniform variable type info class, makes easier to implement more generic
  * code that does something with uniform variables.
  */
 struct ShaderTypeInfo {
-  typedef void (*FloatSetter)(GLint, GLsizei, const GLfloat*);
-  typedef void (*IntSetter)(GLint, GLsizei, const GLint*);
-  typedef void (*MatrixSetter)(GLint, GLsizei, GLboolean, const GLfloat*);
+  typedef void (GLAPIENTRY *FloatSetter)(GLint, GLsizei, const GLfloat*);
+  typedef void (GLAPIENTRY *IntSetter)(GLint, GLsizei, const GLint*);
+  typedef void (GLAPIENTRY *MatrixSetter)(GLint, GLsizei, GLboolean, const GLfloat*);
 
   /**
    * Constructor that also stores all the type information of given OpenGL type.
@@ -171,5 +176,8 @@ private:
   /// how to handle those correctly.
   bool m_builtin;
 };
+
+#undef GLAPIENTRY
+#define GLAPIENTRY
 
 #endif

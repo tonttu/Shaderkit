@@ -95,10 +95,19 @@ void GLProgram::link() {
   glRun(glGetProgramiv(m_prog, GL_INFO_LOG_LENGTH, &len));
   // len may include the zero byte
   if (len > 1) {
+#ifdef _MSC_VER
+    GLchar * log = new GLchar[len];
+#else
     GLchar log[len];
+#endif
     /// @todo generate shadererrors
-    glRun(glGetProgramInfoLog(m_prog, len, &len, log));
+    GLsizei size = len;
+    glRun(glGetProgramInfoLog(m_prog, size, &size, log));
     //qDebug() << log;
+
+#ifdef _MSC_VER
+    delete[] log;
+#endif
   }
 
   if (ok) {
@@ -119,7 +128,11 @@ UniformVar::List GLProgram::getUniformList() {
   glRun(glGetProgramiv(m_prog, GL_ACTIVE_UNIFORM_MAX_LENGTH, &buffer_size));
 
   for (GLint i = 0; i < num; i++) {
+#ifdef _MSC_VER
+    GLchar* name = new GLchar[buffer_size];
+#else
     GLchar name[buffer_size];
+#endif
     GLsizei length;
     GLint size;
     GLenum type;
@@ -127,9 +140,12 @@ UniformVar::List GLProgram::getUniformList() {
                              &length, &size, &type, name));
 
     // For now skip build-in uniforms, since those can't be changed the same way as others.
-    if (strncmp(name, "gl_", 3) == 0)
-      continue;
-    list.push_back(UniformVar(shared_from_this(), name, type));
+    if (strncmp(name, "gl_", 3) != 0)
+      list.push_back(UniformVar(shared_from_this(), name, type));
+
+#ifdef _MSC_VER
+    delete[] name;
+#endif
   }
   return list;
 }
