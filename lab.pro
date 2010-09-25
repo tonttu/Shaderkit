@@ -1,3 +1,5 @@
+# TODO: use subdirs
+
 QT += opengl
 
 QMAKE_EXTRA_COMPILERS += bison
@@ -84,14 +86,39 @@ OTHER_FILES += doc/style.cpp \
     std/150.geom \
     std/150.vert
 
+
+# QJson
+HEADERS += ext/qjson/src/json_parser.hh \
+  ext/qjson/src/json_scanner.h \
+  ext/qjson/src/location.hh \
+  ext/qjson/src/parser_p.h  \
+  ext/qjson/src/position.hh \
+  ext/qjson/src/qjson_debug.h  \
+  ext/qjson/src/stack.hh \
+  ext/qjson/src/parser.h \
+  ext/qjson/src/parserrunnable.h \
+  ext/qjson/src/qobjecthelper.h \
+  ext/qjson/src/serializer.h \
+  ext/qjson/src/serializerrunnable.h \
+  ext/qjson/src/qjson_export.h
+
+SOURCES += ext/qjson/src/json_parser.cc \
+  ext/qjson/src/json_scanner.cpp \
+  ext/qjson/src/parser.cpp \
+  ext/qjson/src/parserrunnable.cpp \
+  ext/qjson/src/qobjecthelper.cpp \
+  ext/qjson/src/serializer.cpp \
+  ext/qjson/src/serializerrunnable.cpp
+
+
 FORMS += mainwindow.ui \
     welcome.ui
-
-LIBS += -lqjson
 
 QMAKE_CXXFLAGS += -DGL_GLEXT_PROTOTYPES -O0
 
 include(qtpropertybrowser/src/qtpropertybrowser.pri)
+
+INCLUDEPATH += ext/qjson/src
 
 QMAKE_EXTRA_TARGETS += license
 license.commands = ./update_license.rb -a

@@ -24,7 +24,7 @@
 #include "scene.hpp"
 #include "properties.hpp"
 
-#include <qjson/parser.h>
+#include <parser.h>
 
 #include <set>
 

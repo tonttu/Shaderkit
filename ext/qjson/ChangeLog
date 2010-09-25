@@ -1,0 +1,49 @@
+Mon Sep 06 18:53:02 CEST 2010  Flavio Castelli  <flavio@castelli.name>
+
+	* 50% performance improvement when parsing numbers.
+
+Sun Jul 04 15:41:08 CEST 2010  Flavio Castelli  <flavio@castelli.name>
+
+	* fix make install when not installing as root
+	* provide "make uninstall"
+
+Tue Jun 15 13:16:57 CEST 2010  Flavio Castelli  <flavio@castelli.name>
+
+	* Allow top level values
+
+----------------------------------------------------------------------
+Sat Mar 13 23:57:00 CEST 2009 - flavio@castelli.name
+
+  * Merged the symbian branch into master,
+
+----------------------------------------------------------------------
+Sun Oct 11 19:18:00 CEST 2009 - flavio@castelli.name
+
+ * Updated to 0.6.3: fixed a bug affecting ulonglong numbers serialization.
+
+-------------------------------------------------------------------
+Wed Sep 15 19:21:00 CEST 2009 - flavio@castelli.name
+
+ * Updated to 0.6.2: fixed a bug affecting ulonglong numbers parsing.
+
+-------------------------------------------------------------------
+Wed Sep 09 09:55:00 CEST 2009 - flavio@castelli.name
+
+ * Updated to 0.6.1: relevant bugs fixed.
+ * Moved the SerializerRunnable class inside QJson namespace.
+ * Fixed a bug in cmdline_tester.
+
+-------------------------------------------------------------------
+Mon Jul 20 15:24:32 CEST 2009 - prusnak@suse.cz
+
+ * Updated to 0.6.0 (KDE SVN rev 999750).
+
+-------------------------------------------------------------------
+Mon Apr 07 00:00:00 UTC 2009 - flavio@castelli.name
+
+ * Released 0.5.1 - added unicode support.
+
+-------------------------------------------------------------------
+Mon Apr 03 00:00:00 UTC 2009 - flavio@castelli.name
+
+ * First release.

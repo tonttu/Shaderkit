@@ -1,6 +1,6 @@
 #include "metainfo.hpp"
 
-#include <qjson/parser.h>
+#include "parser.h"
 
 #include <QFile>
 
