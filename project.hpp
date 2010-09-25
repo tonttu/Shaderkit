@@ -25,14 +25,12 @@
 
 #include <QString>
 
-#include <boost/enable_shared_from_this.hpp>
-
 /**
  * One project means a set of scenes where only one can be active at time.
  * Project is basically everything that is stored in the project file, although
  * large part of the functionality is actually implemented in Scene.
  */
-class Project : public QObject, public boost::enable_shared_from_this<Project>,
+class Project : public QObject, public std::enable_shared_from_this<Project>,
     public Watchable {
   Q_OBJECT
 

@@ -20,6 +20,8 @@
 #include "scene.hpp"
 #include "opengl.hpp"
 
+#include <cassert>
+
 Camera::Camera(const QString &name)
   : m_name(name), m_type(Perspective),
     m_position(3, 1, 2), m_target(0, 0, 0), m_up(0, 1, 0),

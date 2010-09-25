@@ -22,8 +22,6 @@
 #include "forward.hpp"
 #include "opengl.hpp"
 
-#include <boost/enable_shared_from_this.hpp>
-
 /**
  * Render pass represents one renderable image that might only be a small part
  * of the whole composition. Different kinds of render passes could be for
@@ -44,7 +42,7 @@
  *
  * @todo implement that stuff ^
  */
-class RenderPass : public QObject, public boost::enable_shared_from_this<RenderPass> {
+class RenderPass : public QObject, public std::enable_shared_from_this<RenderPass> {
   Q_OBJECT
 
 public:

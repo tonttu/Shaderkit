@@ -27,8 +27,6 @@
 
 #include <QObject>
 
-#include <boost/enable_shared_from_this.hpp>
-
 #include <set>
 #include <iostream>
 
@@ -43,7 +41,7 @@
  * is created; shaders are compiled, underlying program object created and the
  * program linked when the object is bind()ed first time.
  */
-class GLProgram : public QObject, public boost::enable_shared_from_this<GLProgram> {
+class GLProgram : public QObject, public std::enable_shared_from_this<GLProgram> {
   Q_OBJECT
 
 public:

@@ -25,15 +25,13 @@
 #include <QString>
 #include <QVariantMap>
 
-#include <boost/enable_shared_from_this.hpp>
-
 /**
  * Scene is a data structure that stores all objects by name, and controls
  * the rendering. Scene also knows the actual viewport size and handles
  * the JSON loading. Currently the whole JSON project-file only contains
  * stuff that are actually only in Scene.
  */
-class Scene : public boost::enable_shared_from_this<Scene> {
+class Scene : public std::enable_shared_from_this<Scene> {
 public:
   typedef QList<RenderPassPtr> RenderPasses;
 

@@ -25,6 +25,8 @@
 #include <QMap>
 #include <QSet>
 
+#include <sys/types.h>
+
 /**
  * Watchable interface for every object that uses Watcher.
  */

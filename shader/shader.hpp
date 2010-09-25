@@ -25,15 +25,13 @@
 
 #include <QObject>
 
-#include <boost/enable_shared_from_this.hpp>
-
 /**
  * GLSL Shader.
  *
  * It is safe to create Shader objects before actually having an OpenGL context.
  * The actual shader object is created only when the shader is compiled the first time.
  */
-class Shader : public QObject, public boost::enable_shared_from_this<Shader> {
+class Shader : public QObject, public std::enable_shared_from_this<Shader> {
   Q_OBJECT
 
 public:

@@ -21,6 +21,7 @@
 #include "opengl.hpp"
 
 #include <stdexcept>
+#include <cassert>
 
 ShaderTypeInfo::ShaderTypeInfo(int size_,
     FloatSetter float_setter_, IntSetter int_setter_, MatrixSetter matrix_setter_,

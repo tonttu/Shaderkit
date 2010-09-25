@@ -19,8 +19,11 @@
 #ifndef FORWARD_HPP
 #define FORWARD_HPP
 
-#include <boost/shared_ptr.hpp>
+#include "lab_tr1.hpp"
+
+/// @todo move these two away from here
 #include <limits>
+#include <QHash>
 
 class Watchable;
 class Watcher;
@@ -31,29 +34,29 @@ class ShaderCompilerOutputParser;
 class UniformVar;
 class ShaderTypeInfo;
 class Shader;
-typedef boost::shared_ptr<Shader> ShaderPtr;
+typedef std::shared_ptr<Shader> ShaderPtr;
 class GLProgram;
-typedef boost::shared_ptr<GLProgram> ProgramPtr;
+typedef std::shared_ptr<GLProgram> ProgramPtr;
 
 class Light;
-typedef boost::shared_ptr<Light> LightPtr;
+typedef std::shared_ptr<Light> LightPtr;
 class Camera;
-typedef boost::shared_ptr<Camera> CameraPtr;
+typedef std::shared_ptr<Camera> CameraPtr;
 class Scene;
-typedef boost::shared_ptr<Scene> ScenePtr;
+typedef std::shared_ptr<Scene> ScenePtr;
 class RenderPass;
-typedef boost::shared_ptr<RenderPass> RenderPassPtr;
+typedef std::shared_ptr<RenderPass> RenderPassPtr;
 
 class State;
 class FBOImage;
-typedef boost::shared_ptr<FBOImage> FBOImagePtr;
+typedef std::shared_ptr<FBOImage> FBOImagePtr;
 class Texture;
-typedef boost::shared_ptr<Texture> TexturePtr;
+typedef std::shared_ptr<Texture> TexturePtr;
 class FrameBufferObject;
-typedef boost::shared_ptr<FrameBufferObject> FBOPtr;
+typedef std::shared_ptr<FrameBufferObject> FBOPtr;
 
 class Object3D;
-typedef boost::shared_ptr<Object3D> ObjectPtr;
+typedef std::shared_ptr<Object3D> ObjectPtr;
 class Teapot;
 class Box;
 
@@ -69,7 +72,7 @@ class MainWindow;
 class GLWidget;
 
 class Project;
-typedef boost::shared_ptr<Project> ProjectPtr;
+typedef std::shared_ptr<Project> ProjectPtr;
 
 class QColor;
 class QVector3D;
@@ -77,7 +80,7 @@ class QVector4D;
 
 /// Hash for QSet etc
 template <typename T>
-uint qHash(boost::shared_ptr<T> t) {
+uint qHash(std::shared_ptr<T> t) {
   return uint((long)t.get() & std::numeric_limits<uint>::max());
 }
 

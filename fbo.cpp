@@ -1,6 +1,8 @@
 #include "fbo.hpp"
 #include "opengl.hpp"
 
+#include <cassert>
+
 FBOImage::FBOImage(QString name) : m_name(name),
   m_id(0), m_type(0), m_active_type(0), m_width(0), m_height(0) {}
 
