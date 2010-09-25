@@ -79,6 +79,4 @@ FORMS += \
 
 include(../qtpropertybrowser/src/qtpropertybrowser.pri)
 
-LIBS += -lGLEW
-
 LIBS += ../ext/libext.a ../shaderdb/libshaderdb.a

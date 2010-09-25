@@ -32,3 +32,6 @@ SOURCES += \
     qjson/src/qobjecthelper.cpp \
     qjson/src/serializer.cpp \
     qjson/src/serializerrunnable.cpp
+
+# GLEW
+SOURCES += glew/src/glew.c
