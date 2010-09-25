@@ -10,6 +10,7 @@ LEXSOURCES += shader/glsl.l
 YACCSOURCES += shader/glsl.y
 }
 !unix {
+DEFINES += YY_NO_UNISTD_H
 HEADERS += glsl_yacc.h
 SOURCES += glsl_yacc.cpp glsl_lex.cpp
 }
