@@ -33,12 +33,21 @@ Project::Project(MainWindow& main_window, QString filename)
 
 ScenePtr Project::load(const QString& filename) {
   ScenePtr scene;
+
+  QDir dir(filename);
+  QString root;
+  if (dir.cdUp())
+    root = dir.canonicalPath();
+  if (root.isEmpty())
+    return scene;
+
   QJson::Parser parser;
   bool ok;
   QFile file(filename);
   QVariant data = parser.parse(&file, &ok);
   if (ok) {
     scene.reset(new Scene);
+    scene->setRoot(root);
     scene->load(data.toMap());
   }
   return scene;

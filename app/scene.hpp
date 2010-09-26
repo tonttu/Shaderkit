@@ -70,6 +70,15 @@ public:
   /// Returns the metainfo loaded from the project file
   MetaInfo & metainfo() { return m_metainfo; }
 
+  /// @see root()
+  void setRoot(QString root) { m_root = root; }
+  /// The root directory for the scene, all relative filenames
+  /// are relative to this directory
+  QString root() const { return m_root; }
+
+  /// Returns absolute file path for filename, or empty string if not found
+  QString search(QString filename) const;
+
 protected:
   /**
    * RenderPasses is defined as an ordered list of passes, while actually the
@@ -88,6 +97,8 @@ protected:
   MetaInfo m_metainfo;
   
   int m_width, m_height;
+
+  QString m_root;
 };
 
 /// Convert array of three doubles to vector

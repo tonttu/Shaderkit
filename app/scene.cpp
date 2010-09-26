@@ -123,12 +123,12 @@ void Scene::load(QVariantMap map) {
   tmp = map["shaders"].toMap();
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
     ProgramPtr shader(new GLProgram(it.key()));
-    foreach (QString name, it->toMap()["fragment"].toStringList())
-      shader->addShader(name, Shader::Fragment);
-    foreach (QString name, it->toMap()["vertex"].toStringList())
-      shader->addShader(name, Shader::Vertex);
-    foreach (QString name, it->toMap()["geometry"].toStringList())
-      shader->addShader(name, Shader::Geometry);
+    foreach (QString filename, it->toMap()["fragment"].toStringList())
+      shader->addShader(search(filename), Shader::Fragment);
+    foreach (QString filename, it->toMap()["vertex"].toStringList())
+      shader->addShader(search(filename), Shader::Vertex);
+    foreach (QString filename, it->toMap()["geometry"].toStringList())
+      shader->addShader(search(filename), Shader::Geometry);
     m_shaders[it.key()] = shader;
   }
 
@@ -139,4 +139,14 @@ void Scene::load(QVariantMap map) {
   }
 
   m_metainfo.load(map["lab"].toMap());
+}
+
+QString Scene::search(QString filename) const {
+  if (m_root.isEmpty())
+    return QDir(filename).canonicalPath();
+  QString cwd = QDir::currentPath();
+  QDir::setCurrent(m_root);
+  QString ret = QDir(filename).canonicalPath();
+  QDir::setCurrent(cwd);
+  return ret;
 }

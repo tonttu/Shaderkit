@@ -45,17 +45,17 @@
   },
   "shaders" : {
     "phong" : {
-      "geometry" : ["examples/default.geom"],
-      "fragment" : ["examples/default.frag"],
-      "vertex" : ["examples/default.vert"]
+      "geometry" : ["default.geom"],
+      "fragment" : ["default.frag"],
+      "vertex" : ["default.vert"]
     },
     "gaussian-y" : {
-      "vertex" : ["examples/post.vert"],
-      "fragment" : ["examples/gaussian-y.frag"]
+      "vertex" : ["post.vert"],
+      "fragment" : ["gaussian-y.frag"]
     },
     "gaussian-x" : {
-      "vertex" : ["examples/post.vert"],
-      "fragment" : ["examples/gaussian-x.frag"]
+      "vertex" : ["post.vert"],
+      "fragment" : ["gaussian-x.frag"]
     }
   },
   "render passes" : [

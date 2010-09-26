@@ -35,8 +35,10 @@ int main(int argc, char* argv[]) {
     QDir dir(argv[0]);
     if (dir.cdUp()) {
       db.addPath(dir.path());
-      if (dir.cd("../share/glsl-lab/examples"))
-        db.addPath(dir.path());
+      db.addPath(dir.path() + "/examples");
+      db.addPath(dir.path() + "/..");
+      db.addPath(dir.path() + "/../examples");
+      db.addPath(dir.path() + "../share/glsl-lab/examples");
     }
     db.addPath(QDir::homePath() + "/.glsl-lab/shaderdb");
   }
