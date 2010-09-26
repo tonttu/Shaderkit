@@ -39,7 +39,7 @@ bool ishexnstring(const QString& string) {
 
 JSonScanner::JSonScanner(QIODevice* io)
   : m_allowSpecialNumbers(false),
-    m_io (io)
+    m_io(io)
 {
   m_quotmarkClosed = true;
   m_quotmarkCount = 0;
@@ -278,20 +278,20 @@ int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
     }
   }
   else if (isdigit(ch) != 0 && m_quotmarkClosed) {
-    quint64 number = atoll(&ch);
-    if (number == 0) {
-      // we have to return immediately otherwise numbers like
-      // 2.04 will be converted to 2.4
-      *yylval = QVariant(number);
+    // we have to return immediately otherwise numbers like
+    // 2.04 will be converted to 2.4
+    if (ch == '0') {
+      *yylval = QVariant(0);
       qjsonDebug() << "JSonScanner::yylex - yy::json_parser::token::DIGIT";
       return yy::json_parser::token::DIGIT;
     }
+    quint64 number = ch-'0';
     char nextCh;
     qint64 ret = m_io->peek(&nextCh, 1);
     while (ret == 1 && isdigit(nextCh)) {
       m_io->read(1); //consume
       yylloc->columns(1);
-      number = number * 10 + atoll(&nextCh);
+      number = number * 10 + nextCh-'0';
       ret = m_io->peek(&nextCh, 1);
     }
 
