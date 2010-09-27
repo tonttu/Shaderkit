@@ -5,3 +5,5 @@ INCLUDEPATH += \
     $$PWD/qtpropertybrowser/src
 
 QT += opengl
+
+DEFINES += GLEW_STATIC QJSON_EXPORT=

@@ -19,6 +19,12 @@
 %{
 #include "glsl_yacc.h"
 static int s_column, s_line, s_pos;
+
+#ifdef _MSC_VER
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+#endif
 %}
 
 %option noyywrap

@@ -1,15 +1,15 @@
 include(../lab.pri)
 
-TARGET = ../lab
+unix {
+TARGET = $$PWD/../lab
 
 QMAKE_LEX = flex
 QMAKE_YACC = bison
-
-unix {
 LEXSOURCES += shader/glsl.l
 YACCSOURCES += shader/glsl.y
 }
 !unix {
+TARGET = lab
 DEFINES += YY_NO_UNISTD_H
 HEADERS += glsl_yacc.h
 SOURCES += glsl_yacc.cpp glsl_lex.cpp
@@ -75,4 +75,10 @@ FORMS += \
 
 include(../qtpropertybrowser/src/qtpropertybrowser.pri)
 
-LIBS += ../ext/libext.a ../shaderdb/libshaderdb.a
+win32 {
+    CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib
+    CONFIG(debug, debug|release):LIBS += ../ext/debug/ext.lib ../shaderdb/debug/shaderdb.lib
+}
+!win32 {
+    LIBS += ../ext/libext.a ../shaderdb/libshaderdb.a
+}
