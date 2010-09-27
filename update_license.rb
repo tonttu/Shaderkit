@@ -21,14 +21,16 @@ $license =<<EOL
 
 EOL
 
+$exceptions = %w[app/glsl_lex.cpp app/glsl_yacc.cpp]
+
 def auto
   def glob lst
     len = File.expand_path('x').size-1
     lst.split.inject([]){|s,p| s += Dir[p]}.map{|d| File.expand_path(d)[len..-1]}.uniq
   end
-  files = glob '{.,shader}/*.{cpp,hpp} doc/*.cpp std/*.* shader/*.[yl]'
-  ignored = glob File.read('.gitignore')
-  files-ignored
+  files = glob '{app,app/shader,shaderdb}/*.{cpp,hpp} doc/*.cpp std/*.* app/shader/*.[yl]'
+  ignored = glob File.read('.gitignore').gsub(/^\/?/, '**/')
+  files-ignored-$exceptions
 end
 
 if ARGV.size == 1 && ARGV.first == '-a'
