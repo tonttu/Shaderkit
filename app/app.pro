@@ -81,3 +81,4 @@ win32 {
 !win32 {
     LIBS += ../ext/libext.a ../shaderdb/libshaderdb.a
 }
+PRE_TARGETDEPS += $$LIBS
