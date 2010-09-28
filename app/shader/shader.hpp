@@ -36,7 +36,7 @@ class Shader : public QObject, public std::enable_shared_from_this<Shader> {
 public:
   /// Supported shader types
   enum Type {
-    Vertex, Fragment, Geometry
+    Fragment, Vertex, Geometry
   };
 
   /// compile() returns the compile status
@@ -91,6 +91,8 @@ public:
 
   /// Returns the actual OpenGL shader id, or 0 if there is no shader created yet.
   GLuint id() const;
+
+  Type type() const { return m_type; }
 
 protected:
   /**

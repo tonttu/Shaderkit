@@ -33,7 +33,46 @@ QStringList getList(QVariantMap map, QString name) {
   }
 }
 
+QVariant putList(QStringList lst) {
+  if (lst.size() == 1)
+    return lst;
+  else
+    return lst;
+}
+
 MetaInfo::MetaInfo() {
+}
+
+QVariantMap MetaInfo::save() const {
+  QVariantMap map;
+
+  /// @todo replace lab_version with real version!
+  if (!lab_version.isEmpty()) map["lab version"] = lab_version;
+  if (!name.isEmpty()) map["name"] = name;
+  if (!description.isEmpty()) map["description"] = description;
+  if (!id.isEmpty()) map["id"] = id;
+  map["revision"] = revision;
+
+  if (!releases.isEmpty()) map["release"] = putList(releases);
+  if (!servers.isEmpty()) map["server"] = putList(servers);
+  if (!categories.isEmpty()) map["category"] = putList(categories);
+  if (!licenses.isEmpty()) map["license"] = putList(licenses);
+  if (!authors.isEmpty()) map["author"] = putList(authors);
+
+  QVariantMap dep;
+  foreach (QString name, dependencies.keys()) {
+    QPair<QString, int> d = dependencies[name];
+    if (d.second == -1) {
+      dep[name] = d.first;
+    } else {
+      QVariantList lst;
+      lst << d.first << d.second;
+      dep[name] = lst;
+    }
+  }
+  if (!dep.isEmpty()) map["dependencies"] = dep;
+
+  return map;
 }
 
 void MetaInfo::load(QVariantMap map) {

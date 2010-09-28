@@ -54,6 +54,18 @@ QColor toColor(QVariant in) {
   return QColor();
 }
 
+QVariantList toList(QVector3D in) {
+  QVariantList ret;
+  ret << in.x() << in.y() << in.z();
+  return ret;
+}
+
+QVariantList toList(QColor in) {
+  QVariantList ret;
+  ret << in.redF() << in.greenF() << in.blueF() << in.alphaF();
+  return ret;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -87,6 +99,36 @@ QList<ShaderPtr> Scene::shadersByFilename(const QString& filename) {
     foreach (ShaderPtr s, p->shaders())
       if (s->filename() == filename) res << s;
   return res;
+}
+
+QVariantMap Scene::save() const {
+  QVariantMap map;
+  QVariantMap tmp = m_metainfo.save();
+  if (!tmp.isEmpty()) map["lab"] = tmp;
+  QVariantMap objects, lights, cameras, shaders;
+  QVariantList render_passes;
+
+  foreach (QString name, m_objects.keys())
+    objects[name] = m_objects[name]->save();
+  if (!objects.isEmpty()) map["objects"] = objects;
+
+  foreach (QString name, m_lights.keys())
+    lights[name] = m_lights[name]->save();
+  if (!lights.isEmpty()) map["lights"] = lights;
+
+  foreach (QString name, m_cameras.keys())
+    cameras[name] = m_cameras[name]->save();
+  if (!cameras.isEmpty()) map["cameras"] = cameras;
+
+  foreach (QString name, m_shaders.keys())
+    shaders[name] = m_shaders[name]->save();
+  if (!shaders.isEmpty()) map["shaders"] = shaders;
+
+  foreach (RenderPassPtr obj, m_render_passes)
+    render_passes << obj->save();
+  if (!render_passes.isEmpty()) map["render passes"] = render_passes;
+
+  return map;
 }
 
 void Scene::load(QVariantMap map) {

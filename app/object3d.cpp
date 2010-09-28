@@ -40,6 +40,19 @@ void drawBox(float x, float y, float z) {
 Object3D::Object3D() {}
 Object3D::~Object3D() {}
 
+QVariantMap Object3D::save() const {
+  QVariantMap map;
+  QVariantList lst;
+  if (builtin()) {
+    lst << "built-in" << name();
+  } else {
+    lst << "file" << name();
+  }
+  map["model"] = lst;
+
+  return map;
+}
+
 void Teapot::render(State&) {
   teapot(10, 3.7f, GL_FILL);
 }

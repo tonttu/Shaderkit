@@ -19,6 +19,8 @@
 #include "shader/shader.hpp"
 #include "app/properties.hpp"
 
+#include <cassert>
+
 GLProgram::GLProgram(const QString& name)
     : m_name(name), m_prog(0), m_compiled(false) {
   connect(this, SIGNAL(linked(ProgramPtr)),
@@ -159,4 +161,23 @@ bool GLProgram::isLinked() {
 
 GLuint GLProgram::id() const {
   return m_prog;
+}
+
+QVariantMap GLProgram::save(bool pack) const {
+  assert(!pack && "not implemented");
+
+  QVariantMap map;
+  QMap<Shader::Type, QStringList> shaders;
+
+  foreach (ShaderPtr s, m_shaders)
+    shaders[s->type()] << s->filename();
+
+  if (shaders.contains(Shader::Geometry))
+    map["geometry"] = shaders[Shader::Geometry];
+  if (shaders.contains(Shader::Vertex))
+    map["vertex"] = shaders[Shader::Vertex];
+  if (shaders.contains(Shader::Fragment))
+    map["fragment"] = shaders[Shader::Fragment];
+
+  return map;
 }

@@ -35,9 +35,14 @@ class Project : public QObject, public std::enable_shared_from_this<Project>,
 
 public:
   Project(MainWindow& main_window, QString filename);
+  virtual ~Project();
 
   /// Loads a scene from JSON file.
   static ScenePtr load(const QString& filename);
+
+  /// Saves the active scene to JSON file.
+  /// @returns true if saving succeeds
+  bool save(const QString& filename);
 
   /// Sets the active scene, connects to all necessary signals, creates editors etc.
   void setScene(ScenePtr scene);

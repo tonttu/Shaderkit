@@ -152,6 +152,69 @@ void RenderPass::endFBO() {
   if (m_fbo) m_fbo->unbind();
 }
 
+QVariantMap RenderPass::save() const {
+  QVariantMap map;
+
+  QVariantList tmp;
+  if (m_clear & GL_COLOR_BUFFER_BIT) tmp << "color";
+  if (m_clear & GL_DEPTH_BUFFER_BIT) tmp << "depth";
+  if (m_clear & GL_STENCIL_BUFFER_BIT) tmp << "stencil";
+
+  if (!tmp.isEmpty()) map["clear"] = tmp;
+
+  if (m_shader) map["shader"] = m_shader->name();
+
+  tmp.clear();
+  foreach (ObjectPtr obj, m_objects)
+    tmp << obj->name();
+  if(!tmp.isEmpty()) map["objects"] = tmp;
+
+  tmp.clear();
+  foreach (LightPtr obj, m_lights)
+    tmp << obj->name();
+  if(!tmp.isEmpty()) map["lights"] = tmp;
+
+  if (m_type == Normal) {
+    tmp.clear();
+    tmp << "camera" << m_viewport->name();
+    map["viewport"] = tmp;
+  } else if (m_type == PostProc) {
+    map["viewport"] = "post";
+  }
+
+  QVariantMap in, out;
+
+  if (m_width > 0) out["width"] = m_width;
+  if (m_height > 0) out["height"] = m_height;
+
+  if (m_depth) {
+    tmp.clear();
+    tmp << m_depth->imageClass();
+    if (!m_depth->name().isEmpty())
+      tmp << m_depth->name();
+    out["depth"] = tmp;
+  }
+
+  if (m_color) {
+    tmp.clear();
+    tmp << m_color->imageClass();
+    if (!m_color->name().isEmpty())
+      tmp << m_color->name();
+    out["color0"] = tmp;
+  }
+
+  foreach (QString name, m_in.keys()) {
+    tmp.clear();
+    tmp << "texture" << m_in[name]->name();
+    in[name] = tmp;
+  }
+
+  if (!in.isEmpty()) map["in"] = in;
+  if (!out.isEmpty()) map["out"] = out;
+
+  return map;
+}
+
 void RenderPass::load(QVariantMap map) {
   if (map.contains("shader")) m_shader = m_scene->shader(map["shader"].toString());
 

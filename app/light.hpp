@@ -39,8 +39,12 @@ public:
   /// Disables the light
   void deactivate(State& state);
 
+  QVariantMap save() const;
+
   /// Load the light from map
   void load(QVariantMap map);
+
+  QString name() const { return m_name; }
 
 protected:
   QString m_name;

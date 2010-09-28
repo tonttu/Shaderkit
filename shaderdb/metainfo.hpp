@@ -25,6 +25,8 @@ class MetaInfo
 {
 public:
   MetaInfo();
+
+  QVariantMap save() const;
   void load(QVariantMap map);
 
   static MetaInfo ping(QString filename);

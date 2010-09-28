@@ -63,6 +63,8 @@ public:
   /// Ordered list of all render passes
   RenderPasses renderPasses() { return m_render_passes; }
 
+  QVariantMap save() const;
+
   /// Load the scene from map
   void load(QVariantMap map);
 
@@ -104,5 +106,7 @@ protected:
 QVector3D toVector(QVariant in);
 /// Convert array of four doubles to color
 QColor toColor(QVariant in);
+QVariantList toList(QVector3D in);
+QVariantList toList(QColor in);
 
 #endif // SCENE_HPP

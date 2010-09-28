@@ -61,6 +61,24 @@ void Camera::setRect(float near_, float far_) {
   m_far = far_;
 }
 
+QVariantMap Camera::save() const {
+  QVariantMap map;
+  if (m_type == Perspective)
+    map["type"] = "perspective";
+  else if (m_type == Ortho)
+    map["type"] = "ortho";
+  else if (m_type == Rect)
+    map["type"] = "rect";
+
+  map["position"] = toList(m_position);
+  map["target"] = toList(m_target);
+  map["up"] = toList(m_up);
+  map["fov"] = m_fov;
+  map["near"] = m_near;
+  map["far"] = m_far;
+
+  return map;
+}
 
 void Camera::load(QVariantMap map) {
   if (map["type"] == "perspective") m_type = Perspective;

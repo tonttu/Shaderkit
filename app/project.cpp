@@ -24,11 +24,15 @@
 #include "properties.hpp"
 
 #include <parser.h>
+#include <serializer.h>
 
 #include <set>
 
 Project::Project(MainWindow& main_window, QString filename)
   : m_main_window(main_window), m_filename(filename) {}
+
+Project::~Project() {
+}
 
 ScenePtr Project::load(const QString& filename) {
   ScenePtr scene;
@@ -50,6 +54,16 @@ ScenePtr Project::load(const QString& filename) {
     scene->load(data.toMap());
   }
   return scene;
+}
+
+bool Project::save(const QString& filename) {
+  if (!m_active_scene)
+    return false;
+  QJson::Serializer serializer;
+  QFile file(filename);
+  bool ok = false;
+  serializer.serialize(m_active_scene->save(), &file, &ok);
+  return ok;
 }
 
 void Project::codeChanged(Editor& editor) {

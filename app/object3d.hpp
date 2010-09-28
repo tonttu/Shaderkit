@@ -21,6 +21,7 @@
 #include "forward.hpp"
 
 #include <QObject>
+#include <QVariantMap>
 
 /**
  * 3D Model class.
@@ -41,22 +42,32 @@ public:
   virtual ~Object3D();
 
   /// Returns the object (model) name
+  /// @todo make a separate UI name method
   virtual QString name() const = 0;
   /// Renders the object with given state
   virtual void render(State& state) = 0;
+
+  virtual bool builtin() const { return false; }
+
+  virtual QVariantMap save() const;
+};
+
+class BuiltIn : public Object3D {
+public:
+  bool builtin() const { return true; }
 };
 
 /// Built-in Teapot object, that is a tuned version of GLUT teapot.
-class Teapot : public Object3D {
+class Teapot : public BuiltIn {
 public:
-  virtual QString name() const { return "Teapot"; }
+  virtual QString name() const { return "teapot"; }
   virtual void render(State& state);
 };
 
 /// Built-in dummy Box object
-class Box : public Object3D {
+class Box : public BuiltIn {
 public:
-  virtual QString name() const { return "Box"; }
+  virtual QString name() const { return "box"; }
   virtual void render(State& state);
 };
 

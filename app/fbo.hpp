@@ -28,9 +28,13 @@ public:
   FBOImage(QString name);
   virtual ~FBOImage() {}
   virtual void setup(unsigned int fbo, int width, int height) = 0;
+  /// type is GL_DEPTH_ATTACHMENT etc..
   void setType(int type) { m_type = type; }
 
   QString name() const { return m_name; }
+
+  /// Is this a "texture", "renderbuffer" or what
+  virtual QString imageClass() const = 0;
 
 protected:
   QString m_name;
@@ -47,6 +51,8 @@ public:
   virtual ~RenderBuffer();
 
   void setup(unsigned int fbo, int width, int height);
+
+  QString imageClass() const { return "renderbuffer"; }
 
 private:
   void bind();

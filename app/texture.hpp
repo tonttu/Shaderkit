@@ -31,6 +31,8 @@ public:
   void bind(int texture = 0);
   void unbind();
 
+  QString imageClass() const { return "texture"; }
+
 private:
   unsigned int m_id, m_bindedTexture;
 };

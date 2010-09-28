@@ -73,6 +73,25 @@ void Light::deactivate(State& state) {
   m_id = -1;
 }
 
+QVariantMap Light::save() const {
+  QVariantMap map;
+  if (m_type == Spot) {
+    map["type"] = "spot";
+    map["position"] = toList(m_position);
+    map["target"] = toList(m_target);
+    map["spot cutoff"] = m_spot_cutoff;
+  } else if (m_type == Direction) {
+    map["type"] = "direction";
+    map["direction"] = toList(m_direction);
+  }
+
+  map["ambient"] = toList(m_ambient);
+  map["diffuse"] = toList(m_diffuse);
+  map["specular"] = toList(m_specular);
+
+  return map;
+}
+
 void Light::load(QVariantMap map) {
   if (map["type"] == "spot") m_type = Spot;
   if (map["type"] == "direction") m_type = Direction;
