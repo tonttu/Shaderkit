@@ -201,7 +201,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 244 "shader/glsl.y"
+#line 243 "shader/glsl.y"
 
   void* sset;
   int integer;

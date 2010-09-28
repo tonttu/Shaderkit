@@ -76,7 +76,7 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 19 "shader/glsl.y"
+#line 18 "shader/glsl.y"
 
   #include <cstdio>
   #include <string>
@@ -490,7 +490,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 244 "shader/glsl.y"
+#line 243 "shader/glsl.y"
 
   void* sset;
   int integer;
@@ -921,35 +921,35 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   323,   323,   327,   328,   329,   330,   331,   332,   333,
-     338,   339,   340,   341,   342,   343,   347,   352,   357,   358,
-     363,   364,   369,   370,   375,   376,   381,   382,   397,   398,
-     399,   400,   406,   407,   408,   409,   415,   416,   417,   418,
-     422,   423,   424,   428,   429,   430,   434,   435,   436,   437,
-     438,   442,   443,   444,   448,   449,   453,   454,   458,   459,
-     463,   464,   468,   469,   473,   474,   478,   479,   483,   484,
-     488,   489,   490,   491,   492,   493,   494,   495,   496,   497,
-     498,   502,   503,   507,   512,   513,   514,   524,   528,   529,
-     533,   534,   538,   542,   543,   547,   548,   549,   550,   554,
-     555,   556,   557,   561,   565,   566,   567,   568,   569,   570,
-     571,   575,   576,   577,   578,   579,   580,   581,   587,   588,
-     592,   596,   597,   598,   602,   606,   607,   611,   612,   616,
-     620,   621,   622,   623,   624,   625,   626,   627,   631,   632,
-     633,   634,   635,   636,   637,   638,   639,   643,   644,   648,
-     649,   650,   654,   655,   660,   661,   662,   663,   664,   665,
-     666,   667,   668,   669,   670,   671,   672,   673,   674,   675,
-     676,   677,   678,   679,   680,   681,   682,   683,   684,   685,
-     686,   687,   688,   689,   690,   691,   692,   693,   694,   695,
-     696,   697,   698,   699,   700,   701,   702,   703,   704,   705,
-     706,   707,   708,   709,   710,   711,   712,   713,   714,   715,
-     716,   717,   718,   719,   720,   721,   722,   723,   724,   728,
-     729,   730,   734,   735,   739,   740,   744,   745,   749,   750,
-     754,   755,   756,   760,   764,   768,   769,   774,   775,   776,
-     777,   778,   779,   780,   784,   785,   789,   790,   794,   795,
-     799,   800,   804,   805,   809,   813,   814,   818,   819,   823,
-     827,   828,   832,   833,   837,   838,   840,   844,   845,   849,
-     850,   854,   855,   865,   866,   867,   868,   869,   874,   875,
-     879,   880,   884
+       0,   322,   322,   326,   327,   328,   329,   330,   331,   332,
+     337,   338,   339,   340,   341,   342,   346,   351,   356,   357,
+     362,   363,   368,   369,   374,   375,   380,   381,   396,   397,
+     398,   399,   405,   406,   407,   408,   414,   415,   416,   417,
+     421,   422,   423,   427,   428,   429,   433,   434,   435,   436,
+     437,   441,   442,   443,   447,   448,   452,   453,   457,   458,
+     462,   463,   467,   468,   472,   473,   477,   478,   482,   483,
+     487,   488,   489,   490,   491,   492,   493,   494,   495,   496,
+     497,   501,   502,   506,   511,   512,   513,   523,   527,   528,
+     532,   533,   537,   541,   542,   546,   547,   548,   549,   553,
+     554,   555,   556,   560,   564,   565,   566,   567,   568,   569,
+     570,   574,   575,   576,   577,   578,   579,   580,   586,   587,
+     591,   595,   596,   597,   601,   605,   606,   610,   611,   615,
+     619,   620,   621,   622,   623,   624,   625,   626,   630,   631,
+     632,   633,   634,   635,   636,   637,   638,   642,   643,   647,
+     648,   649,   653,   654,   659,   660,   661,   662,   663,   664,
+     665,   666,   667,   668,   669,   670,   671,   672,   673,   674,
+     675,   676,   677,   678,   679,   680,   681,   682,   683,   684,
+     685,   686,   687,   688,   689,   690,   691,   692,   693,   694,
+     695,   696,   697,   698,   699,   700,   701,   702,   703,   704,
+     705,   706,   707,   708,   709,   710,   711,   712,   713,   714,
+     715,   716,   717,   718,   719,   720,   721,   722,   723,   727,
+     728,   729,   733,   734,   738,   739,   743,   744,   748,   749,
+     753,   754,   755,   759,   763,   767,   768,   773,   774,   775,
+     776,   777,   778,   779,   783,   784,   788,   789,   793,   794,
+     798,   799,   803,   804,   808,   812,   813,   817,   818,   822,
+     826,   827,   831,   832,   836,   837,   839,   843,   844,   848,
+     849,   853,   854,   864,   865,   866,   867,   868,   873,   874,
+     878,   879,   883
 };
 #endif
 
@@ -2855,917 +2855,917 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 323 "shader/glsl.y"
+#line 322 "shader/glsl.y"
     { /*$$ = new Variable($1);*/ ;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 328 "shader/glsl.y"
+#line 327 "shader/glsl.y"
     { (yyval.node) = new IntConstant(INTCONSTANT, (yyvsp[(1) - (1)].integer)); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 329 "shader/glsl.y"
+#line 328 "shader/glsl.y"
     { (yyval.node) = new IntConstant(UINTCONSTANT, (yyvsp[(1) - (1)].integer)); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 330 "shader/glsl.y"
+#line 329 "shader/glsl.y"
     { (yyval.node) = new FloatConstant((yyvsp[(1) - (1)].f)); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 331 "shader/glsl.y"
+#line 330 "shader/glsl.y"
     { (yyval.node) = new IntConstant(BOOLCONSTANT, 1); ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 332 "shader/glsl.y"
+#line 331 "shader/glsl.y"
     { (yyval.node) = new IntConstant(BOOLCONSTANT, 0); ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 333 "shader/glsl.y"
+#line 332 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(2) - (3)].node); ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 339 "shader/glsl.y"
+#line 338 "shader/glsl.y"
     { (yyval.node) = new ArrayField((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node)); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 340 "shader/glsl.y"
+#line 339 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 341 "shader/glsl.y"
+#line 340 "shader/glsl.y"
     { (yyval.node) = new Field((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].string)); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 342 "shader/glsl.y"
+#line 341 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (2)].integer), (yyvsp[(1) - (2)].node)); ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 343 "shader/glsl.y"
+#line 342 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (2)].integer), (yyvsp[(1) - (2)].node)); ;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 381 "shader/glsl.y"
+#line 380 "shader/glsl.y"
     { (yyval.node) = new Constructor((yyvsp[(1) - (2)].type)); ;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 382 "shader/glsl.y"
+#line 381 "shader/glsl.y"
     { (yyval.node) = new Call( /*$1 */); ;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 398 "shader/glsl.y"
+#line 397 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(1) - (2)].integer), (yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 399 "shader/glsl.y"
+#line 398 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(1) - (2)].integer), (yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 400 "shader/glsl.y"
+#line 399 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(1) - (2)].integer), (yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 406 "shader/glsl.y"
+#line 405 "shader/glsl.y"
     { (yyval.integer) = '+'; ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 407 "shader/glsl.y"
+#line 406 "shader/glsl.y"
     { (yyval.integer) = '-'; ;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 408 "shader/glsl.y"
+#line 407 "shader/glsl.y"
     { (yyval.integer) = '!'; ;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 409 "shader/glsl.y"
+#line 408 "shader/glsl.y"
     { (yyval.integer) = '~'; ;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 416 "shader/glsl.y"
+#line 415 "shader/glsl.y"
     { (yyval.node) = new Operator('*', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 417 "shader/glsl.y"
+#line 416 "shader/glsl.y"
     { (yyval.node) = new Operator('/', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 418 "shader/glsl.y"
+#line 417 "shader/glsl.y"
     { (yyval.node) = new Operator('%', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 423 "shader/glsl.y"
+#line 422 "shader/glsl.y"
     { (yyval.node) = new Operator('+', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 424 "shader/glsl.y"
+#line 423 "shader/glsl.y"
     { (yyval.node) = new Operator('-', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 429 "shader/glsl.y"
+#line 428 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 430 "shader/glsl.y"
+#line 429 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 435 "shader/glsl.y"
+#line 434 "shader/glsl.y"
     { (yyval.node) = new Operator('<', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 436 "shader/glsl.y"
+#line 435 "shader/glsl.y"
     { (yyval.node) = new Operator('>', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 437 "shader/glsl.y"
+#line 436 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 438 "shader/glsl.y"
+#line 437 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 443 "shader/glsl.y"
+#line 442 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 444 "shader/glsl.y"
+#line 443 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 449 "shader/glsl.y"
+#line 448 "shader/glsl.y"
     { (yyval.node) = new Operator('&', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 454 "shader/glsl.y"
+#line 453 "shader/glsl.y"
     { (yyval.node) = new Operator('^', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 459 "shader/glsl.y"
+#line 458 "shader/glsl.y"
     { (yyval.node) = new Operator('|', (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 464 "shader/glsl.y"
+#line 463 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 469 "shader/glsl.y"
+#line 468 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 474 "shader/glsl.y"
+#line 473 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 479 "shader/glsl.y"
+#line 478 "shader/glsl.y"
     { (yyval.node) = new Conditional((yyvsp[(1) - (5)].node), (yyvsp[(3) - (5)].node), (yyvsp[(5) - (5)].node)); ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 484 "shader/glsl.y"
+#line 483 "shader/glsl.y"
     { (yyval.node) = new Operator((yyvsp[(2) - (3)].integer), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 488 "shader/glsl.y"
+#line 487 "shader/glsl.y"
     { (yyval.integer) = '='; ;}
     break;
 
   case 82:
 
 /* Line 1455 of yacc.c  */
-#line 503 "shader/glsl.y"
+#line 502 "shader/glsl.y"
     { (yyval.node) = link((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 512 "shader/glsl.y"
+#line 511 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(1) - (2)].func); ;}
     break;
 
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 513 "shader/glsl.y"
+#line 512 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(1) - (2)].type); ;}
     break;
 
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 514 "shader/glsl.y"
+#line 513 "shader/glsl.y"
     { (yyvsp[(3) - (4)].type)->setPrecision((yyvsp[(2) - (4)].integer)); (yyval.node) = (yyvsp[(3) - (4)].type); ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 533 "shader/glsl.y"
+#line 532 "shader/glsl.y"
     { (yyval.func) = (yyvsp[(1) - (2)].func); (yyval.func)->addParam((yyvsp[(2) - (2)].param)); ;}
     break;
 
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 534 "shader/glsl.y"
+#line 533 "shader/glsl.y"
     { (yyval.func) = (yyvsp[(1) - (3)].func); (yyval.func)->addParam((yyvsp[(3) - (3)].param)); ;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 538 "shader/glsl.y"
+#line 537 "shader/glsl.y"
     { (yyval.func) = new Function((yyvsp[(1) - (3)].type), (yyvsp[(2) - (3)].string)); ;}
     break;
 
   case 93:
 
 /* Line 1455 of yacc.c  */
-#line 542 "shader/glsl.y"
+#line 541 "shader/glsl.y"
     { (yyval.param) = new Parameter((yyvsp[(1) - (2)].type), (yyvsp[(2) - (2)].string)); ;}
     break;
 
   case 94:
 
 /* Line 1455 of yacc.c  */
-#line 543 "shader/glsl.y"
+#line 542 "shader/glsl.y"
     { (yyval.param) = new Parameter((yyvsp[(1) - (5)].type), (yyvsp[(2) - (5)].string), (yyvsp[(4) - (5)].node)); ;}
     break;
 
   case 95:
 
 /* Line 1455 of yacc.c  */
-#line 547 "shader/glsl.y"
+#line 546 "shader/glsl.y"
     { (yyval.param) = (yyvsp[(3) - (3)].param); (yyval.param)->setTypeQualifier((yyvsp[(1) - (3)].integer)); (yyval.param)->setQualifier((yyvsp[(2) - (3)].integer)); ;}
     break;
 
   case 96:
 
 /* Line 1455 of yacc.c  */
-#line 548 "shader/glsl.y"
+#line 547 "shader/glsl.y"
     { (yyval.param) = (yyvsp[(2) - (2)].param); (yyval.param)->setQualifier((yyvsp[(1) - (2)].integer)); ;}
     break;
 
   case 97:
 
 /* Line 1455 of yacc.c  */
-#line 549 "shader/glsl.y"
+#line 548 "shader/glsl.y"
     { (yyval.param) = new Parameter((yyvsp[(3) - (3)].type)); (yyval.param)->setTypeQualifier((yyvsp[(1) - (3)].integer)); (yyval.param)->setQualifier((yyvsp[(2) - (3)].integer)); ;}
     break;
 
   case 98:
 
 /* Line 1455 of yacc.c  */
-#line 550 "shader/glsl.y"
+#line 549 "shader/glsl.y"
     { (yyval.param) = new Parameter((yyvsp[(2) - (2)].type)); (yyval.param)->setQualifier((yyvsp[(1) - (2)].integer)); ;}
     break;
 
   case 99:
 
 /* Line 1455 of yacc.c  */
-#line 554 "shader/glsl.y"
+#line 553 "shader/glsl.y"
     { (yyval.integer) = 0; ;}
     break;
 
   case 105:
 
 /* Line 1455 of yacc.c  */
-#line 566 "shader/glsl.y"
+#line 565 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (3)].type), new Type(*(yyvsp[(1) - (3)].type))); (yyval.type)->setName((yyvsp[(3) - (3)].string)); ;}
     break;
 
   case 106:
 
 /* Line 1455 of yacc.c  */
-#line 567 "shader/glsl.y"
+#line 566 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (5)].type), new Type(*(yyvsp[(1) - (5)].type))); (yyval.type)->setName((yyvsp[(3) - (5)].string)); (yyval.type)->setIsArray(); ;}
     break;
 
   case 107:
 
 /* Line 1455 of yacc.c  */
-#line 568 "shader/glsl.y"
+#line 567 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (6)].type), new Type(*(yyvsp[(1) - (6)].type))); (yyval.type)->setName((yyvsp[(3) - (6)].string)); (yyval.type)->setArray((yyvsp[(5) - (6)].node)); ;}
     break;
 
   case 108:
 
 /* Line 1455 of yacc.c  */
-#line 569 "shader/glsl.y"
+#line 568 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (7)].type), new Type(*(yyvsp[(1) - (7)].type))); (yyval.type)->setName((yyvsp[(3) - (7)].string)); (yyval.type)->setInitializer((yyvsp[(7) - (7)].node)); ;}
     break;
 
   case 109:
 
 /* Line 1455 of yacc.c  */
-#line 570 "shader/glsl.y"
+#line 569 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (8)].type), new Type(*(yyvsp[(1) - (8)].type))); (yyval.type)->setName((yyvsp[(3) - (8)].string)); (yyval.type)->setArray((yyvsp[(5) - (8)].node)); (yyval.type)->setInitializer((yyvsp[(8) - (8)].node)); ;}
     break;
 
   case 110:
 
 /* Line 1455 of yacc.c  */
-#line 571 "shader/glsl.y"
+#line 570 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (5)].type), new Type(*(yyvsp[(1) - (5)].type))); (yyval.type)->setName((yyvsp[(3) - (5)].string)); (yyval.type)->setInitializer((yyvsp[(5) - (5)].node)); ;}
     break;
 
   case 112:
 
 /* Line 1455 of yacc.c  */
-#line 576 "shader/glsl.y"
+#line 575 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (2)].type); (yyval.type)->setName((yyvsp[(2) - (2)].string)); ;}
     break;
 
   case 113:
 
 /* Line 1455 of yacc.c  */
-#line 577 "shader/glsl.y"
+#line 576 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (4)].type); (yyval.type)->setName((yyvsp[(2) - (4)].string)); (yyval.type)->setIsArray(); ;}
     break;
 
   case 114:
 
 /* Line 1455 of yacc.c  */
-#line 578 "shader/glsl.y"
+#line 577 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (5)].type); (yyval.type)->setName((yyvsp[(2) - (5)].string)); (yyval.type)->setArray((yyvsp[(4) - (5)].node)); ;}
     break;
 
   case 115:
 
 /* Line 1455 of yacc.c  */
-#line 579 "shader/glsl.y"
+#line 578 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (6)].type); (yyval.type)->setName((yyvsp[(2) - (6)].string)); (yyval.type)->setIsArray(); (yyval.type)->setInitializer((yyvsp[(6) - (6)].node)); ;}
     break;
 
   case 116:
 
 /* Line 1455 of yacc.c  */
-#line 580 "shader/glsl.y"
+#line 579 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (7)].type); (yyval.type)->setName((yyvsp[(2) - (7)].string)); (yyval.type)->setArray((yyvsp[(4) - (7)].node)); (yyval.type)->setInitializer((yyvsp[(7) - (7)].node)); ;}
     break;
 
   case 117:
 
 /* Line 1455 of yacc.c  */
-#line 581 "shader/glsl.y"
+#line 580 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (4)].type); (yyval.type)->setName((yyvsp[(2) - (4)].string)); (yyval.type)->setInitializer((yyvsp[(4) - (4)].node)); ;}
     break;
 
   case 119:
 
 /* Line 1455 of yacc.c  */
-#line 588 "shader/glsl.y"
+#line 587 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(2) - (2)].type); (yyval.type)->setQualifier((yyvsp[(1) - (2)].qualifier)); ;}
     break;
 
   case 124:
 
 /* Line 1455 of yacc.c  */
-#line 602 "shader/glsl.y"
+#line 601 "shader/glsl.y"
     { (yyval.layout) = (yyvsp[(3) - (4)].layout); ;}
     break;
 
   case 126:
 
 /* Line 1455 of yacc.c  */
-#line 607 "shader/glsl.y"
+#line 606 "shader/glsl.y"
     { (yyval.layout) = link((yyvsp[(1) - (3)].layout), (yyvsp[(3) - (3)].layout)); ;}
     break;
 
   case 127:
 
 /* Line 1455 of yacc.c  */
-#line 611 "shader/glsl.y"
+#line 610 "shader/glsl.y"
     { /*$$ = new Layout($1);*/ ;}
     break;
 
   case 128:
 
 /* Line 1455 of yacc.c  */
-#line 612 "shader/glsl.y"
+#line 611 "shader/glsl.y"
     { /*$$ = new Layout($1, $3);*/ ;}
     break;
 
   case 130:
 
 /* Line 1455 of yacc.c  */
-#line 620 "shader/glsl.y"
+#line 619 "shader/glsl.y"
     { /* $$ = new Qualifier(); $$->add($1); */ ;}
     break;
 
   case 131:
 
 /* Line 1455 of yacc.c  */
-#line 621 "shader/glsl.y"
+#line 620 "shader/glsl.y"
     { /* $$ = new Qualifier(); $$->setLayout($1); */ ;}
     break;
 
   case 132:
 
 /* Line 1455 of yacc.c  */
-#line 622 "shader/glsl.y"
+#line 621 "shader/glsl.y"
     { /* $$ = new Qualifier(); $$->add($2); $$->setLayout($1); */ ;}
     break;
 
   case 133:
 
 /* Line 1455 of yacc.c  */
-#line 623 "shader/glsl.y"
+#line 622 "shader/glsl.y"
     { /* $$ = new Qualifier(); $2->insert($1); $$->add($2); */ ;}
     break;
 
   case 134:
 
 /* Line 1455 of yacc.c  */
-#line 624 "shader/glsl.y"
+#line 623 "shader/glsl.y"
     { /* $$ = new Qualifier(); $$->add(makeSet($1)); */ ;}
     break;
 
   case 135:
 
 /* Line 1455 of yacc.c  */
-#line 625 "shader/glsl.y"
+#line 624 "shader/glsl.y"
     { /* $$ = new Qualifier(); $2->insert($1); $$->add($2); */ ;}
     break;
 
   case 136:
 
 /* Line 1455 of yacc.c  */
-#line 626 "shader/glsl.y"
+#line 625 "shader/glsl.y"
     { /* $$ = new Qualifier(); $3->insert($1); $3->insert($2); $$->add($3); */ ;}
     break;
 
   case 137:
 
 /* Line 1455 of yacc.c  */
-#line 627 "shader/glsl.y"
+#line 626 "shader/glsl.y"
     { /* $$ = new Qualifier(); $$->add(makeSet($1)); */ ;}
     break;
 
   case 138:
 
 /* Line 1455 of yacc.c  */
-#line 631 "shader/glsl.y"
+#line 630 "shader/glsl.y"
     { (yyval.sset) = makeSet(CONST); ;}
     break;
 
   case 139:
 
 /* Line 1455 of yacc.c  */
-#line 632 "shader/glsl.y"
+#line 631 "shader/glsl.y"
     { (yyval.sset) = makeSet(ATTRIBUTE); ;}
     break;
 
   case 140:
 
 /* Line 1455 of yacc.c  */
-#line 633 "shader/glsl.y"
+#line 632 "shader/glsl.y"
     { (yyval.sset) = makeSet(VARYING); ;}
     break;
 
   case 141:
 
 /* Line 1455 of yacc.c  */
-#line 634 "shader/glsl.y"
+#line 633 "shader/glsl.y"
     { (yyval.sset) = makeSet(CENTROID, VARYING); ;}
     break;
 
   case 142:
 
 /* Line 1455 of yacc.c  */
-#line 635 "shader/glsl.y"
+#line 634 "shader/glsl.y"
     { (yyval.sset) = makeSet(IN); ;}
     break;
 
   case 143:
 
 /* Line 1455 of yacc.c  */
-#line 636 "shader/glsl.y"
+#line 635 "shader/glsl.y"
     { (yyval.sset) = makeSet(OUT); ;}
     break;
 
   case 144:
 
 /* Line 1455 of yacc.c  */
-#line 637 "shader/glsl.y"
+#line 636 "shader/glsl.y"
     { (yyval.sset) = makeSet(CENTROID, IN); ;}
     break;
 
   case 145:
 
 /* Line 1455 of yacc.c  */
-#line 638 "shader/glsl.y"
+#line 637 "shader/glsl.y"
     { (yyval.sset) = makeSet(CENTROID, OUT); ;}
     break;
 
   case 146:
 
 /* Line 1455 of yacc.c  */
-#line 639 "shader/glsl.y"
+#line 638 "shader/glsl.y"
     { (yyval.sset) = makeSet(UNIFORM); ;}
     break;
 
   case 148:
 
 /* Line 1455 of yacc.c  */
-#line 644 "shader/glsl.y"
+#line 643 "shader/glsl.y"
     { /* $$ = $2; $$->setQualifier($1); */ ;}
     break;
 
   case 150:
 
 /* Line 1455 of yacc.c  */
-#line 649 "shader/glsl.y"
+#line 648 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (3)].type); (yyval.type)->setIsArray(); ;}
     break;
 
   case 151:
 
 /* Line 1455 of yacc.c  */
-#line 650 "shader/glsl.y"
+#line 649 "shader/glsl.y"
     { (yyval.type) = (yyvsp[(1) - (4)].type); (yyval.type)->setArray((yyvsp[(3) - (4)].node)); ;}
     break;
 
   case 152:
 
 /* Line 1455 of yacc.c  */
-#line 654 "shader/glsl.y"
+#line 653 "shader/glsl.y"
     { /* $$ = new Type($1); */ ;}
     break;
 
   case 222:
 
 /* Line 1455 of yacc.c  */
-#line 734 "shader/glsl.y"
+#line 733 "shader/glsl.y"
     { /* $$ = new Struct($4, $2); */ ;}
     break;
 
   case 223:
 
 /* Line 1455 of yacc.c  */
-#line 735 "shader/glsl.y"
+#line 734 "shader/glsl.y"
     { /* $$ = new Struct($3); */ ;}
     break;
 
   case 225:
 
 /* Line 1455 of yacc.c  */
-#line 740 "shader/glsl.y"
+#line 739 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (2)].type), (yyvsp[(2) - (2)].type)); ;}
     break;
 
   case 226:
 
 /* Line 1455 of yacc.c  */
-#line 744 "shader/glsl.y"
+#line 743 "shader/glsl.y"
     { /* FOR_EACH($2) { it->setType($1); } $$ = $2; */ ;}
     break;
 
   case 227:
 
 /* Line 1455 of yacc.c  */
-#line 745 "shader/glsl.y"
+#line 744 "shader/glsl.y"
     { /* FOR_EACH($3) { $2->setQualifier($1); it->setType($2); } $$ = $3; */ ;}
     break;
 
   case 229:
 
 /* Line 1455 of yacc.c  */
-#line 750 "shader/glsl.y"
+#line 749 "shader/glsl.y"
     { (yyval.type) = link((yyvsp[(1) - (3)].type), (yyvsp[(3) - (3)].type)); ;}
     break;
 
   case 230:
 
 /* Line 1455 of yacc.c  */
-#line 754 "shader/glsl.y"
+#line 753 "shader/glsl.y"
     { (yyval.type) = new Type(); (yyval.type)->setName((yyvsp[(1) - (1)].string)); ;}
     break;
 
   case 231:
 
 /* Line 1455 of yacc.c  */
-#line 755 "shader/glsl.y"
+#line 754 "shader/glsl.y"
     { (yyval.type) = new Type(); (yyval.type)->setName((yyvsp[(1) - (3)].string)); (yyval.type)->setIsArray(); ;}
     break;
 
   case 232:
 
 /* Line 1455 of yacc.c  */
-#line 756 "shader/glsl.y"
+#line 755 "shader/glsl.y"
     { (yyval.type) = new Type(); (yyval.type)->setName((yyvsp[(1) - (4)].string)); (yyval.type)->setArray((yyvsp[(3) - (4)].node)); ;}
     break;
 
   case 244:
 
 /* Line 1455 of yacc.c  */
-#line 784 "shader/glsl.y"
+#line 783 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 245:
 
 /* Line 1455 of yacc.c  */
-#line 785 "shader/glsl.y"
+#line 784 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(2) - (3)].node); ;}
     break;
 
   case 248:
 
 /* Line 1455 of yacc.c  */
-#line 794 "shader/glsl.y"
+#line 793 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 249:
 
 /* Line 1455 of yacc.c  */
-#line 795 "shader/glsl.y"
+#line 794 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(2) - (3)].node); ;}
     break;
 
   case 251:
 
 /* Line 1455 of yacc.c  */
-#line 800 "shader/glsl.y"
+#line 799 "shader/glsl.y"
     { (yyval.node) = link((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 252:
 
 /* Line 1455 of yacc.c  */
-#line 804 "shader/glsl.y"
+#line 803 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 254:
 
 /* Line 1455 of yacc.c  */
-#line 809 "shader/glsl.y"
+#line 808 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(5) - (5)].node); ;}
     break;
 
   case 255:
 
 /* Line 1455 of yacc.c  */
-#line 813 "shader/glsl.y"
+#line 812 "shader/glsl.y"
     { (yyval.node) = new If((yyvsp[(-1) - (3)].node), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 256:
 
 /* Line 1455 of yacc.c  */
-#line 814 "shader/glsl.y"
+#line 813 "shader/glsl.y"
     { (yyval.node) = new If((yyvsp[(-1) - (1)].node), (yyvsp[(1) - (1)].node)); ;}
     break;
 
   case 258:
 
 /* Line 1455 of yacc.c  */
-#line 819 "shader/glsl.y"
+#line 818 "shader/glsl.y"
     { (yyvsp[(1) - (4)].type)->setName((yyvsp[(2) - (4)].string)); (yyvsp[(1) - (4)].type)->setInitializer((yyvsp[(4) - (4)].node)); (yyval.node) = (yyvsp[(1) - (4)].type); ;}
     break;
 
   case 259:
 
 /* Line 1455 of yacc.c  */
-#line 823 "shader/glsl.y"
+#line 822 "shader/glsl.y"
     { /* $$ = new Switch($3, $6); */ ;}
     break;
 
   case 260:
 
 /* Line 1455 of yacc.c  */
-#line 827 "shader/glsl.y"
+#line 826 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 262:
 
 /* Line 1455 of yacc.c  */
-#line 832 "shader/glsl.y"
+#line 831 "shader/glsl.y"
     { /* $$ = new Label($2); */ ;}
     break;
 
   case 263:
 
 /* Line 1455 of yacc.c  */
-#line 833 "shader/glsl.y"
+#line 832 "shader/glsl.y"
     { /* $$ = new Label(); */ ;}
     break;
 
   case 264:
 
 /* Line 1455 of yacc.c  */
-#line 837 "shader/glsl.y"
+#line 836 "shader/glsl.y"
     { /* $$ = new While($3, $5); */ ;}
     break;
 
   case 265:
 
 /* Line 1455 of yacc.c  */
-#line 838 "shader/glsl.y"
+#line 837 "shader/glsl.y"
     { /* $$ = new DoWhile($2, $5); */ ;}
     break;
 
   case 266:
 
 /* Line 1455 of yacc.c  */
-#line 840 "shader/glsl.y"
+#line 839 "shader/glsl.y"
     { /* $$ = new For($3, $4, $6, $8); */ ;}
     break;
 
   case 269:
 
 /* Line 1455 of yacc.c  */
-#line 849 "shader/glsl.y"
+#line 848 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 271:
 
 /* Line 1455 of yacc.c  */
-#line 854 "shader/glsl.y"
+#line 853 "shader/glsl.y"
     { (yyval.node) = 0; ;}
     break;
 
   case 273:
 
 /* Line 1455 of yacc.c  */
-#line 865 "shader/glsl.y"
+#line 864 "shader/glsl.y"
     { (yyval.node) = new Jump((yyvsp[(1) - (2)].integer)); ;}
     break;
 
   case 274:
 
 /* Line 1455 of yacc.c  */
-#line 866 "shader/glsl.y"
+#line 865 "shader/glsl.y"
     { (yyval.node) = new Jump((yyvsp[(1) - (2)].integer)); ;}
     break;
 
   case 275:
 
 /* Line 1455 of yacc.c  */
-#line 867 "shader/glsl.y"
+#line 866 "shader/glsl.y"
     { (yyval.node) = new Jump((yyvsp[(1) - (2)].integer)); ;}
     break;
 
   case 276:
 
 /* Line 1455 of yacc.c  */
-#line 868 "shader/glsl.y"
+#line 867 "shader/glsl.y"
     { (yyval.node) = new Jump((yyvsp[(1) - (3)].integer), (yyvsp[(2) - (3)].node)); ;}
     break;
 
   case 277:
 
 /* Line 1455 of yacc.c  */
-#line 869 "shader/glsl.y"
+#line 868 "shader/glsl.y"
     { (yyval.node) = new Jump((yyvsp[(1) - (2)].integer)); ;}
     break;
 
   case 278:
 
 /* Line 1455 of yacc.c  */
-#line 874 "shader/glsl.y"
+#line 873 "shader/glsl.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node); if (!tree) { tree = (yyvsp[(1) - (1)].node); while (tree && tree->prev) tree = tree->prev; } ;}
     break;
 
   case 279:
 
 /* Line 1455 of yacc.c  */
-#line 875 "shader/glsl.y"
+#line 874 "shader/glsl.y"
     { (yyval.node) = link((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 282:
 
 /* Line 1455 of yacc.c  */
-#line 884 "shader/glsl.y"
+#line 883 "shader/glsl.y"
     { /* $$ = $1; $1->setBody($2); */ ;}
     break;
 
@@ -3984,7 +3984,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 887 "shader/glsl.y"
+#line 886 "shader/glsl.y"
 
 
 void yyerror(const char* str) {

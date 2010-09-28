@@ -59,7 +59,7 @@ namespace QJson {
       * parser.
       */
 
-    QByteArray serialize( const QVariant& variant );
+    QByteArray serialize( const QVariant& variant, int level = 0 );
 
     /**
      * Allow or disallow writing of NaN and/or Infinity (as an extension to QJson)

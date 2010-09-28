@@ -29,6 +29,10 @@
 
 using namespace QJson;
 
+namespace {
+  const int tab = 2;
+}
+
 class Serializer::SerializerPrivate {
   public:
     SerializerPrivate() : specialNumbersAllowed(false) {}
@@ -41,7 +45,7 @@ QString Serializer::SerializerPrivate::sanitizeString( QString str )
   str.replace( QLatin1String( "\\" ), QLatin1String( "\\\\" ) );
 
   // escape unicode chars
-  QString result;
+/*  QString result;
   const ushort* unicode = str.utf16();
   unsigned int i = 0;
 
@@ -57,7 +61,7 @@ QString Serializer::SerializerPrivate::sanitizeString( QString str )
     }
     ++i;
   }
-  str = result;
+  str = result;*/
 
   str.replace( QLatin1String( "\"" ), QLatin1String( "\\\"" ) );
   str.replace( QLatin1String( "\b" ), QLatin1String( "\\b" ) );
@@ -118,7 +122,7 @@ static QByteArray join( const QList<QByteArray>& list, const QByteArray& sep ) {
   return res;
 }
 
-QByteArray Serializer::serialize( const QVariant &v )
+QByteArray Serializer::serialize( const QVariant &v, int level )
 {
   QByteArray str;
   bool error = false;
@@ -128,32 +132,45 @@ QByteArray Serializer::serialize( const QVariant &v )
   } else if (( v.type() == QVariant::List ) || ( v.type() == QVariant::StringList )){ // an array or a stringlist?
     const QVariantList list = v.toList();
     QList<QByteArray> values;
+    bool big_list = false;
     Q_FOREACH( const QVariant& v, list )
     {
-      QByteArray serializedValue = serialize( v );
+      if ( v.type() == QVariant::Map || v.type() == QVariant::List || v.type() == QVariant::StringList ) {
+        big_list = true;
+        break;
+      }
+    }
+
+    Q_FOREACH( const QVariant& v, list )
+    {
+      QByteArray serializedValue = serialize( v, level + big_list ? 2 : 1 );
       if ( serializedValue.isNull() ) {
         error = true;
         break;
       }
       values << serializedValue;
     }
-    str = "[ " + join( values, ", " ) + " ]";
+    if ( big_list ) {
+      QString l1( (level+1) * tab, ' ' ), l0( level * tab, ' ' );
+      str = "[\n" + l1.toUtf8() + join( values, (",\n" + l1).toUtf8() ) + "\n" + l0.toUtf8() + "]";
+    } else {
+      str = "[" + join( values, ", " ) + "]";
+    }
   } else if ( v.type() == QVariant::Map ) { // variant is a map?
     const QVariantMap vmap = v.toMap();
     QMapIterator<QString, QVariant> it( vmap );
-    str = "{ ";
-    QList<QByteArray> pairs;
+    str = "{\n";
     while ( it.hasNext() ) {
       it.next();
-      QByteArray serializedValue = serialize( it.value() );
+      QByteArray serializedValue = serialize( it.value(), level + 1 );
       if ( serializedValue.isNull() ) {
         error = true;
         break;
       }
-      pairs << d->sanitizeString( it.key() ).toUtf8() + " : " + serializedValue;
+      str += QString((level+1) * tab, ' ') + d->sanitizeString( it.key() ).toUtf8() + " : " + serializedValue;
+      str += it.hasNext() ? ",\n" : "\n";
     }
-    str += join( pairs, ", " );
-    str += " }";
+    str += QString(level * tab, ' ') + "}";
   } else if (( v.type() == QVariant::String ) ||  ( v.type() == QVariant::ByteArray )) { // a string or a byte array?
     str = d->sanitizeString( v.toString() ).toUtf8();
   } else if (( v.type() == QVariant::Double) || (v.type() == QMetaType::Float)) { // a double or a float?
