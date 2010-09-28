@@ -23,7 +23,7 @@
 
 QStringList getList(QVariantMap map, QString name) {
   QVariant var = map[name];
-  if (var.type() == QVariant::StringList) {
+  if (var.type() == QVariant::StringList || var.type() == QVariant::List) {
     return var.toStringList();
   } else {
     QString tmp = var.toString();
@@ -35,7 +35,7 @@ QStringList getList(QVariantMap map, QString name) {
 
 QVariant putList(QStringList lst) {
   if (lst.size() == 1)
-    return lst;
+    return lst[0];
   else
     return lst;
 }
