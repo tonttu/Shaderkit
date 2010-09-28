@@ -47,7 +47,7 @@ protected:
 
 class RenderBuffer : public FBOImage {
 public:
-  RenderBuffer(QString name);
+  RenderBuffer(QString name = "");
   virtual ~RenderBuffer();
 
   void setup(unsigned int fbo, int width, int height);

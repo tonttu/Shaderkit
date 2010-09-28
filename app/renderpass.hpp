@@ -45,6 +45,11 @@ class RenderPass : public QObject, public std::enable_shared_from_this<RenderPas
   Q_OBJECT
 
 public:
+  enum Type {
+    Normal,
+    PostProc
+  } m_type;
+
   /// @todo separate Object from Model. Object is an instance of Model, including
   ///       the transformation matrix etc.
   typedef QSet<ObjectPtr> Objects;
@@ -62,6 +67,8 @@ public:
 
   int height() const;
   int width() const;
+  GLbitfield clearBits() const { return m_clear; }
+  void setClearBits(GLbitfield bits);
 
   QStringList in() const {
     return m_in.keys();
@@ -76,17 +83,14 @@ public:
 
   QString name() const;
 
+  Type type() const { return m_type; }
+
 signals:
   void changed(RenderPassPtr);
 
 protected:
   void beginFBO();
   void endFBO();
-
-  enum Type {
-    Normal,
-    PostProc
-  } m_type;
 
   /// All objects that are rendered in this pass
   Objects m_objects;

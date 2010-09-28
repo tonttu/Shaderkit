@@ -48,23 +48,16 @@ Properties::Properties(QWidget* parent)
     m_factory(new QtVariantEditorFactory()),
     m_manager(new QtVariantPropertyManager()) {
 
-  connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
-          this, SLOT(valueChanged(QtProperty*, const QVariant&)));
-
   setFactoryForManager(m_manager, m_factory);
   setPropertiesWithoutValueMarked(true);
   setResizeMode(Interactive);
 }
 
-void Properties::valueChanged(QtProperty* property, const QVariant& variant) {
-  PropertyMap::iterator it = m_properties.find(property);
-  if (it == m_properties.end()) return;
-  it->set(variant);
-}
-
 ShaderProperties::ShaderProperties(QWidget* parent)
   : Properties(parent) {
   if (!s_instance) s_instance = this;
+  connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
+          this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
 
 ShaderProperties::~ShaderProperties() {
@@ -120,33 +113,57 @@ void ShaderProperties::remove(ProgramPtr shader) {
   }
 }
 
+void ShaderProperties::valueChanged(QtProperty* property, const QVariant& variant) {
+  PropertyMap::iterator it = m_properties.find(property);
+  if (it == m_properties.end()) return;
+  it->set(variant);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 RenderPassProperties::RenderPassProperties(QWidget* parent)
   : Properties(parent) {
   if (!s_instance) s_instance = this;
+  connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
+          this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
 
 RenderPassProperties::~RenderPassProperties() {
   if (s_instance == this) s_instance = 0;
 }
 
+void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
+  sub.obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
+
+  sub.clear = m_manager->addProperty(QtVariantPropertyManager::flagTypeId(), "Clear");
+  QStringList clearFlags;
+  clearFlags << "Color buffer" << "Depth buffer" << "Stencil buffer";
+  sub.clear->setAttribute(QLatin1String("flagNames"), clearFlags);
+  sub.obj->addSubProperty(sub.clear);
+  m_properties[sub.clear] = qMakePair(Sub::Clear, pass);
+
+  addProperty(sub.obj);
+}
+
 void RenderPassProperties::update(RenderPassPtr pass) {
-  QtVariantProperty* obj = m_renderpasses[pass];
+  Sub& sub = m_renderpasses[pass];
 
-  // Ensure the existence of the render pass group property
-  if (!obj) {
-    m_renderpasses[pass] = obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
-    addProperty(obj);
-  }
+  // Ensure the existence of the Sub instance of this render pass
+  if (!sub.obj)
+    init(sub, pass);
 
-  // Remove all old subproperties
-  foreach (QtProperty* sub, obj->subProperties()) {
-    obj->removeSubProperty(sub);
-    m_properties.remove(sub);
-  }
+  sub.obj->setPropertyName(pass->name());
 
+  int value = pass->clearBits() & GL_COLOR_BUFFER_BIT ? 1 : 0;
+  if (pass->clearBits() & GL_DEPTH_BUFFER_BIT) value |= 1 << 1;
+  if (pass->clearBits() & GL_STENCIL_BUFFER_BIT) value |= 1 << 2;
+  sub.clear->setValue(value);
+
+  bool normal = pass->type() == RenderPass::Normal;
+  sub.clear->setEnabled(normal);
+
+  /*
   QtVariantProperty* item = m_manager->addProperty(QVariant::Int, "width");
   item->setValue(pass->width());
   obj->addSubProperty(item);
@@ -169,25 +186,39 @@ void RenderPassProperties::update(RenderPassPtr pass) {
     item = m_manager->addProperty(QVariant::String, name);
     item->setValue(pass->out(name)->name());
     in->addSubProperty(item);
+  }*/
+}
+
+void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& variant) {
+  if (!m_properties.contains(property))
+    return;
+
+  QPair<Sub::Type, RenderPassPtr> & pair = m_properties[property];
+
+  if (pair.first == Sub::Clear) {
+    int value = variant.toInt();
+    GLbitfield b = 0;
+    if (value & (1 << 0)) b |= GL_COLOR_BUFFER_BIT;
+    if (value & (1 << 1)) b |= GL_DEPTH_BUFFER_BIT;
+    if (value & (1 << 2)) b |= GL_STENCIL_BUFFER_BIT;
+    pair.second->setClearBits(b);
   }
+
+//  QSet<QtProperty*> p = property->parents();
+/*  PropertyMap::iterator it = m_properties.find(property);
+  if (it == m_properties.end()) return;
+  it->set(variant);*/
 }
 
 void RenderPassProperties::remove(RenderPassPtr pass) {
-  QtVariantProperty* obj = m_renderpasses[pass];
+  if (!m_renderpasses.contains(pass))
+    return;
 
-  if (obj) {
-    m_renderpasses.remove(pass);
+  Sub& sub = m_renderpasses[pass];
 
-    // Remove all old subproperties
-    foreach (QtProperty* sub, obj->subProperties()) {
-      obj->removeSubProperty(sub);
-      m_properties.remove(sub);
-      /// @todo should we delete sub, also many other places in this file
-    }
-
-    removeProperty(obj);
-    delete obj;
-  }
+  /// @todo Remove all old subproperties and clean m_properties
+  removeProperty(sub.obj);
+  m_renderpasses.remove(pass);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

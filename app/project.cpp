@@ -61,7 +61,6 @@ bool Project::save(const QString& filename) {
     return false;
   QJson::Serializer serializer;
   QFile file(filename);
-  bool ok = false;
   // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
   // that isn't what we want.
   const QByteArray str = serializer.serialize(m_active_scene->save());

@@ -47,6 +47,8 @@ public:
   /// Sets the active scene, connects to all necessary signals, creates editors etc.
   void setScene(ScenePtr scene);
 
+  ScenePtr activeScene() { return m_active_scene; }
+
   /// A file was changed on the disk.
   /// Delegates handling the event to right editor, or if no editor is open
   /// with this file, forces the shader to reload the file.

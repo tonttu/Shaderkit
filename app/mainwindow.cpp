@@ -27,6 +27,8 @@
 #include <QFileInfo>
 #include <QLabel>
 
+#include <cassert>
+
 IconBtn::~IconBtn() {}
 
 void IconBtn::paintEvent(QPaintEvent*) {
@@ -37,10 +39,16 @@ void IconBtn::paintEvent(QPaintEvent*) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+MainWindow * MainWindow::s_instance = 0;
+
 MainWindow::MainWindow(QWidget* parent)
-  : QMainWindow(parent), m_ui(new Ui::MainWindow) {
+  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_projectChanged(false) {
   m_ui->setupUi(this);
-/*  QDockWidget *dw = new QDockWidget;
+
+  if (!s_instance)
+    s_instance = this;
+
+  /*  QDockWidget *dw = new QDockWidget;
   dw->setObjectName("Foo");
   dw->setWindowTitle("Bar");
   dw->setWidget(new QTextEdit);
@@ -51,6 +59,7 @@ MainWindow::MainWindow(QWidget* parent)
           this, SLOT(errorItemActivated(QTableWidgetItem*)));
   connect(m_ui->action_save, SIGNAL(triggered()), this, SLOT(save()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(load()));
+  connect(m_ui->action_saveproject, SIGNAL(triggered()), this, SLOT(saveProject()));
   /*connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
@@ -71,7 +80,10 @@ MainWindow::MainWindow(QWidget* parent)
          this, SLOT(closeEditor(int)));
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+  if (s_instance == this)
+    s_instance = 0;
+}
 
 void MainWindow::setProject(ProjectPtr p) {
   bool should_restore = !m_project;
@@ -119,6 +131,11 @@ void MainWindow::activateEditor(Editor* editor) {
   m_ui->editor_tabs->setCurrentWidget(editor->parentWidget());
 }
 
+MainWindow& MainWindow::instance() {
+  assert(s_instance);
+  return *s_instance;
+}
+
 void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   bool changed = false;
   for (int i = 0; i < m_ui->error_list->rowCount(); ++i) {
@@ -160,12 +177,12 @@ bool MainWindow::openProject(QString filename) {
   if (!scene)
     return false;
 
-  setWindowTitle(scene->metainfo().name + " - GLSL Lab");
-
   ProjectPtr project(new Project(*this, filename));
   setProject(project);
   project->setScene(scene);
   resize(sizeHint());
+
+  setProjectChanged(false);
 
   m_ui->statusbar->showMessage("Opened project " + m_project->filename(), 5000);
   show();
@@ -180,12 +197,25 @@ bool MainWindow::reload() {
     return false;
   }
 
-  setWindowTitle(scene->metainfo().name + " - GLSL Lab");
   m_project->setScene(scene);
 
   m_ui->statusbar->showMessage("Reloaded " + m_project->filename(), 5000);
+  setProjectChanged(false);
+  m_projectChanged = false;
 
   return true;
+}
+
+void MainWindow::setProjectChanged(bool status) {
+  if (!m_project)
+    return;
+  m_projectChanged = status;
+  m_ui->action_saveproject->setEnabled(status);
+  if (status) {
+    setWindowTitle(m_project->activeScene()->metainfo().name + " (unsaved) - GLSL Lab");
+  } else {
+    setWindowTitle(m_project->activeScene()->metainfo().name + " - GLSL Lab");
+  }
 }
 
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
@@ -212,11 +242,24 @@ void MainWindow::modificationChanged(bool b) {
 void MainWindow::save(int index) {
   if (index == -1)
     index = m_ui->editor_tabs->currentIndex();
+
+  if (index == -1)
+    return;
+
   Editor* editor = m_editors[index];
   QFile file(editor->filename());
   if (file.open(QIODevice::WriteOnly)) {
     file.write(editor->toPlainText().toUtf8());
     editor->document()->setModified(false);
+  }
+}
+
+void MainWindow::saveProject() {
+  if (m_project->save(m_project->filename())) {
+    setProjectChanged(false);
+    m_ui->statusbar->showMessage("Saved project to " + m_project->filename(), 5000);
+  } else {
+    m_ui->statusbar->showMessage("Failed to save project to " + m_project->filename(), 5000);
   }
 }
 
@@ -265,6 +308,11 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   /// @todo rest of the gui options here
   settings.setValue("gui/autosave_layout", m_ui->action_autosave_layout->isChecked());
   QMainWindow::closeEvent(event);
+}
+
+void MainWindow::changed(RenderPassPtr) {
+  if (!m_projectChanged)
+    setProjectChanged(true);
 }
 
 void MainWindow::restore() {

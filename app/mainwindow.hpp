@@ -59,6 +59,8 @@ public:
 
   QList<Editor*> editors() { return m_editors; }
 
+  static MainWindow& instance();
+
 public slots:
   /// Updates the error list
   void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
@@ -70,6 +72,7 @@ public slots:
   /// Reloads the project file, basically just loads the same file again,
   /// but tries to keep the same state
   bool reload();
+  void setProjectChanged(bool status);
 
 protected:
   void keyPressEvent(QKeyEvent* event);
@@ -83,9 +86,12 @@ protected slots:
   void modificationChanged(bool b);
   /// Save the current file (the file open in the active editor)
   void save(int index = -1);
+  /// Save the current project
+  void saveProject();
   void closeEditor(int index);
 
   void closeEvent(QCloseEvent* event);
+  void changed(RenderPassPtr);
 
 private:
   /// Main layout generated from the .ui -file.
@@ -99,6 +105,9 @@ private:
 
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
+
+  bool m_projectChanged;
+  static MainWindow * s_instance;
 };
 
 class About : public QDialog

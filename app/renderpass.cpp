@@ -24,12 +24,14 @@
 #include "fbo.hpp"
 #include "texture.hpp"
 #include "properties.hpp"
+#include "mainwindow.hpp"
 #include <iostream>
 
 RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
-
+  connect(this, SIGNAL(changed(RenderPassPtr)),
+          &MainWindow::instance(), SLOT(changed(RenderPassPtr)));
 }
 
 int RenderPass::width() const {
@@ -38,6 +40,13 @@ int RenderPass::width() const {
 
 int RenderPass::height() const {
   return m_height > 0 ? m_height : m_scene->height();
+}
+
+void RenderPass::setClearBits(GLbitfield bits) {
+  if (m_clear != bits) {
+    m_clear = bits;
+    emit changed(shared_from_this());
+  }
 }
 
 QStringList RenderPass::out() const {
@@ -252,7 +261,7 @@ void RenderPass::load(QVariantMap map) {
     m_depth = m_scene->texture(tmp[1]);
 
   if (tmp.size() == 1 && tmp[0] == "renderbuffer")
-    m_depth.reset(new RenderBuffer("Depth Render Buffer"));
+    m_depth.reset(new RenderBuffer);
 
   if (tmp.size() == 2 && tmp[0] == "renderbuffer")
     m_depth.reset(new RenderBuffer(tmp[1]));
@@ -262,7 +271,7 @@ void RenderPass::load(QVariantMap map) {
     m_color = m_scene->texture(tmp[1]);
 
   if (tmp.size() == 1 && tmp[0] == "renderbuffer")
-    m_color.reset(new RenderBuffer("Color Render Buffer"));
+    m_color.reset(new RenderBuffer);
 
   if (tmp.size() == 2 && tmp[0] == "renderbuffer")
     m_color.reset(new RenderBuffer(tmp[1]));

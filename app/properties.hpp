@@ -36,16 +36,7 @@ public:
   Properties(QWidget* parent = 0);
   virtual ~Properties() {}
 
-public slots:
-  /// User changed property value (to variant)
-  void valueChanged(QtProperty* property, const QVariant& variant);
-
 protected:
-  typedef QMap<QtProperty*, UniformVar> PropertyMap;
-
-  /// Maps the property to uniform variable
-  PropertyMap m_properties;
-
   /// When a property is being edited, this factory is used to create editor widgets.
   /// Custom editors should be implemented by subclassing QtVariantEditorFactory.
   QtVariantEditorFactory* m_factory;
@@ -71,8 +62,15 @@ public slots:
   void update(ProgramPtr shader);
   /// Remove a shader from the property list
   void remove(ProgramPtr shader);
+  /// User changed property value (to variant)
+  void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
+  typedef QMap<QtProperty*, UniformVar> PropertyMap;
+
+  /// Maps the property to uniform variable
+  PropertyMap m_properties;
+
   /// Every shader has one group property whose children are the actual uniform variables
   QMap<ProgramPtr, QtVariantProperty*> m_shaders;
 
@@ -97,10 +95,28 @@ public slots:
   void update(RenderPassPtr pass);
   /// Removes the render pass
   void remove(RenderPassPtr pass);
+  /// User changed property value (to variant)
+  void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
+  struct Sub {
+    enum Type {
+      Clear
+    };
+
+    Sub() : obj(0) {}
+    QtVariantProperty* obj;
+    QtVariantProperty* clear;
+  };
+
+  void init(Sub& sub, RenderPassPtr pass);
+
   /// Every render pass has one group property whose children are the actual passes
-  QMap<RenderPassPtr, QtVariantProperty*> m_renderpasses;
+  QMap<RenderPassPtr, Sub> m_renderpasses;
+
+  typedef QMap<QtProperty*, QPair<Sub::Type, RenderPassPtr> > PropertyMap;
+
+  PropertyMap m_properties;
 
   static RenderPassProperties* s_instance;
 };
