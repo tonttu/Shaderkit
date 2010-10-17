@@ -21,15 +21,9 @@
 #include "forward.hpp"
 #include "shader/uniform.hpp"
 
-#include "qttreepropertybrowser.h"
-
 #include <QMap>
 
-class QtVariantEditorFactory;
-class QtVariantPropertyManager;
-class QtVariantProperty;
-
-class Properties : public QtTreePropertyBrowser {
+class Properties : public QTreeView {
   Q_OBJECT
 
 public:
@@ -37,11 +31,6 @@ public:
   virtual ~Properties() {}
 
 protected:
-  /// When a property is being edited, this factory is used to create editor widgets.
-  /// Custom editors should be implemented by subclassing QtVariantEditorFactory.
-  QtVariantEditorFactory* m_factory;
-
-  QtVariantPropertyManager* m_manager;
 };
 
 /**
@@ -63,16 +52,16 @@ public slots:
   /// Remove a shader from the property list
   void remove(ProgramPtr shader);
   /// User changed property value (to variant)
-  void valueChanged(QtProperty* property, const QVariant& variant);
+  //void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
-  typedef QMap<QtProperty*, UniformVar> PropertyMap;
+/*  typedef QMap<QtProperty*, UniformVar> PropertyMap;
 
   /// Maps the property to uniform variable
   PropertyMap m_properties;
 
   /// Every shader has one group property whose children are the actual uniform variables
-  QMap<ProgramPtr, QtVariantProperty*> m_shaders;
+  QMap<ProgramPtr, QtVariantProperty*> m_shaders;*/
 
   static ShaderProperties* s_instance;
 };
@@ -96,9 +85,10 @@ public slots:
   /// Removes the render pass
   void remove(RenderPassPtr pass);
   /// User changed property value (to variant)
-  void valueChanged(QtProperty* property, const QVariant& variant);
+  //void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
+  /*
   struct Sub {
     enum Type {
       Clear
@@ -116,7 +106,7 @@ protected:
 
   typedef QMap<QtProperty*, QPair<Sub::Type, RenderPassPtr> > PropertyMap;
 
-  PropertyMap m_properties;
+  PropertyMap m_properties;*/
 
   static RenderPassProperties* s_instance;
 };

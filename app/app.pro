@@ -72,8 +72,6 @@ FORMS += \
     mainwindow.ui \
     welcome.ui
 
-include(../qtpropertybrowser/src/qtpropertybrowser.pri)
-
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib
     CONFIG(debug, debug|release):LIBS += ../ext/debug/ext.lib ../shaderdb/debug/shaderdb.lib

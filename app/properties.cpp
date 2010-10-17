@@ -21,9 +21,6 @@
 #include "renderpass.hpp"
 #include "texture.hpp"
 
-#include "qtpropertymanager.h"
-#include "qtvariantproperty.h"
-
 ShaderProperties* ShaderProperties::s_instance = 0;
 RenderPassProperties* RenderPassProperties::s_instance = 0;
 FileList* FileList::s_instance = 0;
@@ -44,20 +41,15 @@ FileList &FileList::instance() {
 }
 
 Properties::Properties(QWidget* parent)
-  : QtTreePropertyBrowser(parent),
-    m_factory(new QtVariantEditorFactory()),
-    m_manager(new QtVariantPropertyManager()) {
-
-  setFactoryForManager(m_manager, m_factory);
-  setPropertiesWithoutValueMarked(true);
-  setResizeMode(Interactive);
+  : QTreeView(parent) {
+//  setResizeMode(Interactive);
 }
 
 ShaderProperties::ShaderProperties(QWidget* parent)
   : Properties(parent) {
   if (!s_instance) s_instance = this;
-  connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
-          this, SLOT(valueChanged(QtProperty*, const QVariant&)));
+  //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
+  //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
 
 ShaderProperties::~ShaderProperties() {
@@ -65,6 +57,7 @@ ShaderProperties::~ShaderProperties() {
 }
 
 void ShaderProperties::update(ProgramPtr shader) {
+  /*
   QtVariantProperty* obj = m_shaders[shader];
 
   // Ensure the existence of the shader group property
@@ -94,10 +87,11 @@ void ShaderProperties::update(ProgramPtr shader) {
     } else {
       /// @todo implement
     }
-  }
+  }*/
 }
 
 void ShaderProperties::remove(ProgramPtr shader) {
+  /*
   QtVariantProperty* obj = m_shaders[shader];
   if (obj) {
     m_shaders.remove(shader);
@@ -110,14 +104,14 @@ void ShaderProperties::remove(ProgramPtr shader) {
 
     removeProperty(obj);
     delete obj;
-  }
+  }*/
 }
 
-void ShaderProperties::valueChanged(QtProperty* property, const QVariant& variant) {
+/*void ShaderProperties::valueChanged(QtProperty* property, const QVariant& variant) {
   PropertyMap::iterator it = m_properties.find(property);
   if (it == m_properties.end()) return;
   it->set(variant);
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -125,14 +119,14 @@ void ShaderProperties::valueChanged(QtProperty* property, const QVariant& varian
 RenderPassProperties::RenderPassProperties(QWidget* parent)
   : Properties(parent) {
   if (!s_instance) s_instance = this;
-  connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
-          this, SLOT(valueChanged(QtProperty*, const QVariant&)));
+  //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
+  //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
 
 RenderPassProperties::~RenderPassProperties() {
   if (s_instance == this) s_instance = 0;
 }
-
+/*
 void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   sub.obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
 
@@ -145,8 +139,9 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
 
   addProperty(sub.obj);
 }
-
+*/
 void RenderPassProperties::update(RenderPassPtr pass) {
+  /*
   Sub& sub = m_renderpasses[pass];
 
   // Ensure the existence of the Sub instance of this render pass
@@ -162,7 +157,7 @@ void RenderPassProperties::update(RenderPassPtr pass) {
 
   bool normal = pass->type() == RenderPass::Normal;
   sub.clear->setEnabled(normal);
-
+*/
   /*
   QtVariantProperty* item = m_manager->addProperty(QVariant::Int, "width");
   item->setValue(pass->width());
@@ -188,7 +183,7 @@ void RenderPassProperties::update(RenderPassPtr pass) {
     in->addSubProperty(item);
   }*/
 }
-
+/*
 void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& variant) {
   if (!m_properties.contains(property))
     return;
@@ -203,22 +198,22 @@ void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& va
     if (value & (1 << 2)) b |= GL_STENCIL_BUFFER_BIT;
     pair.second->setClearBits(b);
   }
-
+*/
 //  QSet<QtProperty*> p = property->parents();
 /*  PropertyMap::iterator it = m_properties.find(property);
   if (it == m_properties.end()) return;
   it->set(variant);*/
-}
+//}
 
 void RenderPassProperties::remove(RenderPassPtr pass) {
-  if (!m_renderpasses.contains(pass))
+  /*if (!m_renderpasses.contains(pass))
     return;
 
   Sub& sub = m_renderpasses[pass];
 
   /// @todo Remove all old subproperties and clean m_properties
   removeProperty(sub.obj);
-  m_renderpasses.remove(pass);
+  m_renderpasses.remove(pass);*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////
