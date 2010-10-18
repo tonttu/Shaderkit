@@ -23,7 +23,7 @@
 
 #include <QMap>
 
-class Properties : public QTreeView {
+class Properties : public QTreeWidget {
   Q_OBJECT
 
 public:
@@ -64,51 +64,6 @@ protected:
   QMap<ProgramPtr, QtVariantProperty*> m_shaders;*/
 
   static ShaderProperties* s_instance;
-};
-
-/**
- * Real-time property editor for render passes.
- *
- * This is a singleton class.
- */
-class RenderPassProperties : public Properties {
-  Q_OBJECT
-
-public:
-  static RenderPassProperties& instance();
-  RenderPassProperties(QWidget* parent = 0);
-  virtual ~RenderPassProperties();
-
-public slots:
-  /// This render pass has been changed / created
-  void update(RenderPassPtr pass);
-  /// Removes the render pass
-  void remove(RenderPassPtr pass);
-  /// User changed property value (to variant)
-  //void valueChanged(QtProperty* property, const QVariant& variant);
-
-protected:
-  /*
-  struct Sub {
-    enum Type {
-      Clear
-    };
-
-    Sub() : obj(0) {}
-    QtVariantProperty* obj;
-    QtVariantProperty* clear;
-  };
-
-  void init(Sub& sub, RenderPassPtr pass);
-
-  /// Every render pass has one group property whose children are the actual passes
-  QMap<RenderPassPtr, Sub> m_renderpasses;
-
-  typedef QMap<QtProperty*, QPair<Sub::Type, RenderPassPtr> > PropertyMap;
-
-  PropertyMap m_properties;*/
-
-  static RenderPassProperties* s_instance;
 };
 
 /**

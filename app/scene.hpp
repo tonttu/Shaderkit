@@ -30,7 +30,9 @@
  * the JSON loading. Currently the whole JSON project-file only contains
  * stuff that are actually only in Scene.
  */
-class Scene : public std::enable_shared_from_this<Scene> {
+class Scene : public QObject, public std::enable_shared_from_this<Scene> {
+  Q_OBJECT
+
 public:
   typedef QList<RenderPassPtr> RenderPasses;
 
@@ -79,6 +81,9 @@ public:
 
   /// Returns absolute file path for filename, or empty string if not found
   QString search(QString filename) const;
+
+signals:
+  void shaderListUpdated();
 
 protected:
   /**

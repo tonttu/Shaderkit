@@ -24,6 +24,7 @@
 #include "fbo.hpp"
 #include "texture.hpp"
 #include "properties.hpp"
+#include "render_pass_properties.hpp"
 #include "mainwindow.hpp"
 #include <iostream>
 
@@ -72,6 +73,9 @@ QString RenderPass::name() const {
   return m_shader ? "Shader " + m_shader->name() : "Pass";
 }
 
+void RenderPass::setShader(ProgramPtr shader) {
+  m_shader = shader;
+}
 
 void RenderPass::render(State& state) {
   beginFBO();

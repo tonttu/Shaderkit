@@ -40,7 +40,8 @@ HEADERS += \
     shader/compiler_output_parser.hpp \
     shader/uniform.hpp \
     shader/shader.hpp \
-    shader/program.hpp
+    shader/program.hpp \
+    render_pass_properties.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -66,7 +67,8 @@ SOURCES += \
     shader/compiler_output_parser.cpp \
     shader/uniform.cpp \
     shader/shader.cpp \
-    shader/program.cpp
+    shader/program.cpp \
+    render_pass_properties.cpp
 
 FORMS += \
     mainwindow.ui \

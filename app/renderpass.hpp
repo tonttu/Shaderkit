@@ -85,6 +85,11 @@ public:
 
   Type type() const { return m_type; }
 
+  ScenePtr scene() { return m_scene; }
+
+  ProgramPtr shader() { return m_shader; }
+  void setShader(ProgramPtr shader);
+
 signals:
   void changed(RenderPassPtr);
 

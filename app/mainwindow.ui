@@ -427,7 +427,7 @@
   <customwidget>
    <class>RenderPassProperties</class>
    <extends>QWidget</extends>
-   <header>properties.hpp</header>
+   <header>render_pass_properties.hpp</header>
    <container>1</container>
   </customwidget>
   <customwidget>

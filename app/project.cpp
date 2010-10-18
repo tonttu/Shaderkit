@@ -22,6 +22,7 @@
 #include "shader/shader.hpp"
 #include "scene.hpp"
 #include "properties.hpp"
+#include "render_pass_properties.hpp"
 
 #include <parser.h>
 #include <serializer.h>

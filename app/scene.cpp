@@ -172,6 +172,8 @@ void Scene::load(QVariantMap map) {
       shader->addShader(search(filename), Shader::Geometry);
     m_shaders[it.key()] = shader;
   }
+  if (!tmp.isEmpty())
+    emit shaderListUpdated();
 
   foreach (QVariant item, map["render passes"].toList()) {
     RenderPassPtr pass(new RenderPass(shared_from_this()));

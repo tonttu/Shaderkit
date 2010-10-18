@@ -22,17 +22,11 @@
 #include "texture.hpp"
 
 ShaderProperties* ShaderProperties::s_instance = 0;
-RenderPassProperties* RenderPassProperties::s_instance = 0;
 FileList* FileList::s_instance = 0;
 
 ShaderProperties &ShaderProperties::instance() {
   if (s_instance) return *s_instance;
   return *(new ShaderProperties);
-}
-
-RenderPassProperties &RenderPassProperties::instance() {
-  if (s_instance) return *s_instance;
-  return *(new RenderPassProperties);
 }
 
 FileList &FileList::instance() {
@@ -41,7 +35,7 @@ FileList &FileList::instance() {
 }
 
 Properties::Properties(QWidget* parent)
-  : QTreeView(parent) {
+  : QTreeWidget(parent) {
 //  setResizeMode(Interactive);
 }
 
@@ -112,109 +106,6 @@ void ShaderProperties::remove(ProgramPtr shader) {
   if (it == m_properties.end()) return;
   it->set(variant);
 }*/
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-RenderPassProperties::RenderPassProperties(QWidget* parent)
-  : Properties(parent) {
-  if (!s_instance) s_instance = this;
-  //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
-  //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
-}
-
-RenderPassProperties::~RenderPassProperties() {
-  if (s_instance == this) s_instance = 0;
-}
-/*
-void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
-  sub.obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
-
-  sub.clear = m_manager->addProperty(QtVariantPropertyManager::flagTypeId(), "Clear");
-  QStringList clearFlags;
-  clearFlags << "Color buffer" << "Depth buffer" << "Stencil buffer";
-  sub.clear->setAttribute(QLatin1String("flagNames"), clearFlags);
-  sub.obj->addSubProperty(sub.clear);
-  m_properties[sub.clear] = qMakePair(Sub::Clear, pass);
-
-  addProperty(sub.obj);
-}
-*/
-void RenderPassProperties::update(RenderPassPtr pass) {
-  /*
-  Sub& sub = m_renderpasses[pass];
-
-  // Ensure the existence of the Sub instance of this render pass
-  if (!sub.obj)
-    init(sub, pass);
-
-  sub.obj->setPropertyName(pass->name());
-
-  int value = pass->clearBits() & GL_COLOR_BUFFER_BIT ? 1 : 0;
-  if (pass->clearBits() & GL_DEPTH_BUFFER_BIT) value |= 1 << 1;
-  if (pass->clearBits() & GL_STENCIL_BUFFER_BIT) value |= 1 << 2;
-  sub.clear->setValue(value);
-
-  bool normal = pass->type() == RenderPass::Normal;
-  sub.clear->setEnabled(normal);
-*/
-  /*
-  QtVariantProperty* item = m_manager->addProperty(QVariant::Int, "width");
-  item->setValue(pass->width());
-  obj->addSubProperty(item);
-
-  item = m_manager->addProperty(QVariant::Int, "height");
-  item->setValue(pass->height());
-  obj->addSubProperty(item);
-
-  QtVariantProperty* in = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "in");
-  obj->addSubProperty(in);
-  foreach (QString name, pass->in()) {
-    item = m_manager->addProperty(QVariant::String, name);
-    item->setValue(pass->in(name)->name());
-    in->addSubProperty(item);
-  }
-
-  QtVariantProperty* out = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), "out");
-  obj->addSubProperty(out);
-  foreach (QString name, pass->out()) {
-    item = m_manager->addProperty(QVariant::String, name);
-    item->setValue(pass->out(name)->name());
-    in->addSubProperty(item);
-  }*/
-}
-/*
-void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& variant) {
-  if (!m_properties.contains(property))
-    return;
-
-  QPair<Sub::Type, RenderPassPtr> & pair = m_properties[property];
-
-  if (pair.first == Sub::Clear) {
-    int value = variant.toInt();
-    GLbitfield b = 0;
-    if (value & (1 << 0)) b |= GL_COLOR_BUFFER_BIT;
-    if (value & (1 << 1)) b |= GL_DEPTH_BUFFER_BIT;
-    if (value & (1 << 2)) b |= GL_STENCIL_BUFFER_BIT;
-    pair.second->setClearBits(b);
-  }
-*/
-//  QSet<QtProperty*> p = property->parents();
-/*  PropertyMap::iterator it = m_properties.find(property);
-  if (it == m_properties.end()) return;
-  it->set(variant);*/
-//}
-
-void RenderPassProperties::remove(RenderPassPtr pass) {
-  /*if (!m_renderpasses.contains(pass))
-    return;
-
-  Sub& sub = m_renderpasses[pass];
-
-  /// @todo Remove all old subproperties and clean m_properties
-  removeProperty(sub.obj);
-  m_renderpasses.remove(pass);*/
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
