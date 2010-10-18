@@ -67,6 +67,11 @@ public:
 
   int height() const;
   int width() const;
+  bool autosize() const;
+
+  void setAutosize(bool v);
+  void resize(int w, int h);
+
   GLbitfield clearBits() const { return m_clear; }
   void setClearBits(GLbitfield bits);
 
@@ -111,6 +116,7 @@ protected:
   GLbitfield m_clear;
 
   int m_width, m_height; /// Output size, if zero, use scene size.
+  bool m_autosize;
   FBOPtr m_fbo;
   FBOImagePtr m_depth, m_color;
 

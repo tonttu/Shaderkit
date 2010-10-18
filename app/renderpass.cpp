@@ -28,7 +28,8 @@
 #include "mainwindow.hpp"
 #include <iostream>
 
-RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0) {
+RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0),
+    m_width(0), m_height(0), m_autosize(true) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
   connect(this, SIGNAL(changed(RenderPassPtr)),
@@ -36,11 +37,28 @@ RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear
 }
 
 int RenderPass::width() const {
-  return m_width > 0 ? m_width : m_scene->width();
+  return m_width > 0 && !m_autosize ? m_width : m_scene->width();
 }
 
 int RenderPass::height() const {
-  return m_height > 0 ? m_height : m_scene->height();
+  return m_height > 0 && !m_autosize ? m_height : m_scene->height();
+}
+
+bool RenderPass::autosize() const {
+  return m_autosize;
+}
+
+void RenderPass::setAutosize(bool v) {
+  m_autosize = v;
+}
+
+void RenderPass::resize(int w, int h) {
+  if (m_width == w && m_height == h)
+    return;
+
+  m_width = w;
+  m_height = h;
+  emit changed(shared_from_this());
 }
 
 void RenderPass::setClearBits(GLbitfield bits) {
@@ -83,6 +101,9 @@ void RenderPass::render(State& state) {
   if (m_clear) glClear(m_clear);
   bool shader = false;
   if (m_shader) shader = m_shader->bind();
+
+  resize(width(), height());
+
   m_viewport->prepare(width(), height());
 
   if (m_type == PostProc) {
@@ -197,8 +218,8 @@ QVariantMap RenderPass::save() const {
 
   QVariantMap in, out;
 
-  if (m_width > 0) out["width"] = m_width;
-  if (m_height > 0) out["height"] = m_height;
+  if (m_width > 0 && !m_autosize) out["width"] = m_width;
+  if (m_height > 0 && !m_autosize) out["height"] = m_height;
 
   if (m_depth) {
     tmp.clear();
@@ -259,6 +280,8 @@ void RenderPass::load(QVariantMap map) {
 
   m_width = out["width"].toInt();
   m_height = out["height"].toInt();
+
+  m_autosize = m_width <= 0 || m_height <= 0;
 
   tmp = out["depth"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "texture")

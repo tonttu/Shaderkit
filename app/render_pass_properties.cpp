@@ -3,9 +3,12 @@
 #include "scene.hpp"
 #include "shader/program.hpp"
 
-#include <typeinfo>
+#include <cassert>
 
 RenderPassProperties* RenderPassProperties::s_instance = 0;
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
@@ -82,6 +85,66 @@ void ShaderEditor::listActivated(int index) {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  setAutoFillBackground(true);
+
+  m_size = new QLineEdit(this);
+  m_size->setValidator(new QRegExpValidator(QRegExp("\\d+x\\d+"), this));
+
+  layout->addWidget(m_size, 1);
+
+  m_autobtn = new QPushButton("auto", this);
+  m_autobtn->setCheckable(true);
+  m_autobtn->setChecked(false);
+  layout->addWidget(m_autobtn);
+
+  connect(m_size, SIGNAL(editingFinished()), this, SLOT(sizeChanged()));
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updateSize(RenderPassPtr)));
+  connect(m_autobtn, SIGNAL(toggled(bool)), this, SLOT(btnToggled(bool)));
+
+  updateSize(m_pass);
+}
+
+void SizeEditor::updateSize(RenderPassPtr pass) {
+  assert(pass == m_pass);
+  m_size->setText(QString("%1x%2").arg(m_pass->width()).arg(m_pass->height()));
+  m_autobtn->setChecked(m_pass->autosize());
+}
+
+void SizeEditor::sizeChanged() {
+  QRegExp r("^(\\d+)x(\\d+)$");
+  if (r.exactMatch(m_size->text())) {
+    int w = r.cap(1).toInt(), h = r.cap(2).toInt();
+    m_pass->resize(w, h);
+  }
+}
+
+void SizeEditor::btnToggled(bool state) {
+  if (state) {
+    m_size->setDisabled(true);
+    m_pass->setAutosize(true);
+  } else {
+    m_size->setEnabled(true);
+    m_pass->setAutosize(false);
+    sizeChanged();
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 RenderPassProperties &RenderPassProperties::instance() {
   if (s_instance) return *s_instance;
@@ -120,9 +183,13 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   sub.item->setText(0, "Render");
   sub.item->setText(1, "pass");
 
-  QTreeWidgetItem* shader = new QTreeWidgetItem(sub.item);
-  shader->setText(0, "Shader");
-  setItemWidget(shader, 1, new ShaderEditor(pass));
+  QTreeWidgetItem* item = new QTreeWidgetItem(sub.item);
+  item->setText(0, "Shader");
+  setItemWidget(item, 1, new ShaderEditor(pass));
+
+  item = new QTreeWidgetItem(sub.item);
+  item->setText(0, "Size");
+  setItemWidget(item, 1, new SizeEditor(pass));
 }
 
 void RenderPassProperties::update(RenderPassPtr pass) {

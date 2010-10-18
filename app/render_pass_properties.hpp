@@ -20,6 +20,25 @@ protected:
   QComboBox* m_shaderlist;
 };
 
+class SizeEditor : public QWidget {
+  Q_OBJECT
+
+public:
+  SizeEditor(RenderPassPtr pass);
+
+public slots:
+  void updateSize(RenderPassPtr);
+
+protected slots:
+  void sizeChanged();
+  void btnToggled(bool);
+
+protected:
+  RenderPassPtr m_pass;
+  QLineEdit* m_size;
+  QPushButton* m_autobtn;
+};
+
 
 /**
  * Real-time property editor for render passes.
