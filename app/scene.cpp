@@ -133,6 +133,7 @@ QVariantMap Scene::save() const {
 
 void Scene::load(QVariantMap map) {
   QVariantMap tmp = map["objects"].toMap();
+  bool changed = false;
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
     QVariantMap item = it->toMap();
     ObjectPtr object;
@@ -144,8 +145,13 @@ void Scene::load(QVariantMap map) {
         // object = loadModel(model[1]);
       }
     }
-    if (object) m_objects[it.key()] = object;
+    if (object) {
+      m_objects[it.key()] = object;
+      changed = true;
+    }
   }
+  if (changed)
+    emit objectListUpdated();
 
   tmp = map["lights"].toMap();
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {

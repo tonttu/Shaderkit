@@ -92,7 +92,17 @@ QString RenderPass::name() const {
 }
 
 void RenderPass::setShader(ProgramPtr shader) {
-  m_shader = shader;
+  if (shader != m_shader) {
+    m_shader = shader;
+    emit changed(shared_from_this());
+  }
+}
+
+void RenderPass::setObjects(Objects objs) {
+  if (objs != m_objects) {
+    m_objects = objs;
+    emit changed(shared_from_this());
+  }
 }
 
 void RenderPass::render(State& state) {

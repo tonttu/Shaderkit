@@ -2,6 +2,7 @@
 #include "renderpass.hpp"
 #include "scene.hpp"
 #include "shader/program.hpp"
+#include "object3d.hpp"
 
 #include <cassert>
 
@@ -138,6 +139,155 @@ void SizeEditor::btnToggled(bool state) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  setAutoFillBackground(true);
+
+  m_availableObjects = new QComboBox(this);
+
+  /// @todo do not use our custom view or model
+  {
+    QListWidget* view = new QListWidget(this);
+
+    QListWidgetItem* item = new QListWidgetItem("Load from file...");
+    QFont font = item->font();
+    font.setBold(true);
+    item->setFont(font);
+    view->addItem(item);
+
+    item = new QListWidgetItem("Built-in object...");
+    item->setFont(font);
+    view->addItem(item);
+
+    // m_shaderlist->insertSeparator(2);
+    item = new QListWidgetItem("");
+    item->setFlags(Qt::NoItemFlags);
+    font.setPixelSize(2);
+    item->setFont(font);
+    view->addItem(item);
+
+    m_availableObjects->setModel(view->model());
+    m_availableObjects->setView(view);
+  }
+
+  updateObjectList();
+
+  layout->addWidget(m_availableObjects);
+
+  connect(m_availableObjects, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
+  connect(pass->scene().get(), SIGNAL(objectListUpdated()), this, SLOT(updateObjectList()));
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
+}
+
+void ObjectInserter::updateObjectList() {
+  while (m_availableObjects->count() > 3)
+    m_availableObjects->removeItem(3);
+
+  QMap<QString, ObjectPtr> lst = m_pass->scene()->objects();
+  RenderPass::Objects objs = m_pass->objects();
+
+  for (QMap<QString, ObjectPtr>::iterator it = lst.begin(); it != lst.end(); ++it)
+    if (!objs.contains(*it))
+      m_availableObjects->addItem((*it)->name(), it.key());
+}
+
+void ObjectInserter::listActivated(int index) {
+  if (index == 0) {
+    /// @todo load from file
+  } else if (index == 1) {
+    /// @todo built-in object
+  } else if (index > 2) {
+    ObjectPtr o = m_pass->scene()->object(m_availableObjects->itemData(index).toString());
+    if (o) {
+      RenderPass::Objects objs = m_pass->objects();
+      objs.insert(o);
+      m_pass->setObjects(objs);
+    }
+  }
+}
+
+void ObjectInserter::updated(RenderPassPtr) {
+  updateObjectList();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+ObjectEditor::ObjectEditor(RenderPassPtr pass, ObjectPtr obj)
+  : m_pass(pass), m_obj(obj) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  setAutoFillBackground(true);
+
+  QPushButton* edit = new QPushButton("edit", this);
+  layout->addWidget(edit);
+
+  QPushButton* del = new QPushButton("delete", this);
+  layout->addWidget(del);
+
+  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
+  connect(del, SIGNAL(clicked()), this, SLOT(deleteClicked()));
+}
+
+void ObjectEditor::editClicked() {
+  /// @todo
+}
+
+void ObjectEditor::deleteClicked() {
+  RenderPass::Objects objs = m_pass->objects();
+  objs.remove(m_obj);
+  m_pass->setObjects(objs);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+ObjectsEditor::ObjectsEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
+  : QTreeWidgetItem(parent), m_pass(pass) {
+  setText(0, "Objects");
+  updated(pass);
+
+  QTreeWidgetItem* item = new QTreeWidgetItem(this);
+  treeWidget()->setItemWidget(item, 1, new ObjectInserter(pass));
+
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
+}
+
+void ObjectsEditor::updated(RenderPassPtr pass) {
+  assert(pass == m_pass);
+
+  RenderPass::Objects objs = pass->objects();
+  int count = objs.size();
+  setText(1, count == 1 ? QString("1 object") : QString("%1 objects").arg(count));
+
+  RenderPass::Objects current = m_objs.keys().toSet();
+
+  // deleted objects
+  foreach (ObjectPtr o, current - objs) {
+    QPair<QTreeWidgetItem*, ObjectEditor*> tmp = m_objs[o];
+    removeChild(tmp.first);
+    delete tmp.first;
+    tmp.second->deleteLater();
+    m_objs.remove(o);
+  }
+
+  // new objects
+  foreach (ObjectPtr o, objs - current) {
+    QTreeWidgetItem* item = new QTreeWidgetItem;
+    insertChild(0, item);
+    ObjectEditor* editor = new ObjectEditor(pass, o);
+    item->setText(0, o->name());
+    treeWidget()->setItemWidget(item, 1, editor);
+    m_objs[o] = qMakePair(item, editor);
+  }
+
+  // update objects
+  foreach (ObjectPtr o, objs & current) {
+    QTreeWidgetItem* item = m_objs[o].first;
+    item->setText(0, o->name());
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -161,6 +311,9 @@ RenderPassProperties::RenderPassProperties(QWidget* parent)
   labels << "Property" << "Value";
   setHeaderLabels(labels);
   //setColumnCount(2);
+
+  setVerticalScrollMode(ScrollPerPixel);
+  setHorizontalScrollMode(ScrollPerPixel);
 }
 
 RenderPassProperties::~RenderPassProperties() {
@@ -190,6 +343,8 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   item = new QTreeWidgetItem(sub.item);
   item->setText(0, "Size");
   setItemWidget(item, 1, new SizeEditor(pass));
+
+  item = new ObjectsEditor(sub.item, pass);
 }
 
 void RenderPassProperties::update(RenderPassPtr pass) {

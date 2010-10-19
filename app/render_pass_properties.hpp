@@ -39,6 +39,52 @@ protected:
   QPushButton* m_autobtn;
 };
 
+class ObjectInserter : public QWidget {
+  Q_OBJECT
+
+public:
+  ObjectInserter(RenderPassPtr pass);
+
+public slots:
+  void updateObjectList();
+
+protected slots:
+  void listActivated(int index);
+  void updated(RenderPassPtr);
+
+protected:
+  RenderPassPtr m_pass;
+  QComboBox* m_availableObjects;
+};
+
+class ObjectEditor : public QWidget {
+  Q_OBJECT
+
+public:
+  ObjectEditor(RenderPassPtr pass, ObjectPtr obj);
+
+protected slots:
+  void editClicked();
+  void deleteClicked();
+
+protected:
+  RenderPassPtr m_pass;
+  ObjectPtr m_obj;
+};
+
+class ObjectsEditor : public QObject, public QTreeWidgetItem {
+  Q_OBJECT
+
+public:
+  ObjectsEditor(QTreeWidgetItem* parent, RenderPassPtr pass);
+
+public slots:
+  void updated(RenderPassPtr);
+
+protected:
+  RenderPassPtr m_pass;
+  QMap<ObjectPtr, QPair<QTreeWidgetItem*, ObjectEditor*> > m_objs;
+};
 
 /**
  * Real-time property editor for render passes.

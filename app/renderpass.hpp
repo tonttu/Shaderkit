@@ -95,6 +95,9 @@ public:
   ProgramPtr shader() { return m_shader; }
   void setShader(ProgramPtr shader);
 
+  Objects objects() { return m_objects; }
+  void setObjects(Objects objs);
+
 signals:
   void changed(RenderPassPtr);
 

@@ -62,6 +62,9 @@ public:
   /// Name -> shader mapping
   QMap<QString, ProgramPtr> shaders() { return m_shaders; }
 
+  /// Name -> object mapping
+  QMap<QString, ObjectPtr> objects() { return m_objects; }
+
   /// Ordered list of all render passes
   RenderPasses renderPasses() { return m_render_passes; }
 
@@ -84,6 +87,7 @@ public:
 
 signals:
   void shaderListUpdated();
+  void objectListUpdated();
 
 protected:
   /**
