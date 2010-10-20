@@ -105,6 +105,20 @@ void RenderPass::setObjects(Objects objs) {
   }
 }
 
+void RenderPass::setLights(Lights lights) {
+  if (lights != m_lights) {
+    m_lights = lights;
+    emit changed(shared_from_this());
+  }
+}
+
+void RenderPass::setViewport(CameraPtr camera) {
+  if (m_viewport != camera) {
+    m_viewport = camera;
+    emit changed(shared_from_this());
+  }
+}
+
 void RenderPass::render(State& state) {
   beginFBO();
 

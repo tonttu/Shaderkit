@@ -98,6 +98,12 @@ public:
   Objects objects() { return m_objects; }
   void setObjects(Objects objs);
 
+  Lights lights() { return m_lights; }
+  void setLights(Lights lights);
+
+  CameraPtr viewport() { return m_viewport; }
+  void setViewport(CameraPtr camera);
+
 signals:
   void changed(RenderPassPtr);
 

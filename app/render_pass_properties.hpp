@@ -86,6 +86,40 @@ protected:
   QMap<ObjectPtr, QPair<QTreeWidgetItem*, ObjectEditor*> > m_objs;
 };
 
+class LightEditor : public QWidget {
+  Q_OBJECT
+
+public:
+  LightEditor(RenderPassPtr pass, LightPtr light);
+
+  void setStatus(bool v);
+
+protected slots:
+  void editClicked();
+  void toggled(bool);
+
+protected:
+  RenderPassPtr m_pass;
+  LightPtr m_light;
+  QPushButton* m_enabled;
+};
+
+class LightsEditor : public QObject, public QTreeWidgetItem {
+  Q_OBJECT
+
+public:
+  LightsEditor(QTreeWidgetItem* parent, RenderPassPtr pass);
+
+public slots:
+  void updateLightList();
+  void updated(RenderPassPtr);
+
+protected:
+  RenderPassPtr m_pass;
+  QMap<LightPtr, QPair<QTreeWidgetItem*, LightEditor*> > m_lights;
+};
+
+
 /**
  * Real-time property editor for render passes.
  *

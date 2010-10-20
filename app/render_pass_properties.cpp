@@ -3,6 +3,7 @@
 #include "scene.hpp"
 #include "shader/program.hpp"
 #include "object3d.hpp"
+#include "light.hpp"
 
 #include <cassert>
 
@@ -292,6 +293,92 @@ void ObjectsEditor::updated(RenderPassPtr pass) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+LightEditor::LightEditor(RenderPassPtr pass, LightPtr light)
+  : m_pass(pass), m_light(light) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  setAutoFillBackground(true);
+
+  m_enabled = new QPushButton("enabled", this);
+  m_enabled->setCheckable(true);
+  layout->addWidget(m_enabled);
+
+  QPushButton* edit = new QPushButton("edit", this);
+  layout->addWidget(edit);
+
+  connect(m_enabled, SIGNAL(toggled(bool)), this, SLOT(toggled(bool)));
+  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
+}
+
+void LightEditor::setStatus(bool v) {
+  m_enabled->setChecked(v);
+}
+
+void LightEditor::editClicked() {
+  /// @todo
+}
+
+void LightEditor::toggled(bool v) {
+  RenderPass::Lights lights = m_pass->lights();
+  if (v)
+    lights.insert(m_light);
+  else
+    lights.remove(m_light);
+  m_pass->setLights(lights);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+LightsEditor::LightsEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
+  : QTreeWidgetItem(parent), m_pass(pass) {
+  setText(0, "Lights");
+  updated(pass);
+
+  connect(pass->scene().get(), SIGNAL(lightListUpdated()), this, SLOT(updateLightList()));
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
+}
+
+void LightsEditor::updateLightList() {
+  updated(m_pass);
+}
+
+void LightsEditor::updated(RenderPassPtr pass) {
+  assert(pass == m_pass);
+
+  RenderPass::Lights all_lights = m_pass->scene()->lights().values().toSet();
+  RenderPass::Lights pass_lights = pass->lights();
+
+  setText(1, QString("%1 (%2) lights").arg(pass_lights.size()).arg(all_lights.size()));
+
+  RenderPass::Lights current = m_lights.keys().toSet();
+
+  // deleted lights
+  foreach (LightPtr l, current - all_lights) {
+    QPair<QTreeWidgetItem*, LightEditor*> tmp = m_lights[l];
+    removeChild(tmp.first);
+    delete tmp.first;
+    tmp.second->deleteLater();
+    m_lights.remove(l);
+  }
+
+  // new lights
+  foreach (LightPtr l, all_lights - current) {
+    QTreeWidgetItem* item = new QTreeWidgetItem(this);
+    LightEditor* editor = new LightEditor(pass, l);
+    editor->setStatus(pass_lights.contains(l));
+    item->setText(0, l->name());
+    treeWidget()->setItemWidget(item, 1, editor);
+    m_lights[l] = qMakePair(item, editor);
+  }
+
+  // update lights
+  foreach (LightPtr l, pass_lights & all_lights) {
+    QPair<QTreeWidgetItem*, LightEditor*> tmp = m_lights[l];
+    tmp.first->setText(0, l->name());
+    tmp.second->setStatus(pass_lights.contains(l));
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -345,6 +432,10 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   setItemWidget(item, 1, new SizeEditor(pass));
 
   item = new ObjectsEditor(sub.item, pass);
+  item = new LightsEditor(sub.item, pass);
+
+
+  /// @todo group and hide/show items by render pass type
 }
 
 void RenderPassProperties::update(RenderPassPtr pass) {

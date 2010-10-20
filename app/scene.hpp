@@ -65,6 +65,12 @@ public:
   /// Name -> object mapping
   QMap<QString, ObjectPtr> objects() { return m_objects; }
 
+  /// Name -> light mapping
+  QMap<QString, LightPtr> lights() { return m_lights; }
+
+  /// Name -> camera mapping
+  QMap<QString, CameraPtr> cameras() { return m_cameras; }
+
   /// Ordered list of all render passes
   RenderPasses renderPasses() { return m_render_passes; }
 
@@ -88,6 +94,8 @@ public:
 signals:
   void shaderListUpdated();
   void objectListUpdated();
+  void lightListUpdated();
+  void cameraListUpdated();
 
 protected:
   /**

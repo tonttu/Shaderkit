@@ -159,6 +159,8 @@ void Scene::load(QVariantMap map) {
     light->load(it->toMap());
     m_lights[it.key()] = light;
   }
+  if (!tmp.isEmpty())
+    emit lightListUpdated();
 
   tmp = map["cameras"].toMap();
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
@@ -166,6 +168,8 @@ void Scene::load(QVariantMap map) {
     camera->load(it->toMap());
     m_cameras[it.key()] = camera;
   }
+  if (!tmp.isEmpty())
+    emit cameraListUpdated();
 
   tmp = map["shaders"].toMap();
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
