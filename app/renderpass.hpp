@@ -89,6 +89,7 @@ public:
   QString name() const;
 
   Type type() const { return m_type; }
+  void setType(Type type);
 
   ScenePtr scene() { return m_scene; }
 

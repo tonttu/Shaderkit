@@ -4,6 +4,7 @@
 #include "shader/program.hpp"
 #include "object3d.hpp"
 #include "light.hpp"
+#include "camera.hpp"
 
 #include <cassert>
 
@@ -31,6 +32,7 @@ ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
     item->setFont(font);
     view->addItem(item);
 
+    /// @todo just make this a new button
     item = new QListWidgetItem("Add new...");
     item->setFont(font);
     view->addItem(item);
@@ -147,7 +149,7 @@ ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
 
   m_availableObjects = new QComboBox(this);
 
-  /// @todo do not use our custom view or model
+  /// @todo make just two new buttons
   {
     QListWidget* view = new QListWidget(this);
 
@@ -383,6 +385,90 @@ void LightsEditor::updated(RenderPassPtr pass) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+
+CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  setAutoFillBackground(true);
+
+  m_list = new QComboBox(this);
+
+  /// @todo do not use our custom view or model
+  {
+    QListWidget* view = new QListWidget(this);
+
+    QListWidgetItem* item = new QListWidgetItem("Post-process");
+    QFont font = item->font();
+    font.setBold(true);
+    item->setFont(font);
+    view->addItem(item);
+
+    item = new QListWidgetItem("");
+    item->setFlags(Qt::NoItemFlags);
+    font.setPixelSize(2);
+    item->setFont(font);
+    view->addItem(item);
+
+    m_list->setModel(view->model());
+    m_list->setView(view);
+  }
+
+  updateList();
+
+  layout->addWidget(m_list, 1);
+
+  QPushButton* add = new QPushButton("new", this);
+  layout->addWidget(add);
+
+  QPushButton* edit = new QPushButton("edit", this);
+  layout->addWidget(edit);
+
+  connect(m_list, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
+  connect(add, SIGNAL(clicked()), this, SLOT(newClicked()));
+  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
+  connect(pass->scene().get(), SIGNAL(cameraListUpdated()), this, SLOT(updateList()));
+}
+
+void CameraEditor::updateList() {
+  while (m_list->count() > 2)
+    m_list->removeItem(2);
+
+  CameraPtr selected = m_pass->viewport();
+  bool found = false;
+
+  QMap<QString, CameraPtr> lst = m_pass->scene()->cameras();
+  for (QMap<QString, CameraPtr>::iterator it = lst.begin(); it != lst.end(); ++it) {
+    m_list->addItem((*it)->name(), it.key());
+    if (!found && selected == *it) {
+      m_list->setCurrentIndex(m_list->count()-1);
+      found = true;
+    }
+  }
+
+  if (!found && m_pass->type() == RenderPass::PostProc)
+    m_list->setCurrentIndex(0);
+}
+
+void CameraEditor::listActivated(int index) {
+  if (index == 0) {
+    m_pass->setType(RenderPass::PostProc);
+  } else {
+    m_pass->setType(RenderPass::Normal);
+    m_pass->setViewport(m_pass->scene()->camera(m_list->itemData(index).toString()));
+  }
+}
+
+void CameraEditor::newClicked() {
+  /// @todo
+}
+
+void CameraEditor::editClicked() {
+  /// @todo
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 RenderPassProperties &RenderPassProperties::instance() {
   if (s_instance) return *s_instance;
   return *(new RenderPassProperties);
@@ -434,6 +520,9 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   item = new ObjectsEditor(sub.item, pass);
   item = new LightsEditor(sub.item, pass);
 
+  item = new QTreeWidgetItem(sub.item);
+  item->setText(0, "Viewport");
+  setItemWidget(item, 1, new CameraEditor(pass));
 
   /// @todo group and hide/show items by render pass type
 }

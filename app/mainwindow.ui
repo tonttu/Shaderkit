@@ -416,24 +416,20 @@
    <class>GLWidget</class>
    <extends>QWidget</extends>
    <header>glwidget.hpp</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ShaderProperties</class>
-   <extends>QWidget</extends>
+   <extends>QTreeWidget</extends>
    <header>properties.hpp</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>RenderPassProperties</class>
-   <extends>QWidget</extends>
+   <extends>QTreeWidget</extends>
    <header>render_pass_properties.hpp</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>FileList</class>
    <extends>QTreeWidget</extends>
-   <header>properties.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

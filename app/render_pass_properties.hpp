@@ -119,6 +119,24 @@ protected:
   QMap<LightPtr, QPair<QTreeWidgetItem*, LightEditor*> > m_lights;
 };
 
+class CameraEditor : public QWidget {
+  Q_OBJECT
+
+public:
+  CameraEditor(RenderPassPtr pass);
+
+public slots:
+  void updateList();
+
+protected slots:
+  void listActivated(int index);
+  void newClicked();
+  void editClicked();
+
+protected:
+  RenderPassPtr m_pass;
+  QComboBox* m_list;
+};
 
 /**
  * Real-time property editor for render passes.

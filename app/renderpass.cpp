@@ -91,6 +91,14 @@ QString RenderPass::name() const {
   return m_shader ? "Shader " + m_shader->name() : "Pass";
 }
 
+void RenderPass::setType(Type type) {
+  if (type == PostProc) {
+    m_viewport.reset(new Camera("post"));
+    m_viewport->setRect();
+  }
+  m_type = type;
+}
+
 void RenderPass::setShader(ProgramPtr shader) {
   if (shader != m_shader) {
     m_shader = shader;
@@ -288,9 +296,7 @@ void RenderPass::load(QVariantMap map) {
     m_type = Normal;
   }
   if (tmp.size() == 1 && tmp[0] == "post") {
-    m_viewport.reset(new Camera("post"));
-    m_viewport->setRect();
-    m_type = PostProc;
+    setType(PostProc);
   }
 
   foreach (QString name, map["clear"].toStringList()) {
