@@ -127,6 +127,7 @@ public:
 
 public slots:
   void updateList();
+  void updated(RenderPassPtr);
 
 protected slots:
   void listActivated(int index);
@@ -136,6 +137,25 @@ protected slots:
 protected:
   RenderPassPtr m_pass;
   QComboBox* m_list;
+};
+
+class ClearEditor : public QWidget {
+  Q_OBJECT
+
+public:
+  ClearEditor(RenderPassPtr pass);
+
+public slots:
+  void updated(RenderPassPtr);
+
+protected slots:
+  void clicked();
+
+protected:
+  RenderPassPtr m_pass;
+  QPushButton* m_color;
+  QPushButton* m_depth;
+  QPushButton* m_stencil;
 };
 
 /**

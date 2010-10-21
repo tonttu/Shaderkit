@@ -16,6 +16,9 @@ RenderPassProperties* RenderPassProperties::s_instance = 0;
 ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   setAutoFillBackground(true);
 
   m_shaderlist = new QComboBox(this);
@@ -53,7 +56,10 @@ ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
   layout->addWidget(m_shaderlist, 1);
 
   QPushButton* edit = new QPushButton("edit", this);
+  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(edit);
+
+  layout->addStretch(2);
 
   connect(m_shaderlist, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
   connect(pass->scene().get(), SIGNAL(shaderListUpdated()), this, SLOT(updateShaderList()));
@@ -95,6 +101,9 @@ void ShaderEditor::listActivated(int index) {
 SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   setAutoFillBackground(true);
 
   m_size = new QLineEdit(this);
@@ -105,7 +114,9 @@ SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
   m_autobtn = new QPushButton("auto", this);
   m_autobtn->setCheckable(true);
   m_autobtn->setChecked(false);
+  // m_autobtn->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(m_autobtn);
+  layout->addStretch(2);
 
   connect(m_size, SIGNAL(editingFinished()), this, SLOT(sizeChanged()));
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updateSize(RenderPassPtr)));
@@ -145,6 +156,9 @@ void SizeEditor::btnToggled(bool state) {
 ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   setAutoFillBackground(true);
 
   m_availableObjects = new QComboBox(this);
@@ -177,6 +191,7 @@ ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
   updateObjectList();
 
   layout->addWidget(m_availableObjects);
+  layout->addStretch(2);
 
   connect(m_availableObjects, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
   connect(pass->scene().get(), SIGNAL(objectListUpdated()), this, SLOT(updateObjectList()));
@@ -221,13 +236,19 @@ ObjectEditor::ObjectEditor(RenderPassPtr pass, ObjectPtr obj)
   : m_pass(pass), m_obj(obj) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   setAutoFillBackground(true);
 
   QPushButton* edit = new QPushButton("edit", this);
+  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(edit);
 
   QPushButton* del = new QPushButton("delete", this);
+  // del->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(del);
+  layout->addStretch(2);
 
   connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(del, SIGNAL(clicked()), this, SLOT(deleteClicked()));
@@ -299,14 +320,20 @@ LightEditor::LightEditor(RenderPassPtr pass, LightPtr light)
   : m_pass(pass), m_light(light) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   setAutoFillBackground(true);
 
   m_enabled = new QPushButton("enabled", this);
   m_enabled->setCheckable(true);
+  // m_enabled->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(m_enabled);
 
   QPushButton* edit = new QPushButton("edit", this);
+  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(edit);
+  layout->addStretch(2);
 
   connect(m_enabled, SIGNAL(toggled(bool)), this, SLOT(toggled(bool)));
   connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
@@ -385,9 +412,11 @@ void LightsEditor::updated(RenderPassPtr pass) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-
 CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
+
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
 
   setAutoFillBackground(true);
 
@@ -418,18 +447,23 @@ CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
   layout->addWidget(m_list, 1);
 
   QPushButton* add = new QPushButton("new", this);
+  // add->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(add);
 
   QPushButton* edit = new QPushButton("edit", this);
+  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
   layout->addWidget(edit);
+  layout->addStretch(2);
 
   connect(m_list, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
   connect(add, SIGNAL(clicked()), this, SLOT(newClicked()));
   connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(pass->scene().get(), SIGNAL(cameraListUpdated()), this, SLOT(updateList()));
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
 }
 
 void CameraEditor::updateList() {
+  /// @todo just update changed data
   while (m_list->count() > 2)
     m_list->removeItem(2);
 
@@ -449,6 +483,12 @@ void CameraEditor::updateList() {
     m_list->setCurrentIndex(0);
 }
 
+void CameraEditor::updated(RenderPassPtr pass) {
+  assert(m_pass == pass);
+
+  updateList();
+}
+
 void CameraEditor::listActivated(int index) {
   if (index == 0) {
     m_pass->setType(RenderPass::PostProc);
@@ -464,6 +504,63 @@ void CameraEditor::newClicked() {
 
 void CameraEditor::editClicked() {
   /// @todo
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+ClearEditor::ClearEditor(RenderPassPtr pass) : m_pass(pass) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
+  setAutoFillBackground(true);
+
+  m_color = new QPushButton("Color", this);
+  m_depth = new QPushButton("Depth", this);
+  m_stencil = new QPushButton("Stencil", this);
+
+  m_color->setCheckable(true);
+  /// @todo use a real external style sheet
+  // m_color->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
+  m_depth->setCheckable(true);
+  // m_depth->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
+  m_stencil->setCheckable(true);
+  // m_stencil->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
+
+  layout->addWidget(m_color);
+  layout->addWidget(m_depth);
+  layout->addWidget(m_stencil);
+  layout->addStretch(2);
+
+  updated(m_pass);
+
+  connect(m_color, SIGNAL(clicked()), this, SLOT(clicked()));
+  connect(m_depth, SIGNAL(clicked()), this, SLOT(clicked()));
+  connect(m_stencil, SIGNAL(clicked()), this, SLOT(clicked()));
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
+}
+
+void ClearEditor::updated(RenderPassPtr pass) {
+  assert(m_pass == pass);
+
+  GLbitfield value = pass->clearBits();
+
+  m_color->setChecked(value & GL_COLOR_BUFFER_BIT);
+  m_depth->setChecked(value & GL_DEPTH_BUFFER_BIT);
+  m_stencil->setChecked(value & GL_STENCIL_BUFFER_BIT);
+
+  setEnabled(pass->type() == RenderPass::Normal);
+}
+
+void ClearEditor::clicked() {
+  GLbitfield value = 0;
+  if (m_color->isChecked()) value |= GL_COLOR_BUFFER_BIT;
+  if (m_depth->isChecked()) value |= GL_DEPTH_BUFFER_BIT;
+  if (m_stencil->isChecked()) value |= GL_STENCIL_BUFFER_BIT;
+
+  m_pass->setClearBits(value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -523,6 +620,10 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   item = new QTreeWidgetItem(sub.item);
   item->setText(0, "Viewport");
   setItemWidget(item, 1, new CameraEditor(pass));
+
+  item = new QTreeWidgetItem(sub.item);
+  item->setText(0, "Clear");
+  setItemWidget(item, 1, new ClearEditor(pass));
 
   /// @todo group and hide/show items by render pass type
 }
