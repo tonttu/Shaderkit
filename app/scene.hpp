@@ -34,7 +34,7 @@ class Scene : public QObject, public std::enable_shared_from_this<Scene> {
   Q_OBJECT
 
 public:
-  typedef QList<RenderPassPtr> RenderPasses;
+  typedef QList<QPair<QString, RenderPassPtr> > RenderPasses;
 
   Scene();
 

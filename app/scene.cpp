@@ -81,7 +81,8 @@ void Scene::resize(int width, int height) {
 void Scene::render() {
   State state;
   for (RenderPasses::iterator it = m_render_passes.begin(); it != m_render_passes.end(); ++it) {
-    (*it)->render(state);
+    RenderPassPtr p = it->second;
+    p->render(state);
   }
 }
 
@@ -124,8 +125,8 @@ QVariantMap Scene::save() const {
     shaders[name] = m_shaders[name]->save();
   if (!shaders.isEmpty()) map["shaders"] = shaders;
 
-  foreach (RenderPassPtr obj, m_render_passes)
-    render_passes << obj->save();
+  foreach (RenderPasses::value_type p, m_render_passes)
+    render_passes << p.second->save();
   if (!render_passes.isEmpty()) map["render passes"] = render_passes;
 
   return map;
@@ -186,9 +187,10 @@ void Scene::load(QVariantMap map) {
     emit shaderListUpdated();
 
   foreach (QVariant item, map["render passes"].toList()) {
-    RenderPassPtr pass(new RenderPass(shared_from_this()));
-    pass->load(item.toMap());
-    m_render_passes.push_back(pass);
+    QVariantMap map = item.toMap();
+    RenderPassPtr pass(new RenderPass(map["name"].toString(), shared_from_this()));
+    pass->load(map);
+    m_render_passes.push_back(qMakePair(pass->name(), pass));
   }
 
   m_metainfo.load(map["lab"].toMap());

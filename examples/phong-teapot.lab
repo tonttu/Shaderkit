@@ -65,6 +65,7 @@
   },
   "render passes" : [
     {
+      "name" : "render",
       "clear" : ["color", "depth"],
       "shader" : "phong",
       "objects" : ["teapot", "box"],
@@ -76,6 +77,7 @@
       }
     },
     {
+      "name" : "gx",
       "shader" : "gaussian-y",
       "viewport" : ["post"],
       "in" : {
@@ -86,6 +88,7 @@
       }
     },
     {
+      "name" : "gy",
       "shader" : "gaussian-x",
       "viewport" : ["post"],
       "in" : {

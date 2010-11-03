@@ -55,7 +55,7 @@ public:
   typedef QSet<ObjectPtr> Objects;
   typedef QSet<LightPtr> Lights;
 
-  RenderPass(ScenePtr scene);
+  RenderPass(QString name, ScenePtr scene);
 
   /// Render the pass
   void render(State& state);
@@ -111,6 +111,8 @@ signals:
 protected:
   void beginFBO();
   void endFBO();
+
+  QString m_name;
 
   /// All objects that are rendered in this pass
   Objects m_objects;

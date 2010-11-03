@@ -29,7 +29,8 @@
 #include "state.hpp"
 #include <iostream>
 
-RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0),
+RenderPass::RenderPass(QString name, ScenePtr scene)
+  : m_name(name), m_type(Normal), m_scene(scene), m_clear(0),
     m_width(0), m_height(0), m_autosize(true) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
@@ -85,11 +86,7 @@ FBOImagePtr RenderPass::out(const QString& name) const {
 
 
 QString RenderPass::name() const {
-  if (m_viewport)
-    return m_shader ? m_viewport->name() + " (" + m_shader->name() + ")"
-      : m_viewport->name();
-
-  return m_shader ? "Shader " + m_shader->name() : "Pass";
+  return m_name;
 }
 
 void RenderPass::setType(Type type) {
