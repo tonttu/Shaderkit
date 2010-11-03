@@ -26,6 +26,7 @@
 #include "properties.hpp"
 #include "render_pass_properties.hpp"
 #include "mainwindow.hpp"
+#include "state.hpp"
 #include <iostream>
 
 RenderPass::RenderPass(ScenePtr scene) : m_type(Normal), m_scene(scene), m_clear(0),
@@ -128,6 +129,7 @@ void RenderPass::setViewport(CameraPtr camera) {
 }
 
 void RenderPass::render(State& state) {
+  state.push();
   beginFBO();
 
   if (m_clear) glClear(m_clear);
@@ -138,18 +140,19 @@ void RenderPass::render(State& state) {
 
   m_viewport->prepare(width(), height());
 
+  foreach (QString name, m_in.keys()) {
+    int unit = state.reserveTexUnit();
+    m_in[name]->bind(unit);
+    if (shader)
+      m_shader->setUniform(name, unit);
+  }
+
   if (m_type == PostProc) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_TEXTURE_2D);
 
-    if (m_in.contains("texture0")) {
-      TexturePtr tex = m_in["texture0"];
-      tex->bind(0);
-      if (shader)
-        m_shader->setUniform(tex->name(), 0);
-    }
     glBegin(GL_QUADS);
 
     glTexCoord2f(0.0f, 0.0f);
@@ -165,8 +168,6 @@ void RenderPass::render(State& state) {
     glVertex2f(0.0f, height());
 
     glEnd();
-    if (m_in.contains("texture0"))
-      m_in["texture0"]->unbind();
   } else {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -195,9 +196,14 @@ void RenderPass::render(State& state) {
     foreach (LightPtr light, m_lights)
       light->deactivate(state);
   }
+
+  foreach (TexturePtr tex, m_in)
+    tex->unbind();
+
   if (shader) m_shader->unbind();
 
   endFBO();
+  state.pop();
 }
 
 void RenderPass::beginFBO() {

@@ -32,6 +32,11 @@
       "direction" : [0.5, 0.5, 0.5]
     }
   },
+  "textures" : {
+    "image.png" : {
+      "file" : "image.png"
+    }
+  },
   "cameras" : {
     "camera1" : {
       "type" : "perspective",
@@ -74,7 +79,7 @@
       "shader" : "gaussian-y",
       "viewport" : ["post"],
       "in" : {
-        "texture0" : ["texture", "image"]
+        "image" : ["texture", "image"]
       },
       "out" : {
         "color0" : ["texture", "image2"]
@@ -84,7 +89,7 @@
       "shader" : "gaussian-x",
       "viewport" : ["post"],
       "in" : {
-        "texture0" : ["texture", "image2"]
+        "image" : ["texture", "image2"]
       }
     }
   ]

@@ -17,19 +17,23 @@
 
 #include "state.hpp"
 
+#include <iostream>
+
+State::State() {
+  m_data.push_back(Data());
+}
+
 int State::nextFreeLight() const {
-  int light = 0;
-  while (m_lights.contains(light)) ++light;
-  return light;
+  return nextFree(m_data.front().m_lights);
 }
 
 void State::setLight(int light_id, bool in_use) {
   if (in_use) {
-    m_lights.insert(light_id);
+    m_data.front().m_lights.insert(light_id);
     enable(GL_LIGHTING);
     enable(GL_LIGHT0 + light_id);
   } else {
-    m_lights.remove(light_id);
+    m_data.front().m_lights.remove(light_id);
     disable(GL_LIGHT0 + light_id);
   }
 }
@@ -40,4 +44,25 @@ void State::enable(GLenum cap) {
 
 void State::disable(GLenum cap) {
   glDisable(cap);
+}
+
+int State::reserveTexUnit() {
+  int unit = nextFree(m_data.front().m_texunits);
+  m_data.front().m_texunits << unit;
+  return unit;
+}
+
+void State::push() {
+  m_data.push_back(m_data.front());
+}
+
+void State::pop() {
+  if (m_data.size() <= 1) {
+    std::cerr << "State push/pop mismatch" << std::endl;
+  }
+}
+
+int State::nextFree(const QSet<int>& lst, int id) const {
+  while (lst.contains(id)) ++id;
+  return id;
 }

@@ -75,13 +75,13 @@ public:
   GLbitfield clearBits() const { return m_clear; }
   void setClearBits(GLbitfield bits);
 
-  QStringList in() const {
+/*  QStringList in() const {
     return m_in.keys();
   }
 
   TexturePtr in(const QString& name) const {
     return m_in[name];
-  }
+  }*/
 
   QStringList out() const;
   FBOImagePtr out(const QString& name) const;

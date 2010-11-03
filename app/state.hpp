@@ -39,6 +39,8 @@
  */
 class State {
 public:
+  State();
+
   /// Returns the next available light id, can be used like GL_LIGHT0 + id
   int nextFreeLight() const;
   /// Reserve/Release a light id
@@ -49,8 +51,23 @@ public:
   /// Get GL capability
   void disable(GLenum cap);
 
+  /// Reserves and returns next free texture unit
+  int reserveTexUnit();
+
+  /// Saves the state
+  void push();
+  /// Restores the saved state
+  void pop();
+
 protected:
-  QSet<int> m_lights;
+  struct Data {
+    QSet<int> m_texunits;
+    QSet<int> m_lights;
+  };
+
+  QList<Data> m_data;
+
+  int nextFree(const QSet<int>& lst, int id = 0) const;
 };
 
 #endif // STATE_HPP
