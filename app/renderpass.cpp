@@ -30,7 +30,7 @@
 #include <iostream>
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
-  : m_name(name), m_type(Normal), m_scene(scene), m_clear(0),
+  : m_type(Normal), m_name(name), m_scene(scene), m_clear(0),
     m_width(0), m_height(0), m_autosize(true) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
@@ -133,6 +133,10 @@ void RenderPass::render(State& state) {
   bool shader = false;
   if (m_shader) shader = m_shader->bind();
 
+  if (shader) {
+    m_shader->setUniform(m_uniform_list);
+  }
+
   resize(width(), height());
 
   m_viewport->prepare(width(), height());
@@ -197,7 +201,19 @@ void RenderPass::render(State& state) {
   foreach (TexturePtr tex, m_in)
     tex->unbind();
 
-  if (shader) m_shader->unbind();
+  if (shader) {
+    UniformVar::List list = m_shader->getUniformList();
+    m_shader->unbind();
+
+    if(list != m_uniform_list)
+      m_uniform_list = list;
+
+    if(list != m_uniform_list_prev) {
+      std::cout << "UPDATE" << std::endl;
+      m_uniform_list_prev = list;
+      ShaderProperties::instance().update(shared_from_this());
+    }
+  }
 
   endFBO();
   state.pop();
@@ -318,7 +334,7 @@ void RenderPass::load(QVariantMap map) {
 
   tmp = out["depth"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "texture")
-    m_depth = m_scene->texture(tmp[1]);
+    m_depth = m_scene->genTexture(tmp[1]);
 
   if (tmp.size() == 1 && tmp[0] == "renderbuffer")
     m_depth.reset(new RenderBuffer);
@@ -328,7 +344,7 @@ void RenderPass::load(QVariantMap map) {
 
   tmp = out["color0"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "texture")
-    m_color = m_scene->texture(tmp[1]);
+    m_color = m_scene->genTexture(tmp[1]);
 
   if (tmp.size() == 1 && tmp[0] == "renderbuffer")
     m_color.reset(new RenderBuffer);
@@ -339,7 +355,7 @@ void RenderPass::load(QVariantMap map) {
   for (QVariantMap::iterator it = in.begin(); it != in.end(); ++it) {
     tmp = it->toStringList();
     if (tmp.size() == 2 && tmp[0] == "texture")
-      m_in[it.key()] = m_scene->texture(tmp[1]);
+      m_in[it.key()] = m_scene->genTexture(tmp[1]);
   }
   emit changed(shared_from_this());
 }

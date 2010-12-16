@@ -47,15 +47,15 @@ struct ShaderTypeInfo {
    */
   ShaderTypeInfo(int size = 0,
       FloatSetter float_setter = 0, IntSetter int_setter = 0, MatrixSetter matrix_setter = 0,
-      GLenum type = 0, GLenum single_type = 0, int flags = 0);
+      GLenum type = 0, GLenum base_type = 0, int flags = 0);
 
   /// Data type of the uniform variable, for example GL_FLOAT_MAT2x3
   /// - see the whole list from glGetActiveUniform documentation.
   GLenum type;
   /// Data type of one element in vector/matrix
   /// for example if type is GL_FLOAT_MAT2x3, this would be GL_FLOAT
-  GLenum single_type;
-  /// Number of elements in type, Different from 1 only for vector and matrix types.
+  GLenum base_type;
+  /// Number of elements in base_type, Different from 1 only for vector and matrix types.
   int size;
 
   /// If this some kind of sampler type.
@@ -113,12 +113,12 @@ public:
   void set(ProgramPtr prog = ProgramPtr(), bool relocate = true);
 
   /**
-   * Get the uniform variable value as a QVariant.
+   * Get the uniform variable value as a float.
    * If there was a "vec4 foo[3]" then "foo[2][3]" is get(2, 3)
    * @param array_idx Array element index (zero works if this is not an array)
    * @param vector_idx Vector/Matrix element index (zero works if this is just a plain value)
    */
-  QVariant get(size_t array_idx = 0, size_t vector_idx = 0);
+  float get(size_t array_idx = 0, size_t vector_idx = 0);
 
   /**
    * Sets the uniform variable value. If no shader given, then the value is set
@@ -126,7 +126,7 @@ public:
    * @see get()
    * @return true if success
    */
-  bool set(QVariant value, size_t array_idx = 0, size_t vector_idx = 0,
+  bool set(float value, size_t array_idx = 0, size_t vector_idx = 0,
       ProgramPtr prog = ProgramPtr(), bool relocate = true);
 
    /**
@@ -141,6 +141,15 @@ public:
 
   /// Return the correct type info object for this variable.
   const ShaderTypeInfo& typeinfo() const;
+
+  bool operator==(const UniformVar& other) const;
+
+  /// recommended lower limit to the values in this uniform
+  /// @todo implement
+  float min() const { return 0.0f; }
+  /// recommended upper limit to the values in this uniform
+  /// @todo implement
+  float max() const { return 1.0f; }
 
 private:
   /// The name of the uniform variable

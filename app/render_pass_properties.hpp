@@ -158,6 +158,47 @@ protected:
   QPushButton* m_stencil;
 };
 
+class TextureEditor : public QWidget {
+  Q_OBJECT
+
+public:
+  TextureEditor(RenderPassPtr pass);
+
+  QLineEdit* target() { return m_target; }
+
+  void setTex(TexturePtr tex);
+  TexturePtr tex() { return m_tex; }
+
+protected slots:
+  void listActivated(int index);
+  void updateList();
+  void newClicked();
+  void editClicked();
+
+protected:
+  RenderPassPtr m_pass;
+
+  TexturePtr m_tex;
+  QComboBox* m_list;
+  QListWidget* m_view;
+  QLineEdit* m_target;
+};
+
+class TexturesEditor : public QObject, public QTreeWidgetItem {
+  Q_OBJECT
+
+public:
+  TexturesEditor(QTreeWidgetItem* parent, RenderPassPtr pass);
+
+public slots:
+  void updated(RenderPassPtr);
+
+protected:
+  RenderPassPtr m_pass;
+  QList<QPair<QTreeWidgetItem*, TextureEditor*> > m_editors;
+};
+
+
 /**
  * Real-time property editor for render passes.
  *

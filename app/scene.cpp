@@ -86,11 +86,12 @@ void Scene::render() {
   }
 }
 
-TexturePtr Scene::texture(const QString& name) {
+TexturePtr Scene::genTexture(const QString& name) {
   if (m_textures.contains(name)) return m_textures[name];
 
   TexturePtr tex(new Texture(name));
   m_textures[name] = tex;
+  emit textureListUpdated();
   return tex;
 }
 

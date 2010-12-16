@@ -54,7 +54,7 @@ public:
   ObjectPtr object(const QString& name) { return m_objects[name]; }
   LightPtr light(const QString& name) { return m_lights[name]; }
   CameraPtr camera(const QString& name) { return m_cameras[name]; }
-  TexturePtr texture(const QString& name);
+  TexturePtr genTexture(const QString& name);
 
   /// Finds all the shaders with given file name.
   QList<ShaderPtr> shadersByFilename(const QString& filename);
@@ -70,6 +70,9 @@ public:
 
   /// Name -> camera mapping
   QMap<QString, CameraPtr> cameras() { return m_cameras; }
+
+  /// Name -> texture mapping
+  QMap<QString, TexturePtr> textures() { return m_textures; }
 
   /// Ordered list of all render passes
   RenderPasses renderPasses() { return m_render_passes; }
@@ -96,6 +99,7 @@ signals:
   void objectListUpdated();
   void lightListUpdated();
   void cameraListUpdated();
+  void textureListUpdated();
 
 protected:
   /**

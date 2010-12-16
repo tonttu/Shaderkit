@@ -5,6 +5,7 @@
 #include "object3d.hpp"
 #include "light.hpp"
 #include "camera.hpp"
+#include "texture.hpp"
 
 #include <cassert>
 
@@ -566,6 +567,177 @@ void ClearEditor::clicked() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+TextureEditor::TextureEditor(RenderPassPtr pass) : m_pass(pass) {
+  QHBoxLayout* layout = new QHBoxLayout(this);
+
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
+  setAutoFillBackground(true);
+
+  m_target = new QLineEdit(this);
+  m_list = new QComboBox(this);
+  m_view = new QListWidget(this);
+  m_list->setModel(m_view->model());
+  m_list->setView(m_view);
+
+  updateList();
+
+  layout->addWidget(m_list, 1);
+
+  QPushButton* edit = new QPushButton("edit", this);
+  layout->addWidget(edit);
+
+  QPushButton* insert = new QPushButton("new", this);
+  layout->addWidget(insert);
+
+  layout->addStretch(2);
+
+  connect(m_list, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
+  connect(pass->scene().get(), SIGNAL(textureListUpdated()), this, SLOT(updateList()));
+
+  connect(insert, SIGNAL(clicked()), this, SLOT(newClicked()));
+  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
+}
+
+void TextureEditor::setTex(TexturePtr tex) {
+  m_tex = tex;
+
+  for (int i = 0; i < m_view->count(); ++i) {
+    QListWidgetItem* item = m_view->item(i);
+    Texture* t = reinterpret_cast<Texture*>(item->data(Qt::UserRole).toLongLong());
+    if (t == tex.get()) {
+      m_list->setCurrentIndex(i);
+      return;
+    }
+  }
+}
+
+void TextureEditor::listActivated(int index) {
+
+}
+
+void TextureEditor::updateList() {
+  QMap<QString, TexturePtr> textures = m_pass->scene()->textures();
+
+  for (int i = 0; i < m_view->count();) {
+    QListWidgetItem* item = m_view->item(i);
+    Texture* tex = reinterpret_cast<Texture*>(item->data(Qt::UserRole).toLongLong());
+    bool found = false;
+    foreach (QString key, textures.keys()) {
+      if (textures[key].get() == tex) {
+        /// @todo update information
+        textures.remove(key);
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      m_view->takeItem(i);
+      delete item;
+    } else ++i;
+  }
+
+  foreach (TexturePtr t, textures) {
+    QListWidgetItem* item = new QListWidgetItem(t->name());
+    item->setData(Qt::UserRole, reinterpret_cast<qlonglong>(t.get()));
+//    QFont font = item->font();
+//    item->setFont(font);
+    m_view->addItem(item);
+  }
+
+  setTex(m_tex);
+}
+
+void TextureEditor::newClicked() {
+  /// @todo
+}
+
+void TextureEditor::editClicked() {
+  /// @todo
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+TexturesEditor::TexturesEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
+  : QTreeWidgetItem(parent), m_pass(pass) {
+  setText(0, "Textures");
+  updated(pass);
+
+  connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
+}
+
+void TexturesEditor::updated(RenderPassPtr pass) {
+  assert(pass == m_pass);
+
+  m_pass->scene()->textures();
+
+  QMap<QString, TexturePtr> in = m_pass->in();
+
+  setText(1, QString(in.size() == 1 ? "%1 texture" : "%1 textures").arg(in.size()));
+
+  // index of the adder ("empty" editor)
+  int adder = -1;
+
+  for (int i = 0; i < m_editors.size();) {
+    QTreeWidgetItem* item = m_editors[i].first;
+    TextureEditor* editor = m_editors[i].second;
+    QString name = editor->target()->text();
+    bool deletethis = false;
+
+    if (!editor->tex() || name.isEmpty()) {
+      if (adder == -1) {
+        adder = i;
+      } else {
+        deletethis = true;
+      }
+    } else {
+      if (in.contains(name)) {
+        editor->setTex(in[name]);
+        in.remove(name);
+      } else {
+        deletethis = true;
+      }
+    }
+
+    if (deletethis) {
+      removeChild(item);
+      delete item;
+      editor->deleteLater();
+      m_editors.removeAt(i);
+    } else ++i;
+  }
+
+  foreach (QString name, in.keys()) {
+    QTreeWidgetItem* item = new QTreeWidgetItem(this);
+    TextureEditor* editor = new TextureEditor(pass);
+    editor->target()->setText(name);
+    editor->setTex(in[name]);
+    treeWidget()->setItemWidget(item, 0, editor->target());
+    treeWidget()->setItemWidget(item, 1, editor);
+    m_editors << qMakePair(item, editor);
+  }
+
+  if (adder == -1) {
+    QTreeWidgetItem* item = new QTreeWidgetItem(this);
+    TextureEditor* editor = new TextureEditor(pass);
+    treeWidget()->setItemWidget(item, 0, editor->target());
+    treeWidget()->setItemWidget(item, 1, editor);
+    m_editors << qMakePair(item, editor);
+  } else if (adder+1 != m_editors.size()) {
+    QPair<QTreeWidgetItem*, TextureEditor*> p = m_editors[adder];
+    removeChild(p.first);
+    addChild(p.first);
+    m_editors.removeAt(adder);
+    m_editors << p;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 RenderPassProperties &RenderPassProperties::instance() {
   if (s_instance) return *s_instance;
   return *(new RenderPassProperties);
@@ -624,6 +796,8 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   item = new QTreeWidgetItem(sub.item);
   item->setText(0, "Clear");
   setItemWidget(item, 1, new ClearEditor(pass));
+
+  item = new TexturesEditor(sub.item, pass);
 
   /// @todo group and hide/show items by render pass type
 }

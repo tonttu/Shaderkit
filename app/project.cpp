@@ -137,12 +137,11 @@ void Project::setScene(ScenePtr scene) {
       foreach (ShaderPtr shader, prog->shaders()) {
         FileList::instance().remove(shader);
       }
-
-      ShaderProperties::instance().remove(prog);
     }
 
     foreach (Scene::RenderPasses::value_type p, m_active_scene->renderPasses()) {
       RenderPassProperties::instance().remove(p.second);
+      ShaderProperties::instance().remove(p.second);
     }
   }
 

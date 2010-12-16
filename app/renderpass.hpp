@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 #include "opengl.hpp"
+#include "shader/uniform.hpp"
 
 /**
  * Render pass represents one renderable image that might only be a small part
@@ -83,6 +84,8 @@ public:
     return m_in[name];
   }*/
 
+  QMap<QString, TexturePtr> in() const { return m_in; }
+
   QStringList out() const;
   FBOImagePtr out(const QString& name) const;
 
@@ -105,6 +108,9 @@ public:
   CameraPtr viewport() { return m_viewport; }
   void setViewport(CameraPtr camera);
 
+  UniformVar::List uniformList() const { return m_uniform_list; }
+  void setUniformList(const UniformVar::List & lst) { m_uniform_list = lst; }
+
 signals:
   void changed(RenderPassPtr);
 
@@ -119,7 +125,11 @@ protected:
   /// All enabled lights
   Lights m_lights;
   CameraPtr m_viewport;
+
+  /// The shader used to render this pass, this could be shared between different passes
+  /// @see m_uniform_list
   ProgramPtr m_shader;
+  UniformVar::List m_uniform_list, m_uniform_list_prev;
 
   ScenePtr m_scene;
 

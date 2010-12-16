@@ -25,14 +25,14 @@
 ShaderTypeInfo::ShaderTypeInfo(int size_,
     FloatSetter float_setter_, IntSetter int_setter_, MatrixSetter matrix_setter_,
     GLenum type_, GLenum single_type_, int flags)
-  : type(type_), single_type(single_type_), size(size_),
+  : type(type_), base_type(single_type_), size(size_),
     is_sampler(flags & 0x01),
     float_setter(float_setter_), int_setter(int_setter_), matrix_setter(matrix_setter_) {}
 
 QVariant::Type ShaderTypeInfo::variant() const {
-  if (single_type == GL_FLOAT) return QVariant::Double;
-  if (single_type == GL_INT) return QVariant::Int;
-  if (single_type == GL_BOOL) return QVariant::Bool;
+  if (base_type == GL_FLOAT) return QVariant::Double;
+  if (base_type == GL_INT) return QVariant::Int;
+  if (base_type == GL_BOOL) return QVariant::Bool;
   return QVariant::Invalid;
 }
 
@@ -117,7 +117,7 @@ UniformVar::UniformVar(ProgramPtr prog, QString name, GLenum type)
     } else break; // the end of the array, or not an array at all
   }
 
-  if (info.single_type == GL_FLOAT) {
+  if (info.base_type == GL_FLOAT) {
     // For example vec3[6] needs 6*3 floats
     m_floatdata.resize(m_size * info.size);
     for (size_t i = 0; i < m_size; ++i) {
@@ -177,7 +177,7 @@ void UniformVar::set(ProgramPtr prog, bool relocate) {
     glRun(glUseProgram(oldprog));
   }
 }
-
+/*
 QVariant UniformVar::get(size_t array_idx, size_t vector_idx) {
   const ShaderTypeInfo& info = typeinfo();
 
@@ -186,7 +186,7 @@ QVariant UniformVar::get(size_t array_idx, size_t vector_idx) {
 
   QVariant qv(info.variant());
 
-  if (info.single_type == GL_FLOAT)
+  if (info.base_type == GL_FLOAT)
     qv.setValue(m_floatdata[info.size * array_idx + vector_idx]);
   else
     qv.setValue(m_intdata[info.size * array_idx + vector_idx]);
@@ -200,10 +200,39 @@ bool UniformVar::set(QVariant value, size_t array_idx, size_t vector_idx,
   // built-in var, we can't set/get it with this class.
   if (m_builtin) return false;
 
-  if (info.single_type == GL_FLOAT)
+  if (info.base_type == GL_FLOAT)
     m_floatdata[info.size * array_idx + vector_idx] = value.toFloat();
   else
     m_intdata[info.size * array_idx + vector_idx] = value.toInt();
+
+  set(prog, relocate);
+  /// @todo actually check for errors
+  return true;
+}*/
+
+float UniformVar::get(size_t array_idx, size_t vector_idx) {
+  const ShaderTypeInfo& info = typeinfo();
+
+  // built-in var, we can't set/get it with this class.
+  if (m_builtin) return std::numeric_limits<float>::quiet_NaN();
+
+  if (info.base_type == GL_FLOAT)
+    return m_floatdata[info.size * array_idx + vector_idx];
+  else
+    return m_intdata[info.size * array_idx + vector_idx];
+}
+
+bool UniformVar::set(float value, size_t array_idx, size_t vector_idx,
+    ProgramPtr prog, bool relocate) {
+  const ShaderTypeInfo& info = typeinfo();
+
+  // built-in var, we can't set/get it with this class.
+  if (m_builtin) return false;
+
+  if (info.base_type == GL_FLOAT)
+    m_floatdata[info.size * array_idx + vector_idx] = value;
+  else
+    m_intdata[info.size * array_idx + vector_idx] = int(value);
 
   set(prog, relocate);
   /// @todo actually check for errors
@@ -212,4 +241,16 @@ bool UniformVar::set(QVariant value, size_t array_idx, size_t vector_idx,
 
 const ShaderTypeInfo& UniformVar::typeinfo() const {
   return ShaderTypeInfo::typeInfo(m_type);
+}
+
+bool UniformVar::operator==(const UniformVar& other) const {
+  return m_name == other.m_name &&
+         m_type == other.m_type &&
+         m_size == other.m_size &&
+         m_prog == other.m_prog &&
+         m_location == other.m_location &&
+         m_floatdata == other.m_floatdata &&
+         m_intdata == other.m_intdata &&
+         m_uniform_block == other.m_uniform_block &&
+         m_builtin == other.m_builtin;
 }

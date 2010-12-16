@@ -23,8 +23,6 @@
 
 GLProgram::GLProgram(const QString& name)
     : m_name(name), m_prog(0), m_compiled(false) {
-  connect(this, SIGNAL(linked(ProgramPtr)),
-          &ShaderProperties::instance(), SLOT(update(ProgramPtr)));
 }
 
 GLProgram::~GLProgram() {

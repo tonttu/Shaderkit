@@ -23,6 +23,34 @@
 
 #include <QMap>
 
+class UEditor : public QObject {
+public:
+  UEditor(RenderPassPtr pass, UniformVar& var);
+  virtual void updateUI(UniformVar& var) = 0;
+
+  RenderPassPtr pass;
+  QString name;
+};
+
+class FloatEditor : public UEditor {
+  Q_OBJECT
+
+public:
+  FloatEditor(RenderPassPtr pass, UniformVar& var);
+  virtual ~FloatEditor() {}
+
+  void updateUI(UniformVar& var);
+
+  QLineEdit* edit;
+  QSlider* slider;
+  float min, max;
+
+private slots:
+  void editingFinished();
+  void valueChanged(int);
+};
+
+
 class Properties : public QTreeWidget {
   Q_OBJECT
 
@@ -47,21 +75,32 @@ public:
   virtual ~ShaderProperties();
 
 public slots:
-  /// This shader program has changed (usually just relinked)
-  void update(ProgramPtr shader);
-  /// Remove a shader from the property list
-  void remove(ProgramPtr shader);
+  /// This shader program in given render pass has changed (usually just relinked)
+  void update(RenderPassPtr pass);
+  /// Remove a shader that is in given pass from the property list
+  void remove(RenderPassPtr pass);
   /// User changed property value (to variant)
   //void valueChanged(QtProperty* property, const QVariant& variant);
 
 protected:
-/*  typedef QMap<QtProperty*, UniformVar> PropertyMap;
+  struct Sub {
+    Sub() : item(0) {}
+    QTreeWidgetItem* item;
+    QMap<QString, UEditor*> editors;
+  };
+
+  UEditor* createEditor(RenderPassPtr pass, UniformVar& var,
+                        const ShaderTypeInfo& type, QTreeWidgetItem* p);
+
+  /*  typedef QMap<QtProperty*, UniformVar> PropertyMap;
 
   /// Maps the property to uniform variable
   PropertyMap m_properties;
 
   /// Every shader has one group property whose children are the actual uniform variables
   QMap<ProgramPtr, QtVariantProperty*> m_shaders;*/
+
+  QMap<RenderPassPtr, Sub> m_passes;
 
   static ShaderProperties* s_instance;
 };
