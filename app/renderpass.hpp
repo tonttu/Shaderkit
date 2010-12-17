@@ -108,8 +108,10 @@ public:
   CameraPtr viewport() { return m_viewport; }
   void setViewport(CameraPtr camera);
 
-  UniformVar::List uniformList() const { return m_uniform_list; }
-  void setUniformList(const UniformVar::List & lst) { m_uniform_list = lst; }
+  UniformVar::List & uniformList() { return m_uniform_list; }
+  //void setUniformList(const UniformVar::List & lst) { m_uniform_list = lst; }
+
+  QIcon icon();
 
 signals:
   void changed(RenderPassPtr);

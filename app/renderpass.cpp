@@ -125,6 +125,16 @@ void RenderPass::setViewport(CameraPtr camera) {
   }
 }
 
+QIcon RenderPass::icon() {
+  const char* icon = 0;
+  if(m_type == PostProc)
+    icon = ":/icons/2dpass.png";
+  else
+    icon = ":/icons/3dpass.png";
+
+  return QIcon(icon);
+}
+
 void RenderPass::render(State& state) {
   state.push();
   beginFBO();

@@ -120,6 +120,9 @@ public:
    */
   float get(size_t array_idx = 0, size_t vector_idx = 0);
 
+  /// @todo implement
+  float getDefault(size_t array_idx = 0, size_t vector_idx = 0) { (void)array_idx; (void)vector_idx; return 0; }
+
   /**
    * Sets the uniform variable value. If no shader given, then the value is set
    * to the same shader the uniform was originally read from, if any.

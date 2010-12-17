@@ -29,11 +29,18 @@
 
 #include <cassert>
 
+#include <iostream>
+
+IconBtn::IconBtn(QWidget* parent) : QPushButton(parent), m_padding(0, 0) {}
 IconBtn::~IconBtn() {}
+
+QSize IconBtn::sizeHint() const {
+  return QSize(16, 16) + 2*m_padding;
+}
 
 void IconBtn::paintEvent(QPaintEvent*) {
   QPainter painter(this);
-  painter.drawPixmap(0, 0, icon().pixmap(22, QIcon::Normal, isChecked() ? QIcon::On : QIcon::Off));
+  painter.drawPixmap(m_padding.width(), m_padding.height(), icon().pixmap(16, QIcon::Normal, isChecked() ? QIcon::On : QIcon::Off));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,25 +104,33 @@ void MainWindow::setProject(ProjectPtr p) {
 Editor* MainWindow::createEditor(ShaderPtr shader) {
   QWidget* widget = new QWidget();
   QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, widget);
-  QStatusBar* statusbar = new QStatusBar(widget);
+  layout->setMargin(0);
+  layout->setSpacing(0);
+
+  QWidget* bottom = new QWidget(widget);
+  QHBoxLayout* bottom_layout = new QHBoxLayout(bottom);
+  bottom_layout->setMargin(5);
+  bottom_layout->setSpacing(0);
 
   Editor* editor = new Editor(widget, shader);
   connect(editor, SIGNAL(modificationChanged(bool)), this, SLOT(modificationChanged(bool)));
 
-  QPushButton* btn = new IconBtn();
+  QPushButton* btn = new IconBtn(bottom);
+  bottom_layout->addWidget(btn);
+
   QIcon icon;
-  icon.addFile("gfx/nosync.png", QSize(), QIcon::Normal, QIcon::Off);
-  icon.addFile("gfx/sync.png", QSize(), QIcon::Normal, QIcon::On);
+  icon.addFile(":/btns/nosync.png", QSize(), QIcon::Normal, QIcon::Off);
+  icon.addFile(":/btns/sync.png", QSize(), QIcon::Normal, QIcon::On);
 
   btn->setIcon(icon);
   btn->setCheckable(true);
   btn->setChecked(true);
   btn->setToolTip("Auto-compile");
-  statusbar->addWidget(btn);
+
   connect(btn, SIGNAL(toggled(bool)), editor, SLOT(syncToggled(bool)));
 
   layout->addWidget(editor);
-  layout->addWidget(statusbar);
+  layout->addWidget(bottom);
 
   editor->readFile(shader->filename());
 
@@ -153,7 +168,7 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
 
     /// @todo change order, put this on top
     QTableWidgetItem* msg = new QTableWidgetItem(e->msg());
-    msg->setIcon(QIcon(QPixmap(e->type() == "warning" ? "gfx/warning.png" : "gfx/error.png")));
+    msg->setIcon(QIcon(QPixmap(e->type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
     m_ui->error_list->setItem(r, 0, msg);
     m_ui->error_list->setItem(r, 1, new QTableWidgetItem(shader->filename()));
     m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e->line()+1)));

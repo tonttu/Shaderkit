@@ -68,6 +68,7 @@ namespace Ui {
   class MainWindow;
 }
 class MainWindow;
+class IconBtn;
 class GLWidget;
 
 class Project;

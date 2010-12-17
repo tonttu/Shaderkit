@@ -48,6 +48,11 @@ public:
 private slots:
   void editingFinished();
   void valueChanged(int);
+  void reset();
+  UniformVar* getVar();
+
+private:
+  QAction* m_reset_action;
 };
 
 

@@ -7,6 +7,9 @@
 #include "camera.hpp"
 #include "texture.hpp"
 
+/// @todo this is only for IconBtn
+#include "mainwindow.hpp"
+
 #include <cassert>
 
 RenderPassProperties* RenderPassProperties::s_instance = 0;
@@ -17,7 +20,7 @@ RenderPassProperties* RenderPassProperties::s_instance = 0;
 ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setMargin(0);
   layout->setSpacing(0);
 
   setAutoFillBackground(true);
@@ -36,11 +39,6 @@ ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
     item->setFont(font);
     view->addItem(item);
 
-    /// @todo just make this a new button
-    item = new QListWidgetItem("Add new...");
-    item->setFont(font);
-    view->addItem(item);
-
     // m_shaderlist->insertSeparator(2);
     item = new QListWidgetItem("");
     item->setFlags(Qt::NoItemFlags);
@@ -54,12 +52,15 @@ ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
 
   updateShaderList();
 
+  QToolBar* tb = new QToolBar(this);
+  tb->setFloatable(false);
+  tb->setIconSize(QSize(16, 16));
+  tb->setMovable(false);
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit shader");
+  tb->addAction(QIcon(":/icons/new.png"), "New shader");
+
   layout->addWidget(m_shaderlist, 1);
-
-  QPushButton* edit = new QPushButton("edit", this);
-  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(edit);
-
+  layout->addWidget(tb);
   layout->addStretch(2);
 
   connect(m_shaderlist, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
@@ -67,8 +68,8 @@ ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
 }
 
 void ShaderEditor::updateShaderList() {
-  while (m_shaderlist->count() > 3)
-    m_shaderlist->removeItem(3);
+  while (m_shaderlist->count() > 2)
+    m_shaderlist->removeItem(2);
 
   ProgramPtr selected = m_pass->shader();
   bool found = false;
@@ -102,7 +103,7 @@ void ShaderEditor::listActivated(int index) {
 SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setMargin(0);
   layout->setSpacing(0);
 
   setAutoFillBackground(true);
@@ -112,10 +113,16 @@ SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
 
   layout->addWidget(m_size, 1);
 
-  m_autobtn = new QPushButton("auto", this);
+  QIcon icon;
+  icon.addFile(":/btns/nosync.png", QSize(), QIcon::Normal, QIcon::Off);
+  icon.addFile(":/btns/sync.png", QSize(), QIcon::Normal, QIcon::On);
+
+  m_autobtn = new IconBtn(this);
+  m_autobtn->setIcon(icon);
   m_autobtn->setCheckable(true);
   m_autobtn->setChecked(false);
-  // m_autobtn->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
+  m_autobtn->setPadding(QSize(5, 0));
+
   layout->addWidget(m_autobtn);
   layout->addStretch(2);
 
@@ -129,6 +136,10 @@ SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
 void SizeEditor::updateSize(RenderPassPtr pass) {
   assert(pass == m_pass);
   m_size->setText(QString("%1x%2").arg(m_pass->width()).arg(m_pass->height()));
+  QFontMetrics m(m_size->font());
+  int w = m.width(m_size->text());
+  m_size->setMinimumWidth(w+15);
+
   m_autobtn->setChecked(m_pass->autosize());
 }
 
@@ -157,41 +168,25 @@ void SizeEditor::btnToggled(bool state) {
 ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setMargin(0);
   layout->setSpacing(0);
 
   setAutoFillBackground(true);
 
   m_availableObjects = new QComboBox(this);
 
-  /// @todo make just two new buttons
-  {
-    QListWidget* view = new QListWidget(this);
+  QToolBar* tb = new QToolBar(this);
+  tb->setFloatable(false);
+  tb->setIconSize(QSize(16, 16));
+  tb->setMovable(false);
 
-    QListWidgetItem* item = new QListWidgetItem("Load from file...");
-    QFont font = item->font();
-    font.setBold(true);
-    item->setFont(font);
-    view->addItem(item);
-
-    item = new QListWidgetItem("Built-in object...");
-    item->setFont(font);
-    view->addItem(item);
-
-    // m_shaderlist->insertSeparator(2);
-    item = new QListWidgetItem("");
-    item->setFlags(Qt::NoItemFlags);
-    font.setPixelSize(2);
-    item->setFont(font);
-    view->addItem(item);
-
-    m_availableObjects->setModel(view->model());
-    m_availableObjects->setView(view);
-  }
+  tb->addAction(QIcon(":/icons/builtin.png"), "Built-in object");
+  tb->addAction(QIcon(":/icons/load_file.png"), "Load from file");
 
   updateObjectList();
 
   layout->addWidget(m_availableObjects);
+  layout->addWidget(tb);
   layout->addStretch(2);
 
   connect(m_availableObjects, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
@@ -200,8 +195,7 @@ ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
 }
 
 void ObjectInserter::updateObjectList() {
-  while (m_availableObjects->count() > 3)
-    m_availableObjects->removeItem(3);
+  m_availableObjects->clear();
 
   QMap<QString, ObjectPtr> lst = m_pass->scene()->objects();
   RenderPass::Objects objs = m_pass->objects();
@@ -212,17 +206,11 @@ void ObjectInserter::updateObjectList() {
 }
 
 void ObjectInserter::listActivated(int index) {
-  if (index == 0) {
-    /// @todo load from file
-  } else if (index == 1) {
-    /// @todo built-in object
-  } else if (index > 2) {
-    ObjectPtr o = m_pass->scene()->object(m_availableObjects->itemData(index).toString());
-    if (o) {
-      RenderPass::Objects objs = m_pass->objects();
-      objs.insert(o);
-      m_pass->setObjects(objs);
-    }
+  ObjectPtr o = m_pass->scene()->object(m_availableObjects->itemData(index).toString());
+  if (o) {
+    RenderPass::Objects objs = m_pass->objects();
+    objs.insert(o);
+    m_pass->setObjects(objs);
   }
 }
 
@@ -237,22 +225,25 @@ ObjectEditor::ObjectEditor(RenderPassPtr pass, ObjectPtr obj)
   : m_pass(pass), m_obj(obj) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setMargin(0);
   layout->setSpacing(0);
 
   setAutoFillBackground(true);
 
-  QPushButton* edit = new QPushButton("edit", this);
-  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(edit);
+  QLabel* label = new QLabel(obj->name(), this);
+  label->setMargin(0);
 
-  QPushButton* del = new QPushButton("delete", this);
-  // del->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(del);
+  QToolBar* tb = new QToolBar(this);
+  tb->setFloatable(false);
+  tb->setIconSize(QSize(16, 16));
+  tb->setMovable(false);
+
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit object", this, SLOT(editClicked()));
+  tb->addAction(QIcon(":/icons/delete.png"), "Delete object", this, SLOT(deleteClicked()));
+
+  layout->addWidget(label);
+  layout->addWidget(tb);
   layout->addStretch(2);
-
-  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
-  connect(del, SIGNAL(clicked()), this, SLOT(deleteClicked()));
 }
 
 void ObjectEditor::editClicked() {
@@ -270,7 +261,12 @@ void ObjectEditor::deleteClicked() {
 
 ObjectsEditor::ObjectsEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
   : QTreeWidgetItem(parent), m_pass(pass) {
+  setIcon(0, QIcon(":/icons/objects.png"));
   setText(0, "Objects");
+  QFont f = font(0);
+  f.setBold(true);
+  setFont(0, f);
+
   updated(pass);
 
   QTreeWidgetItem* item = new QTreeWidgetItem(this);
@@ -302,7 +298,6 @@ void ObjectsEditor::updated(RenderPassPtr pass) {
     QTreeWidgetItem* item = new QTreeWidgetItem;
     insertChild(0, item);
     ObjectEditor* editor = new ObjectEditor(pass, o);
-    item->setText(0, o->name());
     treeWidget()->setItemWidget(item, 1, editor);
     m_objs[o] = qMakePair(item, editor);
   }
@@ -310,7 +305,7 @@ void ObjectsEditor::updated(RenderPassPtr pass) {
   // update objects
   foreach (ObjectPtr o, objs & current) {
     QTreeWidgetItem* item = m_objs[o].first;
-    item->setText(0, o->name());
+    /// @todo update name
   }
 }
 
@@ -326,18 +321,17 @@ LightEditor::LightEditor(RenderPassPtr pass, LightPtr light)
 
   setAutoFillBackground(true);
 
-  m_enabled = new QPushButton("enabled", this);
+  QToolBar* tb = new QToolBar(this);
+  tb->setFloatable(false);
+  tb->setIconSize(QSize(16, 16));
+  tb->setMovable(false);
+
+  m_enabled = tb->addAction(light->name(), this, SLOT(toggled(bool)));
   m_enabled->setCheckable(true);
-  // m_enabled->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(m_enabled);
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit light", this, SLOT(editClicked()));
 
-  QPushButton* edit = new QPushButton("edit", this);
-  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(edit);
+  layout->addWidget(tb);
   layout->addStretch(2);
-
-  connect(m_enabled, SIGNAL(toggled(bool)), this, SLOT(toggled(bool)));
-  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
 }
 
 void LightEditor::setStatus(bool v) {
@@ -362,7 +356,12 @@ void LightEditor::toggled(bool v) {
 
 LightsEditor::LightsEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
   : QTreeWidgetItem(parent), m_pass(pass) {
+  setIcon(0, QIcon(":/icons/light.png"));
   setText(0, "Lights");
+  QFont f = font(0);
+  f.setBold(true);
+  setFont(0, f);
+
   updated(pass);
 
   connect(pass->scene().get(), SIGNAL(lightListUpdated()), this, SLOT(updateLightList()));
@@ -397,7 +396,7 @@ void LightsEditor::updated(RenderPassPtr pass) {
     QTreeWidgetItem* item = new QTreeWidgetItem(this);
     LightEditor* editor = new LightEditor(pass, l);
     editor->setStatus(pass_lights.contains(l));
-    item->setText(0, l->name());
+    //item->setText(0, l->name());
     treeWidget()->setItemWidget(item, 1, editor);
     m_lights[l] = qMakePair(item, editor);
   }
@@ -405,7 +404,8 @@ void LightsEditor::updated(RenderPassPtr pass) {
   // update lights
   foreach (LightPtr l, pass_lights & all_lights) {
     QPair<QTreeWidgetItem*, LightEditor*> tmp = m_lights[l];
-    tmp.first->setText(0, l->name());
+    //tmp.first->setText(0, l->name());
+    /// @todo update name
     tmp.second->setStatus(pass_lights.contains(l));
   }
 }
@@ -427,7 +427,7 @@ CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
   {
     QListWidget* view = new QListWidget(this);
 
-    QListWidgetItem* item = new QListWidgetItem("Post-process");
+    QListWidgetItem* item = new QListWidgetItem("Post");
     QFont font = item->font();
     font.setBold(true);
     item->setFont(font);
@@ -447,18 +447,17 @@ CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
 
   layout->addWidget(m_list, 1);
 
-  QPushButton* add = new QPushButton("new", this);
-  // add->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(add);
+  QToolBar* tb = new QToolBar(this);
+  tb->setFloatable(false);
+  tb->setIconSize(QSize(16, 16));
+  tb->setMovable(false);
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit camera", this, SLOT(editClicked()));
+  tb->addAction(QIcon(":/icons/new.png"), "New camera", this, SLOT(newClicked()));
 
-  QPushButton* edit = new QPushButton("edit", this);
-  // edit->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
-  layout->addWidget(edit);
+  layout->addWidget(tb);
   layout->addStretch(2);
 
   connect(m_list, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
-  connect(add, SIGNAL(clicked()), this, SLOT(newClicked()));
-  connect(edit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(pass->scene().get(), SIGNAL(cameraListUpdated()), this, SLOT(updateList()));
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
 }
@@ -513,33 +512,28 @@ void CameraEditor::editClicked() {
 ClearEditor::ClearEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  layout->setContentsMargins(2, 2, 2, 2);
-  layout->setSpacing(0);
+  layout->setMargin(0);
+  layout->setSpacing(2);
 
   setAutoFillBackground(true);
 
-  m_color = new QPushButton("Color", this);
-  m_depth = new QPushButton("Depth", this);
-  m_stencil = new QPushButton("Stencil", this);
+  QToolBar* tb = new QToolBar(this);
+  tb->setFloatable(false);
+  tb->setIconSize(QSize(16, 16));
+  tb->setMovable(false);
 
+  m_color = tb->addAction("Color", this, SLOT(clicked()));
   m_color->setCheckable(true);
-  /// @todo use a real external style sheet
-  // m_color->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
+  m_depth = tb->addAction("Depth", this, SLOT(clicked()));
   m_depth->setCheckable(true);
-  // m_depth->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
+  m_stencil = tb->addAction("Stencil", this, SLOT(clicked()));
   m_stencil->setCheckable(true);
-  // m_stencil->setStyleSheet("QPushButton { padding: 3px 5px 3px 5px; }");
 
-  layout->addWidget(m_color);
-  layout->addWidget(m_depth);
-  layout->addWidget(m_stencil);
+  layout->addWidget(tb);
   layout->addStretch(2);
 
   updated(m_pass);
 
-  connect(m_color, SIGNAL(clicked()), this, SLOT(clicked()));
-  connect(m_depth, SIGNAL(clicked()), this, SLOT(clicked()));
-  connect(m_stencil, SIGNAL(clicked()), this, SLOT(clicked()));
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
 }
 
@@ -552,7 +546,7 @@ void ClearEditor::updated(RenderPassPtr pass) {
   m_depth->setChecked(value & GL_DEPTH_BUFFER_BIT);
   m_stencil->setChecked(value & GL_STENCIL_BUFFER_BIT);
 
-  setEnabled(pass->type() == RenderPass::Normal);
+  setHidden(pass->type() != RenderPass::Normal);
 }
 
 void ClearEditor::clicked() {
@@ -663,7 +657,12 @@ void TextureEditor::editClicked() {
 
 TexturesEditor::TexturesEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
   : QTreeWidgetItem(parent), m_pass(pass) {
+  setIcon(0, QIcon(":/icons/texture.png"));
   setText(0, "Textures");
+  QFont f = font(0);
+  f.setBold(true);
+  setFont(0, f);
+
   updated(pass);
 
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
@@ -749,10 +748,15 @@ RenderPassProperties::RenderPassProperties(QWidget* parent)
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 
-  QStringList labels;
-  labels << "Property" << "Value";
-  setHeaderLabels(labels);
-  //setColumnCount(2);
+  //setHeaderLabels(QStringList() << "Property" << "Value");
+
+  setColumnCount(2);
+  setAnimated(true);
+  setHeaderHidden(true);
+  setSelectionMode(Properties::NoSelection);
+  setIndentation(20);
+  setRootIsDecorated(false);
+  //setItemsExpandable(false);
 
   setVerticalScrollMode(ScrollPerPixel);
   setHorizontalScrollMode(ScrollPerPixel);
@@ -775,29 +779,55 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   addProperty(sub.obj);*/
 
   sub.item = new QTreeWidgetItem(this);
-  sub.item->setText(0, "Render");
-  sub.item->setText(1, "pass");
+  sub.item->setIcon(0, pass->icon());
+  sub.item->setFirstColumnSpanned(true);
+  /// @todo fix
+  sub.item->setBackgroundColor(0, QColor(240, 240, 240));
+  QFont font = sub.item->font(0);
+  font.setBold(true);
+  sub.item->setFont(0, font);
+  sub.item->setText(0, pass->name());
+  expandItem(sub.item);
 
   QTreeWidgetItem* item = new QTreeWidgetItem(sub.item);
+  item->setIcon(0, QIcon(":/icons/shader.png"));
   item->setText(0, "Shader");
+  font = item->font(0);
+  font.setBold(true);
+  item->setFont(0, font);
   setItemWidget(item, 1, new ShaderEditor(pass));
 
   item = new QTreeWidgetItem(sub.item);
+  item->setIcon(0, QIcon(":/icons/size.png"));
   item->setText(0, "Size");
+  font = item->font(0);
+  font.setBold(true);
+  item->setFont(0, font);
   setItemWidget(item, 1, new SizeEditor(pass));
 
-  item = new ObjectsEditor(sub.item, pass);
-  item = new LightsEditor(sub.item, pass);
-
   item = new QTreeWidgetItem(sub.item);
+  item->setIcon(0, QIcon(":/icons/viewport.png"));
   item->setText(0, "Viewport");
+  font = item->font(0);
+  font.setBold(true);
+  item->setFont(0, font);
   setItemWidget(item, 1, new CameraEditor(pass));
 
   item = new QTreeWidgetItem(sub.item);
+  item->setIcon(0, QIcon(":/icons/clear.png"));
   item->setText(0, "Clear");
+  font = item->font(0);
+  font.setBold(true);
+  item->setFont(0, font);
   setItemWidget(item, 1, new ClearEditor(pass));
 
+  item = new ObjectsEditor(sub.item, pass);
+  item = new LightsEditor(sub.item, pass);
   item = new TexturesEditor(sub.item, pass);
+
+  QFontMetrics m(font);
+  int w = m.width("Viewport");
+  setColumnWidth(0, w+16+10+35);
 
   /// @todo group and hide/show items by render pass type
 }

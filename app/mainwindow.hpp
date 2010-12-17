@@ -28,15 +28,24 @@
 #include <QtGui/QDialog>
 
 /// Clickable custom button used in the editor status bar inside the tab widget.
+/// @todo this is used in render_pass_properties, move to somewhere else
 class IconBtn : public QPushButton {
   Q_OBJECT
 
+public:
+  IconBtn(QWidget* parent);
   virtual ~IconBtn();
+
+  QSize sizeHint() const;
+  void setPadding(QSize p) { m_padding = p; }
 
 public slots:
   /// Custom rendering of the widget, because it is the only way to make sure
   /// the system doesn't draw some weird lines around the button when it's active.
   virtual void paintEvent(QPaintEvent*);
+
+private:
+  QSize m_padding;
 };
 
 /**

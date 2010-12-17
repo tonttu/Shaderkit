@@ -36,7 +36,7 @@ protected slots:
 protected:
   RenderPassPtr m_pass;
   QLineEdit* m_size;
-  QPushButton* m_autobtn;
+  IconBtn* m_autobtn;
 };
 
 class ObjectInserter : public QWidget {
@@ -101,7 +101,7 @@ protected slots:
 protected:
   RenderPassPtr m_pass;
   LightPtr m_light;
-  QPushButton* m_enabled;
+  QAction* m_enabled;
 };
 
 class LightsEditor : public QObject, public QTreeWidgetItem {
@@ -153,9 +153,9 @@ protected slots:
 
 protected:
   RenderPassPtr m_pass;
-  QPushButton* m_color;
-  QPushButton* m_depth;
-  QPushButton* m_stencil;
+  QAction* m_color;
+  QAction* m_depth;
+  QAction* m_stencil;
 };
 
 class TextureEditor : public QWidget {

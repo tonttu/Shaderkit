@@ -29,12 +29,16 @@ FloatEditor::FloatEditor(RenderPassPtr pass, UniformVar& var)
   : UEditor(pass, var),
     edit(new QLineEdit),
     slider(new QSlider(Qt::Horizontal)),
-    min(0), max(0) {
+    min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min()),
+    m_reset_action(new QAction("Reset", slider)) {
   slider->setMinimum(0);
   slider->setMaximum(1000);
+  slider->setContextMenuPolicy(Qt::ActionsContextMenu);
+  slider->addAction(m_reset_action);
 
   connect(edit, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
+  connect(m_reset_action, SIGNAL(triggered()), this, SLOT(reset()));
 }
 
 void FloatEditor::updateUI(UniformVar& var) {
@@ -46,8 +50,8 @@ void FloatEditor::updateUI(UniformVar& var) {
 
   if (slider->isSliderDown()) return;
 
-  min = var.min();
-  max = var.max();
+  if (var.min() < min) min = var.min();
+  if (var.max() > max) max = var.max();
   if (value < min) min = value;
   if (value > max) max = value;
 
@@ -61,15 +65,9 @@ void FloatEditor::updateUI(UniformVar& var) {
 }
 
 void FloatEditor::editingFinished() {
-  UniformVar::List list = pass->uniformList();
-  for (int i = 0; i < list.size(); ++i) {
-    UniformVar& var = list[i];
-    if (var.name() == name) {
-      var.set(edit->text().toFloat());
-      pass->setUniformList(list);
-      break;
-    }
-  }
+  UniformVar* var = getVar();
+  if (var)
+    var->set(edit->text().toFloat());
 }
 
 void FloatEditor::valueChanged(int v) {
@@ -78,15 +76,27 @@ void FloatEditor::valueChanged(int v) {
     tmp = min + tmp * v / 1000.0f;
   }
 
-  UniformVar::List list = pass->uniformList();
-  for (int i = 0; i < list.size(); ++i) {
-    UniformVar& var = list[i];
-    if (var.name() == name) {
-      var.set(tmp);
-      pass->setUniformList(list);
-      break;
-    }
+  UniformVar* var = getVar();
+  if (var)
+    var->set(tmp);
+}
+
+void FloatEditor::reset() {
+  UniformVar* var = getVar();
+  if (var) {
+    min = var->min();
+    max = var->max();
+    var->set(var->getDefault());
   }
+}
+
+UniformVar* FloatEditor::getVar() {
+  UniformVar::List& list = pass->uniformList();
+  for (int i = 0; i < list.size(); ++i) {
+    if (list[i].name() == name)
+      return &list[i];
+  }
+  return 0;
 }
 
 
@@ -137,6 +147,8 @@ void ShaderProperties::update(RenderPassPtr pass) {
   Sub& sub = m_passes[pass];
   if (!sub.item) {
     sub.item = new QTreeWidgetItem(this);
+    /// @todo change icon when the type changes
+    sub.item->setIcon(0, pass->icon());
     expandItem(sub.item);
     sub.item->setFirstColumnSpanned(true);
     /// @todo The last thing we want to use is hard coded color values when
@@ -244,7 +256,18 @@ FileList::FileList(QWidget* parent)
     m_src(new QTreeWidgetItem(this)) {
   if (!s_instance) s_instance = this;
 
+  setIndentation(10);
+  setRootIsDecorated(false);
+  setItemsExpandable(false);
+
+  /// @todo fix this
+  m_src->setBackgroundColor(0, QColor(240, 240, 240));
+  QFont font = m_src->font(0);
+  font.setBold(true);
+  m_src->setFont(0, font);
   m_src->setText(0, "Sources");
+  expandItem(m_src);
+
   connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
           this, SLOT(activateFile(QTreeWidgetItem*, int)));
 }
@@ -260,8 +283,18 @@ void FileList::update(ShaderPtr shader) {
     item = new QTreeWidgetItem(m_src);
     m_files[shader->filename()] = item;
     m_items[item] = shader;
-    item->setText(0, shader->filename());
+    QDir file(shader->filename());
+    item->setText(0, file.dirName());
+    const char* icon = 0;
+    if (shader->type() == Shader::Fragment)
+      icon = ":/icons/frag.png";
+    else if (shader->type() == Shader::Vertex)
+      icon = ":/icons/vert.png";
+    else if (shader->type() == Shader::Geometry)
+      icon = ":/icons/geom.png";
 
+    if (icon)
+      item->setIcon(0, QIcon(icon));
 //    QTreeWidget::update();
   }
 }
