@@ -1,0 +1,98 @@
+{
+  "lab" : {
+    "lab version" : "0.0.1-alpha",
+    "name" : "Phong Shader (OpenGL 1)",
+    "description" : "Phong shader with OpenGL 1",
+    "id" : "unique string",
+    "revision" : 24,
+    "release" : "stable",
+    "server" : "glsl-lab.com",
+    "category" : "example",
+    "dependencies" : {
+      "shared" : "unique id of shared",
+      "shared-12" : ["unique id of shared", 12]
+    },
+    "license" : "GPL",
+    "author" : "Riku Palomäki <riku@palomaki.fi>"
+  },
+  "objects" : {
+    "teapot" : {
+      "model" : ["built-in", "teapot"]
+    },
+    "box" : {
+      "model" : ["built-in", "box"]
+    }
+  },
+  "lights" : {
+    "light1" : {
+      "type" : "direction",
+      "ambient" : [0.2, 0.2, 0.2, 1.0],
+      "diffuse" : [1.0, 1.0, 1.0, 1.0],
+      "specular" : [1.0, 1.0, 1.0, 1.0],
+      "direction" : [0.5, 0.5, 0.5]
+    }
+  },
+  "textures" : {
+    "image.png" : {
+      "file" : "image.png"
+    }
+  },
+  "cameras" : {
+    "camera1" : {
+      "type" : "perspective",
+      "fov" : 45,
+      "near" : 0.01,
+      "far" : 100.0,
+      "position" : [10,6,10],
+      "target" : [0,-1,0],
+      "up" : [0,1,0]
+    }
+  },
+  "shaders" : {
+    "phong" : {
+      "fragment" : ["default-ogl1.frag"],
+      "vertex" : ["default-ogl1.vert"]
+    },
+    "gaussian-y" : {
+      "vertex" : ["post-ogl1.vert"],
+      "fragment" : ["gaussian-y-ogl1.frag"]
+    },
+    "gaussian-x" : {
+      "vertex" : ["post-ogl1.vert"],
+      "fragment" : ["gaussian-x-ogl1.frag"]
+    }
+  },
+  "render passes" : [
+    {
+      "name" : "render",
+      "clear" : ["color", "depth"],
+      "shader" : "phong",
+      "objects" : ["teapot", "box"],
+      "viewport" : ["camera", "camera1"],
+      "lights" : ["light1"],
+      "out" : {
+        "depth" : ["renderbuffer"],
+        "color0" : ["texture", "image"]
+      }
+    },
+    {
+      "name" : "gx",
+      "shader" : "gaussian-y",
+      "viewport" : ["post"],
+      "in" : {
+        "image" : ["texture", "image"]
+      },
+      "out" : {
+        "color0" : ["texture", "image2"]
+      }
+    },
+    {
+      "name" : "gy",
+      "shader" : "gaussian-x",
+      "viewport" : ["post"],
+      "in" : {
+        "image" : ["texture", "image2"]
+      }
+    }
+  ]
+}

@@ -152,6 +152,11 @@ UniformVar::List GLProgram::getUniformList() {
 bool GLProgram::isLinked() {
   glCheck("GLProgram::isLinked");
   if (!m_prog) return false;
+
+  /// for example i915_program_error: Exceeded max instructions etc can be
+  /// checked with this
+  if (!glRun2(glIsProgram(m_prog))) return false;
+
   GLint b = 0;
   glRun(glGetProgramiv(m_prog, GL_LINK_STATUS, &b));
   return b;

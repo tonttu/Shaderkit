@@ -41,7 +41,8 @@ HEADERS += \
     shader/uniform.hpp \
     shader/shader.hpp \
     shader/program.hpp \
-    render_pass_properties.hpp
+    render_pass_properties.hpp \
+    wrap_glext.h
 
 SOURCES += \
     highlighter.cpp \
@@ -68,7 +69,8 @@ SOURCES += \
     shader/uniform.cpp \
     shader/shader.cpp \
     shader/program.cpp \
-    render_pass_properties.cpp
+    render_pass_properties.cpp \
+    wrap_glext.c
 
 FORMS += \
     mainwindow.ui \

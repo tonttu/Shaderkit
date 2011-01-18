@@ -23,6 +23,9 @@
  * NVIDIA:
  *  0(11) : warning C7522: OpenGL requires constants to be initialized
  *  0(11) : error C0000: syntax error, unexpected identifier, expecting ',' or ';' at token "foo"
+ *
+ * MESA:
+ *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
  */
 ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) : m_pos(0) {
   QString pattern;
@@ -33,6 +36,12 @@ ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) 
               "[^\\s:]+"               // "C7522", nvidia error code
               "\\s* : \\s*"            // ":", separator
               "(.*)";                  // the actual error [3]
+  } else if (true /* MESA */) {
+    pattern = "\\d+ : (\\d+) \\(\\d+\\)"  // "0:8(1)", shader:line [1] (???)
+              "\\s* : \\s*"               // ":", separator
+              "([^\\s]+)"                 // "warning:", type [2]
+              "\\s* : \\s*"               // ":", separator
+              "(.*)";                     // the actual error [3]
   }
   pattern.remove(QChar(' '));
   m_regexp = QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
@@ -44,7 +53,10 @@ bool ShaderCompilerOutputParser::left() {
 }
 
 ShaderError ShaderCompilerOutputParser::next() {
-  m_regexp.indexIn(m_lines[m_pos++]);
+  int ret = m_regexp.indexIn(m_lines[m_pos++]);
+  /// @todo assert is way too strong for this, fix this
+  assert(ret >= 0);
+
   QStringList list = m_regexp.capturedTexts();
 
   /// @todo assert is way too strong for this, fix this

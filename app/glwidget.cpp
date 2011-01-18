@@ -17,6 +17,7 @@
 
 #include "glwidget.hpp"
 #include "scene.hpp"
+#include "wrap_glext.h"
 
 /// @todo include something less massive
 #include <QtGui>
@@ -54,6 +55,7 @@ void GLWidget::initializeGL() {
     s_glew_status = glewInit();
     if (s_glew_status == GLEW_OK) {
       std::cout << "GLEW " << glewGetString(GLEW_VERSION) << " initialized" << std::endl;
+      wrap_gl_extensions();
       m_initialized = true;
     } else {
       std::cerr << "Failed to initialize GLEW: " << glewGetErrorString(s_glew_status) << std::endl;
