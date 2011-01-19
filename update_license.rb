@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
+# encoding: UTF-8
 
 $license =<<EOL
 /**
- * Copyright 2010 Riku Palomäki.
+ * Copyright 2010,2011 Riku Palomäki.
  * This file is part of GLSL Lab.
  *
  * GLSL Lab is free software: you can redistribute it and/or modify
@@ -20,14 +21,14 @@ $license =<<EOL
 
 EOL
 
-$exceptions = %w[app/glsl_lex.cpp app/glsl_yacc.cpp]
+$exceptions = %w[app/glsl_lex.cpp app/glsl_yacc.cpp app/glsl_yacc.h]
 
 def auto
   def glob lst
     len = File.expand_path('x').size-1
     lst.split.inject([]){|s,p| s += Dir[p]}.map{|d| File.expand_path(d)[len..-1]}.uniq
   end
-  files = glob '{app,app/shader,shaderdb}/*.{cpp,hpp} doc/*.cpp std/*.* app/shader/*.[yl]'
+  files = glob '{app,app/shader,shaderdb}/*.{cpp,hpp,h} doc/*.cpp std/*.* app/shader/*.[yl]'
   ignored = glob File.read('.gitignore').gsub(/^\/?/, '**/')
   files-ignored-$exceptions
 end
@@ -35,7 +36,7 @@ end
 if ARGV.size == 1 && ARGV.first == '-a'
   files = auto
 elsif ARGV.empty?
-  puts "Usage: #{$0} <files>"
+  puts "Usage: #{$0} <files> | -a"
   exit 1
 else
   files = ARGV

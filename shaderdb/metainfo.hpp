@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Riku Palomäki.
+ * Copyright 2010,2011 Riku Palomäki.
  * This file is part of GLSL Lab.
  *
  * GLSL Lab is free software: you can redistribute it and/or modify
