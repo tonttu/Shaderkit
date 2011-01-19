@@ -94,6 +94,8 @@ public:
 
   Type type() const { return m_type; }
 
+  QIcon icon();
+
 protected:
   /**
    * Recompiles the shader in a way that the error list can be generated.

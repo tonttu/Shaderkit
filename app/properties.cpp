@@ -285,16 +285,7 @@ void FileList::update(ShaderPtr shader) {
     m_items[item] = shader;
     QDir file(shader->filename());
     item->setText(0, file.dirName());
-    const char* icon = 0;
-    if (shader->type() == Shader::Fragment)
-      icon = ":/icons/frag.png";
-    else if (shader->type() == Shader::Vertex)
-      icon = ":/icons/vert.png";
-    else if (shader->type() == Shader::Geometry)
-      icon = ":/icons/geom.png";
-
-    if (icon)
-      item->setIcon(0, QIcon(icon));
+    item->setIcon(0, shader->icon());
 //    QTreeWidget::update();
   }
 }

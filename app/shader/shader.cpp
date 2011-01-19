@@ -95,6 +95,17 @@ GLuint Shader::id() const {
   return m_shader;
 }
 
+
+QIcon Shader::icon() {
+  const char* icon = ":/icons/frag.png";
+  if (m_type == Shader::Vertex)
+    icon = ":/icons/vert.png";
+  else if (m_type == Shader::Geometry)
+    icon = ":/icons/geom.png";
+
+  return QIcon(icon);
+}
+
 bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors) {
   glCheck("handleCompilerOutput");
 

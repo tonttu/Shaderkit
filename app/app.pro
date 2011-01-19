@@ -84,3 +84,6 @@ win32 {
     LIBS += ../ext/libext.a ../shaderdb/libshaderdb.a
 }
 PRE_TARGETDEPS += $$LIBS
+
+RESOURCES += \
+    ../gfx/gfx.qrc
