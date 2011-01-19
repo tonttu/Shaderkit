@@ -18,6 +18,7 @@
 #include "shader/compiler_output_parser.hpp"
 
 #include <cassert>
+#include <iostream>
 
 /**
  * NVIDIA:
@@ -27,24 +28,8 @@
  * MESA:
  *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
  */
-ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) : m_pos(0) {
-  QString pattern;
-  if (true /* 1.50 NVIDIA via Cg compiler */) {
-    pattern = "\\d+ \\(  (\\d+)  \\)"  // "0(11)", shader(line number [1])
-              "\\s* : \\s*"            // ":", separator
-              "([^\\s]+)  \\s+"        // "warning", type [2]
-              "[^\\s:]+"               // "C7522", nvidia error code
-              "\\s* : \\s*"            // ":", separator
-              "(.*)";                  // the actual error [3]
-  } else if (true /* MESA */) {
-    pattern = "\\d+ : (\\d+) \\(\\d+\\)"  // "0:8(1)", shader:line [1] (???)
-              "\\s* : \\s*"               // ":", separator
-              "([^\\s]+)"                 // "warning:", type [2]
-              "\\s* : \\s*"               // ":", separator
-              "(.*)";                     // the actual error [3]
-  }
-  pattern.remove(QChar(' '));
-  m_regexp = QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output)
+  : m_pos(0) {
   m_lines = compiler_output.split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
 }
 
@@ -53,15 +38,51 @@ bool ShaderCompilerOutputParser::left() {
 }
 
 ShaderError ShaderCompilerOutputParser::next() {
-  int ret = m_regexp.indexIn(m_lines[m_pos++]);
-  /// @todo assert is way too strong for this, fix this
-  assert(ret >= 0);
+  static QList<QRegExp> s_patterns;
+  if (s_patterns.isEmpty()) {
+    QString pattern;
 
-  QStringList list = m_regexp.capturedTexts();
+    // 1.50 NVIDIA via Cg compiler
+    pattern = "\\d+ \\(  (\\d+)  \\)"  // "0(11)", shader(line number [1])
+              "\\s* : \\s*"            // ":", separator
+              "([^\\s]+)  \\s+"        // "warning", type [2]
+              "[^\\s:]+"               // "C7522", nvidia error code
+              "\\s* : \\s*"            // ":", separator
+              "(.*)";                  // the actual error [3]
+    pattern.remove(QChar(' '));
+    s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
 
-  /// @todo assert is way too strong for this, fix this
-  assert(list.size() == 4);
+    // MESA
+    /// @todo Use the column information here and skip the recompile hack totally
+    pattern = "\\d+ : (\\d+) \\(\\d+\\)"  // "0:8(1)", shader:line [1] (column)
+              "\\s* : \\s*"               // ":", separator
+              "([^\\s]+)"                 // "warning:", type [2]
+              "\\s* : \\s*"               // ":", separator
+              "(.*)";                     // the actual error [3]
+    pattern.remove(QChar(' '));
+    s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+  }
 
-  return ShaderError(ShaderPtr(), list[3], list[2], list[1].toInt()-1);
+  QStringList list;
+  QString msg = m_lines[m_pos++];
+  for (int i = 0; i < s_patterns.size(); ++i) {
+    int ret = s_patterns[i].indexIn(msg);
+    if(ret >= 0) {
+      list = s_patterns[i].capturedTexts();
+      if (i != 0) {
+        QRegExp r = s_patterns[i];
+        s_patterns.removeAt(i);
+        s_patterns.insert(0, r);
+      }
+    }
+  }
+//  m_pos++;
+
+  if (list.size() == 4) {
+    return ShaderError(ShaderPtr(), list[3], list[2], list[1].toInt()-1);
+  } else {
+    std::cerr << "Failed to parse error string: '" << msg.toUtf8().data() << "'" << std::endl;
+    return ShaderError(ShaderPtr(), msg, "error", 0, 0);
+  }
 }
 

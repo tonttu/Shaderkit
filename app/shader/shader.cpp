@@ -126,7 +126,7 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
   // unless we get something parsed from the output, we think this as a failure
   bool ok = false;
 
-  ShaderCompilerOutputParser parser(QString::fromAscii(log, len));
+  ShaderCompilerOutputParser parser(QString::fromUtf8(log, len));
   while (parser.left()) {
     ShaderError e = parser.next();
     const ShaderLexer::Token& token = lexer.transform(e.line());
