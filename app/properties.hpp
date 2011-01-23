@@ -23,9 +23,10 @@
 
 #include <QMap>
 
-class UEditor : public QObject {
+class UEditor : public QObject, public QTreeWidgetItem {
 public:
-  UEditor(RenderPassPtr pass, UniformVar& var);
+  UEditor(QTreeWidgetItem* p, RenderPassPtr pass, UniformVar& var);
+  virtual ~UEditor() {}
   virtual void updateUI(UniformVar& var) = 0;
 
   RenderPassPtr pass;
@@ -36,8 +37,8 @@ class FloatEditor : public UEditor {
   Q_OBJECT
 
 public:
-  FloatEditor(RenderPassPtr pass, UniformVar& var);
-  virtual ~FloatEditor() {}
+  FloatEditor(QTreeWidgetItem* p, RenderPassPtr pass, UniformVar& var);
+  virtual ~FloatEditor();
 
   void updateUI(UniformVar& var);
 
@@ -90,8 +91,9 @@ public slots:
 protected:
   struct Sub {
     Sub() : item(0) {}
+    ~Sub();
     QTreeWidgetItem* item;
-    QMap<QString, UEditor*> editors;
+    QMap<QString, std::shared_ptr<UEditor> > editors;
   };
 
   UEditor* createEditor(RenderPassPtr pass, UniformVar& var,

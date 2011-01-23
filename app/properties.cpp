@@ -21,12 +21,13 @@
 #include "renderpass.hpp"
 #include "texture.hpp"
 
-UEditor::UEditor(RenderPassPtr pass_, UniformVar& var)
- : pass(pass_),
+UEditor::UEditor(QTreeWidgetItem *p, RenderPassPtr pass_, UniformVar& var)
+ : QTreeWidgetItem(p),
+   pass(pass_),
    name(var.name()) {}
 
-FloatEditor::FloatEditor(RenderPassPtr pass, UniformVar& var)
-  : UEditor(pass, var),
+FloatEditor::FloatEditor(QTreeWidgetItem* p, RenderPassPtr pass, UniformVar& var)
+  : UEditor(p, pass, var),
     edit(new QLineEdit),
     slider(new QSlider(Qt::Horizontal)),
     min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min()),
@@ -36,9 +37,17 @@ FloatEditor::FloatEditor(RenderPassPtr pass, UniformVar& var)
   slider->setContextMenuPolicy(Qt::ActionsContextMenu);
   slider->addAction(m_reset_action);
 
+  setText(0, var.name());
+  treeWidget()->setItemWidget(this, 1, edit);
+  treeWidget()->setItemWidget(this, 2, slider);
+
   connect(edit, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
   connect(m_reset_action, SIGNAL(triggered()), this, SLOT(reset()));
+}
+
+FloatEditor::~FloatEditor() {
+  delete m_reset_action;
 }
 
 void FloatEditor::updateUI(UniformVar& var) {
@@ -113,6 +122,10 @@ FileList &FileList::instance() {
   return *(new FileList);
 }
 
+ShaderProperties::Sub::~Sub() {
+  delete item;
+}
+
 Properties::Properties(QWidget* parent)
   : QTreeWidget(parent) {
 //  setResizeMode(Interactive);
@@ -160,18 +173,25 @@ void ShaderProperties::update(RenderPassPtr pass) {
     sub.item->setText(0, pass->name());
   }
 
+  QSet<QString> names;
   foreach (UniformVar var, list) {
     const ShaderTypeInfo& type = var.typeinfo();
+    names << var.name();
 
-    UEditor* editor = sub.editors[var.name()];
-    if (!editor)
-      sub.editors[var.name()] = editor = createEditor(pass, var, type, sub.item);
+    std::shared_ptr<UEditor> editor = sub.editors[var.name()];
+    if (!editor) {
+      editor.reset(createEditor(pass, var, type, sub.item));
+      sub.editors[var.name()] = editor;
+    }
 
     if (editor)
       editor->updateUI(var);
   }
 
-  /// @todo find removed uniforms
+  foreach (QString name, sub.editors.keys().toSet() - names) {
+    std::cout << "remove: " << name.toUtf8().data() << std::endl;
+    sub.editors.remove(name);
+  }
 
     /*
   QtVariantProperty* obj = m_shaders[shader];
@@ -207,6 +227,7 @@ void ShaderProperties::update(RenderPassPtr pass) {
 }
 
 void ShaderProperties::remove(RenderPassPtr pass) {
+  m_passes.remove(pass);
   /*
   QtVariantProperty* obj = m_shaders[shader];
   if (obj) {
@@ -233,12 +254,7 @@ UEditor* ShaderProperties::createEditor(RenderPassPtr pass, UniformVar& var,
                                         const ShaderTypeInfo& type, QTreeWidgetItem* p) {
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {
-      FloatEditor* editor = new FloatEditor(pass, var);
-      QTreeWidgetItem* item = new QTreeWidgetItem(p);
-      item->setText(0, var.name());
-      setItemWidget(item, 1, editor->edit);
-      setItemWidget(item, 2, editor->slider);
-      return editor;
+      return new FloatEditor(p, pass, var);
     } else {
       /// @todo implement
     }

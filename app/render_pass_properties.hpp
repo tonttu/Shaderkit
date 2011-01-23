@@ -24,7 +24,7 @@ class ShaderEditor : public QWidget {
   Q_OBJECT
 
 public:
-  ShaderEditor(RenderPassPtr pass);
+  ShaderEditor(QTreeWidgetItem* item, RenderPassPtr pass);
 
 public slots:
   void updateShaderList();
@@ -41,7 +41,7 @@ class SizeEditor : public QWidget {
   Q_OBJECT
 
 public:
-  SizeEditor(RenderPassPtr pass);
+  SizeEditor(QTreeWidgetItem* item, RenderPassPtr pass);
 
 public slots:
   void updateSize(RenderPassPtr);
@@ -140,7 +140,7 @@ class CameraEditor : public QWidget {
   Q_OBJECT
 
 public:
-  CameraEditor(RenderPassPtr pass);
+  CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass);
 
 public slots:
   void updateList();

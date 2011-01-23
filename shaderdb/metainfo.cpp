@@ -56,6 +56,7 @@ QVariantMap MetaInfo::save() const {
   if (!releases.isEmpty()) map["release"] = putList(releases);
   if (!servers.isEmpty()) map["server"] = putList(servers);
   if (!categories.isEmpty()) map["category"] = putList(categories);
+  if (!opengl.isEmpty()) map["opengl"] = putList(opengl);
   if (!licenses.isEmpty()) map["license"] = putList(licenses);
   if (!authors.isEmpty()) map["author"] = putList(authors);
 
@@ -84,6 +85,7 @@ void MetaInfo::load(QVariantMap map) {
   releases = getList(map, "release");
   servers = getList(map, "server");
   categories = getList(map, "category");
+  opengl = getList(map, "opengl");
   licenses = getList(map, "license");
   authors = getList(map, "author");
 

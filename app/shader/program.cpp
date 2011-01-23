@@ -31,6 +31,7 @@ GLProgram::~GLProgram() {
 
 bool GLProgram::bind() {
   if (!m_compiled) {
+    bool relink = !isLinked();
     if (!m_prog) {
       glCheck("GLProgram::bind");
       m_prog = glRun2(glCreateProgram());
@@ -43,13 +44,15 @@ bool GLProgram::bind() {
       ShaderError::List errors;
       Shader::CompileStatus status = (*it)->compile(errors);
       if (status != Shader::NONE) emit shaderCompiled(*it, errors);
-      if (status == Shader::OK || status == Shader::WARNINGS)
+      if (status == Shader::OK || status == Shader::WARNINGS) {
         glAttachShader(m_prog, (*it)->id());
+        relink = true;
+      }
     }
 
     m_compiled = true;
-    /// @todo should we link only when there was a successful compiling?
-    link();
+    if (relink)
+      link();
   }
   if (isLinked()) {
     glRun(glUseProgram(m_prog));

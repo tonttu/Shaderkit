@@ -34,7 +34,7 @@ RenderPassProperties* RenderPassProperties::s_instance = 0;
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
+ShaderEditor::ShaderEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
   layout->setMargin(0);
@@ -76,9 +76,11 @@ ShaderEditor::ShaderEditor(RenderPassPtr pass) : m_pass(pass) {
   tb->addAction(QIcon(":/icons/edit.png"), "Edit shader");
   tb->addAction(QIcon(":/icons/new.png"), "New shader");
 
+  item->treeWidget()->setItemWidget(item, 2, tb);
+
   layout->addWidget(m_shaderlist, 1);
-  layout->addWidget(tb);
-  layout->addStretch(2);
+/*  layout->addWidget(tb);
+  layout->addStretch(2);*/
 
   connect(m_shaderlist, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
   connect(pass->scene().get(), SIGNAL(shaderListUpdated()), this, SLOT(updateShaderList()));
@@ -117,7 +119,7 @@ void ShaderEditor::listActivated(int index) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
+SizeEditor::SizeEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
   layout->setMargin(0);
@@ -140,8 +142,11 @@ SizeEditor::SizeEditor(RenderPassPtr pass) : m_pass(pass) {
   m_autobtn->setChecked(false);
   m_autobtn->setPadding(QSize(5, 0));
 
+  item->treeWidget()->setItemWidget(item, 2, m_autobtn);
+
+  /*
   layout->addWidget(m_autobtn);
-  layout->addStretch(2);
+  layout->addStretch(2);*/
 
   connect(m_size, SIGNAL(editingFinished()), this, SLOT(sizeChanged()));
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updateSize(RenderPassPtr)));
@@ -430,7 +435,7 @@ void LightsEditor::updated(RenderPassPtr pass) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
+CameraEditor::CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
   layout->setContentsMargins(2, 2, 2, 2);
@@ -471,8 +476,10 @@ CameraEditor::CameraEditor(RenderPassPtr pass) : m_pass(pass) {
   tb->addAction(QIcon(":/icons/edit.png"), "Edit camera", this, SLOT(editClicked()));
   tb->addAction(QIcon(":/icons/new.png"), "New camera", this, SLOT(newClicked()));
 
-  layout->addWidget(tb);
-  layout->addStretch(2);
+  item->treeWidget()->setItemWidget(item, 2, tb);
+
+/*  layout->addWidget(tb);
+  layout->addStretch(2);*/
 
   connect(m_list, SIGNAL(activated(int)), this, SLOT(listActivated(int)));
   connect(pass->scene().get(), SIGNAL(cameraListUpdated()), this, SLOT(updateList()));
@@ -539,12 +546,15 @@ ClearEditor::ClearEditor(RenderPassPtr pass) : m_pass(pass) {
   tb->setIconSize(QSize(16, 16));
   tb->setMovable(false);
 
-  m_color = tb->addAction("Color", this, SLOT(clicked()));
+  m_color = tb->addAction("C", this, SLOT(clicked()));
   m_color->setCheckable(true);
-  m_depth = tb->addAction("Depth", this, SLOT(clicked()));
+  m_color->setToolTip("Color buffer");
+  m_depth = tb->addAction("D", this, SLOT(clicked()));
   m_depth->setCheckable(true);
-  m_stencil = tb->addAction("Stencil", this, SLOT(clicked()));
+  m_depth->setToolTip("Depth buffer");
+  m_stencil = tb->addAction("S", this, SLOT(clicked()));
   m_stencil->setCheckable(true);
+  m_stencil->setToolTip("Stencil buffer");
 
   layout->addWidget(tb);
   layout->addStretch(2);
@@ -767,7 +777,7 @@ RenderPassProperties::RenderPassProperties(QWidget* parent)
 
   //setHeaderLabels(QStringList() << "Property" << "Value");
 
-  setColumnCount(2);
+  setColumnCount(3);
   setAnimated(true);
   setHeaderHidden(true);
   setSelectionMode(Properties::NoSelection);
@@ -812,7 +822,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   font = item->font(0);
   font.setBold(true);
   item->setFont(0, font);
-  setItemWidget(item, 1, new ShaderEditor(pass));
+  setItemWidget(item, 1, new ShaderEditor(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
   item->setIcon(0, QIcon(":/icons/size.png"));
@@ -820,7 +830,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   font = item->font(0);
   font.setBold(true);
   item->setFont(0, font);
-  setItemWidget(item, 1, new SizeEditor(pass));
+  setItemWidget(item, 1, new SizeEditor(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
   item->setIcon(0, QIcon(":/icons/viewport.png"));
@@ -828,7 +838,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   font = item->font(0);
   font.setBold(true);
   item->setFont(0, font);
-  setItemWidget(item, 1, new CameraEditor(pass));
+  setItemWidget(item, 1, new CameraEditor(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
   item->setIcon(0, QIcon(":/icons/clear.png"));
@@ -842,9 +852,12 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   item = new LightsEditor(sub.item, pass);
   item = new TexturesEditor(sub.item, pass);
 
-  QFontMetrics m(font);
+/*  QFontMetrics m(font);
   int w = m.width("Viewport");
-  setColumnWidth(0, w+16+10+35);
+  setColumnWidth(0, w+16+10+35);*/
+  resizeColumnToContents(0);
+  resizeColumnToContents(1);
+  resizeColumnToContents(2);
 
   /// @todo group and hide/show items by render pass type
 }
