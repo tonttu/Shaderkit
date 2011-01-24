@@ -8,7 +8,7 @@
     "release" : "stable",
     "server" : "glsl-lab.com",
     "category" : "example",
-    "opengl" : "1.4",
+    "renderer" : "OpenGL 1.4",
     "dependencies" : {
       "shared" : "unique id of shared",
       "shared-12" : ["unique id of shared", 12]

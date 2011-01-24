@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
-    <height>363</height>
+    <width>592</width>
+    <height>358</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>GLSL Lab</string>
@@ -20,12 +26,27 @@
    <enum>QFrame::Raised</enum>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QLabel" name="label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>572</width>
+       <height>78</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
-       <width>16777215</width>
-       <height>50</height>
+       <width>572</width>
+       <height>78</height>
       </size>
      </property>
      <property name="font">
@@ -36,11 +57,17 @@
        <bold>true</bold>
       </font>
      </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
      <property name="text">
-      <string>GLSL Lab</string>
+      <string/>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="../gfx/gfx.qrc">:/images/welcome_header.jpg</pixmap>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -48,7 +75,25 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="Content">
+    <widget class="QFrame" name="content">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>572</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>572</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="palette">
       <palette>
        <active>
@@ -223,6 +268,27 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
+          <widget class="QLabel" name="label_4">
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>GLSL Lab 0.0.1a &lt;a href=&quot;http://google.com/&quot;&gt;www.example.org&lt;/a&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -244,9 +310,6 @@
          </item>
          <item>
           <widget class="QPushButton" name="new_button">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
            <property name="text">
             <string>New project...</string>
            </property>
@@ -260,6 +323,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../gfx/gfx.qrc"/>
+ </resources>
  <connections/>
 </ui>

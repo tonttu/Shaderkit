@@ -42,7 +42,7 @@ public:
   QMap<QString, QPair<QString, int> > dependencies;
   QStringList licenses;
   QStringList authors;
-  QStringList opengl;
+  QStringList renderer;
 };
 
 #endif // METAINFO_HPP

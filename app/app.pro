@@ -42,7 +42,8 @@ HEADERS += \
     shader/shader.hpp \
     shader/program.hpp \
     render_pass_properties.hpp \
-    wrap_glext.h
+    wrap_glext.h \
+    new_wizard.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -70,11 +71,13 @@ SOURCES += \
     shader/shader.cpp \
     shader/program.cpp \
     render_pass_properties.cpp \
-    wrap_glext.c
+    wrap_glext.c \
+    new_wizard.cpp
 
 FORMS += \
     mainwindow.ui \
-    welcome.ui
+    welcome.ui \
+    new_wizard.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

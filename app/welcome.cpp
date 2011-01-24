@@ -16,6 +16,7 @@
  */
 
 #include "welcome.hpp"
+#include "new_wizard.hpp"
 #include "ui_welcome.h"
 #include "shaderdb/shaderdb.hpp"
 #include "shaderdb/metainfo.hpp"
@@ -37,6 +38,7 @@ Welcome::Welcome(MainWindow & mainwindow) : QFrame(), m_ui(new Ui::Welcome),
   m_ui->setupUi(this);
 
   connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
+  connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newProject()));
 
   QStringList files = ShaderDB::instance().localProjects();
   int count = 0;
@@ -45,6 +47,7 @@ Welcome::Welcome(MainWindow & mainwindow) : QFrame(), m_ui(new Ui::Welcome),
 
     if (info.categories.contains("example") && !info.name.isEmpty()) {
       WelcomeButton * btn = new WelcomeButton(m_ui->example_frame, file);
+      btn->setIcon(QIcon(":/icons/project_hl.png"));
       m_ui->example_layout->insertWidget(0, btn);
       btn->setText(info.name);
       btn->setDescription(info.description);
@@ -61,12 +64,20 @@ Welcome::~Welcome() {
 
 void Welcome::open(QString filename) {
   if (m_mainwindow.openProject(filename)) {
-    hide();
-    //deleteLater();
+    deleteLater();
   }
 }
 
 void Welcome::load() {
   if (m_mainwindow.load())
-    hide();
+    deleteLater();
+}
+
+void Welcome::newProject() {
+  NewWizard* w = new NewWizard(this);
+  connect(w, SIGNAL(rejected()), this, SLOT(show()));
+  connect(w, SIGNAL(accepted()), this, SLOT(deleteLater()));
+
+  w->show();
+  hide();
 }
