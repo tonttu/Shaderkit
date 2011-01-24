@@ -68,6 +68,8 @@ public:
 
   QList<Editor*> editors() { return m_editors; }
 
+  void openTemplate(QString newName, QString filename);
+
   static MainWindow& instance();
 
 public slots:

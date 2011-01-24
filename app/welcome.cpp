@@ -28,13 +28,16 @@ WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
   connect(this, SIGNAL(clicked()), SLOT(receiveClick()));
 }
 
+void WelcomeButton::setFilename(QString filename) {
+  m_filename = filename;
+}
+
 void WelcomeButton::receiveClick() {
   emit clicked(m_filename);
 }
 
 
-Welcome::Welcome(MainWindow & mainwindow) : QFrame(), m_ui(new Ui::Welcome),
-    m_mainwindow(mainwindow) {
+Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   m_ui->setupUi(this);
 
   connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
@@ -63,13 +66,13 @@ Welcome::~Welcome() {
 }
 
 void Welcome::open(QString filename) {
-  if (m_mainwindow.openProject(filename)) {
+  if (MainWindow::instance().openProject(filename)) {
     deleteLater();
   }
 }
 
 void Welcome::load() {
-  if (m_mainwindow.load())
+  if (MainWindow::instance().load())
     deleteLater();
 }
 

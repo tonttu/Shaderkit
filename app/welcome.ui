@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>GLSL Lab</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../gfx/gfx.qrc">
+    <normaloff>:/icons/logo.png</normaloff>:/icons/logo.png</iconset>
+  </property>
   <property name="frameShape">
    <enum>QFrame::StyledPanel</enum>
   </property>

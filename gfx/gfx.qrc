@@ -21,6 +21,9 @@
         <file>texture.png</file>
         <file>project_hl.png</file>
         <file>project.png</file>
+        <file>logo.png</file>
+        <file>closed.png</file>
+        <file>open.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>

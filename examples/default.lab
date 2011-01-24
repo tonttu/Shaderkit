@@ -1,0 +1,52 @@
+{
+  "lab" : {
+    "lab version" : "0.0.1-alpha",
+    "name" : "Default shader project",
+    "description" : "Hello world vertex/fragment shaders",
+    "release" : "stable",
+    "category" : "built-in",
+    "renderer" : ["OpenGL 3.2 compatibility, GLSL 1.50", "OpenGL 1.4, GLSL 1.10"]
+  },
+  "objects" : {
+    "teapot" : {
+      "model" : ["built-in", "teapot"]
+    }
+  },
+  "lights" : {
+    "light1" : {
+      "type" : "direction",
+      "ambient" : [0.2, 0.2, 0.2, 1.0],
+      "diffuse" : [1.0, 1.0, 1.0, 1.0],
+      "specular" : [1.0, 1.0, 1.0, 1.0],
+      "direction" : [0.5, 0.5, 0.5]
+    }
+  },
+  "cameras" : {
+    "camera1" : {
+      "type" : "perspective",
+      "fov" : 45,
+      "near" : 0.01,
+      "far" : 100.0,
+      "position" : [10,6,10],
+      "target" : [0,-1,0],
+      "up" : [0,1,0]
+    }
+  },
+  "shaders" : {
+    "default" : {
+      "geometry" : ["default.geom"],
+      "fragment" : ["default.frag"],
+      "vertex" : ["default.vert"]
+    }
+  },
+  "render passes" : [
+    {
+      "name" : "render",
+      "clear" : ["color", "depth"],
+      "shader" : "default",
+      "objects" : ["teapot"],
+      "viewport" : ["camera", "camera1"],
+      "lights" : ["light1"]
+    }
+  ]
+}

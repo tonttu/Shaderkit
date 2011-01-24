@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
   }
 
   MainWindow window;
-  Welcome* welcome = new Welcome(window);
+  Welcome* welcome = new Welcome;
   welcome->show();
 
   return app.exec();

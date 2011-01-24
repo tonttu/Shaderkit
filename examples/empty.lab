@@ -1,0 +1,8 @@
+{
+  "lab" : {
+    "lab version" : "0.0.1-alpha",
+    "name" : "Empty project",
+    "release" : "stable",
+    "category" : "built-in"
+  }
+}

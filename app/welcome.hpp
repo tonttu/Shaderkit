@@ -31,8 +31,11 @@ class WelcomeButton : public QCommandLinkButton {
   Q_OBJECT
 
 public:
-  explicit WelcomeButton(QWidget* parent, QString filename);
+  explicit WelcomeButton(QWidget* parent, QString filename = "");
   virtual ~WelcomeButton() {}
+
+  void setFilename(QString filename);
+  QString filename() const { return m_filename; }
 
 signals:
   void clicked(QString filename);
@@ -48,7 +51,7 @@ class Welcome : public QFrame {
   Q_OBJECT
 
 public:
-  explicit Welcome(MainWindow & mainwindow);
+  explicit Welcome();
   virtual ~Welcome();
 
 public slots:
@@ -58,7 +61,6 @@ public slots:
 
 private:
   Ui::Welcome* m_ui;
-  MainWindow & m_mainwindow;
 };
 
 #endif // WELCOME_HPP

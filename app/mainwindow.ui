@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>GLSL Lab</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../gfx/gfx.qrc">
+    <normaloff>:/icons/logo.png</normaloff>:/icons/logo.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="margin">
@@ -435,6 +439,8 @@
    <extends>QTreeWidget</extends>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../gfx/gfx.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -146,6 +146,11 @@ void MainWindow::activateEditor(Editor* editor) {
   m_ui->editor_tabs->setCurrentWidget(editor->parentWidget());
 }
 
+void MainWindow::openTemplate(QString newName, QString filename) {
+  /// @todo implement this
+  openProject(filename);
+}
+
 MainWindow& MainWindow::instance() {
   assert(s_instance);
   return *s_instance;
