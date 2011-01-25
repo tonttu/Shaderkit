@@ -38,8 +38,6 @@ NewWizard::NewWizard(QWidget* parent)
 
   m_group->setExclusive(true);
 
-  m_ui->name->setText(getUniqName("My Project"));
-
   QStringList files = ShaderDB::instance().localProjects();
   foreach (QString file, files) {
     MetaInfo info = MetaInfo::ping(file);
@@ -69,6 +67,8 @@ NewWizard::NewWizard(QWidget* parent)
       connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
     }
   }
+
+  m_ui->name->setText(getUniqName("My Project"));
 
   connect(m_ui->name, SIGNAL(editingFinished()), this, SLOT(nameEditingFinished()));
   connect(m_ui->name, SIGNAL(textEdited(QString)), this, SLOT(nameEdited(QString)));
@@ -123,7 +123,13 @@ void NewWizard::preview(QString file) {
 void NewWizard::create() {
   WelcomeButton* btn = dynamic_cast<WelcomeButton*>(m_group->checkedButton());
   assert(btn);
-  MainWindow::instance().openTemplate(m_ui->name->text(), btn->filename());
+  ShaderDB& db = ShaderDB::instance();
+  /// @todo Maybe we should have a temporary location for the project until
+  ///       user saves it for the first time. Then you could start a new tmp
+  ///       project without saving anything to ShaderDB. Then we could have
+  ///       a recovery-feature if we find old tmp project on startup.
+  ScenePtr scene = db.newLocalProject(m_ui->name->text(), btn->filename());
+  MainWindow::instance().openScene(scene);
 }
 
 QString NewWizard::getUniqName(QString str) const {

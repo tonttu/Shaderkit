@@ -169,14 +169,15 @@ GLuint GLProgram::id() const {
   return m_prog;
 }
 
-QVariantMap GLProgram::save(bool pack) const {
+QVariantMap GLProgram::save(QString root, bool pack) const {
   assert(!pack && "not implemented");
 
   QVariantMap map;
   QMap<Shader::Type, QStringList> shaders;
 
+  QDir rootd(root);
   foreach (ShaderPtr s, m_shaders)
-    shaders[s->type()] << s->filename();
+    shaders[s->type()] << rootd.relativeFilePath(s->filename());
 
   if (shaders.contains(Shader::Geometry))
     map["geometry"] = shaders[Shader::Geometry];

@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
       db.addPath(dir.path() + "/../examples");
       db.addPath(dir.path() + "../share/glsl-lab/examples");
     }
-    db.addPath(QDir::homePath() + "/.glsl-lab/shaderdb");
+    db.addPath(QDir::homePath() + "/.glsl-lab/shaderdb", true);
   }
 
   MainWindow window;

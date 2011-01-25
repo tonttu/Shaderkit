@@ -89,6 +89,8 @@ public:
    */
   QString filename() const { return m_filename; }
 
+  void setFilename(QString filename) { m_filename = filename; }
+
   /// Returns the actual OpenGL shader id, or 0 if there is no shader created yet.
   GLuint id() const;
 

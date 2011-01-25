@@ -7,3 +7,5 @@ HEADERS += \
 SOURCES += \
     shaderdb.cpp \
     metainfo.cpp
+
+INCLUDEPATH += ../app

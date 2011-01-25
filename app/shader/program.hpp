@@ -117,7 +117,7 @@ public:
   /// Returns the actual OpenGL program id, or 0 if there is no program created yet.
   GLuint id() const;
 
-  QVariantMap save(bool pack = false) const;
+  QVariantMap save(QString root, bool pack = false) const;
 
   Shaders shaders() const { return m_shaders; }
 

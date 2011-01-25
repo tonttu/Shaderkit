@@ -123,7 +123,6 @@ FileList &FileList::instance() {
 }
 
 ShaderProperties::Sub::~Sub() {
-  delete item;
 }
 
 Properties::Properties(QWidget* parent)

@@ -146,11 +146,6 @@ void MainWindow::activateEditor(Editor* editor) {
   m_ui->editor_tabs->setCurrentWidget(editor->parentWidget());
 }
 
-void MainWindow::openTemplate(QString newName, QString filename) {
-  /// @todo implement this
-  openProject(filename);
-}
-
 MainWindow& MainWindow::instance() {
   assert(s_instance);
   return *s_instance;
@@ -192,12 +187,11 @@ void MainWindow::about() {
   about.exec();
 }
 
-bool MainWindow::openProject(QString filename) {
-  ScenePtr scene = Project::load(filename);
+bool MainWindow::openScene(ScenePtr scene) {
   if (!scene)
     return false;
 
-  ProjectPtr project(new Project(*this, filename));
+  ProjectPtr project(new Project(*this, scene->filename()));
   setProject(project);
   project->setScene(scene);
   resize(sizeHint());
@@ -208,6 +202,10 @@ bool MainWindow::openProject(QString filename) {
   show();
 
   return true;
+}
+
+bool MainWindow::openProject(QString filename) {
+  return openScene(Project::load(filename));
 }
 
 bool MainWindow::reload() {

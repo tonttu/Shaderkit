@@ -50,7 +50,7 @@ ScenePtr Project::load(const QString& filename) {
   QFile file(filename);
   QVariant data = parser.parse(&file, &ok);
   if (ok) {
-    scene.reset(new Scene);
+    scene.reset(new Scene(filename));
     scene->setRoot(root);
     scene->load(data.toMap());
   }

@@ -21,7 +21,12 @@
 #include "shaderdb/shaderdb.hpp"
 #include "shaderdb/metainfo.hpp"
 
+#include <QFileInfo>
+#include <QDateTime>
 #include <QDebug>
+
+#include <queue>
+#include <iostream>
 
 WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
   : QCommandLinkButton(parent), m_filename(filename) {
@@ -45,19 +50,42 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
 
   QStringList files = ShaderDB::instance().localProjects();
   int count = 0;
+  typedef QPair<QDateTime, QString> V;
+  std::priority_queue<V, std::vector<V>, std::greater<V> > recent;
+
   foreach (QString file, files) {
     MetaInfo info = MetaInfo::ping(file);
+    if (info.name.isEmpty()) continue;
 
-    if (info.categories.contains("example") && !info.name.isEmpty()) {
+    if (info.categories.contains("example") && count++ < 4) {
       WelcomeButton * btn = new WelcomeButton(m_ui->example_frame, file);
       btn->setIcon(QIcon(":/icons/project_hl.png"));
       m_ui->example_layout->insertWidget(0, btn);
       btn->setText(info.name);
       btn->setDescription(info.description);
       connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
-      if (++count >= 4)
-        break;
     }
+    if (info.categories.contains("user")) {
+      QFileInfo finfo(file);
+      recent.push(qMakePair(finfo.lastModified(), file));
+    }
+  }
+
+  for (count = 0; count < 4 && !recent.empty(); ++count) {
+    const V& v = recent.top();
+
+    MetaInfo info = MetaInfo::ping(v.second);
+    WelcomeButton * btn = new WelcomeButton(m_ui->recent_frame, v.second);
+    btn->setIcon(QIcon(":/icons/project_hl.png"));
+    m_ui->recent_layout->insertWidget(0, btn);
+    btn->setText(info.name);
+    btn->setDescription(info.description);
+    connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
+
+    recent.pop();
+  }
+  if (count) {
+    m_ui->recent_label->setEnabled(true);
   }
 }
 

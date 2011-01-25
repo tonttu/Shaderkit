@@ -69,7 +69,7 @@ QVariantList toList(QColor in) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Scene::Scene() : m_width(-1), m_height(-1) {}
+Scene::Scene(QString filename) : m_width(-1), m_height(-1), m_filename(filename) {}
 
 void Scene::resize(int width, int height) {
   if (width == m_width && height == m_height) return;
@@ -123,7 +123,7 @@ QVariantMap Scene::save() const {
   if (!cameras.isEmpty()) map["cameras"] = cameras;
 
   foreach (QString name, m_shaders.keys())
-    shaders[name] = m_shaders[name]->save();
+    shaders[name] = m_shaders[name]->save(m_root);
   if (!shaders.isEmpty()) map["shaders"] = shaders;
 
   foreach (RenderPasses::value_type p, m_render_passes)

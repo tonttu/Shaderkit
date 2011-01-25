@@ -219,7 +219,6 @@ void RenderPass::render(State& state) {
       m_uniform_list = list;
 
     if(list != m_uniform_list_prev) {
-      std::cout << "UPDATE" << std::endl;
       m_uniform_list_prev = list;
       ShaderProperties::instance().update(shared_from_this());
     }

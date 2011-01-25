@@ -36,7 +36,7 @@ class Scene : public QObject, public std::enable_shared_from_this<Scene> {
 public:
   typedef QList<QPair<QString, RenderPassPtr> > RenderPasses;
 
-  Scene();
+  Scene(QString filename);
 
   /// Set the viewport size
   void resize(int width, int height);
@@ -94,6 +94,9 @@ public:
   /// Returns absolute file path for filename, or empty string if not found
   QString search(QString filename) const;
 
+  void setFilename(QString filename) { m_filename = filename; }
+  QString filename() const { return m_filename; }
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -120,6 +123,7 @@ protected:
   
   int m_width, m_height;
 
+  QString m_filename;
   QString m_root;
 };
 

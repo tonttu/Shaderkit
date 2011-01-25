@@ -68,8 +68,6 @@ public:
 
   QList<Editor*> editors() { return m_editors; }
 
-  void openTemplate(QString newName, QString filename);
-
   static MainWindow& instance();
 
 public slots:
@@ -77,6 +75,7 @@ public slots:
   void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
   void about();
 
+  bool openScene(ScenePtr scene);
   bool openProject(QString filename);
   /// Load a new project from file, open a file browser
   bool load();

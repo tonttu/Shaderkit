@@ -38,6 +38,7 @@ public:
   virtual ~Project();
 
   /// Loads a scene from JSON file.
+  /// @todo And why is this here and not in Scene?
   static ScenePtr load(const QString& filename);
 
   /// Saves the active scene to JSON file.

@@ -18,6 +18,8 @@
 #ifndef SHADERDB_HPP
 #define SHADERDB_HPP
 
+#include "forward.hpp"
+
 #include <QStringList>
 #include <QSet>
 
@@ -26,14 +28,19 @@ public:
   ShaderDB();
   virtual ~ShaderDB();
 
-  void addPath(QString path);
+  void addPath(QString path, bool make_primary = false);
   QStringList localProjects();
+
+  ScenePtr newLocalProject(QString name, QString srcfile);
 
   static ShaderDB & instance();
 
 protected:
   QSet<QString> scanDir(QString path, bool subdirs = true);
+  QString makeUniqPath(QString path, QString name) const;
+
   QSet<QString> m_paths;
+  QString m_defaultPath;
 
   static ShaderDB * s_instance;
 };
