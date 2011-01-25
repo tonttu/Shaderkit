@@ -187,10 +187,8 @@ void ShaderProperties::update(RenderPassPtr pass) {
       editor->updateUI(var);
   }
 
-  foreach (QString name, sub.editors.keys().toSet() - names) {
-    std::cout << "remove: " << name.toUtf8().data() << std::endl;
+  foreach (QString name, sub.editors.keys().toSet() - names)
     sub.editors.remove(name);
-  }
 
     /*
   QtVariantProperty* obj = m_shaders[shader];

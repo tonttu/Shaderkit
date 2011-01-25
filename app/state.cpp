@@ -15,9 +15,8 @@
  * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "forward.hpp"
 #include "state.hpp"
-
-#include <iostream>
 
 State::State() {
   m_data.push_back(Data());
@@ -58,7 +57,7 @@ void State::push() {
 
 void State::pop() {
   if (m_data.size() <= 1) {
-    std::cerr << "State push/pop mismatch" << std::endl;
+    Log::error("State push/pop mismatch");
   }
 }
 

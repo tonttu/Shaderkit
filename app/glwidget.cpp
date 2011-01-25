@@ -22,8 +22,6 @@
 /// @todo include something less massive
 #include <QtGui>
 
-#include <iostream>
-
 GLWidget::GLWidget(QWidget *parent)
   : QGLWidget(defaultFormat(), parent),
     m_timer(new QTimer(this)), m_initialized(false) {
@@ -54,11 +52,11 @@ void GLWidget::initializeGL() {
   if (s_glew_status != GLEW_OK) {
     s_glew_status = glewInit();
     if (s_glew_status == GLEW_OK) {
-      std::cout << "GLEW " << glewGetString(GLEW_VERSION) << " initialized" << std::endl;
+      Log::info("GLEW %s initialized", glewGetString(GLEW_VERSION));
       wrap_gl_extensions();
       m_initialized = true;
     } else {
-      std::cerr << "Failed to initialize GLEW: " << glewGetErrorString(s_glew_status) << std::endl;
+      Log::error("Failed to initialize GLEW: %s", glewGetErrorString(s_glew_status));
     }
   }
 

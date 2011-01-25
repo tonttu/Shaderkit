@@ -43,7 +43,8 @@ HEADERS += \
     shader/program.hpp \
     render_pass_properties.hpp \
     wrap_glext.h \
-    new_wizard.hpp
+    new_wizard.hpp \
+    log.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -72,7 +73,8 @@ SOURCES += \
     shader/program.cpp \
     render_pass_properties.cpp \
     wrap_glext.c \
-    new_wizard.cpp
+    new_wizard.cpp \
+    log.cpp
 
 FORMS += \
     mainwindow.ui \

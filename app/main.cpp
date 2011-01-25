@@ -25,6 +25,7 @@
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
+  Log log;
   ShaderDB db;
   {
     db.addPath(QDir::currentPath());

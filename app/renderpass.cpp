@@ -27,7 +27,6 @@
 #include "render_pass_properties.hpp"
 #include "mainwindow.hpp"
 #include "state.hpp"
-#include <iostream>
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Normal), m_name(name), m_scene(scene), m_clear(0),

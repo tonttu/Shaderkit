@@ -26,7 +26,6 @@
 #include <QDebug>
 
 #include <queue>
-#include <iostream>
 
 WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
   : QCommandLinkButton(parent), m_filename(filename) {

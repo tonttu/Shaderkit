@@ -27,7 +27,6 @@
 #include <QObject>
 
 #include <set>
-#include <iostream>
 
 /**
  * GLSL Program object.
@@ -75,7 +74,7 @@ public:
 
     GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
     if(loc == -1) {
-      std::cerr << "Failed to query uniform variable " << name.toStdString() << " location" << std::endl;
+      Log::error("Failed to query uniform variable %s location", name.toAscii().data());
     } else {
       setUniform(loc, t);
     }

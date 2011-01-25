@@ -19,6 +19,7 @@
 #define FORWARD_HPP
 
 #include "lab_tr1.hpp"
+#include "log.hpp"
 
 /// @todo move these two away from here
 #include <limits>

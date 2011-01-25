@@ -92,6 +92,14 @@ void FrameBufferObject::bind() {
 
   glRun(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_id));
 
+  int max_attachments = colorAttachments();
+  GLenum* buffers = new GLenum[max_attachments];
+  for (int i = 0; i < max_attachments; ++i)
+    buffers[i] = m_buffers.contains(GL_COLOR_ATTACHMENT0 + i)
+        ? GL_COLOR_ATTACHMENT0 + i : GL_NONE;
+  glRun(glDrawBuffers(max_attachments, buffers));
+  delete[] buffers;
+
   for (Buffers::iterator it = m_buffers.begin(); it != m_buffers.end(); ++it)
     (*it)->setup(m_id, m_width, m_height);
 

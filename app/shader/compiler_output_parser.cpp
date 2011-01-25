@@ -18,7 +18,6 @@
 #include "shader/compiler_output_parser.hpp"
 
 #include <cassert>
-#include <iostream>
 
 /**
  * NVIDIA:
@@ -81,7 +80,7 @@ ShaderError ShaderCompilerOutputParser::next() {
   if (list.size() == 4) {
     return ShaderError(ShaderPtr(), list[3], list[2], list[1].toInt()-1);
   } else {
-    std::cerr << "Failed to parse error string: '" << msg.toUtf8().data() << "'" << std::endl;
+    Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
     return ShaderError(ShaderPtr(), msg, "error", 0, 0);
   }
 }

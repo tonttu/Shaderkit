@@ -30,10 +30,13 @@
 #include <boost/tr1/memory.hpp>
 #endif
 
+#ifndef __GXX_EXPERIMENTAL_CXX0X__
 namespace std {
   using tr1::shared_ptr;
   using tr1::enable_shared_from_this;
 }
+#endif
+
 #endif
 
 #endif

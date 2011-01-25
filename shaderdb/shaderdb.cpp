@@ -29,7 +29,6 @@
 #include <QDir>
 
 #include <cassert>
-#include <iostream>
 
 ShaderDB * ShaderDB::s_instance = 0;
 
@@ -70,7 +69,7 @@ ScenePtr ShaderDB::newLocalProject(QString name, QString srcfile) {
   QDir dir;
   QString path = makeUniqPath(m_defaultPath, name);
   if (!dir.mkpath(path)) {
-    std::cerr << "Failed to create " << path.toUtf8().data() << std::endl;
+    Log::error("Failed to create %s", path.toUtf8().data());
     return ScenePtr();
   }
   dir.setPath(path);

@@ -15,10 +15,10 @@
  * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "forward.hpp"
 #include "opengl.hpp"
 
 #include <QMap>
-#include <iostream>
 
 void _check_gl(const char* str, const char* file, int line) {
   static QMap<QString, int> s_errors;
@@ -29,7 +29,7 @@ void _check_gl(const char* str, const char* file, int line) {
     out = out.arg(file).arg(line).arg((const char*)(gluErrorString(e))).arg(str);
     int num = ++s_errors[out];
     if (num == limit) out += " (starting to ignore)";
-    if (num <= limit) std::cerr << out.toStdString() << std::endl;
+    if (num <= limit) Log::error(out);
     //abort();
   }
 }

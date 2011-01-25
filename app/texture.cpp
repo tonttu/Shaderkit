@@ -18,10 +18,7 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 
-#include <iostream>
-
 Texture::Texture(QString name) : FBOImage(name), m_id(0), m_bindedTexture(0) {
-  std::cout << "Texture: " << name.toStdString() << std::endl;
 }
 
 Texture::~Texture() {

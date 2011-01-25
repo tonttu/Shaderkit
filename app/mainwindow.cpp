@@ -29,8 +29,6 @@
 
 #include <cassert>
 
-#include <iostream>
-
 IconBtn::IconBtn(QWidget* parent) : QPushButton(parent), m_padding(0, 0) {}
 IconBtn::~IconBtn() {}
 
