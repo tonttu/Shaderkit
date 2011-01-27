@@ -35,3 +35,6 @@ SOURCES += \
 
 # GLEW
 SOURCES += glew/src/glew.c
+
+# assimp
+include(assimp/assimp.pri)
