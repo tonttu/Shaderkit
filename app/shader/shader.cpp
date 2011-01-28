@@ -138,10 +138,18 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
   bool ok = false;
 
   ShaderCompilerOutputParser parser(QString::fromUtf8(log, len));
+  int l = lexer.tokens();
   while (parser.left()) {
     ShaderError e = parser.next();
-    const ShaderLexer::Token& token = lexer.transform(e.line());
     e.setShader(shared_from_this());
+
+    if (e.line() > l || l == 0) {
+      Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
+                 e.line(), l, log, data.c_str(), src.toUtf8().data());
+      errors.push_back(e);
+      continue;
+    }
+    const ShaderLexer::Token& token = lexer.transform(e.line());
     e.setLine(token.line);
     e.setColumn(token.column);
     e.setLength(token.len);

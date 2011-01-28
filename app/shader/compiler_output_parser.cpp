@@ -23,6 +23,7 @@
  * NVIDIA:
  *  0(11) : warning C7522: OpenGL requires constants to be initialized
  *  0(11) : error C0000: syntax error, unexpected identifier, expecting ',' or ';' at token "foo"
+ *    (0) : error C0000: syntax error, unexpected $end at token "<EOF>"
  *
  * MESA:
  *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
@@ -42,7 +43,7 @@ ShaderError ShaderCompilerOutputParser::next() {
     QString pattern;
 
     // 1.50 NVIDIA via Cg compiler
-    pattern = "\\d+ \\(  (\\d+)  \\)"  // "0(11)", shader(line number [1])
+    pattern = "\\d* \\(  (\\d+)  \\)"  // "0(11)", shader(line number [1])
               "\\s* : \\s*"            // ":", separator
               "([^\\s]+)  \\s+"        // "warning", type [2]
               "[^\\s:]+"               // "C7522", nvidia error code

@@ -55,6 +55,9 @@ public:
   /// also saves the transformation table of this split to be usable in transform()
   std::string& toLines();
 
+  /// Returns ne number of tokens (original source code lines)
+  int tokens() const;
+
   /// Gives the token (in the original source code context) that is on the given splitted line
   /// Line indexing starts from zero.
   const Token& transform(int line);

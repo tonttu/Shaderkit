@@ -46,6 +46,7 @@ void ShaderLexer::tokenize() {
   /// @todo flex code is not thread safe
   glslset_scan_string(m_data.data(), m_data.length());
   m_tokenized_length = 0;
+  m_tokens.clear();
 
   int token;
   while ((token = glsllex_wrapper())) {
@@ -65,6 +66,10 @@ std::string& ShaderLexer::toLines() {
     m_splitted.append(1, '\n');
   }
   return m_splitted;
+}
+
+int ShaderLexer::tokens() const {
+  return m_tokens.size();
 }
 
 /// splitted line number -> (original line, original column)
