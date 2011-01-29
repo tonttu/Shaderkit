@@ -34,6 +34,9 @@ public:
   void setParam(unsigned int pname, int param);
   void setParam(unsigned int pname, float param);
 
+  void setBlend(float value);
+  void setUV(int idx);
+
   QString imageClass() const { return "texture"; }
 
 private:
@@ -49,6 +52,19 @@ private:
 
   QMap<unsigned int, Param> m_params;
   unsigned int m_id, m_bindedTexture;
+  float m_blend;
+  int m_uv;
+};
+
+class TextureFile : public Texture {
+public:
+  TextureFile(QString name);
+  virtual ~TextureFile() {}
+
+  void setFile(QString file);
+
+private:
+  QString m_file;
 };
 
 #endif // TEXTURE_HPP

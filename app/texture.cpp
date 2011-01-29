@@ -19,7 +19,8 @@
 #include "opengl.hpp"
 
 Texture::Texture(QString name)
-  : FBOImage(name), m_id(0), m_bindedTexture(0) {
+  : FBOImage(name), m_id(0), m_bindedTexture(0),
+    m_blend(1.0), m_uv(1) {
   setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -48,6 +49,14 @@ void Texture::setParam(unsigned int pname, int param) {
 
 void Texture::setParam(unsigned int pname, float param) {
   m_params[pname] = Param(param);
+}
+
+void Texture::setBlend(float value) {
+  m_blend = value;
+}
+
+void Texture::setUV(int idx) {
+  m_uv = idx;
 }
 
 void Texture::setup(unsigned int fbo, int width, int height) {
@@ -87,4 +96,10 @@ void Texture::setup(unsigned int fbo, int width, int height) {
   m_height = height;
   m_active_type = m_type;
   if (fbo_changed) m_fbos.insert(fbo);
+}
+
+TextureFile::TextureFile(QString name) : Texture(name) {}
+
+void TextureFile::setFile(QString file) {
+  m_file = file;
 }
