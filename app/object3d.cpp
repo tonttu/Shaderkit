@@ -17,6 +17,7 @@
 
 #include "object3d.hpp"
 #include "state.hpp"
+#include "model.hpp"
 #include "ext/glut_teapot.hpp"
 
 /// Renders a rectangular box.

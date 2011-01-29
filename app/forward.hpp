@@ -59,6 +59,15 @@ class Object3D;
 typedef std::shared_ptr<Object3D> ObjectPtr;
 class Teapot;
 class Box;
+class Mesh;
+typedef std::shared_ptr<Mesh> MeshPtr;
+class Animation;
+typedef std::shared_ptr<Animation> AnimationPtr;
+class Material;
+typedef std::shared_ptr<Material> MaterialPtr;
+class Model;
+typedef std::shared_ptr<Model> ModelPtr;
+class Node;
 
 class ShaderProperties;
 class Editor;

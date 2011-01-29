@@ -30,14 +30,18 @@ public:
   virtual void setup(unsigned int fbo, int width, int height) = 0;
   /// type is GL_DEPTH_ATTACHMENT etc..
   void setType(int type) { m_type = type; }
+  /// Role, like "diffuse", "normalmap", "lightmap" etc
+  void setRole(QString role) { m_role = role; }
 
   QString name() const { return m_name; }
+  QString role() const { return m_role; }
 
   /// Is this a "texture", "renderbuffer" or what
   virtual QString imageClass() const = 0;
 
 protected:
   QString m_name;
+  QString m_role;
 
   unsigned int m_id;
   int m_type, m_active_type;

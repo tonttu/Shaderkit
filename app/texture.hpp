@@ -31,9 +31,23 @@ public:
   void bind(int texture = 0);
   void unbind();
 
+  void setParam(unsigned int pname, int param);
+  void setParam(unsigned int pname, float param);
+
   QString imageClass() const { return "texture"; }
 
 private:
+  struct Param {
+    Param(int v = 0) : is_float(false), i(v) {}
+    Param(float v) : is_float(true), f(v) {}
+    bool is_float;
+    union {
+      float f;
+      int i;
+    };
+  };
+
+  QMap<unsigned int, Param> m_params;
   unsigned int m_id, m_bindedTexture;
 };
 

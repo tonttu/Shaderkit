@@ -45,7 +45,13 @@ HEADERS += \
     wrap_glext.h \
     new_wizard.hpp \
     log.hpp \
-    shader/sandbox_compiler.hpp
+    shader/sandbox_compiler.hpp \
+    material.hpp \
+    model.hpp \
+    animation.hpp \
+    obj_importer.hpp \
+    utils.hpp
+>>>>>>> New skeleton classes and random refactoring for new material/assimp update.
 
 SOURCES += \
     highlighter.cpp \
@@ -76,7 +82,13 @@ SOURCES += \
     wrap_glext.c \
     new_wizard.cpp \
     log.cpp \
-    shader/sandbox_compiler.cpp
+    shader/sandbox_compiler.cpp \
+    material.cpp \
+    model.cpp \
+    animation.cpp \
+    obj_importer.cpp \
+    utils.cpp
+>>>>>>> New skeleton classes and random refactoring for new material/assimp update.
 
 FORMS += \
     mainwindow.ui \

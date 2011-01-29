@@ -18,7 +18,12 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 
-Texture::Texture(QString name) : FBOImage(name), m_id(0), m_bindedTexture(0) {
+Texture::Texture(QString name)
+  : FBOImage(name), m_id(0), m_bindedTexture(0) {
+  setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  setParam(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 Texture::~Texture() {
@@ -35,6 +40,14 @@ void Texture::bind(int texture) {
 void Texture::unbind() {
   glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
   glRun(glBindTexture(GL_TEXTURE_2D, 0));
+}
+
+void Texture::setParam(unsigned int pname, int param) {
+  m_params[pname] = Param(param);
+}
+
+void Texture::setParam(unsigned int pname, float param) {
+  m_params[pname] = Param(param);
 }
 
 void Texture::setup(unsigned int fbo, int width, int height) {
@@ -56,10 +69,12 @@ void Texture::setup(unsigned int fbo, int width, int height) {
                          0 /* border */, GL_RGBA, GL_UNSIGNED_BYTE, NULL /* data */));
     }
 
-    glRun(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    glRun(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    glRun(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    glRun(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+      if (it->is_float)
+        glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
+      else
+        glRun(glTexParameterf(GL_TEXTURE_2D, it.key(), it->f));
+    }
 
     unbind();
   }
