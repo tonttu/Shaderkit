@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #ifdef __GNUC__
-#define PRINTF_CHECK __attribute__ ((format (printf, 1, 2)))
+#define PRINTF_CHECK(n) __attribute__ ((format (printf, n, n+1)))
 #else
-#define PRINTF_CHECK
+#define PRINTF_CHECK(n)
 #endif
 
 class QString;
@@ -18,15 +18,17 @@ public:
   Log();
   ~Log();
 
-  static void error(const char* fmt, ...) PRINTF_CHECK;
-  static void warn(const char* fmt, ...) PRINTF_CHECK;
-  static void info(const char* fmt, ...) PRINTF_CHECK;
-  static void debug(const char* fmt, ...) PRINTF_CHECK;
+  static void error(const char* fmt, ...) PRINTF_CHECK(1);
+  static void warn(const char* fmt, ...) PRINTF_CHECK(1);
+  static void info(const char* fmt, ...) PRINTF_CHECK(1);
+  static void debug(const char* fmt, ...) PRINTF_CHECK(1);
 
   static void error(const QString& str, ...);
   static void warn(const QString& str, ...);
   static void info(const QString& str, ...);
   static void debug(const QString& str, ...);
+
+  static void log(Level level, const char* fmt, ...) PRINTF_CHECK(2);
 
 private:
   static Log* s_log;
