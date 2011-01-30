@@ -19,9 +19,12 @@
 #include "shader/program.hpp"
 #include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
+#include "shader/sandbox_compiler.hpp"
 #include "app/opengl.hpp"
 
 #include <QFile>
+
+bool Shader::s_sandbox_compile = true;
 
 Shader::Shader(ProgramPtr prog, Shader::Type type)
   : m_shader(0), m_prog(prog), m_needCompile(false), m_type(type) {
@@ -58,12 +61,7 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
   if (m_needCompile) {
     m_needCompile = false;
     if (!m_shader) {
-      if (m_type == Vertex)
-        m_shader = glRun2(glCreateShader(GL_VERTEX_SHADER));
-      else if (m_type == Geometry)
-        m_shader = glRun2(glCreateShader(GL_GEOMETRY_SHADER_EXT));
-      else
-        m_shader = glRun2(glCreateShader(GL_FRAGMENT_SHADER));
+      m_shader = glRun2(glCreateShader(m_type));
       if (!m_shader) {
         qWarning() << "Shader: could not create shader";
         return ERRORS;
@@ -71,6 +69,11 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
     }
 
     QByteArray src_ = m_src.toAscii();
+
+    if (s_sandbox_compile && !SandboxCompiler::check(shared_from_this(), src_, errors)) {
+      return ERRORS;
+    }
+
     const char* src = src_.data();
     GLint len = src_.length();
     glRun(glShaderSource(m_shader, 1, &src, &len));
@@ -104,6 +107,12 @@ QIcon Shader::icon() {
     icon = ":/icons/geom.png";
 
   return QIcon(icon);
+}
+
+void Shader::setSandboxCompile(bool v) {
+  if (s_sandbox_compile && !v)
+    SandboxCompiler::close();
+  s_sandbox_compile = v;
 }
 
 bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors) {

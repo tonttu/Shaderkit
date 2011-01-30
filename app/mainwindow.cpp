@@ -83,6 +83,12 @@ MainWindow::MainWindow(QWidget* parent)
           this, SLOT(about()));
   connect(m_ui->editor_tabs, SIGNAL(tabCloseRequested(int)),
          this, SLOT(closeEditor(int)));
+
+  connect(m_ui->action_sandbox_compiler, SIGNAL(toggled(bool)),
+          this, SLOT(setSandboxCompiler(bool)));
+
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
 }
 
 MainWindow::~MainWindow() {
@@ -329,6 +335,12 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 void MainWindow::changed(RenderPassPtr) {
   if (!m_projectChanged)
     setProjectChanged(true);
+}
+
+void MainWindow::setSandboxCompiler(bool v) {
+  Shader::setSandboxCompile(v);
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  settings.setValue("core/use_sandbox_compiler", v);
 }
 
 void MainWindow::restore() {

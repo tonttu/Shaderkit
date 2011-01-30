@@ -36,7 +36,9 @@ class Shader : public QObject, public std::enable_shared_from_this<Shader> {
 public:
   /// Supported shader types
   enum Type {
-    Fragment, Vertex, Geometry
+    Fragment = GL_FRAGMENT_SHADER,
+    Vertex = GL_VERTEX_SHADER,
+    Geometry = GL_GEOMETRY_SHADER_EXT
   };
 
   /// compile() returns the compile status
@@ -98,6 +100,9 @@ public:
 
   QIcon icon();
 
+  static void setSandboxCompile(bool v);
+  static bool sandboxCompile() { return s_sandbox_compile; }
+
 protected:
   /**
    * Recompiles the shader in a way that the error list can be generated.
@@ -128,6 +133,12 @@ protected:
 
   /// The type of the shader
   Type m_type;
+
+  /// Some OpenGL drivers crash the application on some specific cases
+  /// when the source has weird syntax errors. If this is enabled, we
+  /// always compile shaders first in a safe environment.
+  /// I mean you, NVIDIA!
+  static bool s_sandbox_compile;
 };
 
 #endif

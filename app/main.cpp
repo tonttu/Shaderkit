@@ -19,6 +19,7 @@
 #include "welcome.hpp"
 #include "project.hpp"
 #include "shaderdb/shaderdb.hpp"
+#include "shader/sandbox_compiler.hpp"
 
 #include <QApplication>
 #include <QDir>
@@ -26,6 +27,13 @@
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
   Log log;
+
+  if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {
+    return SandboxCompiler::run(QString(argv[2]).toInt(), QString(argv[3]).toInt());
+  }
+
+  SandboxCompiler init(argv[0]);
+
   ShaderDB db;
   {
     db.addPath(QDir::currentPath());

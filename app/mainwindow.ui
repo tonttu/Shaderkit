@@ -73,6 +73,7 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <addaction name="action_sandbox_compiler"/>
     <addaction name="action_autosave_layout"/>
     <addaction name="action_reset_layout"/>
     <addaction name="separator"/>
@@ -415,6 +416,20 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="action_sandbox_compiler">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Sandbox Compiler</string>
+   </property>
+   <property name="toolTip">
+    <string>Use Sandbox Compiler</string>
    </property>
   </action>
  </widget>

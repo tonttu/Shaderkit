@@ -102,6 +102,7 @@ protected slots:
 
   void closeEvent(QCloseEvent* event);
   void changed(RenderPassPtr);
+  void setSandboxCompiler(bool);
 
 private:
   /// Main layout generated from the .ui -file.

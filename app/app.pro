@@ -44,7 +44,8 @@ HEADERS += \
     render_pass_properties.hpp \
     wrap_glext.h \
     new_wizard.hpp \
-    log.hpp
+    log.hpp \
+    shader/sandbox_compiler.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -74,7 +75,8 @@ SOURCES += \
     render_pass_properties.cpp \
     wrap_glext.c \
     new_wizard.cpp \
-    log.cpp
+    log.cpp \
+    shader/sandbox_compiler.cpp
 
 FORMS += \
     mainwindow.ui \
