@@ -40,6 +40,8 @@ public:
   /// Load the camera from map
   void load(QVariantMap map);
 
+  CameraPtr clone() const;
+
   /// Sets this camera to use orthographic matrix that fills the screen
   void setRect(float near = -1.0f, float far = 1.0f);
 

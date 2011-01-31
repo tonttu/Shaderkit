@@ -54,13 +54,14 @@ public:
   ObjectPtr object(const QString& name) { return m_objects[name]; }
   LightPtr light(const QString& name) { return m_lights[name]; }
   CameraPtr camera(const QString& name) { return m_cameras[name]; }
+  MaterialPtr material(const QString& name) { return m_materials[name]; }
   TexturePtr genTexture(const QString& name);
 
   /// Finds all the shaders with given file name.
   QList<ShaderPtr> shadersByFilename(const QString& filename);
 
   /// Name -> shader mapping
-  QMap<QString, ProgramPtr> shaders() { return m_shaders; }
+  QMap<QString, MaterialPtr> materials() { return m_materials; }
 
   /// Name -> object mapping
   QMap<QString, ObjectPtr> objects() { return m_objects; }
@@ -118,6 +119,8 @@ protected:
   QMap<QString, CameraPtr> m_cameras;
   QMap<QString, ProgramPtr> m_shaders;
   QMap<QString, TexturePtr> m_textures;
+  QMap<QString, MaterialPtr> m_materials;
+  QMap<QString, ModelPtr> m_models;
 
   MetaInfo m_metainfo;
   

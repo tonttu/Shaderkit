@@ -92,3 +92,7 @@ void Camera::load(QVariantMap map) {
   m_near = map["near"].toFloat();
   m_far = map["far"].toFloat();
 }
+
+CameraPtr Camera::clone() const {
+  return CameraPtr(new Camera(*this));
+}

@@ -19,7 +19,7 @@
 #include "opengl.hpp"
 
 Texture::Texture(QString name)
-  : FBOImage(name), m_id(0), m_bindedTexture(0),
+  : FBOImage(name), m_bindedTexture(0),
     m_blend(1.0), m_uv(1) {
   setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -30,6 +30,7 @@ Texture::Texture(QString name)
 Texture::~Texture() {
   if (m_id)
     glDeleteTextures(1, &m_id);
+  m_id = 0;
 }
 
 void Texture::bind(int texture) {
@@ -103,3 +104,84 @@ TextureFile::TextureFile(QString name) : Texture(name) {}
 void TextureFile::setFile(QString file) {
   m_file = file;
 }
+
+TexturePtr Texture::clone() const {
+  TexturePtr t(new Texture(*this));
+  t->m_id = 0;
+  t->m_fbos.clear();
+  t->m_bindedTexture = 0;
+  return t;
+}
+
+void Texture::load(QVariantMap map) {
+  /// @todo
+}
+
+TexturePtr TextureFile::clone() const {
+  TextureFile* t = new TextureFile(*this);
+  t->m_id = 0;
+  t->m_fbos.clear();
+  t->m_bindedTexture = 0;
+  return TexturePtr(t);
+}
+
+void TextureFile::load(QVariantMap map) {
+  /// @todo
+}
+
+/*
+D(TEXTURE_WRAP_S, CLAMP);
+D(TEXTURE_WRAP_S, CLAMP_TO_EDGE);
+D(TEXTURE_WRAP_S, REPEAT);
+D(TEXTURE_WRAP_S, CLAMP_TO_BORDER);
+D(TEXTURE_WRAP_S, MIRRORED_REPEAT);
+
+D(TEXTURE_WRAP_T, CLAMP);
+D(TEXTURE_WRAP_T, CLAMP_TO_EDGE);
+D(TEXTURE_WRAP_T, REPEAT);
+D(TEXTURE_WRAP_T, CLAMP_TO_BORDER);
+D(TEXTURE_WRAP_T, MIRRORED_REPEAT);
+
+D(TEXTURE_WRAP_R, CLAMP);
+D(TEXTURE_WRAP_R, CLAMP_TO_EDGE);
+D(TEXTURE_WRAP_R, REPEAT);
+D(TEXTURE_WRAP_R, CLAMP_TO_BORDER);
+D(TEXTURE_WRAP_R, MIRRORED_REPEAT);
+
+D(TEXTURE_MIN_FILTER, NEAREST);
+D(TEXTURE_MIN_FILTER, LINEAR);
+D(TEXTURE_MIN_FILTER, NEAREST_MIPMAP_NEAREST);
+D(TEXTURE_MIN_FILTER, NEAREST_MIPMAP_LINEAR);
+D(TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST);
+D(TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR);
+
+D(TEXTURE_MAG_FILTER, NEAREST);
+D(TEXTURE_MAG_FILTER, LINEAR);
+
+D(DEPTH_TEXTURE_MODE, RED);
+D(DEPTH_TEXTURE_MODE, LUMINANCE);
+D(DEPTH_TEXTURE_MODE, INTENSITY);
+D(DEPTH_TEXTURE_MODE, ALPHA);
+
+D(TEXTURE_COMPARE_MODE, NONE);
+D(TEXTURE_COMPARE_MODE, COMPARE_REF_TO_TEXTURE);
+
+D(TEXTURE_COMPARE_FUNC, LEQUAL);
+D(TEXTURE_COMPARE_FUNC, GEQUAL);
+D(TEXTURE_COMPARE_FUNC, LESS);
+D(TEXTURE_COMPARE_FUNC, GREATER);
+D(TEXTURE_COMPARE_FUNC, EQUAL);
+D(TEXTURE_COMPARE_FUNC, NOTEQUAL);
+D(TEXTURE_COMPARE_FUNC, ALWAYS);
+D(TEXTURE_COMPARE_FUNC, NEVER);
+
+// TEXTURE_BORDER_COLOR
+
+TEXTURE_PRIORITY float
+TEXTURE_MIN_LOD float
+TEXTURE_MAX_LOD float
+TEXTURE_BASE_LEVEL int
+TEXTURE_MAX_LEVEL int
+TEXTURE_LOD_BIAS float
+GENERATE_MIPMAP bool
+*/

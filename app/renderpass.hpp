@@ -76,16 +76,6 @@ public:
   GLbitfield clearBits() const { return m_clear; }
   void setClearBits(GLbitfield bits);
 
-/*  QStringList in() const {
-    return m_in.keys();
-  }
-
-  TexturePtr in(const QString& name) const {
-    return m_in[name];
-  }*/
-
-  QMap<QString, TexturePtr> in() const { return m_in; }
-
   QStringList out() const;
   FBOImagePtr out(const QString& name) const;
 
@@ -96,8 +86,8 @@ public:
 
   ScenePtr scene() { return m_scene; }
 
-  ProgramPtr shader() { return m_shader; }
-  void setShader(ProgramPtr shader);
+  MaterialPtr material() { return m_material; }
+  void setMaterial(MaterialPtr material);
 
   Objects objects() { return m_objects; }
   void setObjects(Objects objs);
@@ -107,9 +97,6 @@ public:
 
   CameraPtr viewport() { return m_viewport; }
   void setViewport(CameraPtr camera);
-
-  UniformVar::List & uniformList() { return m_uniform_list; }
-  //void setUniformList(const UniformVar::List & lst) { m_uniform_list = lst; }
 
   QIcon icon();
 
@@ -126,12 +113,8 @@ protected:
   Objects m_objects;
   /// All enabled lights
   Lights m_lights;
+  MaterialPtr m_material;
   CameraPtr m_viewport;
-
-  /// The shader used to render this pass, this could be shared between different passes
-  /// @see m_uniform_list
-  ProgramPtr m_shader;
-  UniformVar::List m_uniform_list, m_uniform_list_prev;
 
   ScenePtr m_scene;
 
@@ -143,8 +126,6 @@ protected:
   bool m_autosize;
   FBOPtr m_fbo;
   FBOImagePtr m_depth, m_color;
-
-  QMap<QString, TexturePtr> m_in;
 };
 
 #endif // RENDERPASS_HPP

@@ -17,22 +17,23 @@
 
 #include "forward.hpp"
 #include "state.hpp"
+#include "material.hpp"
 
 State::State() {
   m_data.push_back(Data());
 }
 
 int State::nextFreeLight() const {
-  return nextFree(m_data.front().m_lights);
+  return nextFree(m_data.back().m_lights);
 }
 
 void State::setLight(int light_id, bool in_use) {
   if (in_use) {
-    m_data.front().m_lights.insert(light_id);
+    m_data.back().m_lights.insert(light_id);
     enable(GL_LIGHTING);
     enable(GL_LIGHT0 + light_id);
   } else {
-    m_data.front().m_lights.remove(light_id);
+    m_data.back().m_lights.remove(light_id);
     disable(GL_LIGHT0 + light_id);
   }
 }
@@ -45,19 +46,46 @@ void State::disable(GLenum cap) {
   glDisable(cap);
 }
 
-int State::reserveTexUnit() {
-  int unit = nextFree(m_data.front().m_texunits);
-  m_data.front().m_texunits << unit;
+int State::reserveTexUnit(void* keyptr, QString keyname) {
+  typedef QPair<void*, QString> P;
+  QMap<P, int>& map = m_data.back().m_texunits;
+  P key(keyptr, keyname);
+
+  if (map.contains(key)) return map[key];
+
+  int unit = nextFree(map.values().toSet());
+  map[key] = unit;
+
   return unit;
 }
 
 void State::push() {
-  m_data.push_back(m_data.front());
+  m_data.push_back(m_data.back());
 }
 
 void State::pop() {
   if (m_data.size() <= 1) {
     Log::error("State push/pop mismatch");
+  } else {
+    m_data.pop_back();
+  }
+}
+
+void State::pushMaterial(MaterialPtr m) {
+  if (!m_materials.isEmpty() && m_materials.back()) m_materials.back()->unbind();
+  m_materials.push_back(m);
+  push();
+  if (m) m->bind(*this);
+}
+
+void State::popMaterial() {
+  if (m_materials.isEmpty()) {
+    Log::error("State material push/pop mismatch");
+  } else {
+    if (m_materials.back()) m_materials.back()->unbind();
+    m_materials.pop_back();
+    pop();
+    if (!m_materials.isEmpty() && m_materials.back()) m_materials.back()->bind(*this);
   }
 }
 

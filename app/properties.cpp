@@ -20,14 +20,15 @@
 #include "shader/program.hpp"
 #include "renderpass.hpp"
 #include "texture.hpp"
+#include "material.hpp"
 
-UEditor::UEditor(QTreeWidgetItem *p, RenderPassPtr pass_, UniformVar& var)
+UEditor::UEditor(QTreeWidgetItem *p, MaterialPtr mat_, UniformVar& var)
  : QTreeWidgetItem(p),
-   pass(pass_),
+   mat(mat_),
    name(var.name()) {}
 
-FloatEditor::FloatEditor(QTreeWidgetItem* p, RenderPassPtr pass, UniformVar& var)
-  : UEditor(p, pass, var),
+FloatEditor::FloatEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var)
+  : UEditor(p, mat, var),
     edit(new QLineEdit),
     slider(new QSlider(Qt::Horizontal)),
     min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min()),
@@ -100,7 +101,7 @@ void FloatEditor::reset() {
 }
 
 UniformVar* FloatEditor::getVar() {
-  UniformVar::List& list = pass->uniformList();
+  UniformVar::List& list = mat->uniformList();
   for (int i = 0; i < list.size(); ++i) {
     if (list[i].name() == name)
       return &list[i];
@@ -153,14 +154,14 @@ ShaderProperties::~ShaderProperties() {
   if (s_instance == this) s_instance = 0;
 }
 
-void ShaderProperties::update(RenderPassPtr pass) {
-  UniformVar::List list = pass->uniformList();
+void ShaderProperties::update(MaterialPtr mat) {
+  UniformVar::List list = mat->uniformList();
 
-  Sub& sub = m_passes[pass];
+  Sub& sub = m_materials[mat];
   if (!sub.item) {
     sub.item = new QTreeWidgetItem(this);
     /// @todo change icon when the type changes
-    sub.item->setIcon(0, pass->icon());
+    // sub.item->setIcon(0, mat->icon());
     expandItem(sub.item);
     sub.item->setFirstColumnSpanned(true);
     /// @todo The last thing we want to use is hard coded color values when
@@ -169,7 +170,7 @@ void ShaderProperties::update(RenderPassPtr pass) {
     QFont font = sub.item->font(0);
     font.setBold(true);
     sub.item->setFont(0, font);
-    sub.item->setText(0, pass->name());
+    sub.item->setText(0, mat->name());
   }
 
   QSet<QString> names;
@@ -179,7 +180,7 @@ void ShaderProperties::update(RenderPassPtr pass) {
 
     std::shared_ptr<UEditor> editor = sub.editors[var.name()];
     if (!editor) {
-      editor.reset(createEditor(pass, var, type, sub.item));
+      editor.reset(createEditor(mat, var, type, sub.item));
       sub.editors[var.name()] = editor;
     }
 
@@ -223,8 +224,8 @@ void ShaderProperties::update(RenderPassPtr pass) {
   }*/
 }
 
-void ShaderProperties::remove(RenderPassPtr pass) {
-  m_passes.remove(pass);
+void ShaderProperties::remove(MaterialPtr mat) {
+  m_materials.remove(mat);
   /*
   QtVariantProperty* obj = m_shaders[shader];
   if (obj) {
@@ -247,11 +248,11 @@ void ShaderProperties::remove(RenderPassPtr pass) {
   it->set(variant);
 }*/
 
-UEditor* ShaderProperties::createEditor(RenderPassPtr pass, UniformVar& var,
+UEditor* ShaderProperties::createEditor(MaterialPtr mat, UniformVar& var,
                                         const ShaderTypeInfo& type, QTreeWidgetItem* p) {
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {
-      return new FloatEditor(p, pass, var);
+      return new FloatEditor(p, mat, var);
     } else {
       /// @todo implement
     }

@@ -18,48 +18,39 @@
 #include "object3d.hpp"
 #include "state.hpp"
 #include "model.hpp"
-#include "ext/glut_teapot.hpp"
 
-/// Renders a rectangular box.
-void drawBox(float x, float y, float z) {
-  glBegin(GL_QUADS);
-  glNormal3f(1,0,0);
-  glVertex3f(x,-y,z); glVertex3f(x,-y,-z); glVertex3f(x,y,-z); glVertex3f(x,y,z);
-  glNormal3f(0,0,-1);
-  glVertex3f(x,-y,-z); glVertex3f(-x,-y,-z); glVertex3f(-x,y,-z); glVertex3f(x,y,-z);
-  glNormal3f(-1,0,0);
-  glVertex3f(-x,-y,-z); glVertex3f(-x,-y,z); glVertex3f(-x,y,z); glVertex3f(-x,y,-z);
-  glNormal3f(0,0,1);
-  glVertex3f(-x,-y,z); glVertex3f(x,-y,z); glVertex3f(x,y,z); glVertex3f(-x,y,z);
-  glNormal3f(0,1,0);
-  glVertex3f(-x,y,z); glVertex3f(x,y,z); glVertex3f(x,y,-z); glVertex3f(-x,y,-z);
-  glNormal3f(0,-1,0);
-  glVertex3f(-x,-y,z); glVertex3f(-x,-y,-z); glVertex3f(x,-y,-z); glVertex3f(x,-y,z);
-  glEnd();
+Object3D::Object3D(QString name, ModelPtr model)
+  : m_name(name),
+    m_model(model) {}
+Object3D::~Object3D() {}
+
+void Object3D::render(State& state) {
+  if (m_model) {
+    m_model->render(shared_from_this(), state);
+  }
 }
 
-Object3D::Object3D() {}
-Object3D::~Object3D() {}
+bool Object3D::builtin() const {
+  if (!m_model) return false;
+  return m_model->builtin();
+}
 
 QVariantMap Object3D::save() const {
   QVariantMap map;
-  QVariantList lst;
-  if (builtin()) {
-    lst << "built-in" << name();
-  } else {
-    lst << "file" << name();
+  if (m_model) {
+    map["model"] = m_model->name();
   }
-  map["model"] = lst;
 
   return map;
 }
 
-void Teapot::render(State&) {
-  teapot(10, 3.7f, GL_FILL);
+void Object3D::load(QVariantMap /*map*/) {
 }
 
-void Box::render(State&) {
-  /// @todo remove translatef once there's a transform support in JSON format
-  glTranslatef(0, -3.1f, 0);
-  drawBox(3.5f, 0.4f, 3.5f);
+ObjectPtr Object3D::clone() {
+  return ObjectPtr(new Object3D(m_name));
+}
+
+void Object3D::setModel(ModelPtr model) {
+  m_model = model;
 }

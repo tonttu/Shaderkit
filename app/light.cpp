@@ -106,3 +106,7 @@ void Light::load(QVariantMap map) {
   m_direction = toVector(map["direction"]);
   m_spot_cutoff = map["spot cutoff"].toFloat();
 }
+
+LightPtr Light::clone() const {
+  return LightPtr(new Light(*this));
+}

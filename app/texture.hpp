@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "fbo.hpp"
 
+#include <QVariantMap>
+
 class Texture : public FBOImage {
 public:
   Texture(QString name);
@@ -39,7 +41,10 @@ public:
 
   QString imageClass() const { return "texture"; }
 
-private:
+  virtual TexturePtr clone() const;
+  virtual void load(QVariantMap map);
+
+protected:
   struct Param {
     Param(int v = 0) : is_float(false), i(v) {}
     Param(float v) : is_float(true), f(v) {}
@@ -51,7 +56,7 @@ private:
   };
 
   QMap<unsigned int, Param> m_params;
-  unsigned int m_id, m_bindedTexture;
+  unsigned int m_bindedTexture;
   float m_blend;
   int m_uv;
 };
@@ -62,6 +67,9 @@ public:
   virtual ~TextureFile() {}
 
   void setFile(QString file);
+
+  virtual TexturePtr clone() const;
+  virtual void load(QVariantMap map);
 
 private:
   QString m_file;

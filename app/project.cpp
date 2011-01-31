@@ -130,23 +130,27 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
 
 void Project::setScene(ScenePtr scene) {
   if (m_active_scene) {
-    foreach (ProgramPtr prog, m_active_scene->shaders()) {
+    /// @todo
+    /*foreach (ProgramPtr prog, m_active_scene->shaders()) {
       disconnect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
               this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
 
       foreach (ShaderPtr shader, prog->shaders()) {
         FileList::instance().remove(shader);
       }
-    }
+    }*/
 
     foreach (Scene::RenderPasses::value_type p, m_active_scene->renderPasses()) {
       RenderPassProperties::instance().remove(p.second);
-      ShaderProperties::instance().remove(p.second);
+      /// @todo
+      //ShaderProperties::instance().remove(p.second);
     }
   }
 
   m_active_scene = scene;
 
+  /// @todo
+  /*
   foreach (ProgramPtr prog, scene->shaders()) {
     connect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
             this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
@@ -154,7 +158,7 @@ void Project::setScene(ScenePtr scene) {
     foreach (ShaderPtr shader, prog->shaders()) {
       addShader(shader);
     }
-  }
+  }*/
 
   emit sceneChanged(scene);
 }

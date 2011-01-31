@@ -60,6 +60,7 @@ typedef std::shared_ptr<Object3D> ObjectPtr;
 class Teapot;
 class Box;
 class Mesh;
+class TriMesh;
 typedef std::shared_ptr<Mesh> MeshPtr;
 class Animation;
 typedef std::shared_ptr<Animation> AnimationPtr;

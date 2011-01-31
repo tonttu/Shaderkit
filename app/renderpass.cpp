@@ -31,8 +31,9 @@
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Normal), m_name(name), m_scene(scene), m_clear(0),
     m_width(0), m_height(0), m_autosize(true) {
-  connect(this, SIGNAL(changed(RenderPassPtr)),
-          &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
+  /// @todo
+  /*connect(this, SIGNAL(changed(RenderPassPtr)),
+          &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));*/
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &MainWindow::instance(), SLOT(changed(RenderPassPtr)));
 }
@@ -96,9 +97,9 @@ void RenderPass::setType(Type type) {
   m_type = type;
 }
 
-void RenderPass::setShader(ProgramPtr shader) {
-  if (shader != m_shader) {
-    m_shader = shader;
+void RenderPass::setMaterial(MaterialPtr mat) {
+  if (mat != m_material) {
+    m_material = mat;
     emit changed(shared_from_this());
   }
 }
@@ -138,24 +139,12 @@ void RenderPass::render(State& state) {
   state.push();
   beginFBO();
 
-  if (m_clear) glClear(m_clear);
-  bool shader = false;
-  if (m_shader) shader = m_shader->bind();
-
-  if (shader) {
-    m_shader->setUniform(m_uniform_list);
-  }
-
   resize(width(), height());
 
-  m_viewport->prepare(width(), height());
+  if (m_clear) glClear(m_clear);
+  if (m_material) state.pushMaterial(m_material);
 
-  foreach (QString name, m_in.keys()) {
-    int unit = state.reserveTexUnit();
-    m_in[name]->bind(unit);
-    if (shader)
-      m_shader->setUniform(name, unit);
-  }
+  m_viewport->prepare(width(), height());
 
   if (m_type == PostProc) {
     glDisable(GL_DEPTH_TEST);
@@ -207,22 +196,7 @@ void RenderPass::render(State& state) {
       light->deactivate(state);
   }
 
-  foreach (TexturePtr tex, m_in)
-    tex->unbind();
-
-  if (shader) {
-    UniformVar::List list = m_shader->getUniformList();
-    m_shader->unbind();
-
-    if(list != m_uniform_list)
-      m_uniform_list = list;
-
-    if(list != m_uniform_list_prev) {
-      m_uniform_list_prev = list;
-      ShaderProperties::instance().update(shared_from_this());
-    }
-  }
-
+  if (m_material) state.popMaterial();
   endFBO();
   state.pop();
 }
@@ -255,7 +229,8 @@ QVariantMap RenderPass::save() const {
 
   if (!tmp.isEmpty()) map["clear"] = tmp;
 
-  if (m_shader) map["shader"] = m_shader->name();
+  /// @todo material here
+  ///if (m_shader) map["shader"] = m_shader->name();
 
   tmp.clear();
   foreach (ObjectPtr obj, m_objects)
@@ -296,20 +271,21 @@ QVariantMap RenderPass::save() const {
     out["color0"] = tmp;
   }
 
+  /** @todo to material
   foreach (QString name, m_in.keys()) {
     tmp.clear();
     tmp << "texture" << m_in[name]->name();
     in[name] = tmp;
   }
 
-  if (!in.isEmpty()) map["in"] = in;
+  if (!in.isEmpty()) map["in"] = in;*/
   if (!out.isEmpty()) map["out"] = out;
 
   return map;
 }
 
 void RenderPass::load(QVariantMap map) {
-  if (map.contains("shader")) m_shader = m_scene->shader(map["shader"].toString());
+  if (map.contains("material")) m_material = m_scene->material(map["material"].toString());
 
   foreach (QString name, map["objects"].toStringList())
     m_objects.insert(m_scene->object(name));
@@ -332,7 +308,6 @@ void RenderPass::load(QVariantMap map) {
     else if (name == "stencil") m_clear |= GL_STENCIL_BUFFER_BIT;
   }
 
-  QVariantMap in = map["in"].toMap();
   QVariantMap out = map["out"].toMap();
 
   m_width = out["width"].toInt();
@@ -360,10 +335,11 @@ void RenderPass::load(QVariantMap map) {
   if (tmp.size() == 2 && tmp[0] == "renderbuffer")
     m_color.reset(new RenderBuffer(tmp[1]));
 
+  /** @todo to material
   for (QVariantMap::iterator it = in.begin(); it != in.end(); ++it) {
     tmp = it->toStringList();
     if (tmp.size() == 2 && tmp[0] == "texture")
       m_in[it.key()] = m_scene->genTexture(tmp[1]);
-  }
+  }*/
   emit changed(shared_from_this());
 }

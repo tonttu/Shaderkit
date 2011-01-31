@@ -34,41 +34,36 @@
  * or similar renderable object. Shaders etc should be ready before calling
  * the render() method.
  */
-class Object3D : public QObject {
+class Object3D : public QObject, public std::enable_shared_from_this<Object3D> {
   Q_OBJECT
 
 public:
-  Object3D();
+  Object3D(QString name, ModelPtr model = ModelPtr());
   virtual ~Object3D();
 
-  /// Returns the object (model) name
+  /// Returns the object name
   /// @todo make a separate UI name method
-  virtual QString name() const = 0;
+  QString name() const { return m_name; }
   /// Renders the object with given state
-  virtual void render(State& state) = 0;
+  virtual void render(State& state);
 
-  virtual bool builtin() const { return false; }
+  virtual bool builtin() const;
 
   virtual QVariantMap save() const;
-};
 
-class BuiltIn : public Object3D {
-public:
-  bool builtin() const { return true; }
-};
+  QMap<QString, MaterialPtr>& materials() { return m_materials; }
 
-/// Built-in Teapot object, that is a tuned version of GLUT teapot.
-class Teapot : public BuiltIn {
-public:
-  virtual QString name() const { return "teapot"; }
-  virtual void render(State& state);
-};
+  void load(QVariantMap map);
+  /// Doesn't clone materials or model
+  ObjectPtr clone();
 
-/// Built-in dummy Box object
-class Box : public BuiltIn {
-public:
-  virtual QString name() const { return "box"; }
-  virtual void render(State& state);
+  void setModel(ModelPtr model);
+  ModelPtr model() { return m_model; }
+
+private:
+  QString m_name;
+  ModelPtr m_model;
+  QMap<QString, MaterialPtr> m_materials;
 };
 
 #endif // OBJECT3D_HPP

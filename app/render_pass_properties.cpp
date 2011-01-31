@@ -23,6 +23,7 @@
 #include "light.hpp"
 #include "camera.hpp"
 #include "texture.hpp"
+#include "material.hpp"
 
 /// @todo this is only for IconBtn
 #include "mainwindow.hpp"
@@ -90,11 +91,11 @@ void ShaderEditor::updateShaderList() {
   while (m_shaderlist->count() > 2)
     m_shaderlist->removeItem(2);
 
-  ProgramPtr selected = m_pass->shader();
+  MaterialPtr selected = m_pass->material();
   bool found = false;
 
-  QMap<QString, ProgramPtr> lst = m_pass->scene()->shaders();
-  for (QMap<QString, ProgramPtr>::iterator it = lst.begin(); it != lst.end(); ++it) {
+  QMap<QString, MaterialPtr> lst = m_pass->scene()->materials();
+  for (QMap<QString, MaterialPtr>::iterator it = lst.begin(); it != lst.end(); ++it) {
     m_shaderlist->addItem((*it)->name(), it.key());
     if (!found && selected == *it) {
       m_shaderlist->setCurrentIndex(m_shaderlist->count()-1);
@@ -107,13 +108,15 @@ void ShaderEditor::updateShaderList() {
 }
 
 void ShaderEditor::listActivated(int index) {
+  /// @todo
+  /*
   if (index == 0) {
     m_pass->setShader(ProgramPtr());
   } else if (index == 1) {
     /// @todo edit empty shader
   } else if (index > 2) {
     m_pass->setShader(m_pass->scene()->shader(m_shaderlist->itemData(index).toString()));
-  }
+  }*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -696,6 +699,8 @@ TexturesEditor::TexturesEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
 }
 
 void TexturesEditor::updated(RenderPassPtr pass) {
+  /// @todo
+  /*
   assert(pass == m_pass);
 
   m_pass->scene()->textures();
@@ -758,7 +763,7 @@ void TexturesEditor::updated(RenderPassPtr pass) {
     addChild(p.first);
     m_editors.removeAt(adder);
     m_editors << p;
-  }
+  }*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////

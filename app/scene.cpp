@@ -25,18 +25,12 @@
 #include "shader/shader.hpp"
 #include "texture.hpp"
 #include "opengl.hpp"
+#include "material.hpp"
+#include "obj_importer.hpp"
+#include "model.hpp"
+#include "utils.hpp"
 
 #include <QVariantMap>
-
-/// @todo move to Object3D
-static ObjectPtr createObject(const QString& name) {
-  if (name == "teapot") {
-    return ObjectPtr(new Teapot);
-  } else if (name == "box") {
-    return ObjectPtr(new Box);
-  }
-  return ObjectPtr();
-}
 
 QVector3D toVector(QVariant in) {
   QVariantList lst = in.toList();
@@ -64,6 +58,61 @@ QVariantList toList(QColor in) {
   QVariantList ret;
   ret << in.redF() << in.greenF() << in.blueF() << in.alphaF();
   return ret;
+}
+
+namespace {
+struct Import {
+  ObjImporter::Filter filter;
+  ObjImporter::Options options;
+  QString file;
+};
+
+void loadRefs(QMap<QString, Import>& imports, QVariant src,
+              QSet<QString> ObjImporter::Filter::*target) {
+  QVariantMap tmp = src.toMap();
+  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    QVariantMap item = it->toMap();
+    if (item.contains("ref")) {
+      QStringList ref = item["ref"].toStringList();
+      imports[ref[0]].filter.*target << QString(ref.size() > 1 ? ref[1] : "");
+    }
+  }
+}
+
+struct P {
+  QString name;
+  QVariantMap map;
+};
+
+QList<P> iterate(QVariant map) {
+  QList<P> out;
+  QVariantMap tmp = map.toMap();
+  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    P p;
+    p.name = it.key();
+    p.map = it.value().toMap();
+    out << p;
+  }
+  return out;
+}
+
+template <typename T>
+std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p,
+                         QMap<QString, std::shared_ptr<T> > ObjImporter::Scene::*src,
+                         bool create = true) {
+  typedef std::shared_ptr<T> Ptr;
+  QStringList ref = p.map["ref"].toStringList();
+  if (!ref.isEmpty()) {
+    if (ref.size() == 1 || ref[1].isEmpty()) {
+      foreach (Ptr t, imported[ref[0]].*src)
+        if (t) return t->clone();
+    } else {
+      Ptr t = (imported[ref[0]].*src)[ref[1]];
+      if (t) return t->clone();
+    }
+  }
+  return Ptr(create ? new T(p.name) : 0);
+}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,7 +156,7 @@ QVariantMap Scene::save() const {
   QVariantMap map;
   QVariantMap tmp = m_metainfo.save();
   if (!tmp.isEmpty()) map["lab"] = tmp;
-  QVariantMap objects, lights, cameras, shaders;
+  QVariantMap objects, lights, cameras, materials;
   QVariantList render_passes;
 
   foreach (QString name, m_objects.keys())
@@ -122,9 +171,9 @@ QVariantMap Scene::save() const {
     cameras[name] = m_cameras[name]->save();
   if (!cameras.isEmpty()) map["cameras"] = cameras;
 
-  foreach (QString name, m_shaders.keys())
-    shaders[name] = m_shaders[name]->save(m_root);
-  if (!shaders.isEmpty()) map["shaders"] = shaders;
+/*  foreach (QString name, m_materials.keys())
+    materials[name] = m_materials[name]->save(m_root);
+  if (!materials.isEmpty()) map["materials"] = materials;*/
 
   foreach (RenderPasses::value_type p, m_render_passes)
     render_passes << p.second->save();
@@ -134,58 +183,117 @@ QVariantMap Scene::save() const {
 }
 
 void Scene::load(QVariantMap map) {
-  QVariantMap tmp = map["objects"].toMap();
-  bool changed = false;
+  ObjImporter importer;
+  QMap<QString, Import> imports;
+  QMap<QString, ObjImporter::Scene> imported;
+
+  m_metainfo.load(map["lab"].toMap());
+
+  QVariantMap tmp = map["import"].toMap();
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    Import& im = imports[it.key()];
     QVariantMap item = it->toMap();
-    ObjectPtr object;
-    QStringList model = item["model"].toStringList();
-    if (model.size() == 2) {
-      if (model[0] == "built-in") {
-        object = createObject(model[1]);
-      } else if (model[0] == "file") {
-        // object = loadModel(model[1]);
-      }
+    im.file = item["file"].toString();
+    foreach (QString flag, item["flags"].toStringList())
+      im.options[flag] = true;
+    /// @todo m_imports = stuff
+  }
+
+  /// @todo should this be objects instead of models?
+  loadRefs(imports, map["models"], &ObjImporter::Filter::models);
+  loadRefs(imports, map["textures"], &ObjImporter::Filter::textures);
+  loadRefs(imports, map["materials"], &ObjImporter::Filter::materials);
+  loadRefs(imports, map["animations"], &ObjImporter::Filter::animations);
+  loadRefs(imports, map["camera"], &ObjImporter::Filter::cameras);
+  loadRefs(imports, map["lights"], &ObjImporter::Filter::lights);
+
+  for (QMap<QString, Import>::iterator it = imports.begin(); it != imports.end(); ++it) {
+    if (importer.readFile(it->file, it->options))
+      imported[it.key()] = importer.load(it->filter);
+  }
+
+  foreach (P p, iterate(map["models"])) {
+    ModelPtr model;
+    if (!p.map["built-in"].toString().isEmpty()) {
+      model = Model::createBuiltin(p.map["built-in"].toString());
+    } else {
+      model = clone(imported, p, &ObjImporter::Scene::models);
     }
-    if (object) {
-      m_objects[it.key()] = object;
-      changed = true;
+    model->load(p.map);
+    m_models[p.name] = model;
+  }
+
+  foreach (P p, iterate(map["textures"])) {
+    TexturePtr t = clone(imported, p, &ObjImporter::Scene::textures, false);
+    if (!t) {
+      if (p.map.contains("file")) t.reset(new TextureFile(p.name));
+      else t.reset(new Texture(p.name));
+    }
+    t->load(p.map);
+    m_textures[p.name] = t;
+  }
+
+  foreach (P p, iterate(map["materials"])) {
+    MaterialPtr m = clone(imported, p, &ObjImporter::Scene::materials);
+    m->load(p.map);
+    m_materials[p.name] = m;
+
+    ProgramPtr prog;
+    foreach (QString filename, p.map["fragment"].toStringList()) {
+      if (!prog) prog.reset(new GLProgram(p.name));
+      prog->addShader(search(filename), Shader::Fragment);
+    }
+    foreach (QString filename, p.map["vertex"].toStringList()) {
+      if (!prog) prog.reset(new GLProgram(p.name));
+      prog->addShader(search(filename), Shader::Vertex);
+    }
+    foreach (QString filename, p.map["geometry"].toStringList()) {
+      if (!prog) prog.reset(new GLProgram(p.name));
+      prog->addShader(search(filename), Shader::Geometry);
+    }
+
+    /// @todo add a default shader if the material has shader hint
+    ///       and prog is null
+
+    if (prog) m->setProg(prog);
+
+    QVariantMap tmp = p.map["textures"].toMap();
+    for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+      QString n = it.value().toString();
+      if (m_textures.contains(n))
+        m->addTexture(it.key(), m_textures[n]);
     }
   }
-  if (changed)
-    emit objectListUpdated();
 
-  tmp = map["lights"].toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-    LightPtr light(new Light(it.key()));
-    light->load(it->toMap());
-    m_lights[it.key()] = light;
-  }
-  if (!tmp.isEmpty())
-    emit lightListUpdated();
+  foreach (P p, iterate(map["objects"])) {
+    ObjectPtr o = clone(imported, p, &ObjImporter::Scene::objects);
+    o->load(p.map);
+    m_objects[p.name] = o;
 
-  tmp = map["cameras"].toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-    CameraPtr camera(new Camera(it.key()));
-    camera->load(it->toMap());
-    m_cameras[it.key()] = camera;
-  }
-  if (!tmp.isEmpty())
-    emit cameraListUpdated();
+    QString model = p.map["model"].toString();
+    if (m_models.contains(model)) o->setModel(m_models[model]);
 
-  tmp = map["shaders"].toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-    ProgramPtr shader(new GLProgram(it.key()));
-    foreach (QString filename, it->toMap()["fragment"].toStringList())
-      shader->addShader(search(filename), Shader::Fragment);
-    foreach (QString filename, it->toMap()["vertex"].toStringList())
-      shader->addShader(search(filename), Shader::Vertex);
-    foreach (QString filename, it->toMap()["geometry"].toStringList())
-      shader->addShader(search(filename), Shader::Geometry);
-    m_shaders[it.key()] = shader;
+    QVariantMap tmp = p.map["materials"].toMap();
+    for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+      QString n = it.value().toString();
+      if (m_materials.contains(n))
+        o->materials()[it.key()] = m_materials[n];
+    }
   }
-  if (!tmp.isEmpty())
-    emit shaderListUpdated();
+
+  foreach (P p, iterate(map["lights"])) {
+    LightPtr l = clone(imported, p, &ObjImporter::Scene::lights);
+    l->load(p.map);
+    m_lights[p.name] = l;
+  }
+
+  foreach (P p, iterate(map["cameras"])) {
+    CameraPtr c = clone(imported, p, &ObjImporter::Scene::cameras);
+    c->load(p.map);
+    m_cameras[p.name] = c;
+  }
+
+  /// @todo animations
 
   foreach (QVariant item, map["render passes"].toList()) {
     QVariantMap map = item.toMap();
@@ -194,7 +302,6 @@ void Scene::load(QVariantMap map) {
     m_render_passes.push_back(qMakePair(pass->name(), pass));
   }
 
-  m_metainfo.load(map["lab"].toMap());
 }
 
 QString Scene::search(QString filename) const {

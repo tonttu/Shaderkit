@@ -100,7 +100,8 @@ ScenePtr ShaderDB::newLocalProject(QString name, QString srcfile) {
   /// @todo copy all file-based external 3D objects and texture images
 
   scene->setRoot(path);
-  foreach (ProgramPtr p, scene->shaders()) {
+  /// @todo
+/*  foreach (ProgramPtr p, scene->shaders()) {
     foreach (ShaderPtr s, p->shaders()) {
       if (!s->filename().isEmpty()) {
         QFileInfo d(s->filename());
@@ -109,7 +110,7 @@ ScenePtr ShaderDB::newLocalProject(QString name, QString srcfile) {
         s->setFilename(target);
       }
     }
-  }
+  }*/
 
   QJson::Serializer serializer;
   QFile file(target);

@@ -44,6 +44,8 @@ public:
   /// Load the light from map
   void load(QVariantMap map);
 
+  LightPtr clone() const;
+
   QString name() const { return m_name; }
 
 protected:

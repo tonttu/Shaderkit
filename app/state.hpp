@@ -52,20 +52,24 @@ public:
   void disable(GLenum cap);
 
   /// Reserves and returns next free texture unit
-  int reserveTexUnit();
+  int reserveTexUnit(void* keyptr, QString keyname);
 
   /// Saves the state
   void push();
   /// Restores the saved state
   void pop();
 
+  void pushMaterial(MaterialPtr);
+  void popMaterial();
+
 protected:
   struct Data {
-    QSet<int> m_texunits;
+    QMap<QPair<void*, QString>, int> m_texunits;
     QSet<int> m_lights;
   };
 
   QList<Data> m_data;
+  QList<MaterialPtr> m_materials;
 
   int nextFree(const QSet<int>& lst, int id = 0) const;
 };
