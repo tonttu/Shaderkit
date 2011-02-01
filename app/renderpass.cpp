@@ -135,12 +135,13 @@ QIcon RenderPass::icon() {
   return QIcon(icon);
 }
 
-void RenderPass::render(State& state) {
+void RenderPass::render(State& state, const RenderOptions& render_opts) {
   state.push();
   beginFBO();
 
   resize(width(), height());
 
+  glClearColor(0.2f, 0.2f, 0.2f, 1);
   if (m_clear) glClear(m_clear);
   if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
 
@@ -179,7 +180,7 @@ void RenderPass::render(State& state) {
     //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 
     /// @todo remove this, only for testing
-    static float f = 0.0f;
+    static float f = -150.0f;
     f += 0.2f;
     glRotatef(f, 0, 1, 0);
 
@@ -196,6 +197,8 @@ void RenderPass::render(State& state) {
 
     foreach (LightPtr light, m_lights)
       light->deactivate(state);
+
+    if (render_opts.ui) renderUI(state, render_opts);
   }
 
   if (m_defaultMaterial) state.popMaterial();
@@ -219,6 +222,57 @@ void RenderPass::beginFBO() {
 
 void RenderPass::endFBO() {
   if (m_fbo) m_fbo->unbind();
+}
+
+void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
+  state.push();
+  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_LIGHTING);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_LINE_SMOOTH);
+  glLineWidth(1.7f);
+
+  if (render_opts.grid) {
+    if (!m_gridVertices.size()) {
+      float step = 10.0f;
+      int dist = 5;
+      std::vector<float> v;
+      std::vector<float> c;
+#define V(a,b,c) v.push_back(a), v.push_back(b), v.push_back(c)
+#define C(r,g,b,a) c.push_back(r), c.push_back(g), c.push_back(b), c.push_back(a)
+      for (int i = -dist; i <= dist; ++i) {
+        V(i*step, 0, -dist*step); V(i*step, 0, dist*step);
+        V(-dist*step, 0, i*step); V(dist*step, 0, i*step);
+
+        if (i == 0) {
+          V(-step*0.2f, 0, (dist-0.2f)*step); V(0, 0, dist*step);
+          V(step*0.2f, 0, (dist-0.2f)*step); V(0, 0, dist*step);
+
+          V((dist-0.2f)*step, 0, -step*0.2f); V(dist*step, 0, 0);
+          V((dist-0.2f)*step, 0, step*0.2f); V(dist*step, 0, 0);
+
+          for (int j = 0; j < 2; ++j) C(1.0f, 0.5, 0.5f, 0.5f);
+          for (int j = 0; j < 2; ++j) C(0.5f, 1.0, 0.5f, 0.5f);
+          for (int j = 0; j < 4; ++j) C(1.0f, 0.5, 0.5f, 0.5f);
+          for (int j = 0; j < 4; ++j) C(0.5f, 1.0, 0.5f, 0.5f);
+        } else {
+          for (int j = 0; j < 4; ++j) {
+            c.push_back(0.5f); c.push_back(0.5f); c.push_back(0.5f); c.push_back(0.3f);
+          }
+        }
+      }
+#undef V
+#undef C
+      m_gridVertices.enableArray(state, GL_VERTEX_ARRAY, 3, v);
+      m_gridColors.enableArray(state, GL_COLOR_ARRAY, 4, c);
+    } else {
+      m_gridVertices.enableArray(state, GL_VERTEX_ARRAY, 3);
+      m_gridColors.enableArray(state, GL_COLOR_ARRAY, 4);
+    }
+    glRun(glDrawArrays(GL_LINES, 0, m_gridVertices.size()/sizeof(float)/3));
+  }
+  state.pop();
 }
 
 QVariantMap RenderPass::save() const {

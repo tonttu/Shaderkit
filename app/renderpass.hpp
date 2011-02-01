@@ -21,6 +21,12 @@
 #include "forward.hpp"
 #include "opengl.hpp"
 #include "shader/uniform.hpp"
+#include "buffer_object.hpp"
+
+struct RenderOptions {
+  bool grid;
+  bool ui;
+};
 
 /**
  * Render pass represents one renderable image that might only be a small part
@@ -59,7 +65,7 @@ public:
   RenderPass(QString name, ScenePtr scene);
 
   /// Render the pass
-  void render(State& state);
+  void render(State& state, const RenderOptions& render_opts);
 
   QVariantMap save() const;
 
@@ -106,6 +112,7 @@ signals:
 protected:
   void beginFBO();
   void endFBO();
+  void renderUI(State& state, const RenderOptions& render_opts);
 
   QString m_name;
 
@@ -126,6 +133,8 @@ protected:
   bool m_autosize;
   FBOPtr m_fbo;
   FBOImagePtr m_depth, m_color;
+
+  BufferObject m_gridVertices, m_gridColors;
 };
 
 #endif // RENDERPASS_HPP

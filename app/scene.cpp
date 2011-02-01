@@ -106,14 +106,14 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
     if (ref.size() == 1 || ref[1].isEmpty()) {
       foreach (Ptr t, imported[ref[0]].*src)
         if (t) {
-          Log::debug("Importing first object (%s)", t->name().toUtf8().data());
+          Log::info("Importing first object (%s)", t->name().toUtf8().data());
           return t->clone();
         }
       Log::error("Couldn't find any objects for ref %s", p.name.toUtf8().data());
     } else {
       Ptr t = (imported[ref[0]].*src).value(ref[1]);
       if (t) {
-        Log::debug("Importing %s", t->name().toUtf8().data());
+        Log::info("Importing %s", t->name().toUtf8().data());
         return t->clone();
       } else {
         Log::error("Couldn't find ref %s for %s", ref[1].toUtf8().data(), p.name.toUtf8().data());
@@ -139,17 +139,25 @@ void Scene::resize(int width, int height) {
 
 void Scene::render() {
   State state;
+  RenderOptions opts;
+  opts.grid = true;
+  opts.ui = false;
+
+  bool ui = false;
   for (RenderPasses::iterator it = m_render_passes.begin(); it != m_render_passes.end(); ++it) {
     RenderPassPtr p = it->second;
-    p->render(state);
+    opts.ui = !ui && p->type() == RenderPass::Normal;
+    p->render(state, opts);
+    ui = opts.ui || ui;
   }
 }
 
 TexturePtr Scene::genTexture(const QString& name) {
-  Log::debug("genTexture(%s): %s", name.toUtf8().data(),
-             QStringList(m_textures.keys()).join(", ").toUtf8().data());
+  Log::info("genTexture(%s): %s", name.toUtf8().data(),
+            QStringList(m_textures.keys()).join(", ").toUtf8().data());
   if (m_textures.contains(name)) return m_textures[name];
 
+  Log::info("Ei kelvannut");
   TexturePtr tex(new Texture(name));
   m_textures[name] = tex;
   emit textureListUpdated();
@@ -266,7 +274,7 @@ void Scene::load(QVariantMap map) {
       prog->addShader(search(filename), Shader::Geometry);
     }
 
-    Log::debug("Shading model: %s", m->style.shading_model.toUtf8().data());
+    Log::info("Shading model: %s", m->style.shading_model.toUtf8().data());
     /// @todo add a default shader if the material has shader hint
     ///       and prog is null
 

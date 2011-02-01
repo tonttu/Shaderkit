@@ -22,13 +22,17 @@ public:
   virtual ~BufferObject();
 
   void enableArray(State& state, GLenum cap, int components, std::vector<float>& data);
+  void enableArray(State& state, GLenum cap, int components);
 
   void bind(State& state, GLenum target, const void* data, size_t len);
+  void bind(State& state, GLenum target);
 
   template <typename T>
   void bind(State& state, GLenum target, const std::vector<T>& data) {
     bind(state, target, &data.front(), data.size()*sizeof(data.front()));
   }
+
+  size_t size() const { return m_cache_size; }
 
 private:
   unsigned int m_id;
