@@ -35,6 +35,7 @@ Texture::~Texture() {
 
 void Texture::bind(int texture) {
   m_bindedTexture = texture;
+  if (m_id == 0) glRun(glGenTextures(1, &m_id));
   glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
   glRun(glBindTexture(GL_TEXTURE_2D, m_id));
 }
@@ -79,13 +80,7 @@ void Texture::setup(unsigned int fbo, int width, int height) {
                          0 /* border */, GL_RGBA, GL_UNSIGNED_BYTE, NULL /* data */));
     }
 
-    for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
-      if (it->is_float)
-        glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
-      else
-        glRun(glTexParameterf(GL_TEXTURE_2D, it.key(), it->f));
-    }
-
+    applyParams();
     unbind();
   }
 
@@ -97,6 +92,15 @@ void Texture::setup(unsigned int fbo, int width, int height) {
   m_height = height;
   m_active_type = m_type;
   if (fbo_changed) m_fbos.insert(fbo);
+}
+
+void Texture::applyParams() {
+  for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+    if (it->is_float)
+      glRun(glTexParameterf(GL_TEXTURE_2D, it.key(), it->f));
+    else
+      glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
+  }
 }
 
 TextureFile::TextureFile(QString name) : Texture(name) {}
@@ -127,6 +131,32 @@ TexturePtr TextureFile::clone() const {
 
 void TextureFile::load(QVariantMap map) {
   /// @todo
+}
+
+void TextureFile::bind(int texture) {
+  bool reload = m_loadedFile != m_file;
+  if (reload && m_id > 0) {
+    QGLContext* cx = const_cast<QGLContext*>(QGLContext::currentContext());
+    cx->deleteTexture(m_id);
+    m_id = 0;
+    m_width = m_height = 0;
+    if (!m_file.isEmpty()) {
+      QImage image(m_file);
+      if (image.isNull()) {
+        Log::error("Failed to load image: %s", m_file.toUtf8().data());
+      } else {
+        m_id = cx->bindTexture(image, GL_TEXTURE_2D,
+                 QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
+        m_width = image.width();
+        m_height = image.height();
+        applyParams();
+        Log::info("Image %s, #%d %dx%d", m_file.toUtf8().data(), m_id, m_width, m_height);
+      }
+    }
+    m_loadedFile = m_file;
+  }
+  glRun(glEnable(GL_TEXTURE_2D));
+  Texture::bind(texture);
 }
 
 /*

@@ -88,6 +88,7 @@ bool ObjImporter::readFile(QString file, QMap<QString, bool> options) {
 
   m_analyzed = false;
   m_names = Names();
+  m_file = file;
 
   /// @todo use this information somehow
   flags |= aiProcess_ValidateDataStructure;
@@ -122,6 +123,7 @@ ObjImporter::SceneInfo ObjImporter::analyze() {
     QString name = str(s.mRootNode->mName);
     m_names.objects[name] = 0;
     out.objects[name] = QString("%1 meshes").arg(s.mNumMeshes);
+    Log::debug("Object: %s", name.toUtf8().data());
   }
 
   for (unsigned int i = 0; i < s.mNumAnimations; ++i) {
@@ -129,6 +131,7 @@ ObjImporter::SceneInfo ObjImporter::analyze() {
     QString name = Utils::uniqueName(str(a.mName), out.animations.keys(), "Animation");
     m_names.animations[name] = i;
     out.animations[name] = QString("%1 channels").arg(a.mNumChannels);
+    Log::debug("Animation: %s", name.toUtf8().data());
   }
 
   for (unsigned int i = 0; i < s.mNumCameras; ++i) {
@@ -136,6 +139,7 @@ ObjImporter::SceneInfo ObjImporter::analyze() {
     QString name = Utils::uniqueName(str(c.mName), out.cameras.keys(), "Camera");
     m_names.animations[name] = i;
     out.cameras[name] = "";
+    Log::debug("Camera: %s", name.toUtf8().data());
   }
 
   for (unsigned int i = 0; i < s.mNumLights; ++i) {
@@ -159,6 +163,7 @@ ObjImporter::SceneInfo ObjImporter::analyze() {
     QString name = Utils::uniqueName(str(l.mName), out.lights.keys(), "Light");
     m_names.lights[name] = i;
     out.lights[name] = type;
+    Log::debug("Light: %s", name.toUtf8().data());
   }
 
   for (unsigned int i = 0; i < s.mNumMaterials; ++i) {
@@ -166,21 +171,28 @@ ObjImporter::SceneInfo ObjImporter::analyze() {
     aiString name;
     aiGetMaterialString(&m, AI_MATKEY_NAME, &name);
 
-    int num = 0;
-    foreach (aiTextureType type, textureRoles().keys()) {
+    int num = i << 8;
+    QMap<aiTextureType, QString> roles = textureRoles();
+    foreach (aiTextureType type, roles.keys()) {
       unsigned int count = m.GetTextureCount(type);
       for (unsigned int j = 0; j < count; ++j) {
         aiString path;
         aiGetMaterialString(&m, AI_MATKEY_TEXTURE(type, j), &path);
-        QString texname = Utils::uniqueName(str(path), out.textures.keys(), "Texture");
+
+        QFileInfo fi(str(path));
+        QString texname = roles[type] + "-" + fi.baseName();
+
+        texname = Utils::uniqueName(texname, out.textures.keys(), "Texture");
         out.textures[texname] = "";
         m_names.textures[texname] = num++;
+        Log::debug("Texture: %s", texname.toUtf8().data());
       }
     }
 
     QString name2 = Utils::uniqueName(str(name), out.materials.keys(), "Material");
     m_names.materials[name2] = i;
     out.materials[name2] = QString("%1 textures").arg(num);
+    Log::debug("Material: %s", name2.toUtf8().data());
   }
 
   m_analyzed = true;
@@ -199,25 +211,72 @@ ObjImporter::Scene ObjImporter::load(Filter filter) {
 
   Scene scene;
 
-  foreach (QString name, filter.objects)
-    if (m_names.objects.contains(name))
-      scene.objects[name] = load(*m_aiscene->mRootNode);
+  foreach (QString name, filter.objects) {
+    if (m_names.objects.isEmpty()) continue;
+    if (name.isEmpty() && scene.objects.isEmpty())
+      name = m_names.objects.begin().key();
+    if (m_names.objects.contains(name)) {
+      ObjectPtr o = load(*m_aiscene->mRootNode);
+      scene.objects[name] = o;
+      scene.node = o->model()->node();
+    }
+  }
 
-  foreach (QString name, filter.animations)
+  foreach (QString name, filter.models) {
+    if (m_names.objects.isEmpty()) continue;
+    if (name.isEmpty() && scene.models.isEmpty())
+      name = m_names.objects.begin().key();
+    if (m_names.objects.contains(name)) {
+      ObjectPtr o;
+      if (scene.objects.contains(name)) o = scene.objects[name];
+      if (!o) o = load(*m_aiscene->mRootNode);
+      scene.models[name] = o->model();
+      scene.node = o->model()->node();
+    }
+  }
+
+  foreach (QString name, filter.animations) {
+    if (m_names.animations.isEmpty()) continue;
+    if (name.isEmpty() && scene.animations.isEmpty())
+      name = m_names.animations.begin().key();
     if (m_names.animations.contains(name))
       scene.animations[name] = load(*m_aiscene->mAnimations[m_names.animations[name]]);
+  }
 
-  foreach (QString name, filter.cameras)
+  foreach (QString name, filter.cameras) {
+    if (m_names.cameras.isEmpty()) continue;
+    if (name.isEmpty() && scene.cameras.isEmpty())
+      name = m_names.cameras.begin().key();
     if (m_names.cameras.contains(name))
       scene.cameras[name] = load(*m_aiscene->mCameras[m_names.cameras[name]]);
+  }
 
-  foreach (QString name, filter.lights)
-    if (m_names.lights.contains(name))
+  foreach (QString name, filter.lights) {
+    if (m_names.lights.isEmpty()) continue;
+    if (name.isEmpty() && scene.lights.isEmpty())
+      name = m_names.lights.begin().key();
+    if (m_names.lights.contains(name) || (name.isEmpty() && scene.lights.isEmpty()))
       scene.lights[name] = load(*m_aiscene->mLights[m_names.lights[name]]);
+  }
 
-  foreach (QString name, filter.materials)
-    if (m_names.materials.contains(name))
+  foreach (QString name, filter.materials) {
+    if (m_names.materials.isEmpty()) continue;
+    if (name.isEmpty() && scene.materials.isEmpty())
+      name = m_names.materials.begin().key();
+    if (m_names.materials.contains(name) || (name.isEmpty() && scene.materials.isEmpty()))
       scene.materials[name] = loadMaterial(m_names.materials[name]);
+  }
+
+  foreach (QString name, m_names.materials.keys()) {
+    Log::debug("Iterating material: %s", name.toUtf8().data());
+    MaterialPtr m = loadMaterial(m_names.materials[name]);
+    foreach (QString texname, m->textureNames()) {
+      Log::debug("Iterating texture: %s", texname.toUtf8().data());
+      Log::debug("Filter has: %s", QStringList(filter.textures.toList()).join(", ").toUtf8().data());
+      if (filter.textures.contains(texname))
+        scene.textures[texname] = m->texture(texname);
+    }
+  }
 
   m_aiscene = 0;
   m_filter = Filter();
@@ -294,7 +353,7 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
   src.Get(AI_MATKEY_SHININESS_STRENGTH, m->style.shininess_strength);
   src.Get(AI_MATKEY_REFRACTI, m->style.refracti);
 
-  int num = 0;
+  int num = idx << 8;
   foreach (aiTextureType type, roles.keys()) {
     unsigned int count = src.GetTextureCount(type);
     for (unsigned int i = 0; i < count; ++i) {
@@ -337,7 +396,7 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
       t->setUV(uvindex);
       /// @todo use aiTextureOp op somehow
 
-      m->addTexture(role, TexturePtr(t));
+      m->addTexture(name, TexturePtr(t));
     }
   }
 
@@ -377,7 +436,7 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
 
   TriMesh* mesh = new TriMesh;
 
-  assert(&src.mVertices[1].x - &src.mVertices[0].x == sizeof(float)*3);
+  assert((char*)&src.mVertices[1].x - (char*)&src.mVertices[0].x == sizeof(float)*3);
   mesh->vertices.resize(src.mNumVertices*3);
   std::copy(&src.mVertices->x, &(src.mVertices + src.mNumVertices)->x, &mesh->vertices[0]);
 
@@ -400,7 +459,7 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
   if (num > 0) {
     mesh->colors.resize(num);
     for (unsigned int i = 0; i < num; ++i) {
-      assert(&src.mColors[i][1].r - &src.mColors[i][0].r == sizeof(float)*4);
+      assert((char*)&src.mColors[i][1].r - (char*)&src.mColors[i][0].r == sizeof(float)*4);
       mesh->colors[i].resize(src.mNumVertices*4);
       std::copy(&src.mColors[i]->r, &(src.mColors[i] + src.mNumVertices)->r, &mesh->colors[i][0]);
     }
@@ -411,7 +470,7 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
     mesh->uvs.resize(num);
     mesh->uv_sizes.resize(num);
     for (unsigned int i = 0; i < num; ++i) {
-      assert(&src.mTextureCoords[i][1].x - &src.mTextureCoords[i][0].x == sizeof(float)*3);
+      assert((char*)&src.mTextureCoords[i][1].x - (char*)&src.mTextureCoords[i][0].x == sizeof(float)*3);
       mesh->uv_sizes[i] = src.mNumUVComponents[i];
       mesh->uvs[i].resize(src.mNumVertices*mesh->uv_sizes[i]);
 
@@ -448,34 +507,38 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
   /// @todo bones
   /// @todo anim meshes
 
-  mesh->name = str(src.mName);
+  mesh->name = Utils::uniqueName(str(src.mName), m_names.meshes, "Mesh");
+  m_names.meshes << mesh->name;
   QString matname = getName(m_names.materials, src.mMaterialIndex);
+  Log::debug("Mesh - Material: %s, %s", mesh->name.toUtf8().data(), matname.toUtf8().data());
   if (m_filter.materials.contains(matname)) {
-    obj->materials()[matname] = loadMaterial(src.mMaterialIndex);
+    obj->setMaterial(matname, loadMaterial(src.mMaterialIndex));
   }
 
   return MeshPtr(mesh);
 }
 
-void ObjImporter::load(ObjectPtr obj, Node& dest, const aiNode& src) {
-  dest.name = str(src.mName);
-  m_nodeIndex[dest.name] << &dest;
+void ObjImporter::load(ObjectPtr obj, NodePtr dest, const aiNode& src) {
+  dest->name = str(src.mName);
+  m_nodeIndex[dest->name] << dest;
   {
     /// assimp keeps the matrix in row-major format, opengl uses column-major format. transpose.
-    float* d = dest.matrix; const float* s = &src.mTransformation.a1;
+    float* d = dest->matrix; const float* s = &src.mTransformation.a1;
     d[0] = s[0];  d[4] = s[1];   d[8] = s[2];  d[12] = s[3];
     d[1] = s[4];  d[5] = s[5];   d[9] = s[6];  d[13] = s[7];
     d[2] = s[8];  d[6] = s[9];  d[10] = s[10]; d[14] = s[11];
     d[3] = s[12]; d[7] = s[13]; d[11] = s[14]; d[15] = s[15];
   }
 
-  dest.meshes.resize(src.mNumMeshes);
-  for (unsigned int i = 0; i < src.mNumMeshes; ++i)
-    dest.meshes[i] = loadMesh(obj, src.mMeshes[i]);
+  for (unsigned int i = 0; i < src.mNumMeshes; ++i) {
+    MeshPtr m = loadMesh(obj, src.mMeshes[i]);
+    if (m) dest->meshes << m;
+  }
 
-  dest.children.resize(src.mNumChildren);
-  for (unsigned int i = 0; i < src.mNumChildren; ++i)
-    load(obj, dest.children[i], *src.mChildren[i]);
+  for (unsigned int i = 0; i < src.mNumChildren; ++i) {
+    dest->children << NodePtr(new Node);
+    load(obj, dest->children[i], *src.mChildren[i]);
+  }
 
   /// @todo check for cameras and lights
 }
@@ -504,6 +567,16 @@ LightPtr ObjImporter::load(const aiLight& light) {
 }
 
 QString ObjImporter::findFile(QString file) {
+  QString filename = QFileInfo(file).fileName();
+
+  QString cwd = QDir::currentPath();
+  QDir::setCurrent(QFileInfo(m_file).absolutePath());
+
+  QString ret = QDir(file).canonicalPath();
+  if (ret.isEmpty()) ret = QDir(filename).canonicalPath();
+
+  QDir::setCurrent(cwd);
+
   /// @todo implement something funny and elegant
-  return file;
+  return ret;
 }

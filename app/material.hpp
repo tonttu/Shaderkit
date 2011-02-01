@@ -52,6 +52,8 @@ public:
   /// Does not clone textures!
   MaterialPtr clone() const;
 
+  QStringList textureNames() const { return m_textures.keys(); }
+  TexturePtr texture(QString key) { return m_textures.value(key); }
 //  QMap<QString, TexturePtr> in() const { return m_in; }
 
 signals:

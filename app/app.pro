@@ -50,8 +50,8 @@ HEADERS += \
     model.hpp \
     animation.hpp \
     obj_importer.hpp \
-    utils.hpp
->>>>>>> New skeleton classes and random refactoring for new material/assimp update.
+    utils.hpp \
+    buffer_object.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -87,8 +87,8 @@ SOURCES += \
     model.cpp \
     animation.cpp \
     obj_importer.cpp \
-    utils.cpp
->>>>>>> New skeleton classes and random refactoring for new material/assimp update.
+    utils.cpp \
+    buffer_object.cpp
 
 FORMS += \
     mainwindow.ui \

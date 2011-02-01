@@ -44,6 +44,19 @@ QVariantMap Object3D::save() const {
   return map;
 }
 
+MaterialPtr Object3D::material(QString name) {
+  if (m_materials.contains(name)) return m_materials[name];
+  return m_default_material;
+}
+
+void Object3D::setMaterial(QString name, MaterialPtr mat) {
+  m_materials[name] = mat;
+}
+
+void Object3D::setDefaultMaterial(MaterialPtr mat) {
+  m_default_material = mat;
+}
+
 void Object3D::load(QVariantMap /*map*/) {
 }
 

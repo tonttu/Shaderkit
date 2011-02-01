@@ -51,7 +51,9 @@ public:
 
   virtual QVariantMap save() const;
 
-  QMap<QString, MaterialPtr>& materials() { return m_materials; }
+  MaterialPtr material(QString name);
+  void setMaterial(QString name, MaterialPtr mat);
+  void setDefaultMaterial(MaterialPtr mat);
 
   void load(QVariantMap map);
   /// Doesn't clone materials or model
@@ -64,6 +66,7 @@ private:
   QString m_name;
   ModelPtr m_model;
   QMap<QString, MaterialPtr> m_materials;
+  MaterialPtr m_default_material;
 };
 
 #endif // OBJECT3D_HPP

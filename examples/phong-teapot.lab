@@ -1,27 +1,27 @@
 {
   "lab" : {
-    "lab version" : "0.0.1-alpha",
     "name" : "Phong Shader",
     "description" : "Simple Phong shaded teapot",
-    "id" : "unique string",
-    "revision" : 24,
-    "release" : "stable",
-    "server" : "glsl-lab.com",
     "category" : "example",
-    "renderer" : "OpenGL 3.2 compatibility",
-    "dependencies" : {
-      "shared" : "unique id of shared",
-      "shared-12" : ["unique id of shared", 12]
-    },
     "license" : "GPL",
     "author" : "Riku Palomäki <riku@palomaki.fi>"
   },
-  "objects" : {
+  "models" : {
     "teapot" : {
-      "model" : ["built-in", "teapot"]
+      "built-in" : "teapot"
     },
     "box" : {
-      "model" : ["built-in", "box"]
+      "built-in" : "box"
+    }
+  },
+  "objects" : {
+    "teapot" : {
+      "model" : "teapot",
+      "material" : "phong"
+    },
+    "box" : {
+      "model" : "box",
+      "material" : "phong"
     }
   },
   "lights" : {
@@ -31,11 +31,6 @@
       "diffuse" : [1.0, 1.0, 1.0, 1.0],
       "specular" : [1.0, 1.0, 1.0, 1.0],
       "direction" : [0.5, 0.5, 0.5]
-    }
-  },
-  "textures" : {
-    "image.png" : {
-      "file" : "image.png"
     }
   },
   "cameras" : {
@@ -49,7 +44,7 @@
       "up" : [0,1,0]
     }
   },
-  "shaders" : {
+  "materials" : {
     "phong" : {
       "geometry" : ["default.geom"],
       "fragment" : ["default.frag"],
@@ -57,44 +52,43 @@
     },
     "gaussian-y" : {
       "vertex" : ["post.vert"],
-      "fragment" : ["gaussian-y.frag"]
+      "fragment" : ["gaussian-y.frag"],
+      "textures" : {
+        "image" : "image"
+      }
     },
     "gaussian-x" : {
       "vertex" : ["post.vert"],
-      "fragment" : ["gaussian-x.frag"]
+      "fragment" : ["gaussian-x.frag"],
+      "textures" : {
+        "image" : "image2"
+      }
     }
   },
   "render passes" : [
     {
       "name" : "render",
       "clear" : ["color", "depth"],
-      "shader" : "phong",
       "objects" : ["teapot", "box"],
       "viewport" : ["camera", "camera1"],
       "lights" : ["light1"],
-      "out" : {
+      "render" : {
         "depth" : ["renderbuffer"],
         "color0" : ["texture", "image"]
       }
     },
     {
       "name" : "gx",
-      "shader" : "gaussian-y",
+      "material" : "gaussian-x",
       "viewport" : ["post"],
-      "in" : {
-        "image" : ["texture", "image"]
-      },
-      "out" : {
+      "render" : {
         "color0" : ["texture", "image2"]
       }
     },
     {
       "name" : "gy",
-      "shader" : "gaussian-x",
-      "viewport" : ["post"],
-      "in" : {
-        "image" : ["texture", "image2"]
-      }
+      "material" : "gaussian-y",
+      "viewport" : ["post"]
     }
   ]
 }

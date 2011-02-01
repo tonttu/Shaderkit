@@ -97,9 +97,9 @@ void RenderPass::setType(Type type) {
   m_type = type;
 }
 
-void RenderPass::setMaterial(MaterialPtr mat) {
-  if (mat != m_material) {
-    m_material = mat;
+void RenderPass::setDefaultMaterial(MaterialPtr mat) {
+  if (mat != m_defaultMaterial) {
+    m_defaultMaterial = mat;
     emit changed(shared_from_this());
   }
 }
@@ -142,7 +142,7 @@ void RenderPass::render(State& state) {
   resize(width(), height());
 
   if (m_clear) glClear(m_clear);
-  if (m_material) state.pushMaterial(m_material);
+  if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
 
   m_viewport->prepare(width(), height());
 
@@ -172,9 +172,11 @@ void RenderPass::render(State& state) {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    glEnable(GL_NORMALIZE);
 
     glShadeModel(GL_SMOOTH);
     glEnable(GL_MULTISAMPLE);
+    //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 
     /// @todo remove this, only for testing
     static float f = 0.0f;
@@ -196,7 +198,7 @@ void RenderPass::render(State& state) {
       light->deactivate(state);
   }
 
-  if (m_material) state.popMaterial();
+  if (m_defaultMaterial) state.popMaterial();
   endFBO();
   state.pop();
 }
@@ -285,13 +287,18 @@ QVariantMap RenderPass::save() const {
 }
 
 void RenderPass::load(QVariantMap map) {
-  if (map.contains("material")) m_material = m_scene->material(map["material"].toString());
+  if (map.contains("material"))
+    m_defaultMaterial = m_scene->material(map["material"].toString());
 
-  foreach (QString name, map["objects"].toStringList())
-    m_objects.insert(m_scene->object(name));
+  foreach (QString name, map["objects"].toStringList()) {
+    ObjectPtr o = m_scene->object(name);
+    if (o) m_objects.insert(o);
+  }
 
-  foreach (QString name, map["lights"].toStringList())
-    m_lights.insert(m_scene->light(name));
+  foreach (QString name, map["lights"].toStringList()) {
+    LightPtr l = m_scene->light(name);
+    if (l) m_lights.insert(l);
+  }
 
   QStringList tmp = map["viewport"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "camera") {
@@ -308,7 +315,7 @@ void RenderPass::load(QVariantMap map) {
     else if (name == "stencil") m_clear |= GL_STENCIL_BUFFER_BIT;
   }
 
-  QVariantMap out = map["out"].toMap();
+  QVariantMap out = map["render"].toMap();
 
   m_width = out["width"].toInt();
   m_height = out["height"].toInt();
@@ -335,11 +342,5 @@ void RenderPass::load(QVariantMap map) {
   if (tmp.size() == 2 && tmp[0] == "renderbuffer")
     m_color.reset(new RenderBuffer(tmp[1]));
 
-  /** @todo to material
-  for (QVariantMap::iterator it = in.begin(); it != in.end(); ++it) {
-    tmp = it->toStringList();
-    if (tmp.size() == 2 && tmp[0] == "texture")
-      m_in[it.key()] = m_scene->genTexture(tmp[1]);
-  }*/
   emit changed(shared_from_this());
 }

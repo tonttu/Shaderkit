@@ -46,6 +46,7 @@ public:
     QMap<QString, LightPtr> lights;
     QMap<QString, MaterialPtr> materials;
     QMap<QString, TexturePtr> textures;
+    NodePtr node;
   };
 
   ObjImporter();
@@ -58,7 +59,7 @@ public:
 private:
   MaterialPtr loadMaterial(int idx);
   MeshPtr loadMesh(ObjectPtr obj, int idx);
-  void load(ObjectPtr obj, Node& dest, const aiNode& src);
+  void load(ObjectPtr obj, NodePtr dest, const aiNode& src);
   ObjectPtr load(const aiNode& node);
   AnimationPtr load(const aiAnimation& anim);
   CameraPtr load(const aiCamera& cam);
@@ -78,7 +79,7 @@ private:
 
   Assimp::Importer* m_importer;
   const aiScene* m_aiscene;
-  QMap<QString, QList<Node*> > m_nodeIndex;
+  QMap<QString, QList<NodePtr> > m_nodeIndex;
   QVector<MeshPtr> m_meshIndex;
   QVector<MaterialPtr> m_materialIndex;
   Filter m_filter;
@@ -90,8 +91,10 @@ private:
     QMap<QString, int> lights;
     QMap<QString, int> materials;
     QMap<QString, int> textures;
+    QList<QString> meshes;
   } m_names;
 
+  QString m_file;
   bool m_analyzed;
 };
 

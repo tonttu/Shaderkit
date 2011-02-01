@@ -86,8 +86,8 @@ public:
 
   ScenePtr scene() { return m_scene; }
 
-  MaterialPtr material() { return m_material; }
-  void setMaterial(MaterialPtr material);
+  MaterialPtr defaultMaterial() { return m_defaultMaterial; }
+  void setDefaultMaterial(MaterialPtr defaultMaterial);
 
   Objects objects() { return m_objects; }
   void setObjects(Objects objs);
@@ -113,7 +113,7 @@ protected:
   Objects m_objects;
   /// All enabled lights
   Lights m_lights;
-  MaterialPtr m_material;
+  MaterialPtr m_defaultMaterial;
   CameraPtr m_viewport;
 
   ScenePtr m_scene;

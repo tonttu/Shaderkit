@@ -91,7 +91,7 @@ void ShaderEditor::updateShaderList() {
   while (m_shaderlist->count() > 2)
     m_shaderlist->removeItem(2);
 
-  MaterialPtr selected = m_pass->material();
+  MaterialPtr selected = m_pass->defaultMaterial();
   bool found = false;
 
   QMap<QString, MaterialPtr> lst = m_pass->scene()->materials();

@@ -2,6 +2,8 @@
 #define MODEL_HPP
 
 #include "forward.hpp"
+#include "buffer_object.hpp"
+
 #include <QString>
 #include <QVector>
 #include <QVariantMap>
@@ -10,19 +12,19 @@ struct Node {
   Node();
   QString name;
   float matrix[16];
-  QVector<Node> children;
-  QVector<MeshPtr> meshes;
+  QList<NodePtr> children;
+  QList<MeshPtr> meshes;
 };
 
 class Model {
 public:
   Model(QString name = "");
 
-  QString name() const { return m_node.name; }
-  Node& node() { return m_node; }
+  QString name() const { return m_node ? m_node->name : ""; }
+  NodePtr node() { return m_node; }
 
   void render(ObjectPtr o, State& state, const Node& node);
-  void render(ObjectPtr o, State& state) { render(o, state, m_node); }
+  void render(ObjectPtr o, State& state) { render(o, state, *m_node); }
 
   bool builtin() const { return m_builtin; }
 
@@ -32,7 +34,7 @@ public:
   static ModelPtr createBuiltin(const QString& name);
 
 private:
-  Node m_node;
+  NodePtr m_node;
   bool m_builtin;
 };
 
@@ -84,6 +86,11 @@ public:
   std::vector<unsigned int> indices;
 
 protected:
+  BufferObject m_color0;
+  BufferObject m_uv0;
+  BufferObject m_normals;
+  BufferObject m_vertices;
+  BufferObject m_indices;
   void renderObj(State& state);
 };
 

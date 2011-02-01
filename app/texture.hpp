@@ -30,8 +30,8 @@ public:
 
   void setup(unsigned int fbo, int width, int height);
 
-  void bind(int texture = 0);
-  void unbind();
+  virtual void bind(int texture = 0);
+  virtual void unbind();
 
   void setParam(unsigned int pname, int param);
   void setParam(unsigned int pname, float param);
@@ -55,6 +55,8 @@ protected:
     };
   };
 
+  void applyParams();
+
   QMap<unsigned int, Param> m_params;
   unsigned int m_bindedTexture;
   float m_blend;
@@ -68,11 +70,13 @@ public:
 
   void setFile(QString file);
 
+  virtual void bind(int texture = 0);
+
   virtual TexturePtr clone() const;
   virtual void load(QVariantMap map);
 
 private:
-  QString m_file;
+  QString m_file, m_loadedFile;
 };
 
 #endif // TEXTURE_HPP

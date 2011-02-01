@@ -105,10 +105,20 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
   if (!ref.isEmpty()) {
     if (ref.size() == 1 || ref[1].isEmpty()) {
       foreach (Ptr t, imported[ref[0]].*src)
-        if (t) return t->clone();
+        if (t) {
+          Log::debug("Importing first object (%s)", t->name().toUtf8().data());
+          return t->clone();
+        }
+      Log::error("Couldn't find any objects for ref %s", p.name.toUtf8().data());
     } else {
-      Ptr t = (imported[ref[0]].*src)[ref[1]];
-      if (t) return t->clone();
+      Ptr t = (imported[ref[0]].*src).value(ref[1]);
+      if (t) {
+        Log::debug("Importing %s", t->name().toUtf8().data());
+        return t->clone();
+      } else {
+        Log::error("Couldn't find ref %s for %s", ref[1].toUtf8().data(), p.name.toUtf8().data());
+        Log::info("Choices are: %s", QStringList((imported[ref[0]].*src).keys()).join(", ").toUtf8().data());
+      }
     }
   }
   return Ptr(create ? new T(p.name) : 0);
@@ -118,7 +128,7 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Scene::Scene(QString filename) : m_width(-1), m_height(-1), m_filename(filename) {}
+Scene::Scene(QString filename) : m_width(-1), m_height(-1), m_filename(filename), m_node(new Node) {}
 
 void Scene::resize(int width, int height) {
   if (width == m_width && height == m_height) return;
@@ -136,6 +146,8 @@ void Scene::render() {
 }
 
 TexturePtr Scene::genTexture(const QString& name) {
+  Log::debug("genTexture(%s): %s", name.toUtf8().data(),
+             QStringList(m_textures.keys()).join(", ").toUtf8().data());
   if (m_textures.contains(name)) return m_textures[name];
 
   TexturePtr tex(new Texture(name));
@@ -208,8 +220,10 @@ void Scene::load(QVariantMap map) {
   loadRefs(imports, map["lights"], &ObjImporter::Filter::lights);
 
   for (QMap<QString, Import>::iterator it = imports.begin(); it != imports.end(); ++it) {
-    if (importer.readFile(it->file, it->options))
+    if (importer.readFile(search(it->file), it->options)) {
       imported[it.key()] = importer.load(it->filter);
+      m_node->children << imported[it.key()].node;
+    }
   }
 
   foreach (P p, iterate(map["models"])) {
@@ -252,17 +266,15 @@ void Scene::load(QVariantMap map) {
       prog->addShader(search(filename), Shader::Geometry);
     }
 
+    Log::debug("Shading model: %s", m->style.shading_model.toUtf8().data());
     /// @todo add a default shader if the material has shader hint
     ///       and prog is null
 
     if (prog) m->setProg(prog);
 
     QVariantMap tmp = p.map["textures"].toMap();
-    for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-      QString n = it.value().toString();
-      if (m_textures.contains(n))
-        m->addTexture(it.key(), m_textures[n]);
-    }
+    for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it)
+      m->addTexture(it.key(), genTexture(it.value().toString()));
   }
 
   foreach (P p, iterate(map["objects"])) {
@@ -277,8 +289,11 @@ void Scene::load(QVariantMap map) {
     for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
       QString n = it.value().toString();
       if (m_materials.contains(n))
-        o->materials()[it.key()] = m_materials[n];
+        o->setMaterial(it.key(), m_materials[n]);
     }
+
+    if (p.map.contains("material"))
+      o->setDefaultMaterial(m_materials.value(p.map["material"].toString()));
   }
 
   foreach (P p, iterate(map["lights"])) {

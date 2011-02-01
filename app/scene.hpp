@@ -92,6 +92,8 @@ public:
   /// are relative to this directory
   QString root() const { return m_root; }
 
+  NodePtr node() { return m_node; }
+
   /// Returns absolute file path for filename, or empty string if not found
   QString search(QString filename) const;
 
@@ -128,6 +130,8 @@ protected:
 
   QString m_filename;
   QString m_root;
+
+  NodePtr m_node;
 };
 
 /// Convert array of three doubles to vector

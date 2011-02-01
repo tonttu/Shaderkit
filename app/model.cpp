@@ -29,8 +29,8 @@ Node::Node() : matrix() {
   matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1.0f;
 }
 
-Model::Model(QString name) : m_builtin(false) {
-  m_node.name = name;
+Model::Model(QString name) : m_builtin(false), m_node(new Node) {
+  m_node->name = name;
 }
 
 void Model::render(ObjectPtr o, State& state, const Node& node) {
@@ -38,16 +38,15 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
   glPushMatrix();
   glMultMatrixf(node.matrix);
 
-  for (int i = 0; i < node.meshes.size(); ++i) {
-    Mesh& m = *node.meshes[i];
-    MaterialPtr material = o->materials()[m.name];
+  foreach (MeshPtr m, node.meshes) {
+    MaterialPtr material = o->material(m->name);
     if (material) state.pushMaterial(material);
-    node.meshes[i]->render(state);
+    m->render(state);
     if (material) state.popMaterial();
   }
 
   for (int i = 0; i < node.children.size(); ++i)
-    render(o, state, node.children[i]);
+    render(o, state, *node.children[i]);
 
   glPopMatrix();
 }
@@ -63,14 +62,14 @@ ModelPtr Model::createBuiltin(const QString& name) {
   if (name == "teapot") {
     ModelPtr m(new Model);
     m->m_builtin = true;
-    m->node().name = "teapot";
-    m->node().meshes << MeshPtr(new Teapot);
+    m->node()->name = "teapot";
+    m->node()->meshes << MeshPtr(new Teapot);
     return m;
   } else if (name == "box") {
     ModelPtr m(new Model);
     m->m_builtin = true;
-    m->node().name = "box";
-    m->node().meshes << MeshPtr(new Box);
+    m->node()->name = "box";
+    m->node()->meshes << MeshPtr(new Box);
     return m;
   }
   Log::error("Unknown builtin '%s'", name.toUtf8().data());
@@ -94,9 +93,19 @@ void Box::renderObj(State&) {
 }
 
 void TriMesh::renderObj(State& state) {
-  //if (material) state.push(material);
+  state.push();
 
-  /// @todo implement
-
-  //if (material) state.pop(material);
+  if (!vertices.empty())
+    m_vertices.enableArray(state, GL_VERTEX_ARRAY, 3, vertices);
+  if (!normals.empty())
+    m_normals.enableArray(state, GL_NORMAL_ARRAY, 3, normals);
+  if (!uvs.empty())
+    m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, uv_sizes[0], uvs[0]);
+  if (!colors.empty())
+    m_color0.enableArray(state, GL_COLOR_ARRAY, 3, colors[0]);
+  if (!indices.empty()) {
+    m_indices.bind(state, GL_ELEMENT_ARRAY_BUFFER, indices);
+    glRun(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0));
+  }
+  state.pop();
 }
