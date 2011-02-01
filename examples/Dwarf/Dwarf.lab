@@ -1,0 +1,104 @@
+{
+  "lab" : {
+    "name" : "Dwarf",
+    "description" : "B3D import example",
+    "category" : "example",
+    "license" : "GPL",
+    "author" : "Riku Palomäki <riku@palomaki.fi>"
+  },
+  "import" : {
+    "dwarf" : {
+      "file" : "dwarf1.b3d"
+    }
+  },
+  "models" : {
+    "dwarf" : {
+      "ref" : ["dwarf"]
+    }
+  },
+  "objects" : {
+    "dwarf" : {
+      "model" : "dwarf",
+      "materials" : {
+        "Mesh" : "White",
+        "Mesh.1" : "White",
+        "Mesh.2" : "White",
+        "Mesh.3" : "Axe"
+      }
+    }
+  },
+  "lights" : {
+    "light1" : {
+      "type" : "direction",
+      "ambient" : [0.2, 0.2, 0.2, 1.0],
+      "diffuse" : [1.0, 0.8, 1.0, 1.0],
+      "specular" : [1.0, 0.8, 1.0, 1.0],
+      "direction" : [0.3, 0.4, -1]
+    },
+    "light2" : {
+      "type" : "direction",
+      "ambient" : [0, 0, 0, 1.0],
+      "diffuse" : [1.0, 1.0, 0.8, 1.0],
+      "specular" : [1.0, 1.0, 0.8, 1.0],
+      "direction" : [-0.2, -0.2, -1]
+    },
+    "back" : {
+      "type" : "direction",
+      "ambient" : [0, 0, 0, 1.0],
+      "diffuse" : [0.8, 0.8, 1.0, 1.0],
+      "specular" : [0.8, 0.8, 1.0, 1.0],
+      "direction" : [0, 0.5, 1]
+    }
+  },
+  "cameras" : {
+    "camera1" : {
+      "type" : "perspective",
+      "fov" : 45,
+      "near" : 0.1,
+      "far" : 200.0,
+      "position" : [60,60,60],
+      "target" : [0,30,0],
+      "up" : [0,1,0]
+    }
+  },
+  "materials" : {
+    "Axe" : {
+      "ref" : ["dwarf", "Material0"],
+      "textures" : {
+        "axe" : "axe"
+      }
+    },
+    "White" : {
+      "ref" : ["dwarf", "Material1"],
+      "textures" : {
+        "dwarf" : "dwarf-white"
+      }
+    },
+    "Black" : {
+      "ref" : ["dwarf", "Material2"],
+      "textures" : {
+        "dwarf" : "dwarf-black"
+      }
+    }
+  },
+  "textures": {
+    "axe" : {
+      "ref" : ["dwarf", "diffuse-axe"]
+    },
+    "dwarf-white" : {
+      "ref" : ["dwarf", "diffuse-dwarf"]
+    },
+    "dwarf-black" : {
+      "ref" : ["dwarf", "diffuse-dwarf2"]
+    }
+  },
+  "render passes" : [
+    {
+      "name" : "render",
+      "clear" : ["color", "depth"],
+      "objects" : ["dwarf"],
+      "viewport" : ["camera", "camera1"],
+      "lights" : ["light1", "light2", "back"]
+    }
+  ]
+}
