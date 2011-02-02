@@ -74,7 +74,7 @@ public:
 
     GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
     if(loc == -1) {
-      Log::error("Failed to query uniform variable %s location", name.toAscii().data());
+      //Log::error("Failed to query uniform variable %s location", name.toAscii().data());
     } else {
       setUniform(loc, t);
     }
@@ -121,8 +121,8 @@ public:
   Shaders shaders() const { return m_shaders; }
 
 signals:
-  /// Emitted every time the program is successfully linked
-  void linked(ProgramPtr);
+  /// Emitted every time the program is linked
+  void linked(ProgramPtr, ShaderError::List);
   /// Shader was compiled
   void shaderCompiled(ShaderPtr, ShaderError::List);
 

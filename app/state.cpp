@@ -19,7 +19,7 @@
 #include "state.hpp"
 #include "material.hpp"
 
-State::State() {
+State::State(float time) : m_time(time) {
   m_data.push_back(Data());
 }
 
@@ -74,6 +74,7 @@ void State::pop() {
 void State::pushMaterial(MaterialPtr m) {
   if (!m_materials.isEmpty() && m_materials.back()) m_materials.back()->unbind();
   m_materials.push_back(m);
+  m_usedMaterials << m;
   push();
   if (m) m->bind(*this);
 }

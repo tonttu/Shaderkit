@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget* parent)
 
   connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
 
-  QAction* actions[] = {m_ui->action_glwidget, m_ui->action_shaders_properties,
+  QAction* actions[] = {m_ui->action_glwidget, m_ui->action_material_properties,
       m_ui->action_render_properties, m_ui->action_file_list, m_ui->action_error_log};
   QDockWidget* widgets[] = {m_ui->gldock, m_ui->shaderdock, m_ui->renderdock, m_ui->filesdock, m_ui->errordock};
   for (size_t i = 0; i < sizeof(actions)/sizeof(*actions); ++i) {
@@ -174,7 +174,7 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
     QTableWidgetItem* msg = new QTableWidgetItem(e->msg());
     msg->setIcon(QIcon(QPixmap(e->type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
     m_ui->error_list->setItem(r, 0, msg);
-    m_ui->error_list->setItem(r, 1, new QTableWidgetItem(shader->filename()));
+    if (shader) m_ui->error_list->setItem(r, 1, new QTableWidgetItem(shader->filename()));
     m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e->line()+1)));
     m_error_list_items[msg] = *e;
     changed = true;

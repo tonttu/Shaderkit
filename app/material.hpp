@@ -3,6 +3,7 @@
 
 #include "forward.hpp"
 #include "fbo.hpp"
+#include "state.hpp"
 #include "shader/uniform.hpp"
 
 #include <QVector3D>
@@ -13,6 +14,7 @@ public:
   Material(QString name);
 
   QString name() const { return m_name; }
+  void setName(QString name) { m_name = name; }
 
   void addTexture(QString name, TexturePtr tex);
 
@@ -40,9 +42,6 @@ public:
     float refracti;
   } style;
 
-  void bind(State& state);
-  void unbind();
-
   UniformVar::List & uniformList() { return m_uniform_list; }
 
   ProgramPtr prog() { return m_program; }
@@ -60,6 +59,11 @@ signals:
   void changed(MaterialPtr);
 
 private:
+  friend void State::pushMaterial(MaterialPtr);
+  friend void State::popMaterial();
+  void bind(State& state);
+  void unbind();
+
   /// The shader used to render this material, this could be shared between different objects
   /// @see m_uniform_list
   ProgramPtr m_program;

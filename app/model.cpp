@@ -29,7 +29,7 @@ Node::Node() : matrix() {
   matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1.0f;
 }
 
-Model::Model(QString name) : m_builtin(false), m_node(new Node) {
+Model::Model(QString name) : m_node(new Node), m_builtin(false) {
   m_node->name = name;
 }
 

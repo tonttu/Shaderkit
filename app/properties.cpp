@@ -110,12 +110,12 @@ UniformVar* FloatEditor::getVar() {
 }
 
 
-ShaderProperties* ShaderProperties::s_instance = 0;
+MaterialProperties* MaterialProperties::s_instance = 0;
 FileList* FileList::s_instance = 0;
 
-ShaderProperties &ShaderProperties::instance() {
+MaterialProperties &MaterialProperties::instance() {
   if (s_instance) return *s_instance;
-  return *(new ShaderProperties);
+  return *(new MaterialProperties);
 }
 
 FileList &FileList::instance() {
@@ -123,7 +123,7 @@ FileList &FileList::instance() {
   return *(new FileList);
 }
 
-ShaderProperties::Sub::~Sub() {
+MaterialProperties::Sub::~Sub() {
 }
 
 Properties::Properties(QWidget* parent)
@@ -131,7 +131,7 @@ Properties::Properties(QWidget* parent)
 //  setResizeMode(Interactive);
 }
 
-ShaderProperties::ShaderProperties(QWidget* parent)
+MaterialProperties::MaterialProperties(QWidget* parent)
   : Properties(parent) {
   if (!s_instance) s_instance = this;
   setColumnCount(3);
@@ -150,11 +150,11 @@ ShaderProperties::ShaderProperties(QWidget* parent)
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
 
-ShaderProperties::~ShaderProperties() {
+MaterialProperties::~MaterialProperties() {
   if (s_instance == this) s_instance = 0;
 }
 
-void ShaderProperties::update(MaterialPtr mat) {
+void MaterialProperties::update(MaterialPtr mat) {
   UniformVar::List list = mat->uniformList();
 
   Sub& sub = m_materials[mat];
@@ -170,6 +170,11 @@ void ShaderProperties::update(MaterialPtr mat) {
     QFont font = sub.item->font(0);
     font.setBold(true);
     sub.item->setFont(0, font);
+  }
+
+  if (!mat->prog()) {
+    sub.item->setText(0, mat->name() + " (fixed pipeline)");
+  } else {
     sub.item->setText(0, mat->name());
   }
 
@@ -190,65 +195,19 @@ void ShaderProperties::update(MaterialPtr mat) {
 
   foreach (QString name, sub.editors.keys().toSet() - names)
     sub.editors.remove(name);
-
-    /*
-  QtVariantProperty* obj = m_shaders[shader];
-
-  // Ensure the existence of the shader group property
-  if (!obj) {
-    m_shaders[shader] = obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), shader->name());
-    addProperty(obj);
-  }
-
-  // Remove all old subproperties
-  foreach (QtProperty* sub, obj->subProperties()) {
-    obj->removeSubProperty(sub);
-    m_properties.remove(sub);
-  }
-
-  UniformVar::List list = shader->getUniformList();
-  for (UniformVar::List::iterator it = list.begin(); it != list.end(); ++it) {
-    const ShaderTypeInfo& type = it->typeinfo();
-
-    if (it->arraySize() == 1) {
-      QString name = it->name();
-      QtVariantProperty* item = m_manager->addProperty(type.variant(), name);
-      if (item) {
-        m_properties[item] = *it;
-        item->setValue(it->get());
-        obj->addSubProperty(item);
-      }
-    } else {
-      /// @todo implement
-    }
-  }*/
 }
 
-void ShaderProperties::remove(MaterialPtr mat) {
-  m_materials.remove(mat);
-  /*
-  QtVariantProperty* obj = m_shaders[shader];
-  if (obj) {
-    m_shaders.remove(shader);
-
-    // Remove all old subproperties
-    foreach (QtProperty* sub, obj->subProperties()) {
-      obj->removeSubProperty(sub);
-      m_properties.remove(sub);
-    }
-
-    removeProperty(obj);
-    delete obj;
-  }*/
+void MaterialProperties::setMaterials(QSet<MaterialPtr> materials) {
+  QSet<MaterialPtr> current = m_materials.keys().toSet();
+  foreach (MaterialPtr m, current - materials) {
+    delete m_materials[m].item;
+    m_materials.remove(m);
+  }
+  foreach (MaterialPtr m, materials - current)
+    update(m);
 }
 
-/*void ShaderProperties::valueChanged(QtProperty* property, const QVariant& variant) {
-  PropertyMap::iterator it = m_properties.find(property);
-  if (it == m_properties.end()) return;
-  it->set(variant);
-}*/
-
-UEditor* ShaderProperties::createEditor(MaterialPtr mat, UniformVar& var,
+UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
                                         const ShaderTypeInfo& type, QTreeWidgetItem* p) {
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {

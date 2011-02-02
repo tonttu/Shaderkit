@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QVariantMap>
+#include <QTime>
 
 /**
  * Scene is a data structure that stores all objects by name, and controls
@@ -50,7 +51,7 @@ public:
   /// Current viewport height
   int height() const { return m_height; }
 
-  ProgramPtr shader(const QString& name) { return m_shaders[name]; }
+  //ProgramPtr shader(const QString& name) { return m_shaders[name]; }
   ObjectPtr object(const QString& name) { return m_objects[name]; }
   LightPtr light(const QString& name) { return m_lights[name]; }
   CameraPtr camera(const QString& name) { return m_cameras[name]; }
@@ -77,6 +78,8 @@ public:
 
   /// Ordered list of all render passes
   RenderPasses renderPasses() { return m_render_passes; }
+
+  QMap<QString, ProgramPtr> programs() { return m_programs; }
 
   QVariantMap save() const;
 
@@ -119,7 +122,7 @@ protected:
   QMap<QString, ObjectPtr> m_objects;
   QMap<QString, LightPtr> m_lights;
   QMap<QString, CameraPtr> m_cameras;
-  QMap<QString, ProgramPtr> m_shaders;
+  QMap<QString, ProgramPtr> m_programs;
   QMap<QString, TexturePtr> m_textures;
   QMap<QString, MaterialPtr> m_materials;
   QMap<QString, ModelPtr> m_models;
@@ -127,6 +130,8 @@ protected:
   MetaInfo m_metainfo;
   
   int m_width, m_height;
+
+  QTime m_time;
 
   QString m_filename;
   QString m_root;

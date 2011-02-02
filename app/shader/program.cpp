@@ -17,6 +17,7 @@
 
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
+#include "shader/compiler_output_parser.hpp"
 #include "app/properties.hpp"
 
 #include <cassert>
@@ -45,7 +46,8 @@ bool GLProgram::bind() {
       Shader::CompileStatus status = (*it)->compile(errors);
       if (status != Shader::NONE) emit shaderCompiled(*it, errors);
       if (status == Shader::OK || status == Shader::WARNINGS) {
-        glAttachShader(m_prog, (*it)->id());
+        /// @todo This should not be re-attached
+        glRun(glAttachShader(m_prog, (*it)->id()));
         relink = true;
       }
     }
@@ -89,6 +91,8 @@ void GLProgram::link() {
     m_uniformList = getUniformList();
   }
 
+  ShaderError::List errors;
+
   glRun(glLinkProgram(m_prog));
   GLint ok = 0;
   glRun(glGetProgramiv(m_prog, GL_LINK_STATUS, &ok));
@@ -102,10 +106,10 @@ void GLProgram::link() {
 #else
     GLchar log[len];
 #endif
-    /// @todo generate shadererrors
     GLsizei size = len;
     glRun(glGetProgramInfoLog(m_prog, size, &size, log));
-    //qDebug() << log;
+    ShaderCompilerOutputParser parser(QString::fromUtf8(log, size));
+    errors = parser.parse();
 
 #ifdef _MSC_VER
     delete[] log;
@@ -115,8 +119,8 @@ void GLProgram::link() {
   if (ok) {
     glRun(glUseProgram(m_prog)); /// @todo Do we need this?
     setUniform(m_uniformList);
-    emit linked(shared_from_this());
   }
+  emit linked(shared_from_this(), errors);
 
   glRun(glUseProgram(prog));
 }
@@ -142,7 +146,8 @@ UniformVar::List GLProgram::getUniformList() {
                              &length, &size, &type, name));
 
     // For now skip build-in uniforms, since those can't be changed the same way as others.
-    if (strncmp(name, "gl_", 3) != 0)
+    /// @todo handle these magical variables somehow better
+    if (strncmp(name, "gl_", 3) != 0 && strcmp(name, "time") != 0)
       list.push_back(UniformVar(shared_from_this(), name, type));
 
 #ifdef _MSC_VER

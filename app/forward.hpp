@@ -71,7 +71,7 @@ typedef std::shared_ptr<Model> ModelPtr;
 class Node;
 typedef std::shared_ptr<Node> NodePtr;
 
-class ShaderProperties;
+class MaterialProperties;
 class Editor;
 class EditorMargin;
 class Highlighter;

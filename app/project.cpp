@@ -102,7 +102,7 @@ void Project::addShader(ShaderPtr shader) {
 Editor* Project::findEditor(ShaderPtr shader) {
   QList<Editor*> editors = m_main_window.editors();
   for (int i = 0; i < editors.size(); ++i) {
-    if (editors[i]->shader() == shader) return editors[i];
+    if (editors[i]->shader()->filename() == shader->filename()) return editors[i];
   }
   return 0;
 }
@@ -128,37 +128,40 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   m_main_window.shaderCompiled(shader, errors);
 }
 
+void Project::linked(ProgramPtr, ShaderError::List errors) {
+  m_main_window.shaderCompiled(ShaderPtr(), errors);
+}
+
 void Project::setScene(ScenePtr scene) {
   if (m_active_scene) {
-    /// @todo
-    /*foreach (ProgramPtr prog, m_active_scene->shaders()) {
+    foreach (ProgramPtr prog, m_active_scene->programs()) {
       disconnect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
-              this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+                 this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+      disconnect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
+                 this, SLOT(linked(ProgramPtr, ShaderError::List)));
 
       foreach (ShaderPtr shader, prog->shaders()) {
         FileList::instance().remove(shader);
       }
-    }*/
+    }
 
     foreach (Scene::RenderPasses::value_type p, m_active_scene->renderPasses()) {
       RenderPassProperties::instance().remove(p.second);
-      /// @todo
-      //ShaderProperties::instance().remove(p.second);
     }
   }
 
   m_active_scene = scene;
 
-  /// @todo
-  /*
-  foreach (ProgramPtr prog, scene->shaders()) {
+  foreach (ProgramPtr prog, scene->programs()) {
     connect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
             this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+    connect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
+            this, SLOT(linked(ProgramPtr, ShaderError::List)));
 
     foreach (ShaderPtr shader, prog->shaders()) {
       addShader(shader);
     }
-  }*/
+  }
 
   emit sceneChanged(scene);
 }

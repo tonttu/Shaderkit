@@ -29,6 +29,7 @@
 #include "obj_importer.hpp"
 #include "model.hpp"
 #include "utils.hpp"
+#include "properties.hpp"
 
 #include <QVariantMap>
 
@@ -128,7 +129,11 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Scene::Scene(QString filename) : m_width(-1), m_height(-1), m_filename(filename), m_node(new Node) {}
+Scene::Scene(QString filename)
+  : m_width(-1), m_height(-1),
+    m_filename(filename), m_node(new Node) {
+  m_time.start();
+}
 
 void Scene::resize(int width, int height) {
   if (width == m_width && height == m_height) return;
@@ -138,7 +143,7 @@ void Scene::resize(int width, int height) {
 }
 
 void Scene::render() {
-  State state;
+  State state(m_time.elapsed()/1000.0f);
   RenderOptions opts;
   opts.grid = true;
   opts.ui = false;
@@ -150,6 +155,8 @@ void Scene::render() {
     p->render(state, opts);
     ui = opts.ui || ui;
   }
+
+  MaterialProperties::instance().setMaterials(state.usedMaterials());
 }
 
 TexturePtr Scene::genTexture(const QString& name) {
@@ -166,7 +173,7 @@ TexturePtr Scene::genTexture(const QString& name) {
 
 QList<ShaderPtr> Scene::shadersByFilename(const QString& filename) {
   QList<ShaderPtr> res;
-  foreach (ProgramPtr p, m_shaders)
+  foreach (ProgramPtr p, m_programs)
     foreach (ShaderPtr s, p->shaders())
       if (s->filename() == filename) res << s;
   return res;
@@ -206,6 +213,17 @@ void Scene::load(QVariantMap map) {
   ObjImporter importer;
   QMap<QString, Import> imports;
   QMap<QString, ObjImporter::Scene> imported;
+
+  /// @todo some kind of incremental loading would be cool
+  m_render_passes.clear();
+  m_objects.clear();
+  m_lights.clear();
+  m_cameras.clear();
+  m_programs.clear();
+  m_textures.clear();
+  m_materials.clear();
+  m_models.clear();
+
 
   m_metainfo.load(map["lab"].toMap());
 
@@ -257,6 +275,7 @@ void Scene::load(QVariantMap map) {
 
   foreach (P p, iterate(map["materials"])) {
     MaterialPtr m = clone(imported, p, &ObjImporter::Scene::materials);
+    m->setName(p.name);
     m->load(p.map);
     m_materials[p.name] = m;
 
@@ -278,7 +297,10 @@ void Scene::load(QVariantMap map) {
     /// @todo add a default shader if the material has shader hint
     ///       and prog is null
 
-    if (prog) m->setProg(prog);
+    if (prog) {
+      m->setProg(prog);
+      m_programs[p.name] = prog;
+    }
 
     QVariantMap tmp = p.map["textures"].toMap();
     for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it)

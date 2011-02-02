@@ -84,7 +84,7 @@
      <string>&amp;Window</string>
     </property>
     <addaction name="action_glwidget"/>
-    <addaction name="action_shaders_properties"/>
+    <addaction name="action_material_properties"/>
     <addaction name="action_render_properties"/>
     <addaction name="action_file_list"/>
     <addaction name="action_error_log"/>
@@ -159,12 +159,19 @@
   </widget>
   <widget class="QDockWidget" name="shaderdock">
    <property name="windowTitle">
-    <string>Shaders</string>
+    <string>Materials</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
-   <widget class="ShaderProperties" name="shader_properties"/>
+   <widget class="MaterialProperties" name="material_properties">
+    <property name="verticalScrollMode">
+     <enum>QAbstractItemView::ScrollPerPixel</enum>
+    </property>
+    <property name="headerHidden">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QDockWidget" name="renderdock">
    <property name="features">
@@ -341,7 +348,7 @@
     <string>OpenGL Render Window</string>
    </property>
   </action>
-  <action name="action_shaders_properties">
+  <action name="action_material_properties">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -349,10 +356,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Shader Properties</string>
+    <string>Material Properties</string>
    </property>
    <property name="toolTip">
-    <string>Shader Property Manager</string>
+    <string>Material Property Manager</string>
    </property>
   </action>
   <action name="action_error_log">
@@ -440,7 +447,7 @@
    <header>glwidget.hpp</header>
   </customwidget>
   <customwidget>
-   <class>ShaderProperties</class>
+   <class>MaterialProperties</class>
    <extends>QTreeWidget</extends>
    <header>properties.hpp</header>
   </customwidget>

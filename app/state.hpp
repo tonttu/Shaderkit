@@ -39,7 +39,7 @@
  */
 class State {
 public:
-  State();
+  State(float time);
 
   /// Returns the next available light id, can be used like GL_LIGHT0 + id
   int nextFreeLight() const;
@@ -62,6 +62,10 @@ public:
   void pushMaterial(MaterialPtr);
   void popMaterial();
 
+  QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
+
+  float time() const { return m_time; }
+
 protected:
   struct Data {
     QMap<QPair<void*, QString>, int> m_texunits;
@@ -70,6 +74,8 @@ protected:
 
   QList<Data> m_data;
   QList<MaterialPtr> m_materials;
+  QSet<MaterialPtr> m_usedMaterials;
+  float m_time;
 
   int nextFree(const QSet<int>& lst, int id = 0) const;
 };

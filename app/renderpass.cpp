@@ -180,9 +180,7 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
     //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 
     /// @todo remove this, only for testing
-    static float f = -150.0f;
-    f += 0.2f;
-    glRotatef(f, 0, 1, 0);
+    glRotatef(state.time()*10.0f, 0, 1, 0);
 
     foreach (LightPtr light, m_lights)
       light->activate(state);

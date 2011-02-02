@@ -40,12 +40,7 @@ public:
   /// @todo Implement also some other formats than "1.50 NVIDIA via Cg compiler"
   ShaderCompilerOutputParser(QString compiler_output);
 
-  /// Returns true if there is still at least one ShaderError to read
-  bool left();
-
-  /// Reads the next ShaderError generated from the compiler output,
-  /// and moves to the next error.
-  ShaderError next();
+  ShaderError::List parse();
 
 protected:
   /// The current parsing regexp, compiled in the constructor
@@ -53,9 +48,6 @@ protected:
 
   /// The compiler output splitted to lines
   QStringList m_lines;
-
-  /// The current line we are parsing
-  int m_pos;
 };
 
 #endif

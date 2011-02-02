@@ -28,61 +28,94 @@
  * MESA:
  *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
  */
-ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output)
-  : m_pos(0) {
+ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) {
   m_lines = compiler_output.split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
 }
 
-bool ShaderCompilerOutputParser::left() {
-  return m_pos < m_lines.size();
-}
-
-ShaderError ShaderCompilerOutputParser::next() {
+ShaderError::List ShaderCompilerOutputParser::parse() {
   static QList<QRegExp> s_patterns;
+  static QList<QRegExp> s_modes;
+  static QList<QRegExp> s_ignore;
   if (s_patterns.isEmpty()) {
     QString pattern;
 
     // 1.50 NVIDIA via Cg compiler
-    pattern = "\\d* \\(  (\\d+)  \\)"  // "0(11)", shader(line number [1])
-              "\\s* : \\s*"            // ":", separator
-              "([^\\s]+)  \\s+"        // "warning", type [2]
-              "[^\\s:]+"               // "C7522", nvidia error code
-              "\\s* : \\s*"            // ":", separator
-              "(.*)";                  // the actual error [3]
+    pattern = "\\s*\\d* \\( (\\d+) \\)" // "0(11)", shader(line number [1])
+              "\\s* : \\s*"             // ":", separator
+              "([^\\s]+)  \\s+"         // "warning", type [2]
+              "[^\\s:]+"                // "C7522", nvidia error code
+              "\\s* : \\s*"             // ":", separator
+              "(.*)";                   // the actual error [3]
     pattern.remove(QChar(' '));
     s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
 
     // MESA
     /// @todo Use the column information here and skip the recompile hack totally
-    pattern = "\\d+ : (\\d+) \\(\\d+\\)"  // "0:8(1)", shader:line [1] (column)
-              "\\s* : \\s*"               // ":", separator
-              "([^\\s]+)"                 // "warning:", type [2]
-              "\\s* : \\s*"               // ":", separator
-              "(.*)";                     // the actual error [3]
+    pattern = "\\s*\\d+ : (\\d+) \\(\\d+\\)" // "0:8(1)", shader:line [1] (column)
+              "\\s* : \\s*"                  // ":", separator
+              "([^\\s]+)"                    // "warning:", type [2]
+              "\\s* : \\s*"                  // ":", separator
+              "(.*)";                        // the actual error [3]
     pattern.remove(QChar(' '));
     s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+    // 3.30 NVIDIA via Cg compiler
+    pattern = "\\s*(\\w*)\\s+info";
+    s_modes << QRegExp(pattern, Qt::CaseInsensitive, QRegExp::RegExp2);
+
+    // 3.30 NVIDIA via Cg compiler
+    pattern = "\\s*-*\\s*";
+    s_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
   }
 
-  QStringList list;
-  QString msg = m_lines[m_pos++];
-  for (int i = 0; i < s_patterns.size(); ++i) {
-    int ret = s_patterns[i].indexIn(msg);
-    if(ret >= 0) {
-      list = s_patterns[i].capturedTexts();
-      if (i != 0) {
-        QRegExp r = s_patterns[i];
-        s_patterns.removeAt(i);
-        s_patterns.insert(0, r);
+  ShaderError::List out;
+  QString mode = "";
+
+  foreach (QString msg, m_lines) {
+    bool found = false;
+    for (int i = 0; i < s_ignore.size(); ++i) {
+      if (s_ignore[i].exactMatch(msg)) {
+        found = true;
+        break;
       }
     }
-  }
-//  m_pos++;
+    if (found) continue;
 
-  if (list.size() == 4) {
-    return ShaderError(ShaderPtr(), list[3], list[2], list[1].toInt()-1);
-  } else {
-    Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
-    return ShaderError(ShaderPtr(), msg, "error", 0, 0);
+    for (int i = 0; i < s_modes.size(); ++i) {
+      if (s_modes[i].exactMatch(msg)) {
+        mode = s_modes[i].cap(1);
+        found = true;
+        if (i != 0) {
+          QRegExp r = s_modes[i];
+          s_modes.removeAt(i);
+          s_modes.insert(0, r);
+        }
+        break;
+      }
+    }
+    if (found) continue;
+
+    QStringList list;
+    for (int i = 0; i < s_patterns.size(); ++i) {
+      if (s_patterns[i].exactMatch(msg)) {
+        list = s_patterns[i].capturedTexts();
+        if (i != 0) {
+          QRegExp r = s_patterns[i];
+          s_patterns.removeAt(i);
+          s_patterns.insert(0, r);
+        }
+      }
+    }
+
+    if (list.size() == 4) {
+      QString str = mode.isEmpty() ? list[3] : list[3] + " (" + mode + ")";
+      out << ShaderError(ShaderPtr(), str, list[2], list[1].toInt()-1);
+    } else {
+      Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
+      QString str = mode.isEmpty() ? msg : msg + " (" + mode + ")";
+      out << ShaderError(ShaderPtr(), msg, "error", 0, 0);
+    }
   }
+  return out;
 }
 

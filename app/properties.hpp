@@ -72,21 +72,20 @@ protected:
  *
  * This is a singleton class.
  */
-class ShaderProperties : public Properties {
+class MaterialProperties : public Properties {
   Q_OBJECT
 
 public:
-  static ShaderProperties& instance();
-  ShaderProperties(QWidget* parent = 0);
-  virtual ~ShaderProperties();
+  static MaterialProperties& instance();
+  MaterialProperties(QWidget* parent = 0);
+  virtual ~MaterialProperties();
 
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
   void update(MaterialPtr mat);
+  void setMaterials(QSet<MaterialPtr> materials);
   /// Remove a shader that is in given pass from the property list
-  void remove(MaterialPtr mat);
-  /// User changed property value (to variant)
-  //void valueChanged(QtProperty* property, const QVariant& variant);
+  //void remove(MaterialPtr mat);
 
 protected:
   struct Sub {
@@ -99,17 +98,9 @@ protected:
   UEditor* createEditor(MaterialPtr mat, UniformVar& var,
                         const ShaderTypeInfo& type, QTreeWidgetItem* p);
 
-  /*  typedef QMap<QtProperty*, UniformVar> PropertyMap;
-
-  /// Maps the property to uniform variable
-  PropertyMap m_properties;
-
-  /// Every shader has one group property whose children are the actual uniform variables
-  QMap<ProgramPtr, QtVariantProperty*> m_shaders;*/
-
   QMap<MaterialPtr, Sub> m_materials;
 
-  static ShaderProperties* s_instance;
+  static MaterialProperties* s_instance;
 };
 
 /**
