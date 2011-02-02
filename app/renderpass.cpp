@@ -179,9 +179,6 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
     glEnable(GL_MULTISAMPLE);
     //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 
-    /// @todo remove this, only for testing
-    glRotatef(state.time()*10.0f, 0, 1, 0);
-
     foreach (LightPtr light, m_lights)
       light->activate(state);
 
@@ -240,15 +237,15 @@ void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
 #define V(a,b,c) v.push_back(a), v.push_back(b), v.push_back(c)
 #define C(r,g,b,a) c.push_back(r), c.push_back(g), c.push_back(b), c.push_back(a)
       for (int i = -dist; i <= dist; ++i) {
-        V(i*step, 0, -dist*step); V(i*step, 0, dist*step);
         V(-dist*step, 0, i*step); V(dist*step, 0, i*step);
+        V(i*step, 0, -dist*step); V(i*step, 0, dist*step);
 
         if (i == 0) {
-          V(-step*0.2f, 0, (dist-0.2f)*step); V(0, 0, dist*step);
-          V(step*0.2f, 0, (dist-0.2f)*step); V(0, 0, dist*step);
-
           V((dist-0.2f)*step, 0, -step*0.2f); V(dist*step, 0, 0);
           V((dist-0.2f)*step, 0, step*0.2f); V(dist*step, 0, 0);
+
+          V(-step*0.2f, 0, (dist-0.2f)*step); V(0, 0, dist*step);
+          V(step*0.2f, 0, (dist-0.2f)*step); V(0, 0, dist*step);
 
           for (int j = 0; j < 2; ++j) C(1.0f, 0.5, 0.5f, 0.5f);
           for (int j = 0; j < 2; ++j) C(0.5f, 1.0, 0.5f, 0.5f);

@@ -103,6 +103,8 @@ public:
   void setFilename(QString filename) { m_filename = filename; }
   QString filename() const { return m_filename; }
 
+  CameraPtr camera();
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();

@@ -47,16 +47,29 @@ public:
 
   QString name() const { return m_name; }
 
+  void rotate(QPointF diff);
+  void translate(QPointF diff);
+  void zoom(float diff);
+
+  Type type() const { return m_type; }
+
 protected:
+  void updateVectors();
+
   QString m_name;
   Type m_type;
 
   /// Camera position
-  QVector3D m_position;
+  //QVector3D m_position;
   /// The point the camera is looking at (Perspective)
   QVector3D m_target;
   /// Camera up vector (Perspective)
+
   QVector3D m_up;
+  QVector3D m_right;
+  QVector3D m_front;
+
+  float m_dx, m_dy, m_dist;
 
   /// Field of view, in degrees, in the y direction (Perspective)
   float m_fov;

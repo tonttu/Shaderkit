@@ -358,3 +358,8 @@ QString Scene::search(QString filename) const {
   QDir::setCurrent(cwd);
   return ret;
 }
+
+CameraPtr Scene::camera() {
+  foreach (CameraPtr c, m_cameras)
+    if (c->type() == Camera::Perspective) return c;
+}

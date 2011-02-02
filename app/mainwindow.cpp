@@ -174,7 +174,10 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
     QTableWidgetItem* msg = new QTableWidgetItem(e->msg());
     msg->setIcon(QIcon(QPixmap(e->type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
     m_ui->error_list->setItem(r, 0, msg);
-    if (shader) m_ui->error_list->setItem(r, 1, new QTableWidgetItem(shader->filename()));
+    if (shader) {
+      QFileInfo fi(shader->filename());
+      m_ui->error_list->setItem(r, 1, new QTableWidgetItem(fi.fileName()));
+    }
     m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e->line()+1)));
     m_error_list_items[msg] = *e;
     changed = true;

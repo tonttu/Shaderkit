@@ -23,24 +23,32 @@
 
 Camera::Camera(const QString &name)
   : m_name(name), m_type(Perspective),
-    m_position(3, 1, 2), m_target(0, 0, 0), m_up(0, 1, 0),
+    m_target(0, 0, 0), m_up(0, 1, 0),
+    m_dx(0), m_dy(0),
     m_fov(45), m_near(0.1f), m_far(1000.0f) {}
 
 void Camera::prepare(int width, int height) {
   glCheck("Camera::prepare");
   glViewport(0, 0, width, height);
   if (m_type == Perspective) {
+    float f = 1.0f / tanf(m_fov*0.5f);
+    float p[] = { f*height/width, 0.0f, 0.0f, 0.0f,
+                  0.0f, f, 0.0f, 0.0f,
+                  0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far*m_near/(m_near-m_far),
+                  0.0f, 0.0f, -1.0f, 0.0f };
+
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(m_fov, (GLfloat)width/height, m_near, m_far);
+    glLoadTransposeMatrixf(p);
 
+    float m[] = { m_right.x(),  m_right.y(),  m_right.z(), 0.0f,
+                     m_up.x(),     m_up.y(),     m_up.z(), 0.0f,
+                 -m_front.x(), -m_front.y(), -m_front.z(), 0.0f,
+                         0.0f,         0.0f,         0.0f, 1.0f };
     glMatrixMode(GL_MODELVIEW);
+    glLoadTransposeMatrixf(m);
 
-    glLoadIdentity();
-    // Should we not use glu? It's trivial to calculate this manually too
-    gluLookAt(m_position.x(), m_position.y(), m_position.z(),
-              m_target.x(), m_target.y(), m_target.z(),
-              m_up.x(), m_up.y(), m_up.z());
+    QVector3D eye = m_target - m_front*m_dist;
+    glTranslatef(-eye.x(), -eye.y(), -eye.z());
   } else if (m_type == Rect) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -70,9 +78,9 @@ QVariantMap Camera::save() const {
   else if (m_type == Rect)
     map["type"] = "rect";
 
-  map["position"] = toList(m_position);
+  QVector3D eye = m_target - m_front*m_dist;
+  map["position"] = toList(eye);
   map["target"] = toList(m_target);
-  map["up"] = toList(m_up);
   map["fov"] = m_fov;
   map["near"] = m_near;
   map["far"] = m_far;
@@ -85,14 +93,48 @@ void Camera::load(QVariantMap map) {
   if (map["type"] == "ortho") m_type = Ortho;
 
   /// At least Qt 4.7 doesn't convert anything to QVector3D
-  m_position = toVector(map["position"]);
   m_target = toVector(map["target"]);
-  m_up = toVector(map["up"]);
   m_fov = map["fov"].toFloat();
   m_near = map["near"].toFloat();
   m_far = map["far"].toFloat();
+
+  QVector3D to = m_target - toVector(map["position"]);
+  m_dx = atan2f(-to.z(), to.x());
+  m_dy = atan2f(to.y(), fabs(to.x()));
+  m_dist = to.length();
+
+  updateVectors();
+}
+
+void Camera::updateVectors() {
+  float x = cosf(m_dx), z = -sinf(m_dx);
+  float c = cosf(m_dy);
+  m_front.setX(c*x);
+  m_front.setY(sin(m_dy));
+  m_front.setZ(c*z);
+  m_front.normalize();
+  m_right = QVector3D::crossProduct(m_front, QVector3D(0, 1, 0)).normalized();
+  m_up = QVector3D::crossProduct(m_right, m_front);
 }
 
 CameraPtr Camera::clone() const {
   return CameraPtr(new Camera(*this));
+}
+
+void Camera::rotate(QPointF diff) {
+  diff *= 5.0f;
+  m_dx -= diff.x();
+  m_dy -= diff.y();
+  if (m_dy < -M_PI*0.499f) m_dy = -M_PI*0.499f;
+  if (m_dy > M_PI*0.499f) m_dy = M_PI*0.499f;
+  updateVectors();
+}
+
+void Camera::translate(QPointF diff) {
+  diff *= m_dist;
+  m_target += m_up*diff.y() - m_right*diff.x();
+}
+
+void Camera::zoom(float diff) {
+  m_dist += diff*m_dist*0.01f;
 }

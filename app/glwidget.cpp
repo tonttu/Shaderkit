@@ -18,6 +18,7 @@
 #include "glwidget.hpp"
 #include "scene.hpp"
 #include "wrap_glext.h"
+#include "camera.hpp"
 
 /// @todo include something less massive
 #include <QtGui>
@@ -70,8 +71,6 @@ void GLWidget::initializeGL() {
        profile == GL_CONTEXT_COMPATIBILITY_PROFILE_BIT ? "Compatibility" :
       (major > 3 || (major >= 3 && minor >= 2)) ? "Core (default)" : "Unknown") << "profile initialized";*/
 
-  /// @todo this should be in RenderPass
-  qglClearColor(QColor(0,0,0));
   m_timer->start();
 }
 
@@ -81,6 +80,46 @@ void GLWidget::paintGL() {
 
 void GLWidget::resizeGL(int width, int height) {
   if (m_scene) m_scene->resize(width, height);
+}
+
+void GLWidget::mouseMoveEvent(QMouseEvent* event) {
+  QPointF diff = event->posF() - m_lastpos;
+  m_lastpos = event->posF();
+  float d = width();
+  if (height() < d) d = height();
+  diff.setX(diff.x() / d);
+  diff.setY(diff.y() / d);
+  CameraPtr cam;
+  if (m_scene && (cam = m_scene->camera())) {
+    if (event->buttons() & Qt::LeftButton) {
+      cam->rotate(diff);
+    } else if (event->buttons() & Qt::MidButton) {
+      cam->translate(diff);
+    } else {
+      QGLWidget::mouseMoveEvent(event);
+      return;
+    }
+    event->accept();
+    return;
+  }
+  QGLWidget::mouseMoveEvent(event);
+}
+
+void GLWidget::mousePressEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
+    m_lastpos = event->posF();
+    event->accept();
+    return;
+  }
+  QGLWidget::mousePressEvent(event);
+}
+
+void GLWidget::wheelEvent(QWheelEvent* event) {
+  CameraPtr cam;
+  if (m_scene && (cam = m_scene->camera())) {
+    cam->zoom(event->delta()*-0.1f);
+    event->accept();
+  } else QGLWidget::wheelEvent(event);
 }
 
 void GLWidget::sceneChange(ScenePtr s) {

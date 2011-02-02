@@ -54,8 +54,13 @@ protected:
   /// Update the viewport size to scene
   void resizeGL(int width, int height);
 
+  void mouseMoveEvent(QMouseEvent* event);
+  void mousePressEvent(QMouseEvent* event);
+  void wheelEvent(QWheelEvent* event);
+
   ScenePtr m_scene;
   QTimer* m_timer;
+  QPointF m_lastpos;
 
   bool m_initialized;
 };
