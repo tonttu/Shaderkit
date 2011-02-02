@@ -145,6 +145,7 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
   if (m_clear) glClear(m_clear);
   if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
 
+  state.setCamera(m_viewport);
   m_viewport->prepare(width(), height());
 
   if (m_type == PostProc) {

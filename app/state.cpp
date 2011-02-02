@@ -90,6 +90,15 @@ void State::popMaterial() {
   }
 }
 
+void State::setCamera(CameraPtr camera) {
+  m_data.back().m_camera = camera;
+}
+
+CameraPtr State::camera() {
+  return m_data.back().m_camera;
+}
+
+
 int State::nextFree(const QSet<int>& lst, int id) const {
   while (lst.contains(id)) ++id;
   return id;

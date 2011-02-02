@@ -147,7 +147,8 @@ UniformVar::List GLProgram::getUniformList() {
 
     // For now skip build-in uniforms, since those can't be changed the same way as others.
     /// @todo handle these magical variables somehow better
-    if (strncmp(name, "gl_", 3) != 0 && strcmp(name, "time") != 0)
+    QSet<QString> special; special << "time" << "far" << "near";
+    if (strncmp(name, "gl_", 3) != 0 && !special.contains(QString::fromAscii(name)))
       list.push_back(UniformVar(shared_from_this(), name, type));
 
 #ifdef _MSC_VER

@@ -64,12 +64,16 @@ public:
 
   QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
+  void setCamera(CameraPtr camera);
+  CameraPtr camera();
+
   float time() const { return m_time; }
 
 protected:
   struct Data {
     QMap<QPair<void*, QString>, int> m_texunits;
     QSet<int> m_lights;
+    CameraPtr m_camera;
   };
 
   QList<Data> m_data;

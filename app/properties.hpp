@@ -92,7 +92,7 @@ protected:
     Sub() : item(0) {}
     ~Sub();
     QTreeWidgetItem* item;
-    QMap<QString, std::shared_ptr<UEditor> > editors;
+    QMap<QString, UEditor*> editors;
   };
 
   UEditor* createEditor(MaterialPtr mat, UniformVar& var,

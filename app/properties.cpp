@@ -48,7 +48,6 @@ FloatEditor::FloatEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var)
 }
 
 FloatEditor::~FloatEditor() {
-  delete m_reset_action;
 }
 
 void FloatEditor::updateUI(UniformVar& var) {
@@ -183,9 +182,9 @@ void MaterialProperties::update(MaterialPtr mat) {
     const ShaderTypeInfo& type = var.typeinfo();
     names << var.name();
 
-    std::shared_ptr<UEditor> editor = sub.editors[var.name()];
+    UEditor* editor = sub.editors[var.name()];
     if (!editor) {
-      editor.reset(createEditor(mat, var, type, sub.item));
+      editor = createEditor(mat, var, type, sub.item);
       sub.editors[var.name()] = editor;
     }
 

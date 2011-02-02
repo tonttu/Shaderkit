@@ -47,6 +47,9 @@ public:
 
   QString name() const { return m_name; }
 
+  float near() const { return m_near; }
+  float far() const { return m_far; }
+
   void rotate(QPointF diff);
   void translate(QPointF diff);
   void zoom(float diff);

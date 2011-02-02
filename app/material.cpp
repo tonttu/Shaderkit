@@ -4,6 +4,7 @@
 #include "state.hpp"
 #include "texture.hpp"
 #include "properties.hpp"
+#include "camera.hpp"
 
 Material::Material(QString name) : m_name(name), m_prog_binded(false) {
 }
@@ -36,6 +37,8 @@ void Material::bind(State& state) {
     m_program->setUniform(m_uniform_list);
     /// @todo handle these magical variables somehow better
     m_program->setUniform("time", state.time());
+    m_program->setUniform("far", state.camera()->far());
+    m_program->setUniform("near", state.camera()->near());
   }
 
   foreach (QString name, m_textures.keys()) {
