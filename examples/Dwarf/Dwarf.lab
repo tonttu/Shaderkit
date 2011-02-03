@@ -1,10 +1,10 @@
 {
   "lab" : {
     "name" : "Dwarf",
-    "description" : "B3D import example",
+    "description" : "Phong + Texturing + Dwarf model",
     "category" : "example",
     "license" : "GPL",
-    "author" : "Riku Palomäki <riku@palomaki.fi>"
+    "authors" : "Riku Palomäki <riku@palomaki.fi>"
   },
   "import" : {
     "dwarf" : {
@@ -56,7 +56,7 @@
       "fov" : 45,
       "near" : 0.1,
       "far" : 200.0,
-      "position" : [60,60,60],
+      "position" : [60,45,-60],
       "target" : [0,30,0],
       "up" : [0,1,0]
     }
@@ -66,19 +66,25 @@
       "ref" : ["dwarf", "Material0"],
       "textures" : {
         "axe" : "axe"
-      }
+      },
+      "fragment" : ["phong.frag"],
+      "vertex" : ["phong.vert"]
     },
     "White" : {
       "ref" : ["dwarf", "Material1"],
       "textures" : {
         "dwarf" : "dwarf-white"
-      }
+      },
+      "fragment" : ["phong.frag"],
+      "vertex" : ["phong2.vert"]
     },
     "Black" : {
       "ref" : ["dwarf", "Material2"],
       "textures" : {
         "dwarf" : "dwarf-black"
-      }
+      },
+      "fragment" : ["phong.frag"],
+      "vertex" : ["phong2.vert"]
     }
   },
   "textures": {

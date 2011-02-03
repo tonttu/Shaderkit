@@ -54,14 +54,14 @@
       "vertex" : ["post.vert"],
       "fragment" : ["gaussian-y.frag"],
       "textures" : {
-        "image" : "image"
+        "image" : "image2"
       }
     },
     "gaussian-x" : {
       "vertex" : ["post.vert"],
       "fragment" : ["gaussian-x.frag"],
       "textures" : {
-        "image" : "image2"
+        "image" : "image"
       }
     }
   },
