@@ -18,9 +18,92 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 
+#define D_(pname, param, spname, sparam) \
+  s_names[pname] = spname, s_names[param] = sparam, \
+  s_enums[spname] = pname, s_enums[sparam] = param, \
+  s_choices[spname] << sparam;
+#define D(pname, param) D_(GL_##pname, GL_##param, \
+  QString::fromAscii(#pname), QString::fromAscii(#param))
+
+#define D2_(pname, spname, target) s_names[pname] = spname, \
+  s_enums[spname] = pname, target << spname
+#define D2(pname, target) D2_(GL_##pname, QString::fromAscii(#pname), target)
+
+namespace {
+  QMap<GLenum, QString> s_names;
+  QMap<QString, GLenum> s_enums;
+  QMap<QString, QStringList> s_choices;
+  QSet<QString> s_ints;
+  QSet<QString> s_floats;
+
+  void s_init() {
+    if (s_names.isEmpty()) {
+      D(TEXTURE_WRAP_S, CLAMP);
+      D(TEXTURE_WRAP_S, CLAMP_TO_EDGE);
+      D(TEXTURE_WRAP_S, REPEAT);
+      D(TEXTURE_WRAP_S, CLAMP_TO_BORDER);
+      D(TEXTURE_WRAP_S, MIRRORED_REPEAT);
+
+      D(TEXTURE_WRAP_T, CLAMP);
+      D(TEXTURE_WRAP_T, CLAMP_TO_EDGE);
+      D(TEXTURE_WRAP_T, REPEAT);
+      D(TEXTURE_WRAP_T, CLAMP_TO_BORDER);
+      D(TEXTURE_WRAP_T, MIRRORED_REPEAT);
+
+      D(TEXTURE_WRAP_R, CLAMP);
+      D(TEXTURE_WRAP_R, CLAMP_TO_EDGE);
+      D(TEXTURE_WRAP_R, REPEAT);
+      D(TEXTURE_WRAP_R, CLAMP_TO_BORDER);
+      D(TEXTURE_WRAP_R, MIRRORED_REPEAT);
+
+      D(TEXTURE_MIN_FILTER, NEAREST);
+      D(TEXTURE_MIN_FILTER, LINEAR);
+      D(TEXTURE_MIN_FILTER, NEAREST_MIPMAP_NEAREST);
+      D(TEXTURE_MIN_FILTER, NEAREST_MIPMAP_LINEAR);
+      D(TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST);
+      D(TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR);
+
+      D(TEXTURE_MAG_FILTER, NEAREST);
+      D(TEXTURE_MAG_FILTER, LINEAR);
+
+      D(DEPTH_TEXTURE_MODE, RED);
+      D(DEPTH_TEXTURE_MODE, LUMINANCE);
+      D(DEPTH_TEXTURE_MODE, INTENSITY);
+      D(DEPTH_TEXTURE_MODE, ALPHA);
+
+      D(TEXTURE_COMPARE_MODE, NONE);
+      D(TEXTURE_COMPARE_MODE, COMPARE_REF_TO_TEXTURE);
+
+      D(TEXTURE_COMPARE_FUNC, LEQUAL);
+      D(TEXTURE_COMPARE_FUNC, GEQUAL);
+      D(TEXTURE_COMPARE_FUNC, LESS);
+      D(TEXTURE_COMPARE_FUNC, GREATER);
+      D(TEXTURE_COMPARE_FUNC, EQUAL);
+      D(TEXTURE_COMPARE_FUNC, NOTEQUAL);
+      D(TEXTURE_COMPARE_FUNC, ALWAYS);
+      D(TEXTURE_COMPARE_FUNC, NEVER);
+
+      // TEXTURE_BORDER_COLOR?
+
+      D2(TEXTURE_PRIORITY, s_floats);
+      D2(TEXTURE_MIN_LOD, s_floats);
+      D2(TEXTURE_MAX_LOD, s_floats);
+      D2(TEXTURE_LOD_BIAS, s_floats);
+      D2(TEXTURE_BASE_LEVEL, s_ints);
+      D2(TEXTURE_MAX_LEVEL, s_ints);
+      D2(GENERATE_MIPMAP, s_ints); // actually a bool
+    }
+  }
+}
+#undef D2_
+#undef D2
+#undef D_
+#undef D
+
 Texture::Texture(QString name)
   : FBOImage(name), m_bindedTexture(0),
     m_blend(1.0), m_uv(1) {
+  s_init();
   setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -117,8 +200,78 @@ TexturePtr Texture::clone() const {
   return t;
 }
 
+QVariantMap Texture::save() const {
+  QVariantMap map = FBOImage::save();
+  map["blend"] = m_blend;
+  map["uv"] = m_uv;
+
+  for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+    QString pname = s_names.value(it.key());
+    if (pname.isEmpty()) {
+      Log::warn("Unknown texture parameter name %d", it.key());
+      continue;
+    }
+
+    if (s_ints.contains(pname)) {
+      if (it->is_float) {
+        Log::warn("Texture parameter %s should be integer", pname.toUtf8().data());
+      } else {
+        map[pname] = it->i;
+      }
+    } else if (s_floats.contains(pname)) {
+      if (!it->is_float) {
+        Log::warn("Texture parameter %s should be float", pname.toUtf8().data());
+      } else {
+        map[pname] = it->f;
+      }
+    } else {
+      if (it->is_float) {
+        Log::warn("Texture parameter %s should be enum", pname.toUtf8().data());
+      } else {
+        QString param = s_names.value(it->i);
+        if (param.isEmpty()) {
+          Log::warn("Unknown texture parameter %d", it->i);
+        } else {
+          if (s_choices.value(pname).contains(param)) {
+            map[pname] = param;
+          } else {
+            Log::warn("Invalid texture parameter setting %s = %s",
+                      pname.toUtf8().data(), param.toUtf8().data());
+          }
+        }
+      }
+    }
+  }
+
+  return map;
+}
+
+/// @todo Instead of QVariantMap we should have something that removes used
+///       attributes and warns about extra ones
 void Texture::load(QVariantMap map) {
-  /// @todo
+  FBOImage::load(map);
+
+  if (map.contains("blend")) m_blend = map["blend"].toFloat();
+  if (map.contains("uv")) m_uv = map["uv"].toInt();
+
+  /// @todo allow GL_ -prefix and make case-insensitive search
+  foreach (QString pname, s_choices.keys()) {
+    if (map.contains(pname)) {
+      QString param = map[pname].toString();
+      if (s_choices[pname].contains(param)) {
+        setParam(s_enums[pname], int(s_enums[param]));
+      } else {
+        Log::warn("Invalid texture parameter setting %s = %s",
+                  pname.toUtf8().data(), param.toUtf8().data());
+      }
+    }
+  }
+
+  foreach (QString pname, s_ints)
+    if (map.contains(pname)) setParam(s_enums[pname], map[pname].toInt());
+
+  foreach (QString pname, s_floats)
+    if (map.contains(pname)) setParam(s_enums[pname], map[pname].toFloat());
 }
 
 TexturePtr TextureFile::clone() const {
@@ -129,8 +282,18 @@ TexturePtr TextureFile::clone() const {
   return TexturePtr(t);
 }
 
+QVariantMap TextureFile::save() const {
+  QVariantMap map = Texture::save();
+  /// @todo if this a reference and the file name is unchanged, we should forget
+  ///       this. We need a wrapper class for all of these variables that
+  ///       remembers their original values from the original source.
+  if (!m_file.isEmpty()) map["file"] = m_file;
+  return map;
+}
+
 void TextureFile::load(QVariantMap map) {
-  /// @todo
+  Texture::load(map);
+  if (map.contains("file")) m_file = map["file"].toString();
 }
 
 void TextureFile::bind(int texture) {
@@ -159,59 +322,4 @@ void TextureFile::bind(int texture) {
   Texture::bind(texture);
 }
 
-/*
-D(TEXTURE_WRAP_S, CLAMP);
-D(TEXTURE_WRAP_S, CLAMP_TO_EDGE);
-D(TEXTURE_WRAP_S, REPEAT);
-D(TEXTURE_WRAP_S, CLAMP_TO_BORDER);
-D(TEXTURE_WRAP_S, MIRRORED_REPEAT);
 
-D(TEXTURE_WRAP_T, CLAMP);
-D(TEXTURE_WRAP_T, CLAMP_TO_EDGE);
-D(TEXTURE_WRAP_T, REPEAT);
-D(TEXTURE_WRAP_T, CLAMP_TO_BORDER);
-D(TEXTURE_WRAP_T, MIRRORED_REPEAT);
-
-D(TEXTURE_WRAP_R, CLAMP);
-D(TEXTURE_WRAP_R, CLAMP_TO_EDGE);
-D(TEXTURE_WRAP_R, REPEAT);
-D(TEXTURE_WRAP_R, CLAMP_TO_BORDER);
-D(TEXTURE_WRAP_R, MIRRORED_REPEAT);
-
-D(TEXTURE_MIN_FILTER, NEAREST);
-D(TEXTURE_MIN_FILTER, LINEAR);
-D(TEXTURE_MIN_FILTER, NEAREST_MIPMAP_NEAREST);
-D(TEXTURE_MIN_FILTER, NEAREST_MIPMAP_LINEAR);
-D(TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST);
-D(TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR);
-
-D(TEXTURE_MAG_FILTER, NEAREST);
-D(TEXTURE_MAG_FILTER, LINEAR);
-
-D(DEPTH_TEXTURE_MODE, RED);
-D(DEPTH_TEXTURE_MODE, LUMINANCE);
-D(DEPTH_TEXTURE_MODE, INTENSITY);
-D(DEPTH_TEXTURE_MODE, ALPHA);
-
-D(TEXTURE_COMPARE_MODE, NONE);
-D(TEXTURE_COMPARE_MODE, COMPARE_REF_TO_TEXTURE);
-
-D(TEXTURE_COMPARE_FUNC, LEQUAL);
-D(TEXTURE_COMPARE_FUNC, GEQUAL);
-D(TEXTURE_COMPARE_FUNC, LESS);
-D(TEXTURE_COMPARE_FUNC, GREATER);
-D(TEXTURE_COMPARE_FUNC, EQUAL);
-D(TEXTURE_COMPARE_FUNC, NOTEQUAL);
-D(TEXTURE_COMPARE_FUNC, ALWAYS);
-D(TEXTURE_COMPARE_FUNC, NEVER);
-
-// TEXTURE_BORDER_COLOR
-
-TEXTURE_PRIORITY float
-TEXTURE_MIN_LOD float
-TEXTURE_MAX_LOD float
-TEXTURE_BASE_LEVEL int
-TEXTURE_MAX_LEVEL int
-TEXTURE_LOD_BIAS float
-GENERATE_MIPMAP bool
-*/

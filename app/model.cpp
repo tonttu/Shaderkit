@@ -29,7 +29,7 @@ Node::Node() : matrix() {
   matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1.0f;
 }
 
-Model::Model(QString name) : m_node(new Node), m_builtin(false) {
+Model::Model(QString name) : SceneObject(name), m_node(new Node), m_builtin(false) {
   m_node->name = name;
 }
 
@@ -51,28 +51,37 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
   glPopMatrix();
 }
 
-void Model::load(QVariantMap /*map*/) {
+QVariantMap Model::save() const {
+  QVariantMap map = SceneObject::save();
+  if (m_builtin) {
+    map["built-in"] = m_node->name;
+  }
+  return map;
+}
+
+void Model::load(QVariantMap map) {
+  SceneObject::load(map);
 }
 
 ModelPtr Model::clone() {
   return ModelPtr(new Model(*this));
 }
 
-ModelPtr Model::createBuiltin(const QString& name) {
-  if (name == "teapot") {
-    ModelPtr m(new Model);
+ModelPtr Model::createBuiltin(const QString& name, const QString& model_name) {
+  if (model_name == "teapot") {
+    ModelPtr m(new Model(name));
     m->m_builtin = true;
-    m->node()->name = "teapot";
+    m->node()->name = model_name;
     m->node()->meshes << MeshPtr(new Teapot);
     return m;
   } else if (name == "box") {
-    ModelPtr m(new Model);
+    ModelPtr m(new Model(name));
     m->m_builtin = true;
-    m->node()->name = "box";
+    m->node()->name = model_name;
     m->node()->meshes << MeshPtr(new Box);
     return m;
   }
-  Log::error("Unknown builtin '%s'", name.toUtf8().data());
+  Log::error("Unknown builtin '%s'", model_name.toUtf8().data());
   return ModelPtr();
 }
 

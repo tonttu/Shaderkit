@@ -544,7 +544,7 @@ void ObjImporter::load(ObjectPtr obj, NodePtr dest, const aiNode& src) {
 }
 
 ObjectPtr ObjImporter::load(const aiNode& node) {
-  ModelPtr model(new Model);
+  ModelPtr model(new Model(str(node.mName)));
   /// @todo unique name
   ObjectPtr obj(new Object3D(str(node.mName), model));
   load(obj, model->node(), node);

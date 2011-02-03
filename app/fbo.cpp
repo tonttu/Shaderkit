@@ -20,7 +20,7 @@
 
 #include <cassert>
 
-FBOImage::FBOImage(QString name) : m_name(name),
+FBOImage::FBOImage(QString name) : SceneObject(name),
   m_id(0), m_type(0), m_active_type(0), m_width(0), m_height(0) {}
 
 RenderBuffer::RenderBuffer(QString name) : FBOImage(name) {}
@@ -64,6 +64,19 @@ void RenderBuffer::setup(unsigned int fbo, int width, int height) {
   m_active_type = m_type;
   if (fbo_changed) m_fbos.insert(fbo);
 }
+
+QVariantMap FBOImage::save() const {
+  QVariantMap map = SceneObject::save();
+  if (!m_role.isEmpty()) map["role"] = m_role;
+  return map;
+}
+
+void FBOImage::load(QVariantMap map) {
+  SceneObject::load(map);
+  if (map.contains("role"))
+    m_role = map["role"].toString();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

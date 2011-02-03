@@ -18,9 +18,10 @@
 #include "object3d.hpp"
 #include "state.hpp"
 #include "model.hpp"
+#include "material.hpp"
 
 Object3D::Object3D(QString name, ModelPtr model)
-  : m_name(name),
+  : SceneObject(name),
     m_model(model) {}
 Object3D::~Object3D() {}
 
@@ -33,15 +34,6 @@ void Object3D::render(State& state) {
 bool Object3D::builtin() const {
   if (!m_model) return false;
   return m_model->builtin();
-}
-
-QVariantMap Object3D::save() const {
-  QVariantMap map;
-  if (m_model) {
-    map["model"] = m_model->name();
-  }
-
-  return map;
 }
 
 MaterialPtr Object3D::material(QString name) {
@@ -57,7 +49,22 @@ void Object3D::setDefaultMaterial(MaterialPtr mat) {
   m_default_material = mat;
 }
 
-void Object3D::load(QVariantMap /*map*/) {
+QVariantMap Object3D::save() const {
+  QVariantMap map = SceneObject::save();
+
+  if (m_default_material) map["material"] = m_default_material->name();
+  if (m_model) map["model"] = m_model->name();
+  QVariantMap materials;
+  for (QMap<QString, MaterialPtr>::const_iterator it = m_materials.begin(); it != m_materials.end(); ++it) {
+    if (*it) materials[it.key()] = (*it)->name();
+  }
+  if (!materials.isEmpty()) map["materials"] = materials;
+
+  return map;
+}
+
+void Object3D::load(QVariantMap map) {
+  SceneObject::load(map);
 }
 
 ObjectPtr Object3D::clone() {

@@ -3,6 +3,7 @@
 
 #include "forward.hpp"
 #include "buffer_object.hpp"
+#include "scene_object.hpp"
 
 #include <QString>
 #include <QVector>
@@ -16,11 +17,10 @@ struct Node {
   QList<MeshPtr> meshes;
 };
 
-class Model {
+class Model : public SceneObject {
 public:
-  Model(QString name = "");
+  Model(QString name);
 
-  QString name() const { return m_node ? m_node->name : ""; }
   NodePtr node() { return m_node; }
 
   void render(ObjectPtr o, State& state, const Node& node);
@@ -28,10 +28,11 @@ public:
 
   bool builtin() const { return m_builtin; }
 
+  QVariantMap save() const;
   void load(QVariantMap map);
   ModelPtr clone();
 
-  static ModelPtr createBuiltin(const QString& name);
+  static ModelPtr createBuiltin(const QString& name, const QString& model);
 
 private:
   NodePtr m_node;

@@ -51,7 +51,8 @@ HEADERS += \
     animation.hpp \
     obj_importer.hpp \
     utils.hpp \
-    buffer_object.hpp
+    buffer_object.hpp \
+    scene_object.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -88,7 +89,8 @@ SOURCES += \
     animation.cpp \
     obj_importer.cpp \
     utils.cpp \
-    buffer_object.cpp
+    buffer_object.cpp \
+    scene_object.cpp
 
 FORMS += \
     mainwindow.ui \

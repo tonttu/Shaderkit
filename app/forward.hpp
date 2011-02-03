@@ -46,6 +46,7 @@ class Scene;
 typedef std::shared_ptr<Scene> ScenePtr;
 class RenderPass;
 typedef std::shared_ptr<RenderPass> RenderPassPtr;
+class SceneObject;
 
 class State;
 class FBOImage;

@@ -19,6 +19,7 @@
 #define LIGHT_HPP
 
 #include "forward.hpp"
+#include "scene_object.hpp"
 
 #include <QColor>
 #include <QVector3D>
@@ -27,7 +28,7 @@
 /**
  * OpenGL Light.
  */
-class Light {
+class Light : public SceneObject {
 public:
   enum Type { Spot, Direction };
 
@@ -39,17 +40,14 @@ public:
   /// Disables the light
   void deactivate(State& state);
 
-  QVariantMap save() const;
+  virtual QVariantMap save() const;
 
   /// Load the light from map
-  void load(QVariantMap map);
+  virtual void load(QVariantMap map);
 
   LightPtr clone() const;
 
-  QString name() const { return m_name; }
-
 protected:
-  QString m_name;
   Type m_type;
 
   /// The id (beginning from 0) of the light. If it's negative, it will

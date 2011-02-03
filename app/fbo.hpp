@@ -19,11 +19,12 @@
 #define FBO_HPP
 
 #include "forward.hpp"
+#include "scene_object.hpp"
 
 #include <QMap>
 #include <QSet>
 
-class FBOImage {
+class FBOImage : public SceneObject {
 public:
   FBOImage(QString name);
   virtual ~FBOImage() {}
@@ -33,14 +34,15 @@ public:
   /// Role, like "diffuse", "normalmap", "lightmap" etc
   void setRole(QString role) { m_role = role; }
 
-  QString name() const { return m_name; }
   QString role() const { return m_role; }
 
   /// Is this a "texture", "renderbuffer" or what
   virtual QString imageClass() const = 0;
 
+  virtual QVariantMap save() const;
+  virtual void load(QVariantMap);
+
 protected:
-  QString m_name;
   QString m_role;
 
   unsigned int m_id;

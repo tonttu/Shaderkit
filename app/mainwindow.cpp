@@ -354,10 +354,7 @@ void MainWindow::restore() {
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e) {
-  if (e->key() == Qt::Key_Escape)
-    close();
-  else
-    QWidget::keyPressEvent(e);
+  QWidget::keyPressEvent(e);
 }
 
 void MainWindow::changeEvent(QEvent* e) {

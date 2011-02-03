@@ -19,6 +19,7 @@
 #define CAMERA_HPP
 
 #include "forward.hpp"
+#include "scene_object.hpp"
 
 #include <QVector3D>
 #include <QVariant>
@@ -26,7 +27,7 @@
 /**
  * OpenGL Camera class, handles perspective and ortho projections.
  */
-class Camera {
+class Camera : public SceneObject {
 public:
   enum Type { Perspective, Ortho, Rect };
 
@@ -45,8 +46,6 @@ public:
   /// Sets this camera to use orthographic matrix that fills the screen
   void setRect(float near = -1.0f, float far = 1.0f);
 
-  QString name() const { return m_name; }
-
   float near() const { return m_near; }
   float far() const { return m_far; }
 
@@ -59,7 +58,6 @@ public:
 protected:
   void updateVectors();
 
-  QString m_name;
   Type m_type;
 
   /// Camera position

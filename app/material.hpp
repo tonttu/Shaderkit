@@ -5,16 +5,15 @@
 #include "fbo.hpp"
 #include "state.hpp"
 #include "shader/uniform.hpp"
+#include "scene_object.hpp"
 
 #include <QVector3D>
 #include <QString>
 
-class Material : public QObject, public std::enable_shared_from_this<Material> {
+class Material : public QObject, public std::enable_shared_from_this<Material>,
+                 public SceneObject {
 public:
   Material(QString name);
-
-  QString name() const { return m_name; }
-  void setName(QString name) { m_name = name; }
 
   void addTexture(QString name, TexturePtr tex);
 
@@ -47,6 +46,7 @@ public:
   ProgramPtr prog() { return m_program; }
   void setProg(ProgramPtr prog);
 
+  QVariantMap save() const;
   void load(QVariantMap map);
   /// Does not clone textures!
   MaterialPtr clone() const;
@@ -70,7 +70,6 @@ private:
   UniformVar::List m_uniform_list, m_uniform_list_prev;
 
   QMap<QString, TexturePtr> m_textures;
-  QString m_name;
   bool m_prog_binded;
 };
 

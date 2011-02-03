@@ -42,6 +42,7 @@ public:
   QString imageClass() const { return "texture"; }
 
   virtual TexturePtr clone() const;
+  virtual QVariantMap save() const;
   virtual void load(QVariantMap map);
 
 protected:
@@ -73,6 +74,7 @@ public:
   virtual void bind(int texture = 0);
 
   virtual TexturePtr clone() const;
+  virtual QVariantMap save() const;
   virtual void load(QVariantMap map);
 
 private:

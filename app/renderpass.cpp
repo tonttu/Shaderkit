@@ -140,13 +140,12 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
   beginFBO();
 
   resize(width(), height());
+  state.setCamera(m_viewport);
+  m_viewport->prepare(width(), height());
 
   glClearColor(0.2f, 0.2f, 0.2f, 1);
   if (m_clear) glClear(m_clear);
   if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
-
-  state.setCamera(m_viewport);
-  m_viewport->prepare(width(), height());
 
   if (m_type == PostProc) {
     glDisable(GL_DEPTH_TEST);
@@ -280,6 +279,8 @@ QVariantMap RenderPass::save() const {
   if (m_clear & GL_STENCIL_BUFFER_BIT) tmp << "stencil";
 
   if (!tmp.isEmpty()) map["clear"] = tmp;
+
+  map["name"] = m_name;
 
   /// @todo material here
   ///if (m_shader) map["shader"] = m_shader->name();

@@ -19,6 +19,7 @@
 #define OBJECT3D_HPP
 
 #include "forward.hpp"
+#include "scene_object.hpp"
 
 #include <QObject>
 #include <QVariantMap>
@@ -34,28 +35,25 @@
  * or similar renderable object. Shaders etc should be ready before calling
  * the render() method.
  */
-class Object3D : public QObject, public std::enable_shared_from_this<Object3D> {
+class Object3D : public QObject, public std::enable_shared_from_this<Object3D>,
+                 public SceneObject {
   Q_OBJECT
 
 public:
   Object3D(QString name, ModelPtr model = ModelPtr());
   virtual ~Object3D();
 
-  /// Returns the object name
-  /// @todo make a separate UI name method
-  QString name() const { return m_name; }
   /// Renders the object with given state
   virtual void render(State& state);
 
   virtual bool builtin() const;
 
-  virtual QVariantMap save() const;
-
   MaterialPtr material(QString name);
   void setMaterial(QString name, MaterialPtr mat);
   void setDefaultMaterial(MaterialPtr mat);
 
-  void load(QVariantMap map);
+  virtual QVariantMap save() const;
+  virtual void load(QVariantMap map);
   /// Doesn't clone materials or model
   ObjectPtr clone();
 
@@ -63,7 +61,6 @@ public:
   ModelPtr model() { return m_model; }
 
 private:
-  QString m_name;
   ModelPtr m_model;
   QMap<QString, MaterialPtr> m_materials;
   MaterialPtr m_default_material;

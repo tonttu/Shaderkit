@@ -47,18 +47,18 @@ QVariantMap MetaInfo::save() const {
   QVariantMap map;
 
   /// @todo replace lab_version with real version!
-  if (!lab_version.isEmpty()) map["lab version"] = lab_version;
+  //if (!lab_version.isEmpty()) map["lab version"] = lab_version;
   if (!name.isEmpty()) map["name"] = name;
   if (!description.isEmpty()) map["description"] = description;
-  if (!id.isEmpty()) map["id"] = id;
-  map["revision"] = revision;
+  //if (!id.isEmpty()) map["id"] = id;
+  //map["revision"] = revision;
 
-  if (!releases.isEmpty()) map["release"] = putList(releases);
-  if (!servers.isEmpty()) map["server"] = putList(servers);
+  //if (!releases.isEmpty()) map["release"] = putList(releases);
+  //if (!servers.isEmpty()) map["server"] = putList(servers);
   if (!categories.isEmpty()) map["category"] = putList(categories);
-  if (!renderer.isEmpty()) map["renderer"] = putList(renderer);
+  //if (!renderer.isEmpty()) map["renderer"] = putList(renderer);
   if (!licenses.isEmpty()) map["license"] = putList(licenses);
-  if (!authors.isEmpty()) map["author"] = putList(authors);
+  if (!authors.isEmpty()) map["authors"] = putList(authors);
 
   QVariantMap dep;
   foreach (QString name, dependencies.keys()) {
@@ -87,7 +87,7 @@ void MetaInfo::load(QVariantMap map) {
   categories = getList(map, "category");
   renderer = getList(map, "renderer");
   licenses = getList(map, "license");
-  authors = getList(map, "author");
+  authors = getList(map, "authors");
 
   QVariantMap tmp = map["dependencies"].toMap();
   for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {

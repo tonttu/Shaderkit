@@ -30,7 +30,7 @@ inline void getColor(const QColor& color, GLfloat* tmp) {
 }
 
 Light::Light(const QString& name)
-  : m_name(name), m_type(Direction), m_id(-1),
+  : SceneObject(name), m_type(Direction), m_id(-1),
   m_ambient(0, 0, 0, 255), m_diffuse(255, 255, 255, 255), m_specular(255, 255, 255, 255),
   m_direction(0, 0, 1), m_spot_cutoff(180) {}
 
@@ -74,7 +74,7 @@ void Light::deactivate(State& state) {
 }
 
 QVariantMap Light::save() const {
-  QVariantMap map;
+  QVariantMap map = SceneObject::save();
   if (m_type == Spot) {
     map["type"] = "spot";
     map["position"] = toList(m_position);
@@ -93,6 +93,8 @@ QVariantMap Light::save() const {
 }
 
 void Light::load(QVariantMap map) {
+  SceneObject::load(map);
+
   if (map["type"] == "spot") m_type = Spot;
   if (map["type"] == "direction") m_type = Direction;
 

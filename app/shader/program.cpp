@@ -175,10 +175,9 @@ GLuint GLProgram::id() const {
   return m_prog;
 }
 
-QVariantMap GLProgram::save(QString root, bool pack) const {
+QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
   assert(!pack && "not implemented");
 
-  QVariantMap map;
   QMap<Shader::Type, QStringList> shaders;
 
   QDir rootd(root);

@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 #include "shaderdb/metainfo.hpp"
+#include "obj_importer.hpp"
 
 #include <QString>
 #include <QVariantMap>
@@ -36,6 +37,11 @@ class Scene : public QObject, public std::enable_shared_from_this<Scene> {
 
 public:
   typedef QList<QPair<QString, RenderPassPtr> > RenderPasses;
+  struct Import {
+    ObjImporter::Filter filter;
+    ObjImporter::Options options;
+    QString file;
+  };
 
   Scene(QString filename);
 
@@ -113,6 +119,8 @@ signals:
   void textureListUpdated();
 
 protected:
+  QMap<QString, Import> m_imports;
+
   /**
    * RenderPasses is defined as an ordered list of passes, while actually the
    * render passes form a directed dependency graph (without loops).

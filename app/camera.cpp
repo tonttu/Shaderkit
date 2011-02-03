@@ -22,7 +22,7 @@
 #include <cassert>
 
 Camera::Camera(const QString &name)
-  : m_name(name), m_type(Perspective),
+  : SceneObject(name), m_type(Perspective),
     m_target(0, 0, 0), m_up(0, 1, 0),
     m_dx(0), m_dy(0),
     m_fov(45), m_near(0.1f), m_far(1000.0f) {}
@@ -70,7 +70,7 @@ void Camera::setRect(float near_, float far_) {
 }
 
 QVariantMap Camera::save() const {
-  QVariantMap map;
+  QVariantMap map = SceneObject::save();
   if (m_type == Perspective)
     map["type"] = "perspective";
   else if (m_type == Ortho)
@@ -89,6 +89,8 @@ QVariantMap Camera::save() const {
 }
 
 void Camera::load(QVariantMap map) {
+  SceneObject::load(map);
+
   if (map["type"] == "perspective") m_type = Perspective;
   if (map["type"] == "ortho") m_type = Ortho;
 
@@ -99,9 +101,9 @@ void Camera::load(QVariantMap map) {
   m_far = map["far"].toFloat();
 
   QVector3D to = m_target - toVector(map["position"]);
-  m_dx = atan2f(-to.z(), to.x());
-  m_dy = atan2f(to.y(), fabs(to.x()));
   m_dist = to.length();
+  m_dx = atan2f(to.z(), -to.x());
+  m_dy = asinf(-to.y() / m_dist);
 
   updateVectors();
 }
@@ -109,9 +111,9 @@ void Camera::load(QVariantMap map) {
 void Camera::updateVectors() {
   float x = cosf(m_dx), z = -sinf(m_dx);
   float c = cosf(m_dy);
-  m_front.setX(c*x);
-  m_front.setY(sin(m_dy));
-  m_front.setZ(c*z);
+  m_front.setX(-c*x);
+  m_front.setY(-sin(m_dy));
+  m_front.setZ(-c*z);
   m_front.normalize();
   m_right = QVector3D::crossProduct(m_front, QVector3D(0, 1, 0)).normalized();
   m_up = QVector3D::crossProduct(m_right, m_front);
@@ -124,7 +126,7 @@ CameraPtr Camera::clone() const {
 void Camera::rotate(QPointF diff) {
   diff *= 5.0f;
   m_dx -= diff.x();
-  m_dy -= diff.y();
+  m_dy += diff.y();
   if (m_dy < -M_PI*0.499f) m_dy = -M_PI*0.499f;
   if (m_dy > M_PI*0.499f) m_dy = M_PI*0.499f;
   updateVectors();
