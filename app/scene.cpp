@@ -132,7 +132,7 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 
 Scene::Scene(QString filename)
   : m_width(-1), m_height(-1),
-    m_filename(filename), m_node(new Node) {
+    m_filename(filename), m_node(new Node), m_picking(-1, -1) {
   m_time.start();
 }
 
@@ -149,12 +149,41 @@ void Scene::render() {
   opts.grid = true;
   opts.ui = false;
 
+  CameraPtr defcam = camera();
+
   bool ui = false;
   for (RenderPasses::iterator it = m_render_passes.begin(); it != m_render_passes.end(); ++it) {
     RenderPassPtr p = it->second;
     opts.ui = !ui && p->type() == RenderPass::Normal;
+
+    bool pick = false;
+    if (m_picking.x() >= 0 && p->viewport() == defcam) {
+      pick = true;
+      state.setPicking(QPoint(m_picking.x()*p->width(), m_picking.y()*p->height()));
+    }
+
     p->render(state, opts);
+
+    if (pick) {
+      m_picked = state.picked();
+      state.disablePicking();
+    }
+
     ui = opts.ui || ui;
+  }
+
+  if (m_material_assign) {
+    if (m_picked.first && m_picked.second) {
+      m_picked.first->setMaterial(m_picked.second->name, m_material_assign);
+    }
+    setPickDisplay(-1.0f, -1.0f);
+    m_picked = QPair<ObjectPtr, MeshPtr>();
+    m_material_assign.reset();
+  }
+
+  if (m_picked.first && m_picking.x() < 0) {
+    m_picked = QPair<ObjectPtr, MeshPtr>();
+    m_material_assign.reset();
   }
 
   MaterialProperties::instance().setMaterials(state.usedMaterials());
@@ -400,4 +429,15 @@ CameraPtr Scene::camera() {
   foreach (CameraPtr c, m_cameras)
     if (c->type() == Camera::Perspective) return c;
   return CameraPtr();
+}
+
+void Scene::setPickDisplay(float x, float y) {
+  m_picking = QPointF(x, y);
+}
+
+void Scene::setMaterial(float x, float y, QString material) {
+  if (m_materials.contains(material)) {
+    setPickDisplay(x, y);
+    m_material_assign = m_materials[material];
+  } else setPickDisplay(-1.0f, -1.0f);
 }

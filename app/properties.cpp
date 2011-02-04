@@ -25,7 +25,9 @@
 UEditor::UEditor(QTreeWidgetItem *p, MaterialPtr mat_, UniformVar& var)
  : QTreeWidgetItem(p),
    mat(mat_),
-   name(var.name()) {}
+   name(var.name()) {
+  setFlags(flags() & ~Qt::ItemIsSelectable);
+}
 
 FloatEditor::FloatEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var)
   : UEditor(p, mat, var),
@@ -136,7 +138,6 @@ MaterialProperties::MaterialProperties(QWidget* parent)
   setColumnCount(3);
   setColumnWidth(0, 90);
   setColumnWidth(1, 45);
-  setSelectionMode(Properties::NoSelection);
   setHeaderLabels(QStringList() << "Uniform" << "Value" << "Editor");
   setAllColumnsShowFocus(true);
   setAnimated(true);
@@ -145,6 +146,7 @@ MaterialProperties::MaterialProperties(QWidget* parent)
   setItemsExpandable(false);
   setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setDragDropMode(DragOnly);
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
@@ -159,6 +161,7 @@ void MaterialProperties::update(MaterialPtr mat) {
   Sub& sub = m_materials[mat];
   if (!sub.item) {
     sub.item = new QTreeWidgetItem(this);
+    sub.item->setFlags(sub.item->flags() | Qt::ItemIsDragEnabled);
     /// @todo change icon when the type changes
     // sub.item->setIcon(0, mat->icon());
     expandItem(sub.item);
@@ -218,6 +221,29 @@ UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
     /// @todo implement
   }
   return 0;
+}
+
+void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
+  MaterialPtr material;
+  foreach (QTreeWidgetItem* item, selectedItems()) {
+    for (QMap<MaterialPtr, Sub>::iterator it = m_materials.begin(); it != m_materials.end(); ++it) {
+      if (it->item == item) {
+        material = it.key();
+        break;
+      }
+    }
+  }
+  if (!material) return;
+
+  QMimeData* data = new QMimeData;
+  data->setData("text/x-glsl-lab-material", material->name().toUtf8());
+
+  QDrag* drag = new QDrag(this);
+  drag->setMimeData(data);
+  drag->setPixmap(QPixmap(":/icons/shader.png"));
+  drag->setHotSpot(QPoint(8, 8));
+  drag->exec(supportedActions);
+ // drag->setDragCursor(QCursor(Qt::BlankCursor).pixmap(), Qt::CopyAction);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

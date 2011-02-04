@@ -41,7 +41,24 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
   foreach (MeshPtr m, node.meshes) {
     MaterialPtr material = o->material(m->name);
     if (material) state.pushMaterial(material);
+
+    if (state.picking()) {
+      /// @todo use state to do the scissor test
+      glRun(glScissor(state.pickingPos().x(), state.pickingPos().y(), 1, 1));
+      glRun(glEnable(GL_SCISSOR_TEST));
+      /// @todo get the query from state, use glGenQueries etc
+      glRun(glBeginQuery(GL_SAMPLES_PASSED, state.pickingQuery()));
+      m->render(state);
+      glRun(glEndQuery(GL_SAMPLES_PASSED));
+      glRun(glDisable(GL_SCISSOR_TEST));
+
+      unsigned int res = 0;
+      glRun(glGetQueryObjectuiv(state.pickingQuery(), GL_QUERY_RESULT, &res));
+
+      if (res > 0) state.setPicked(o, m);
+    }
     m->render(state);
+
     if (material) state.popMaterial();
   }
 

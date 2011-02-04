@@ -26,6 +26,7 @@
 GLWidget::GLWidget(QWidget *parent)
   : QGLWidget(defaultFormat(), parent),
     m_timer(new QTimer(this)), m_initialized(false) {
+  setAcceptDrops(true);
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
 }
@@ -121,6 +122,27 @@ void GLWidget::wheelEvent(QWheelEvent* event) {
     event->accept();
   } else QGLWidget::wheelEvent(event);
 }
+
+void GLWidget::dragEnterEvent(QDragEnterEvent* event) {
+  if (m_scene && event->mimeData()->hasFormat("text/x-glsl-lab-material")) {
+    event->acceptProposedAction();
+  }
+}
+
+void GLWidget::dragLeaveEvent(QDragLeaveEvent* event) {
+  m_scene->setPickDisplay(-1.0f, -1.0f);
+}
+
+void GLWidget::dragMoveEvent(QDragMoveEvent* event) {
+  m_scene->setPickDisplay(float(event->pos().x())/width(),
+                          1.0f-float(event->pos().y())/height());
+}
+
+void GLWidget::dropEvent(QDropEvent* event) {
+  m_scene->setMaterial(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(),
+                       event->mimeData()->data("text/x-glsl-lab-material"));
+}
+
 
 void GLWidget::sceneChange(ScenePtr s) {
   m_scene = s;

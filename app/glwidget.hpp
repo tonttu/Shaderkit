@@ -58,6 +58,11 @@ protected:
   void mousePressEvent(QMouseEvent* event);
   void wheelEvent(QWheelEvent* event);
 
+  void dragEnterEvent(QDragEnterEvent* event);
+  void dragLeaveEvent(QDragLeaveEvent* event);
+  void dragMoveEvent(QDragMoveEvent* event);
+  void dropEvent(QDropEvent* event);
+
   ScenePtr m_scene;
   QTimer* m_timer;
   QPointF m_lastpos;

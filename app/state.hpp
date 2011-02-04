@@ -69,6 +69,15 @@ public:
 
   float time() const { return m_time; }
 
+  void setPicking(QPoint pos);
+  QPoint pickingPos() const;
+  bool picking() const;
+  void setPicked(ObjectPtr o, MeshPtr m);
+  QPair<ObjectPtr, MeshPtr> picked();
+  void disablePicking();
+
+  unsigned int pickingQuery();
+
 protected:
   struct Data {
     QMap<QPair<void*, QString>, int> m_texunits;
@@ -80,6 +89,10 @@ protected:
   QList<MaterialPtr> m_materials;
   QSet<MaterialPtr> m_usedMaterials;
   float m_time;
+
+  QPoint m_picking_point;
+  bool m_picking;
+  QPair<ObjectPtr, MeshPtr> m_picked;
 
   int nextFree(const QSet<int>& lst, int id = 0) const;
 };

@@ -98,6 +98,8 @@ protected:
   UEditor* createEditor(MaterialPtr mat, UniformVar& var,
                         const ShaderTypeInfo& type, QTreeWidgetItem* p);
 
+  virtual void startDrag(Qt::DropActions supportedActions);
+
   QMap<MaterialPtr, Sub> m_materials;
 
   static MaterialProperties* s_instance;

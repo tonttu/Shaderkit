@@ -103,3 +103,38 @@ int State::nextFree(const QSet<int>& lst, int id) const {
   while (lst.contains(id)) ++id;
   return id;
 }
+
+void State::setPicking(QPoint pos) {
+  m_picking_point = pos;
+  m_picking = true;
+  m_picked = QPair<ObjectPtr, MeshPtr>();
+}
+
+QPoint State::pickingPos() const {
+  return m_picking_point;
+}
+
+bool State::picking() const {
+  return m_picking;
+}
+
+void State::setPicked(ObjectPtr o, MeshPtr m) {
+  m_picked = qMakePair(o, m);
+}
+
+QPair<ObjectPtr, MeshPtr> State::picked() {
+  return m_picked;
+}
+
+void State::disablePicking() {
+  m_picking = false;
+}
+
+unsigned int State::pickingQuery() {
+  /// @todo is static so great idea? not
+  static unsigned int s_picking_query = 0;
+  if (s_picking_query == 0) {
+    glRun(glGenQueries(1, &s_picking_query));
+  }
+  return s_picking_query;
+}

@@ -25,6 +25,7 @@
 #include <QString>
 #include <QVariantMap>
 #include <QTime>
+#include <QPoint>
 
 /**
  * Scene is a data structure that stores all objects by name, and controls
@@ -111,6 +112,9 @@ public:
 
   CameraPtr camera();
 
+  void setPickDisplay(float x, float y);
+  void setMaterial(float x, float y, QString material);
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -147,6 +151,10 @@ protected:
   QString m_root;
 
   NodePtr m_node;
+
+  QPair<ObjectPtr, MeshPtr> m_picked;
+  QPointF m_picking;
+  MaterialPtr m_material_assign;
 };
 
 /// Convert array of three doubles to vector

@@ -55,6 +55,8 @@ public:
 
   Type type() const { return m_type; }
 
+  void setPickDisplay(float x, float y);
+
 protected:
   void updateVectors();
 
