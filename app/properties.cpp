@@ -21,6 +21,7 @@
 #include "renderpass.hpp"
 #include "texture.hpp"
 #include "material.hpp"
+#include "scene.hpp"
 
 UEditor::UEditor(QTreeWidgetItem *p, MaterialPtr mat_, UniformVar& var)
  : QTreeWidgetItem(p),
@@ -199,14 +200,25 @@ void MaterialProperties::update(MaterialPtr mat) {
     sub.editors.remove(name);
 }
 
-void MaterialProperties::setMaterials(QSet<MaterialPtr> materials) {
+void MaterialProperties::updateMaterialList(ScenePtr scene) {
   QSet<MaterialPtr> current = m_materials.keys().toSet();
+  QSet<MaterialPtr> materials = scene->materials().values().toSet();
   foreach (MaterialPtr m, current - materials) {
     delete m_materials[m].item;
     m_materials.remove(m);
   }
   foreach (MaterialPtr m, materials - current)
     update(m);
+}
+
+void MaterialProperties::setActiveMaterials(QSet<MaterialPtr> materials) {
+/*  QSet<MaterialPtr> current = m_materials.keys().toSet();
+  foreach (MaterialPtr m, current - materials) {
+    delete m_materials[m].item;
+    m_materials.remove(m);
+  }
+  foreach (MaterialPtr m, materials - current)
+    update(m);*/
 }
 
 UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
