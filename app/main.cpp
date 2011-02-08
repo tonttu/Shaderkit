@@ -24,8 +24,11 @@
 #include <QApplication>
 #include <QDir>
 
+#include <GL/glut.h>
+
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
+  glutInit(&argc, argv);
   Log log;
 
   if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {

@@ -5,6 +5,8 @@
 
 #include "ext/glut_teapot.hpp"
 
+#include <GL/glut.h>
+
 namespace {
   /// Renders a rectangular box.
   void drawBox(float x, float y, float z) {
@@ -85,19 +87,27 @@ ModelPtr Model::clone() {
 }
 
 ModelPtr Model::createBuiltin(const QString& name, const QString& model_name) {
+  /// @todo tidy this up
   if (model_name == "teapot") {
     ModelPtr m(new Model(name));
     m->m_builtin = true;
     m->node()->name = model_name;
     m->node()->meshes << MeshPtr(new Teapot);
     return m;
-  } else if (name == "box") {
+  } else if (model_name == "box") {
     ModelPtr m(new Model(name));
     m->m_builtin = true;
     m->node()->name = model_name;
     m->node()->meshes << MeshPtr(new Box);
     return m;
+  } else if (model_name == "sphere") {
+    ModelPtr m(new Model(name));
+    m->m_builtin = true;
+    m->node()->name = model_name;
+    m->node()->meshes << MeshPtr(new Sphere);
+    return m;
   }
+
   Log::error("Unknown builtin '%s'", model_name.toUtf8().data());
   return ModelPtr();
 }
@@ -116,6 +126,10 @@ void Box::renderObj(State&) {
   /// @todo remove translatef
   glTranslatef(0, -3.1f, 0);
   drawBox(3.5f, 0.4f, 3.5f);
+}
+
+void Sphere::renderObj(State&) {
+  glutSolidSphere(5.0f, 32, 32);
 }
 
 void TriMesh::renderObj(State& state) {
