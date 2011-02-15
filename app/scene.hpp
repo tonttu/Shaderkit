@@ -113,7 +113,9 @@ public:
   CameraPtr camera();
 
   void setPickDisplay(float x, float y);
-  void setMaterial(float x, float y, QString material);
+  void attachMaterialTo(float x, float y, QString material);
+
+  void setMaterial(QString name, MaterialPtr material);
 
 signals:
   void shaderListUpdated();
@@ -121,6 +123,7 @@ signals:
   void lightListUpdated();
   void cameraListUpdated();
   void textureListUpdated();
+  void materialListUpdated(ScenePtr);
 
 protected:
   QMap<QString, Import> m_imports;

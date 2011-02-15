@@ -73,6 +73,14 @@ protected:
   void renderObj(State& state);
 };
 
+class Sphere : public BuiltIn {
+public:
+  virtual ~Sphere() {}
+
+protected:
+  void renderObj(State& state);
+};
+
 class TriMesh : public Mesh {
 public:
   virtual ~TriMesh() {}

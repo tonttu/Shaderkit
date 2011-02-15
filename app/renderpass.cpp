@@ -31,9 +31,8 @@
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Normal), m_name(name), m_scene(scene), m_clear(0),
     m_width(0), m_height(0), m_autosize(true) {
-  /// @todo
-  /*connect(this, SIGNAL(changed(RenderPassPtr)),
-          &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));*/
+  connect(this, SIGNAL(changed(RenderPassPtr)),
+          &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &MainWindow::instance(), SLOT(changed(RenderPassPtr)));
 }
@@ -90,11 +89,13 @@ QString RenderPass::name() const {
 }
 
 void RenderPass::setType(Type type) {
+  if (type == m_type) return;
   if (type == PostProc) {
     m_viewport.reset(new Camera("post"));
     m_viewport->setRect();
   }
   m_type = type;
+  emit changed(shared_from_this());
 }
 
 void RenderPass::setDefaultMaterial(MaterialPtr mat) {

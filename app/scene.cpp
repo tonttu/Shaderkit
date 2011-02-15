@@ -133,6 +133,8 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 Scene::Scene(QString filename)
   : m_width(-1), m_height(-1),
     m_filename(filename), m_node(new Node), m_picking(-1, -1) {
+  connect(this, SIGNAL(materialListUpdated(ScenePtr)),
+          &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
   m_time.start();
 }
 
@@ -186,7 +188,7 @@ void Scene::render() {
     m_material_assign.reset();
   }
 
-  MaterialProperties::instance().setMaterials(state.usedMaterials());
+  MaterialProperties::instance().setActiveMaterials(state.usedMaterials());
 }
 
 TexturePtr Scene::genTexture(const QString& name) {
@@ -342,7 +344,7 @@ void Scene::load(QVariantMap map) {
   foreach (P p, iterate(map["materials"])) {
     MaterialPtr m = clone(imported, p, &ObjImporter::Scene::materials);
     m->load(p.map);
-    m_materials[p.name] = m;
+    setMaterial(p.name, m);
 
     ProgramPtr prog;
     foreach (QString filename, p.map["fragment"].toStringList()) {
@@ -435,9 +437,14 @@ void Scene::setPickDisplay(float x, float y) {
   m_picking = QPointF(x, y);
 }
 
-void Scene::setMaterial(float x, float y, QString material) {
+void Scene::attachMaterialTo(float x, float y, QString material) {
   if (m_materials.contains(material)) {
     setPickDisplay(x, y);
     m_material_assign = m_materials[material];
   } else setPickDisplay(-1.0f, -1.0f);
+}
+
+void Scene::setMaterial(QString name, MaterialPtr material) {
+  m_materials[name] = material;
+  emit materialListUpdated(shared_from_this());
 }

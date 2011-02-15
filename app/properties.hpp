@@ -83,9 +83,8 @@ public:
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
   void update(MaterialPtr mat);
-  void setMaterials(QSet<MaterialPtr> materials);
-  /// Remove a shader that is in given pass from the property list
-  //void remove(MaterialPtr mat);
+  void setActiveMaterials(QSet<MaterialPtr> materials);
+  void updateMaterialList(ScenePtr scene);
 
 protected:
   struct Sub {

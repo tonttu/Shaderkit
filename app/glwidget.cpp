@@ -139,7 +139,7 @@ void GLWidget::dragMoveEvent(QDragMoveEvent* event) {
 }
 
 void GLWidget::dropEvent(QDropEvent* event) {
-  m_scene->setMaterial(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(),
+  m_scene->attachMaterialTo(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(),
                        event->mimeData()->data("text/x-glsl-lab-material"));
 }
 
