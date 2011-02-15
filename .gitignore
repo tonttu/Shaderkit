@@ -1,5 +1,6 @@
 *.moc
 *.o
+*.pro.user*
 *.vcxproj
 *.vcxproj.*
 */debug/
@@ -10,12 +11,15 @@
 Makefile
 Makefile.Debug
 Makefile.Release
+app/*_lex.cpp
+app/*_lex.hpp
+app/*_yacc.cpp
+app/*_yacc.h
 docs
 glsl.output
 glsl.tab.cpp
 glsl.tab.hpp
 lab
-lab.pro.user*
 lab.sdf
 lab.sln
 lab.suo
@@ -25,4 +29,6 @@ lib*.so
 lib*.so.*
 moc_*.cpp
 qrc_*.cpp
+tests/*/tests/*.out
+tests/parser/parser
 ui_*.h

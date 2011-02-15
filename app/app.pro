@@ -5,8 +5,8 @@ TARGET = lab
 unix {
 QMAKE_LEX = flex
 QMAKE_YACC = bison
-LEXSOURCES += shader/glsl.l
-YACCSOURCES += shader/glsl.y
+LEXSOURCES += shader/pp.l shader/glsl.l
+YACCSOURCES += shader/pp.y shader/glsl.y
 }
 !unix {
 DEFINES += YY_NO_UNISTD_H
@@ -52,7 +52,8 @@ HEADERS += \
     obj_importer.hpp \
     utils.hpp \
     buffer_object.hpp \
-    scene_object.hpp
+    scene_object.hpp \
+    shader/glpp.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -90,7 +91,8 @@ SOURCES += \
     obj_importer.cpp \
     utils.cpp \
     buffer_object.cpp \
-    scene_object.cpp
+    scene_object.cpp \
+    shader/glpp.cpp
 
 FORMS += \
     mainwindow.ui \

@@ -1,12 +1,15 @@
 TEMPLATE = subdirs
 SUBDIRS = external \
           shaderdb \
-          application
+          application \
+          parser
 
 external.subdir = ext
 shaderdb.subdir = shaderdb
 application.subdir = app
 application.depends = external shaderdb
+parser.subdir = tests/parser
+parser.depends = application
 
 OTHER_FILES += \
     doc/style.cpp \
