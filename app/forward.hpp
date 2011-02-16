@@ -56,6 +56,7 @@ typedef std::shared_ptr<Texture> TexturePtr;
 class FrameBufferObject;
 typedef std::shared_ptr<FrameBufferObject> FBOPtr;
 
+class QueryShader;
 class Object3D;
 typedef std::shared_ptr<Object3D> ObjectPtr;
 class Teapot;

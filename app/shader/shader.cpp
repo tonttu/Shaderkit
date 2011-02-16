@@ -20,6 +20,7 @@
 #include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
 #include "shader/sandbox_compiler.hpp"
+#include "shader/query_shader.hpp"
 #include "app/opengl.hpp"
 
 #include <QFile>
@@ -63,7 +64,7 @@ Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
     if (!m_shader) {
       m_shader = glRun2(glCreateShader(m_type));
       if (!m_shader) {
-        qWarning() << "Shader: could not create shader";
+        Log::error("Shader: could not create shader");
         return ERRORS;
       }
     }
@@ -108,6 +109,24 @@ QIcon Shader::icon() {
 
   return QIcon(icon);
 }
+
+bool Shader::getBuiltinMacro(QString name, float& out) {
+  /// @todo use cleaned up version of the actual shader here
+  QString src = "#version 150\n"
+                "out float x;\n"
+                "void main() {\n"
+                "  x = %1;\n"
+                "}\n";
+
+  QueryShader& s = QueryShader::instance();
+  bool ok = false;
+  if (s.compile(Vertex, src.arg(name)) && s.bind("x")) {
+    glRun(glDrawArrays(GL_POINTS, 0, 1));
+    ok = s.unbind(out);
+  }
+  return ok;
+}
+
 
 void Shader::setSandboxCompile(bool v) {
   if (s_sandbox_compile && !v)

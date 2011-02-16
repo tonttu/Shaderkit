@@ -53,7 +53,9 @@ HEADERS += \
     utils.hpp \
     buffer_object.hpp \
     scene_object.hpp \
-    shader/glpp.hpp
+    shader/glpp.hpp \
+    transform_feedback.hpp \
+    shader/query_shader.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -92,7 +94,9 @@ SOURCES += \
     utils.cpp \
     buffer_object.cpp \
     scene_object.cpp \
-    shader/glpp.cpp
+    shader/glpp.cpp \
+    transform_feedback.cpp \
+    shader/query_shader.cpp
 
 FORMS += \
     mainwindow.ui \

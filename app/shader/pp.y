@@ -227,7 +227,7 @@ data
     $$->push_back(Token($1, IDENTIFIER));
   }
   | data PASTE { $$ = $1; $$->push_back(Token("", PASTE)); }
-  | data CHUNK { $$ = $1; $$->push_back(Token($2, CHUNK)); }
+  | data CHUNK { /** @todo merge */ $$ = $1; $$->push_back(Token($2, CHUNK)); }
   | data IDENTIFIER { $$ = $1; $$->push_back(Token($2, IDENTIFIER)); }
   ;
 

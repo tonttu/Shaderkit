@@ -42,17 +42,29 @@ char* copystr(const char* str);
 %option never-interactive
 %option header-file="pp_lex.hpp"
 
-%x OBJ FUNC CTRL CALL FOBJ IF ELSE IF_SKIP IF_SEEK ELSE_SKIP EVAL
+%x OBJ FUNC CTRL CALL FOBJ IF ELSE IF_SKIP IF_SEEK ELSE_SKIP EVAL IN_COMMENT
 
 NEWLINE     \n
 HSPACE      [ \t]
 HASH        ^{HSPACE}*#{HSPACE}*
 IDENTIFIER  [_a-zA-Z][_a-zA-Z0-9]*
-NONID       [0-9]+[_a-zA-Z0-9]*|[^_a-zA-Z0-9\n]+
-NONPASTE    [^_a-zA-Z0-9\n#]+
+NONID       [0-9]+[_a-zA-Z0-9]*|[^_a-zA-Z0-9\n/*]+
+NONPASTE    [^_a-zA-Z0-9\n#/*]+
 PASTEABLE   [_a-zA-Z0-9]+
 
 %%
+
+<IN_COMMENT>{
+  "*/" { yy_pop_state(yyscanner); }
+  [^*\r\n]+
+  "*"
+  {NEWLINE} { m_out.push_back('\n'); }
+}
+
+<*>{
+  "/*" { yy_push_state(IN_COMMENT, yyscanner); }
+  "//".*
+}
 
  /* Nested #if when processing ignored block */
 <IF_SKIP,ELSE_SKIP,IF_SEEK>{
@@ -77,6 +89,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 
 <INITIAL,IF,ELSE>{
   /* Nested or top-level #if when processing normal block */
+  /** @todo most of these shouldn't actually use eval state */
   {HASH}ifndef { yy_push_state(EVAL, yyscanner); return HASH_IFNDEF; }
   {HASH}ifdef { yy_push_state(EVAL, yyscanner); return HASH_IFDEF; }
   {HASH}if { yy_push_state(EVAL, yyscanner); return HASH_IF; }
@@ -114,7 +127,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 <OBJ>{
   {NONPASTE} { yylval->string = copystr(yytext); return CHUNK; }
   [ \t]*"##"[ \t]* { return PASTE; }
-  "#" { yylval->string = copystr(yytext); return CHUNK; }
+  [#/*] { yylval->string = copystr(yytext); return CHUNK; }
   {PASTEABLE} { yylval->string = copystr(yytext); return IDENTIFIER; }
   {NEWLINE} { yy_pop_state(yyscanner); m_out.push_back('\n'); return NL; }
   . { assert(false); }
@@ -122,6 +135,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 
 <FOBJ>{
   {NONID} { yylval->string = copystr(yytext); return CHUNK; }
+  [/*] { yylval->string = copystr(yytext); return CHUNK; }
   {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }
   {NEWLINE} { yy_pop_state(yyscanner); m_out.push_back('\n'); return NL; }
 }
@@ -165,6 +179,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 
 <CALL>{
   [(),] { return yytext[0]; }
+  /** @todo comments doesn't work correctly here */
   [^\n(),]+ { yylval->string = copystr(yytext); return ARG; }
   \n { fprintf(stderr, "ERROR3\n"); }
   . { fprintf(stderr, "ERROR4\n"); }
@@ -186,14 +201,14 @@ PASTEABLE   [_a-zA-Z0-9]+
   "##" { return PASTE; }
   "defined" { return DEFINED; }
 
-  [|^&<>+*/%!~()-] { return yytext[0]; }
+  [|^&<>+*/%!~():-] { return yytext[0]; }
 
   "require" { return REQUIRE; }
   "enable" { return ENABLE; }
   "warn" { return WARN; }
   "disable" { return DISABLE; }
 
-  /* {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }*/
+  {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }
 
   [ \t]+
   {NEWLINE} { yy_pop_state(yyscanner); m_out.push_back('\n'); return NL; }
