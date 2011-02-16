@@ -26,8 +26,6 @@
  *
  * This doesn't do any fancy parsing of the file, all kind of context-aware
  * formatting is done separately on the Editor.
- *
- * @todo handle multiline c-comments. Need to use one state variable for that.
  */
 class Highlighter : public QSyntaxHighlighter {
   Q_OBJECT

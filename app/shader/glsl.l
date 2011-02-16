@@ -27,6 +27,8 @@ static int s_column, s_line, s_pos;
 %}
 
 %option noyywrap
+%option never-interactive
+%option header-file="glsl_lex.hpp"
 
 %x IN_COMMENT
 
@@ -237,11 +239,17 @@ int glsllex_wrapper(void) {
   return tmp;
 }
 
-void glslset_scan_string(const char *str, int len) {
+void glslset_scan_string(const char *str, int len, int state) {
   yy_scan_bytes(str, len);
   s_column = 0;
   s_line = 0;
   s_pos = 0;
+  if (state < INITIAL) state = INITIAL;
+  BEGIN(state);
+}
+
+int glslget_state() {
+  return YY_START;
 }
 
 int glslget_column(void) {

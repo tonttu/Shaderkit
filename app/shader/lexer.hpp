@@ -20,8 +20,9 @@
 
 #include "glsl_yacc.h"
 
-void glslset_scan_string(const char *str, int len);
+void glslset_scan_string(const char *str, int len, int state = 0);
 
+int glslget_state();
 int glsllex_wrapper(void);
 int glslget_leng(void);
 int glslget_column(void);

@@ -85,6 +85,8 @@ void Editor::resizeEvent(QResizeEvent* e) {
 }
 
 void Editor::clearErrors() {
+  if (m_errors.isEmpty()) return;
+
   m_errorSelections.clear();
   m_warningSelections.clear();
   m_errorLines.clear();
@@ -118,7 +120,9 @@ void Editor::fileUpdated(const QString& filename) {
       /// @todo signal something that forces recompile
     } else if (QMessageBox::question(this,
           tr("File change"),
-          tr("<p>File %1 was changed on the disk, but there are some unsaved changed to the code in the editor.<p>Load the file from the disk and discard all the changes?").arg(filename),
+          tr("<p>File %1 was changed on the disk, but there are some unsaved "
+             "changed to the code in the editor.<p>Load the file from the disk and "
+             "discard all the changes?").arg(filename),
           QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
       setPlainText(tmp);
       document()->setModified(false);

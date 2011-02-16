@@ -18,6 +18,9 @@
 #include "highlighter.hpp"
 #include "shader/lexer.hpp"
 
+#define YY_HEADER_EXPORT_START_CONDITIONS
+#include "glsl_lex.hpp"
+
 #include <vector>
 
 /// group all tokens to groups
@@ -126,12 +129,25 @@ void Highlighter::highlightBlock(const QString &text) {
     &m_typeFormat, &m_qualifierFormat, &m_keywordFormat, &m_constantFormat, &m_operatorFormat,
     &m_parenthesesFormat, &m_buildinVarFormat, &m_idFormat };
 
-  std::string ascii = text.toStdString();
-  glslset_scan_string(ascii.c_str(), ascii.size());
+  QByteArray ascii = text.toAscii();
 
+  glslset_scan_string(ascii.data(), ascii.size(), previousBlockState());
   int token;
+  int start = 0;
   while ((token = glsllex_wrapper())) {
-    size_t len = glslget_leng();
-    setFormat(glslget_column() - len, len, *formats[getSyntaxType(token)]);
+    if (token == COMMENT_BEGIN) {
+      start = glslget_column() - glslget_leng();
+    } else if (token == COMMENT_END) {
+      int stop = glslget_column();
+      setFormat(start, stop-start+1, *formats[SCOMMENT]);
+    } else {
+      size_t len = glslget_leng();
+      setFormat(glslget_column() - len, len, *formats[getSyntaxType(token)]);
+    }
   }
+  if (glslget_state() == IN_COMMENT) {
+    int stop = glslget_column();
+    setFormat(start, stop-start+1, *formats[SCOMMENT]);
+  }
+  setCurrentBlockState(glslget_state());
 }
