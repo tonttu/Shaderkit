@@ -11,10 +11,6 @@
 Makefile
 Makefile.Debug
 Makefile.Release
-app/*_lex.cpp
-app/*_lex.hpp
-app/*_yacc.cpp
-app/*_yacc.h
 docs
 glsl.output
 glsl.tab.cpp

@@ -768,7 +768,7 @@ int glsl_flex_debug = 0;
 char *glsltext;
 #line 1 "shader/glsl.l"
 /**
- * Copyright 2010 Riku Palomäki.
+ * Copyright 2010,2011 Riku Palomäki.
  * This file is part of GLSL Lab.
  *
  * GLSL Lab is free software: you can redistribute it and/or modify
@@ -883,7 +883,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO do { if (fwrite( glsltext, glslleng, 1, glslout )) {} } while (0)
+#define ECHO fwrite( glsltext, glslleng, 1, glslout )
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -894,7 +894,7 @@ static int input (void );
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_is_interactive ) \
 		{ \
 		int c = '*'; \
-		unsigned n; \
+		int n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( glslin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -979,7 +979,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 33 "shader/glsl.l"
+#line 35 "shader/glsl.l"
 
 
 #line 986 "lex.glsl.c"
@@ -1042,16 +1042,12 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 598 );
+		while ( yy_current_state != 460 );
+		yy_cp = (yy_last_accepting_cpos);
+		yy_current_state = (yy_last_accepting_state);
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
-		if ( yy_act == 0 )
-			{ /* have to back up */
-			yy_cp = (yy_last_accepting_cpos);
-			yy_current_state = (yy_last_accepting_state);
-			yy_act = yy_accept[yy_current_state];
-			}
 
 		YY_DO_BEFORE_ACTION;
 
@@ -1068,182 +1064,182 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 35 "shader/glsl.l"
+#line 37 "shader/glsl.l"
 { BEGIN(IN_COMMENT); return COMMENT_BEGIN; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 36 "shader/glsl.l"
+#line 38 "shader/glsl.l"
 { return PP; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 37 "shader/glsl.l"
+#line 39 "shader/glsl.l"
 { return COMMENT; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 38 "shader/glsl.l"
+#line 40 "shader/glsl.l"
 { return NE_OP; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 39 "shader/glsl.l"
+#line 41 "shader/glsl.l"
 { return AND_ASSIGN; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 40 "shader/glsl.l"
+#line 42 "shader/glsl.l"
 { return MOD_ASSIGN; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 41 "shader/glsl.l"
+#line 43 "shader/glsl.l"
 { return AND_OP; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 42 "shader/glsl.l"
+#line 44 "shader/glsl.l"
 { return XOR_OP; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 43 "shader/glsl.l"
+#line 45 "shader/glsl.l"
 { return MUL_ASSIGN; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 44 "shader/glsl.l"
+#line 46 "shader/glsl.l"
 { return INC_OP; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 45 "shader/glsl.l"
+#line 47 "shader/glsl.l"
 { return ADD_ASSIGN; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 46 "shader/glsl.l"
+#line 48 "shader/glsl.l"
 { return DEC_OP; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 47 "shader/glsl.l"
+#line 49 "shader/glsl.l"
 { return SUB_ASSIGN; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 48 "shader/glsl.l"
+#line 50 "shader/glsl.l"
 { return DIV_ASSIGN; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 49 "shader/glsl.l"
+#line 51 "shader/glsl.l"
 { return LEFT_OP; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 50 "shader/glsl.l"
+#line 52 "shader/glsl.l"
 { return LEFT_ASSIGN; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 51 "shader/glsl.l"
+#line 53 "shader/glsl.l"
 { return LE_OP; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 52 "shader/glsl.l"
+#line 54 "shader/glsl.l"
 { return EQ_OP; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 53 "shader/glsl.l"
+#line 55 "shader/glsl.l"
 { return GE_OP; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 54 "shader/glsl.l"
+#line 56 "shader/glsl.l"
 { return RIGHT_OP; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 55 "shader/glsl.l"
+#line 57 "shader/glsl.l"
 { return RIGHT_ASSIGN; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 56 "shader/glsl.l"
+#line 58 "shader/glsl.l"
 { return XOR_ASSIGN; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 57 "shader/glsl.l"
+#line 59 "shader/glsl.l"
 { return OR_ASSIGN; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 58 "shader/glsl.l"
+#line 60 "shader/glsl.l"
 { return OR_OP; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 59 "shader/glsl.l"
+#line 61 "shader/glsl.l"
 { return ATTRIBUTE; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 60 "shader/glsl.l"
+#line 62 "shader/glsl.l"
 { return BOOL; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 61 "shader/glsl.l"
+#line 63 "shader/glsl.l"
 { return BREAK; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 62 "shader/glsl.l"
+#line 64 "shader/glsl.l"
 { return BVEC2; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 63 "shader/glsl.l"
+#line 65 "shader/glsl.l"
 { return BVEC3; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 64 "shader/glsl.l"
+#line 66 "shader/glsl.l"
 { return BVEC4; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 65 "shader/glsl.l"
+#line 67 "shader/glsl.l"
 { return CASE; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 66 "shader/glsl.l"
+#line 68 "shader/glsl.l"
 { return CENTROID; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 67 "shader/glsl.l"
+#line 69 "shader/glsl.l"
 { return CONST; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 68 "shader/glsl.l"
+#line 70 "shader/glsl.l"
 { return CONTINUE; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 69 "shader/glsl.l"
+#line 71 "shader/glsl.l"
 { return DEFAULT; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 70 "shader/glsl.l"
+#line 72 "shader/glsl.l"
 { return DISCARD; }
 	YY_BREAK
 /* "dmat2"	{ return DMAT2; }
@@ -1260,7 +1256,7 @@ YY_RULE_SETUP
 "dmat4x4"	{ return DMAT4X4; } */
 case 37:
 YY_RULE_SETUP
-#line 83 "shader/glsl.l"
+#line 85 "shader/glsl.l"
 { return DO; }
 	YY_BREAK
 /*"double"	{ return DOUBLE; }
@@ -1269,623 +1265,623 @@ YY_RULE_SETUP
 "dvec4"	{ return DVEC4; } */
 case 38:
 YY_RULE_SETUP
-#line 88 "shader/glsl.l"
+#line 90 "shader/glsl.l"
 { return ELSE; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 89 "shader/glsl.l"
+#line 91 "shader/glsl.l"
 { return FLAT; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 90 "shader/glsl.l"
+#line 92 "shader/glsl.l"
 { return FLOAT; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 91 "shader/glsl.l"
+#line 93 "shader/glsl.l"
 { return FOR; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 92 "shader/glsl.l"
+#line 94 "shader/glsl.l"
 { return HIGH_PRECISION; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 93 "shader/glsl.l"
+#line 95 "shader/glsl.l"
 { return IF; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 94 "shader/glsl.l"
+#line 96 "shader/glsl.l"
 { return IN; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 95 "shader/glsl.l"
+#line 97 "shader/glsl.l"
 { return INOUT; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 96 "shader/glsl.l"
+#line 98 "shader/glsl.l"
 { return INT; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 97 "shader/glsl.l"
+#line 99 "shader/glsl.l"
 { return INVARIANT; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 98 "shader/glsl.l"
+#line 100 "shader/glsl.l"
 { return ISAMPLER1D; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 99 "shader/glsl.l"
+#line 101 "shader/glsl.l"
 { return ISAMPLER1DARRAY; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 100 "shader/glsl.l"
+#line 102 "shader/glsl.l"
 { return ISAMPLER2D; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 101 "shader/glsl.l"
+#line 103 "shader/glsl.l"
 { return ISAMPLER2DARRAY; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 102 "shader/glsl.l"
+#line 104 "shader/glsl.l"
 { return ISAMPLER2DMS; }
 	YY_BREAK
 /* "isampler2DMSArray"	{ return ISAMPLER2DMSArray; } */
 case 53:
 YY_RULE_SETUP
-#line 104 "shader/glsl.l"
+#line 106 "shader/glsl.l"
 { return ISAMPLER2DRECT; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 105 "shader/glsl.l"
+#line 107 "shader/glsl.l"
 { return ISAMPLER3D; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 106 "shader/glsl.l"
+#line 108 "shader/glsl.l"
 { return ISAMPLERBUFFER; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 107 "shader/glsl.l"
+#line 109 "shader/glsl.l"
 { return ISAMPLERCUBE; }
 	YY_BREAK
 /* "isamplerCubeArray"	{ return ISAMPLERCUBEARRAY; } */
 case 57:
 YY_RULE_SETUP
-#line 109 "shader/glsl.l"
+#line 111 "shader/glsl.l"
 { return IVEC2; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 110 "shader/glsl.l"
+#line 112 "shader/glsl.l"
 { return IVEC3; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 111 "shader/glsl.l"
+#line 113 "shader/glsl.l"
 { return IVEC4; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 112 "shader/glsl.l"
+#line 114 "shader/glsl.l"
 { return LAYOUT; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 113 "shader/glsl.l"
+#line 115 "shader/glsl.l"
 { return LOW_PRECISION; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 114 "shader/glsl.l"
+#line 116 "shader/glsl.l"
 { return MAT2; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 115 "shader/glsl.l"
+#line 117 "shader/glsl.l"
 { return MAT2X2; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 116 "shader/glsl.l"
+#line 118 "shader/glsl.l"
 { return MAT2X3; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 117 "shader/glsl.l"
+#line 119 "shader/glsl.l"
 { return MAT2X4; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 118 "shader/glsl.l"
+#line 120 "shader/glsl.l"
 { return MAT3; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 119 "shader/glsl.l"
+#line 121 "shader/glsl.l"
 { return MAT3X2; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 120 "shader/glsl.l"
+#line 122 "shader/glsl.l"
 { return MAT3X3; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 121 "shader/glsl.l"
+#line 123 "shader/glsl.l"
 { return MAT3X4; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 122 "shader/glsl.l"
+#line 124 "shader/glsl.l"
 { return MAT4; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 123 "shader/glsl.l"
+#line 125 "shader/glsl.l"
 { return MAT4X2; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 124 "shader/glsl.l"
+#line 126 "shader/glsl.l"
 { return MAT4X3; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 125 "shader/glsl.l"
+#line 127 "shader/glsl.l"
 { return MAT4X4; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 126 "shader/glsl.l"
+#line 128 "shader/glsl.l"
 { return MEDIUM_PRECISION; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 127 "shader/glsl.l"
+#line 129 "shader/glsl.l"
 { return NOPERSPECTIVE; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 128 "shader/glsl.l"
+#line 130 "shader/glsl.l"
 { return OUT; }
 	YY_BREAK
 /* "patch"	{ return PATCH; } */
 case 77:
 YY_RULE_SETUP
-#line 130 "shader/glsl.l"
+#line 132 "shader/glsl.l"
 { return PRECISION; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 131 "shader/glsl.l"
+#line 133 "shader/glsl.l"
 { return RETURN; }
 	YY_BREAK
 /* "sample"	{ return SAMPLE; } */
 case 79:
 YY_RULE_SETUP
-#line 133 "shader/glsl.l"
+#line 135 "shader/glsl.l"
 { return SAMPLER1D; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 134 "shader/glsl.l"
+#line 136 "shader/glsl.l"
 { return SAMPLER1DARRAY; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 135 "shader/glsl.l"
+#line 137 "shader/glsl.l"
 { return SAMPLER1DARRAYSHADOW; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 136 "shader/glsl.l"
+#line 138 "shader/glsl.l"
 { return SAMPLER1DSHADOW; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 137 "shader/glsl.l"
+#line 139 "shader/glsl.l"
 { return SAMPLER2D; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 138 "shader/glsl.l"
+#line 140 "shader/glsl.l"
 { return SAMPLER2DARRAY; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 139 "shader/glsl.l"
+#line 141 "shader/glsl.l"
 { return SAMPLER2DARRAYSHADOW; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 140 "shader/glsl.l"
+#line 142 "shader/glsl.l"
 { return SAMPLER2DMS; }
 	YY_BREAK
 /* "sampler2DMSArray"	{ return SAMPLER2DMSArray; } */
 case 87:
 YY_RULE_SETUP
-#line 142 "shader/glsl.l"
+#line 144 "shader/glsl.l"
 { return SAMPLER2DRECT; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 143 "shader/glsl.l"
+#line 145 "shader/glsl.l"
 { return SAMPLER2DRECTSHADOW; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 144 "shader/glsl.l"
+#line 146 "shader/glsl.l"
 { return SAMPLER2DSHADOW; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 145 "shader/glsl.l"
+#line 147 "shader/glsl.l"
 { return SAMPLER3D; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 146 "shader/glsl.l"
+#line 148 "shader/glsl.l"
 { return SAMPLERBUFFER; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 147 "shader/glsl.l"
+#line 149 "shader/glsl.l"
 { return SAMPLERCUBE; }
 	YY_BREAK
 /* "samplerCubeArray"	{ return SAMPLERCUBEARRAY; }
 "samplerCubeArrayShadow"	{ return SAMPLERCUBEARRAYSHADOW; } */
 case 93:
 YY_RULE_SETUP
-#line 150 "shader/glsl.l"
+#line 152 "shader/glsl.l"
 { return SAMPLERCUBESHADOW; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 151 "shader/glsl.l"
+#line 153 "shader/glsl.l"
 { return SMOOTH; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 152 "shader/glsl.l"
+#line 154 "shader/glsl.l"
 { return STRUCT; }
 	YY_BREAK
 /* "subroutine"	{ return SUBROUTINE; } */
 case 96:
 YY_RULE_SETUP
-#line 154 "shader/glsl.l"
+#line 156 "shader/glsl.l"
 { return SWITCH; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 155 "shader/glsl.l"
+#line 157 "shader/glsl.l"
 { return UINT; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 156 "shader/glsl.l"
+#line 158 "shader/glsl.l"
 { return UNIFORM; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 157 "shader/glsl.l"
+#line 159 "shader/glsl.l"
 { return USAMPLER1D; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 158 "shader/glsl.l"
+#line 160 "shader/glsl.l"
 { return USAMPLER1DARRAY; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 159 "shader/glsl.l"
+#line 161 "shader/glsl.l"
 { return USAMPLER2D; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 160 "shader/glsl.l"
+#line 162 "shader/glsl.l"
 { return USAMPLER2DARRAY; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 161 "shader/glsl.l"
+#line 163 "shader/glsl.l"
 { return USAMPLER2DMS; }
 	YY_BREAK
 /* "usampler2DMSArray"	{ return USAMPLER2DMSArray; } */
 case 104:
 YY_RULE_SETUP
-#line 163 "shader/glsl.l"
+#line 165 "shader/glsl.l"
 { return USAMPLER2DRECT; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 164 "shader/glsl.l"
+#line 166 "shader/glsl.l"
 { return USAMPLER3D; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 165 "shader/glsl.l"
+#line 167 "shader/glsl.l"
 { return USAMPLERBUFFER; }
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 166 "shader/glsl.l"
+#line 168 "shader/glsl.l"
 { return USAMPLERCUBE; }
 	YY_BREAK
 /* "usamplerCubeArray"	{ return USAMPLERCUBEARRAY; } */
 case 108:
 YY_RULE_SETUP
-#line 168 "shader/glsl.l"
+#line 170 "shader/glsl.l"
 { return UVEC2; }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 169 "shader/glsl.l"
+#line 171 "shader/glsl.l"
 { return UVEC3; }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 170 "shader/glsl.l"
+#line 172 "shader/glsl.l"
 { return UVEC4; }
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 171 "shader/glsl.l"
+#line 173 "shader/glsl.l"
 { return VARYING; }
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 172 "shader/glsl.l"
+#line 174 "shader/glsl.l"
 { return VEC2; }
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 173 "shader/glsl.l"
+#line 175 "shader/glsl.l"
 { return VEC3; }
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 174 "shader/glsl.l"
+#line 176 "shader/glsl.l"
 { return VEC4; }
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 175 "shader/glsl.l"
+#line 177 "shader/glsl.l"
 { return VOID; }
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 176 "shader/glsl.l"
+#line 178 "shader/glsl.l"
 { return WHILE; }
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 178 "shader/glsl.l"
+#line 180 "shader/glsl.l"
 { return TRUECONSTANT; }
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 179 "shader/glsl.l"
+#line 181 "shader/glsl.l"
 { return FALSECONSTANT; }
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 181 "shader/glsl.l"
+#line 183 "shader/glsl.l"
 { return '!'; }
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 182 "shader/glsl.l"
+#line 184 "shader/glsl.l"
 { return '%'; }
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 183 "shader/glsl.l"
+#line 185 "shader/glsl.l"
 { return '&'; }
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 184 "shader/glsl.l"
+#line 186 "shader/glsl.l"
 { return '('; }
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 185 "shader/glsl.l"
+#line 187 "shader/glsl.l"
 { return ')'; }
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
-#line 186 "shader/glsl.l"
+#line 188 "shader/glsl.l"
 { return '*'; }
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 187 "shader/glsl.l"
+#line 189 "shader/glsl.l"
 { return '+'; }
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 188 "shader/glsl.l"
+#line 190 "shader/glsl.l"
 { return ','; }
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 189 "shader/glsl.l"
+#line 191 "shader/glsl.l"
 { return '-'; }
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
-#line 190 "shader/glsl.l"
+#line 192 "shader/glsl.l"
 { return '.'; }
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 191 "shader/glsl.l"
+#line 193 "shader/glsl.l"
 { return '/'; }
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
-#line 192 "shader/glsl.l"
+#line 194 "shader/glsl.l"
 { return ':'; }
 	YY_BREAK
 case 131:
 YY_RULE_SETUP
-#line 193 "shader/glsl.l"
+#line 195 "shader/glsl.l"
 { return ';'; }
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 194 "shader/glsl.l"
+#line 196 "shader/glsl.l"
 { return '<'; }
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 195 "shader/glsl.l"
+#line 197 "shader/glsl.l"
 { return '='; }
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 196 "shader/glsl.l"
+#line 198 "shader/glsl.l"
 { return '>'; }
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 197 "shader/glsl.l"
+#line 199 "shader/glsl.l"
 { return '?'; }
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 198 "shader/glsl.l"
+#line 200 "shader/glsl.l"
 { return '['; }
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 199 "shader/glsl.l"
+#line 201 "shader/glsl.l"
 { return ']'; }
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 200 "shader/glsl.l"
+#line 202 "shader/glsl.l"
 { return '^'; }
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 201 "shader/glsl.l"
+#line 203 "shader/glsl.l"
 { return '{'; }
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 202 "shader/glsl.l"
+#line 204 "shader/glsl.l"
 { return '|'; }
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-#line 203 "shader/glsl.l"
+#line 205 "shader/glsl.l"
 { return '}'; }
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 204 "shader/glsl.l"
+#line 206 "shader/glsl.l"
 { return '~'; }
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-#line 206 "shader/glsl.l"
+#line 208 "shader/glsl.l"
 { return IDENTIFIER; }
 	YY_BREAK
 case 144:
 YY_RULE_SETUP
-#line 208 "shader/glsl.l"
+#line 210 "shader/glsl.l"
 { return UINTCONSTANT; }
 	YY_BREAK
 case 145:
 YY_RULE_SETUP
-#line 209 "shader/glsl.l"
+#line 211 "shader/glsl.l"
 { return INTCONSTANT; }
 	YY_BREAK
 case 146:
 YY_RULE_SETUP
-#line 211 "shader/glsl.l"
+#line 213 "shader/glsl.l"
 { return UINTCONSTANT; }
 	YY_BREAK
 case 147:
 YY_RULE_SETUP
-#line 212 "shader/glsl.l"
+#line 214 "shader/glsl.l"
 { return INTCONSTANT; }
 	YY_BREAK
 case 148:
 YY_RULE_SETUP
-#line 214 "shader/glsl.l"
+#line 216 "shader/glsl.l"
 { return UINTCONSTANT; }
 	YY_BREAK
 case 149:
 YY_RULE_SETUP
-#line 215 "shader/glsl.l"
+#line 217 "shader/glsl.l"
 { return INTCONSTANT; }
 	YY_BREAK
 case 150:
 YY_RULE_SETUP
-#line 217 "shader/glsl.l"
+#line 219 "shader/glsl.l"
 { return FLOATCONSTANT; }
 	YY_BREAK
 case 151:
 YY_RULE_SETUP
-#line 218 "shader/glsl.l"
+#line 220 "shader/glsl.l"
 { return FLOATCONSTANT; }
 	YY_BREAK
 case 152:
 YY_RULE_SETUP
-#line 220 "shader/glsl.l"
+#line 222 "shader/glsl.l"
 { s_column += glslleng; }
 	YY_BREAK
 
 case 153:
 YY_RULE_SETUP
-#line 223 "shader/glsl.l"
+#line 225 "shader/glsl.l"
 { BEGIN(INITIAL); return COMMENT_END; }
 	YY_BREAK
 case 154:
 YY_RULE_SETUP
-#line 224 "shader/glsl.l"
+#line 226 "shader/glsl.l"
 { s_column += glslleng; }
 	YY_BREAK
 case 155:
 YY_RULE_SETUP
-#line 225 "shader/glsl.l"
+#line 227 "shader/glsl.l"
 { s_column += glslleng; }
 	YY_BREAK
 
 case 156:
 /* rule 156 can match eol */
 YY_RULE_SETUP
-#line 228 "shader/glsl.l"
+#line 230 "shader/glsl.l"
 { s_pos += s_column + glslleng; s_column = 0; s_line++; }
 	YY_BREAK
 case 157:
 YY_RULE_SETUP
-#line 230 "shader/glsl.l"
+#line 232 "shader/glsl.l"
 { return ERROR; }
 	YY_BREAK
 case 158:
 YY_RULE_SETUP
-#line 232 "shader/glsl.l"
+#line 234 "shader/glsl.l"
 ECHO;
 	YY_BREAK
-#line 1889 "lex.glsl.c"
+#line 1885 "lex.glsl.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(IN_COMMENT):
 	yyterminate();
@@ -1953,7 +1949,8 @@ case YY_STATE_EOF(IN_COMMENT):
 
 			else
 				{
-				yy_cp = (yy_c_buf_p);
+				yy_cp = (yy_last_accepting_cpos);
+				yy_current_state = (yy_last_accepting_state);
 				goto yy_find_action;
 				}
 			}
@@ -2439,10 +2436,6 @@ static void glsl_load_buffer_state  (void)
 	glslfree((void *) b  );
 }
 
-#ifndef __cplusplus
-extern int isatty (int );
-#endif /* __cplusplus */
-    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a glslrestart() or at EOF.
@@ -2466,7 +2459,7 @@ extern int isatty (int );
         b->yy_bs_column = 0;
     }
 
-        b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
+        b->yy_is_interactive = 0;
     
 	errno = oerrno;
 }
@@ -2887,7 +2880,7 @@ void glslfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 232 "shader/glsl.l"
+#line 234 "shader/glsl.l"
 
 
 
@@ -2897,11 +2890,17 @@ int glsllex_wrapper(void) {
   return tmp;
 }
 
-void glslset_scan_string(const char *str, int len) {
+void glslset_scan_string(const char *str, int len, int state) {
   glsl_scan_bytes(str,len);
   s_column = 0;
   s_line = 0;
   s_pos = 0;
+  if (state < INITIAL) state = INITIAL;
+  BEGIN(state);
+}
+
+int glslget_state() {
+  return YY_START;
 }
 
 int glslget_column(void) {
