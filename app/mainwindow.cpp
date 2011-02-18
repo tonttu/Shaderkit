@@ -21,6 +21,7 @@
 #include "shader/shader.hpp"
 #include "project.hpp"
 #include "scene.hpp"
+#include "importer_wizard.hpp"
 
 #include <QKeyEvent>
 #include <QFile>
@@ -68,6 +69,8 @@ MainWindow::MainWindow(QWidget* parent)
   /*connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
+
+  connect(m_ui->action_import, SIGNAL(triggered()), this, SLOT(import()));
 
   connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
 
@@ -293,8 +296,11 @@ bool MainWindow::load() {
   QString dir = settings.value("history/last_dir", QVariant(QDir::currentPath())).toString();
   QString file = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                               tr("GLSL Lab projects (*.lab *.zip)"));
-  if (!file.isEmpty())
+  if (!file.isEmpty()) {
+    QFileInfo fi(file);
+    settings.setValue("history/last_dir", fi.absolutePath());
     return openProject(file);
+  }
 
   return false;
 }
@@ -344,6 +350,11 @@ void MainWindow::setSandboxCompiler(bool v) {
   Shader::setSandboxCompile(v);
   QSettings settings("GLSL-Lab", "GLSL-Lab");
   settings.setValue("core/use_sandbox_compiler", v);
+}
+
+void MainWindow::import() {
+  ImporterWizard* w = new ImporterWizard(m_project->activeScene());
+  w->show();
 }
 
 void MainWindow::restore() {

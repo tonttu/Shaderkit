@@ -117,6 +117,8 @@ public:
 
   void setMaterial(QString name, MaterialPtr material);
 
+  void merge(const ObjImporter::Scene& s);
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();

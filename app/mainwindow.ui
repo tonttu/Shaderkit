@@ -51,6 +51,8 @@
     <addaction name="action_saveproject"/>
     <addaction name="action_save"/>
     <addaction name="action_saveas"/>
+    <addaction name="separator"/>
+    <addaction name="action_import"/>
     <addaction name="action_export"/>
     <addaction name="separator"/>
     <addaction name="action_quit"/>
@@ -67,7 +69,6 @@
     </property>
     <addaction name="action_libopen"/>
     <addaction name="action_libexample"/>
-    <addaction name="action_import"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -324,14 +325,6 @@
     <string>Open Library</string>
    </property>
   </action>
-  <action name="action_import">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Import</string>
-   </property>
-  </action>
   <action name="action_autosave">
    <property name="checkable">
     <bool>true</bool>
@@ -446,6 +439,11 @@
    </property>
    <property name="toolTip">
     <string>Use Sandbox Compiler</string>
+   </property>
+  </action>
+  <action name="action_import">
+   <property name="text">
+    <string>&amp;Import...</string>
    </property>
   </action>
  </widget>

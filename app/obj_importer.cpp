@@ -5,6 +5,7 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 #include "utils.hpp"
+#include "scene.hpp"
 
 #include "aiScene.h"
 #include "aiPostProcess.h"
@@ -113,11 +114,21 @@ bool ObjImporter::readFile(QString file, QMap<QString, bool> options) {
   return true;
 }
 
-ObjImporter::SceneInfo ObjImporter::analyze() {
+ObjImporter::SceneInfo ObjImporter::analyze(ScenePtr sc) {
   SceneInfo out;
 
   if (!m_importer->GetScene()) return out;
   const aiScene& s = *m_importer->GetScene();
+
+  if (sc) {
+    foreach (QString n, sc->materials().keys()) m_names.materials[n] = -1;
+    foreach (QString n, sc->objects().keys()) m_names.objects[n] = -1;
+    foreach (QString n, sc->lights().keys()) m_names.lights[n] = -1;
+    foreach (QString n, sc->cameras().keys()) m_names.cameras[n] = -1;
+    foreach (QString n, sc->textures().keys()) m_names.textures[n] = -1;
+    foreach (QString n, sc->objects().keys()) m_names.meshes << n;
+    /// @todo animations
+  }
 
   if (s.mRootNode) {
     QString name = str(s.mRootNode->mName);
@@ -268,8 +279,10 @@ ObjImporter::Scene ObjImporter::load(Filter filter) {
   }
 
   foreach (QString name, m_names.materials.keys()) {
+    int matid = m_names.materials[name];
+    if (matid < 0) continue;
     Log::debug("Iterating material: %s", name.toUtf8().data());
-    MaterialPtr m = loadMaterial(m_names.materials[name]);
+    MaterialPtr m = loadMaterial(matid);
     foreach (QString texname, m->textureNames()) {
       Log::debug("Iterating texture: %s", texname.toUtf8().data());
       Log::debug("Filter has: %s", QStringList(filter.textures.toList()).join(", ").toUtf8().data());
@@ -285,6 +298,14 @@ ObjImporter::Scene ObjImporter::load(Filter filter) {
   m_materialIndex.clear();
 
   return scene;
+}
+
+QString ObjImporter::extensionList() const {
+  aiString str;
+  m_importer->GetExtensionList(str);
+  QString out = QString::fromAscii(str.data, str.length);
+  out.replace(';', ' ');
+  return out;
 }
 
 MaterialPtr ObjImporter::loadMaterial(int idx) {

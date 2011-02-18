@@ -55,7 +55,8 @@ HEADERS += \
     scene_object.hpp \
     shader/glpp.hpp \
     transform_feedback.hpp \
-    shader/query_shader.hpp
+    shader/query_shader.hpp \
+    importer_wizard.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -96,12 +97,14 @@ SOURCES += \
     scene_object.cpp \
     shader/glpp.cpp \
     transform_feedback.cpp \
-    shader/query_shader.cpp
+    shader/query_shader.cpp \
+    importer_wizard.cpp
 
 FORMS += \
     mainwindow.ui \
     welcome.ui \
-    new_wizard.ui
+    new_wizard.ui \
+    importer_wizard.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

@@ -104,6 +104,8 @@ protected slots:
   void changed(RenderPassPtr);
   void setSandboxCompiler(bool);
 
+  void import();
+
 private:
   /// Main layout generated from the .ui -file.
   std::auto_ptr<Ui::MainWindow> m_ui;

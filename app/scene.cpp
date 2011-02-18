@@ -417,6 +417,33 @@ void Scene::load(QVariantMap map) {
 
 }
 
+void Scene::merge(const ObjImporter::Scene& s) {
+  m_node->children << s.node;
+  if (!s.objects.isEmpty()) {
+    m_objects.unite(s.objects);
+    emit objectListUpdated();
+  }
+  if (!s.lights.isEmpty()) {
+    m_lights.unite(s.lights);
+    emit lightListUpdated();
+  }
+  if (!s.cameras.isEmpty()) {
+    m_cameras.unite(s.cameras);
+    emit cameraListUpdated();
+  }
+  if (!s.textures.isEmpty()) {
+    m_textures.unite(s.textures);
+    emit textureListUpdated();
+  }
+  if (!s.materials.isEmpty()) {
+    m_materials.unite(s.materials);
+    emit materialListUpdated(shared_from_this());
+  }
+  m_models.unite(s.models);
+  /// @todo animations
+  /// @todo add a default shader if the material has shader hint
+}
+
 QString Scene::search(QString filename) const {
   if (m_root.isEmpty())
     return QDir(filename).canonicalPath();

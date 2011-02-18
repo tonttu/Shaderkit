@@ -53,8 +53,13 @@ public:
   ~ObjImporter();
 
   bool readFile(QString file, Options options);
-  SceneInfo analyze();
+  /// @param s If given, marks all names used in the scene as already reserved
+  SceneInfo analyze(ScenePtr s = ScenePtr());
   Scene load(Filter filter);
+
+  /// Returns the list of all extension supported
+  /// format: "*.3ds *.obj *.dae".
+  QString extensionList() const;
 
 private:
   MaterialPtr loadMaterial(int idx);
