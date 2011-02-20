@@ -23,6 +23,8 @@
 #include "material.hpp"
 #include "scene.hpp"
 
+#include <cassert>
+
 UEditor::UEditor(QTreeWidgetItem *p, MaterialPtr mat_, UniformVar& var)
  : QTreeWidgetItem(p),
    mat(mat_),
@@ -136,24 +138,28 @@ Properties::Properties(QWidget* parent)
 MaterialProperties::MaterialProperties(QWidget* parent)
   : Properties(parent) {
   if (!s_instance) s_instance = this;
-  setColumnCount(3);
   setColumnWidth(0, 90);
   setColumnWidth(1, 45);
-  setHeaderLabels(QStringList() << "Uniform" << "Value" << "Editor");
-  setAllColumnsShowFocus(true);
-  setAnimated(true);
-  setIndentation(10);
-  setRootIsDecorated(false);
-  setItemsExpandable(false);
-  setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  setDragDropMode(DragOnly);
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 }
 
 MaterialProperties::~MaterialProperties() {
   if (s_instance == this) s_instance = 0;
+}
+
+void MaterialProperties::init() {
+  QToolBar* tb = parentWidget()->findChild<QToolBar*>("m_prop_menu");
+  assert(tb);
+
+  tb->layout()->setMargin(0);
+  tb->addAction(QIcon(":/icons/new2.png"), "New material");
+  tb->addAction(QIcon(":/icons/load_texture.png"), "New material from texture");
+  tb->addSeparator();
+  tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate material");
+  tb->addSeparator();
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit");
+  tb->addAction(QIcon(":/icons/delete.png"), "Delete");
 }
 
 void MaterialProperties::update(MaterialPtr mat) {
@@ -266,10 +272,6 @@ FileList::FileList(QWidget* parent)
     m_src(new QTreeWidgetItem(this)) {
   if (!s_instance) s_instance = this;
 
-  setIndentation(10);
-  setRootIsDecorated(false);
-  setItemsExpandable(false);
-
   /// @todo fix this
   m_src->setBackgroundColor(0, QColor(240, 240, 240));
   QFont font = m_src->font(0);
@@ -284,6 +286,20 @@ FileList::FileList(QWidget* parent)
 
 FileList::~FileList() {
   if (s_instance == this) s_instance = 0;
+}
+
+void FileList::init() {
+  QToolBar* tb = parentWidget()->findChild<QToolBar*>("filelist_menu");
+  assert(tb);
+
+  tb->layout()->setMargin(0);
+  tb->addAction(QIcon(":/icons/new2.png"), "New file");
+  tb->addAction(QIcon(":/icons/load_textfile.png"), "Open file");
+  tb->addSeparator();
+  tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate file");
+  tb->addSeparator();
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit");
+  tb->addAction(QIcon(":/icons/delete.png"), "Delete");
 }
 
 void FileList::update(ShaderPtr shader) {

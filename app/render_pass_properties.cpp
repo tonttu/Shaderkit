@@ -781,21 +781,23 @@ RenderPassProperties::RenderPassProperties(QWidget* parent)
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 
   //setHeaderLabels(QStringList() << "Property" << "Value");
-
-  setColumnCount(3);
-  setAnimated(true);
-  setHeaderHidden(true);
-  setSelectionMode(Properties::NoSelection);
-  setIndentation(20);
-  setRootIsDecorated(false);
-  //setItemsExpandable(false);
-
-  setVerticalScrollMode(ScrollPerPixel);
-  setHorizontalScrollMode(ScrollPerPixel);
 }
 
 RenderPassProperties::~RenderPassProperties() {
   if (s_instance == this) s_instance = 0;
+}
+
+void RenderPassProperties::init() {
+  QToolBar* tb = parentWidget()->findChild<QToolBar*>("rp_prop_menu");
+  assert(tb);
+
+  tb->layout()->setMargin(0);
+  tb->addAction(QIcon(":/icons/new2.png"), "New render pass");
+  tb->addSeparator();
+  tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate render pass");
+  tb->addSeparator();
+  tb->addAction(QIcon(":/icons/edit.png"), "Edit");
+  tb->addAction(QIcon(":/icons/delete.png"), "Delete");
 }
 
 void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {

@@ -229,6 +229,8 @@ public:
   RenderPassProperties(QWidget* parent = 0);
   virtual ~RenderPassProperties();
 
+  void init();
+
 public slots:
   /// This render pass has been changed / created
   void update(RenderPassPtr pass);

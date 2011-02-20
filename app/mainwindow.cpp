@@ -49,10 +49,13 @@ MainWindow * MainWindow::s_instance = 0;
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent), m_ui(new Ui::MainWindow), m_projectChanged(false) {
-  m_ui->setupUi(this);
-
   if (!s_instance)
     s_instance = this;
+
+  m_ui->setupUi(this);
+  m_ui->filelist->init();
+  m_ui->renderpass_properties->init();
+  m_ui->material_properties->init();
 
   /*  QDockWidget *dw = new QDockWidget;
   dw->setObjectName("Foo");

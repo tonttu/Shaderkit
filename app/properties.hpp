@@ -80,6 +80,8 @@ public:
   MaterialProperties(QWidget* parent = 0);
   virtual ~MaterialProperties();
 
+  void init();
+
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
   void update(MaterialPtr mat);
@@ -116,6 +118,8 @@ public:
   static FileList& instance();
   FileList(QWidget* parent = 0);
   virtual ~FileList();
+
+  void init();
 
 signals:
   void openFile(ShaderPtr);

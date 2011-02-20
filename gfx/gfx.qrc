@@ -24,6 +24,10 @@
         <file>logo.png</file>
         <file>closed.png</file>
         <file>open.png</file>
+        <file>new2.png</file>
+        <file>duplicate.png</file>
+        <file>load_texture.png</file>
+        <file>load_textfile.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>
