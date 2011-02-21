@@ -136,12 +136,15 @@ Properties::Properties(QWidget* parent)
 }
 
 MaterialProperties::MaterialProperties(QWidget* parent)
-  : Properties(parent) {
+  : Properties(parent),
+    m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
   setColumnWidth(0, 90);
   setColumnWidth(1, 45);
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
+
+  connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 }
 
 MaterialProperties::~MaterialProperties() {
@@ -153,13 +156,19 @@ void MaterialProperties::init() {
   assert(tb);
 
   tb->layout()->setMargin(0);
-  tb->addAction(QIcon(":/icons/new2.png"), "New material");
-  tb->addAction(QIcon(":/icons/load_texture.png"), "New material from texture");
+  m_create = tb->addAction(QIcon(":/icons/new2.png"), "New material");
+  m_open = tb->addAction(QIcon(":/icons/load_texture.png"), "New material from texture");
   tb->addSeparator();
-  tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate material");
+  m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate selected material");
   tb->addSeparator();
-  tb->addAction(QIcon(":/icons/edit.png"), "Edit");
-  tb->addAction(QIcon(":/icons/delete.png"), "Delete");
+  m_edit = tb->addAction(QIcon(":/icons/edit.png"), "Edit selected material");
+  m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete selected material");
+
+  m_create->setDisabled(true);
+  m_open->setDisabled(true);
+  m_duplicate->setDisabled(true);
+  m_edit->setDisabled(true);
+  m_destroy->setDisabled(true);
 }
 
 void MaterialProperties::update(MaterialPtr mat) {
@@ -227,6 +236,22 @@ void MaterialProperties::setActiveMaterials(QSet<MaterialPtr> materials) {
     update(m);*/
 }
 
+void MaterialProperties::selectionChanged() {
+  if (!m_create) return;
+
+  QList<QTreeWidgetItem*> items = selectedItems();
+  if (items.size() == 1) {
+    /// @todo implement
+    /*m_duplicate->setEnabled(true);
+    m_edit->setEnabled(true);
+    m_destroy->setEnabled(true);*/
+  } else {
+    m_duplicate->setEnabled(false);
+    m_edit->setEnabled(false);
+    m_destroy->setEnabled(false);
+  }
+}
+
 UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
                                         const ShaderTypeInfo& type, QTreeWidgetItem* p) {
   if (var.arraySize() == 1) {
@@ -269,7 +294,8 @@ void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
 
 FileList::FileList(QWidget* parent)
   : QTreeWidget(parent),
-    m_src(new QTreeWidgetItem(this)) {
+    m_src(new QTreeWidgetItem(this)),
+    m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
 
   /// @todo fix this
@@ -282,6 +308,8 @@ FileList::FileList(QWidget* parent)
 
   connect(this, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
           this, SLOT(activateFile(QTreeWidgetItem*, int)));
+
+  connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 }
 
 FileList::~FileList() {
@@ -293,13 +321,19 @@ void FileList::init() {
   assert(tb);
 
   tb->layout()->setMargin(0);
-  tb->addAction(QIcon(":/icons/new2.png"), "New file");
-  tb->addAction(QIcon(":/icons/load_textfile.png"), "Open file");
+  m_create = tb->addAction(QIcon(":/icons/new2.png"), "New file");
+  m_open = tb->addAction(QIcon(":/icons/load_textfile.png"), "Open file");
   tb->addSeparator();
-  tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate file");
+  m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate file");
   tb->addSeparator();
-  tb->addAction(QIcon(":/icons/edit.png"), "Edit");
-  tb->addAction(QIcon(":/icons/delete.png"), "Delete");
+  m_edit = tb->addAction(QIcon(":/icons/edit.png"), "Edit");
+  m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete");
+
+  m_create->setDisabled(true);
+  m_open->setDisabled(true);
+  m_duplicate->setDisabled(true);
+  m_edit->setDisabled(true);
+  m_destroy->setDisabled(true);
 }
 
 void FileList::update(ShaderPtr shader) {
@@ -330,5 +364,21 @@ void FileList::remove(ShaderPtr shader) {
     m_files.remove(shader->filename());
     m_src->removeChild(item);
     delete item;
+  }
+}
+
+void FileList::selectionChanged() {
+  if (!m_create) return;
+
+  QList<QTreeWidgetItem*> items = selectedItems();
+  if (items.size() == 1) {
+    /// @todo implement
+    /*m_duplicate->setEnabled(true);
+    m_edit->setEnabled(true);
+    m_destroy->setEnabled(true);*/
+  } else {
+    m_duplicate->setEnabled(false);
+    m_edit->setEnabled(false);
+    m_destroy->setEnabled(false);
   }
 }

@@ -100,8 +100,8 @@
   <widget class="QDockWidget" name="errordock">
    <property name="minimumSize">
     <size>
-     <width>84</width>
-     <height>109</height>
+     <width>79</width>
+     <height>26</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -110,71 +110,123 @@
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
-   <widget class="QTableWidget" name="error_list">
-    <property name="editTriggers">
-     <set>QAbstractItemView::NoEditTriggers</set>
+   <widget class="QFrame" name="frame">
+    <property name="minimumSize">
+     <size>
+      <width>1</width>
+      <height>1</height>
+     </size>
     </property>
-    <property name="showDropIndicator" stdset="0">
-     <bool>false</bool>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
     </property>
-    <property name="selectionMode">
-     <enum>QAbstractItemView::SingleSelection</enum>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
     </property>
-    <property name="selectionBehavior">
-     <enum>QAbstractItemView::SelectRows</enum>
-    </property>
-    <property name="verticalScrollMode">
-     <enum>QAbstractItemView::ScrollPerPixel</enum>
-    </property>
-    <property name="horizontalScrollMode">
-     <enum>QAbstractItemView::ScrollPerPixel</enum>
-    </property>
-    <property name="showGrid">
-     <bool>true</bool>
-    </property>
-    <property name="gridStyle">
-     <enum>Qt::DotLine</enum>
-    </property>
-    <property name="rowCount">
-     <number>0</number>
-    </property>
-    <property name="columnCount">
-     <number>3</number>
-    </property>
-    <attribute name="horizontalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
-    <attribute name="horizontalHeaderMinimumSectionSize">
-     <number>80</number>
-    </attribute>
-    <attribute name="horizontalHeaderStretchLastSection">
-     <bool>true</bool>
-    </attribute>
-    <attribute name="verticalHeaderVisible">
-     <bool>false</bool>
-    </attribute>
-    <column/>
-    <column/>
-    <column/>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="margin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QTableWidget" name="error_list">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="showDropIndicator" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="verticalScrollMode">
+        <enum>QAbstractItemView::ScrollPerPixel</enum>
+       </property>
+       <property name="horizontalScrollMode">
+        <enum>QAbstractItemView::ScrollPerPixel</enum>
+       </property>
+       <property name="showGrid">
+        <bool>true</bool>
+       </property>
+       <property name="gridStyle">
+        <enum>Qt::DotLine</enum>
+       </property>
+       <property name="rowCount">
+        <number>0</number>
+       </property>
+       <property name="columnCount">
+        <number>3</number>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <column/>
+       <column/>
+       <column/>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="gldock">
+   <property name="minimumSize">
+    <size>
+     <width>79</width>
+     <height>41</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string>OpenGL render</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
-   <widget class="GLWidget" name="gl_widget"/>
+   <widget class="GLWidget" name="gl_widget">
+    <property name="minimumSize">
+     <size>
+      <width>16</width>
+      <height>16</height>
+     </size>
+    </property>
+   </widget>
   </widget>
   <widget class="QDockWidget" name="shaderdock">
+   <property name="minimumSize">
+    <size>
+     <width>79</width>
+     <height>26</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string>Materials</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
-   <widget class="QWidget" name="widget_2">
+   <widget class="QFrame" name="widget_2">
+    <property name="minimumSize">
+     <size>
+      <width>1</width>
+      <height>1</height>
+     </size>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <property name="spacing">
       <number>0</number>
@@ -184,6 +236,9 @@
      </property>
      <item>
       <widget class="MaterialProperties" name="material_properties">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
        <property name="dragDropMode">
         <enum>QAbstractItemView::DragOnly</enum>
        </property>
@@ -245,16 +300,34 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="renderdock">
+   <property name="minimumSize">
+    <size>
+     <width>79</width>
+     <height>26</height>
+    </size>
+   </property>
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>Render</string>
+    <string>Render passes</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
-   <widget class="QWidget" name="widget">
+   <widget class="QFrame" name="widget">
+    <property name="minimumSize">
+     <size>
+      <width>1</width>
+      <height>1</height>
+     </size>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
       <number>0</number>
@@ -264,8 +337,17 @@
      </property>
      <item>
       <widget class="RenderPassProperties" name="renderpass_properties">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::NoSelection</enum>
+        <enum>QAbstractItemView::SingleSelection</enum>
        </property>
        <property name="verticalScrollMode">
         <enum>QAbstractItemView::ScrollPerPixel</enum>
@@ -316,6 +398,12 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="filesdock">
+   <property name="minimumSize">
+    <size>
+     <width>79</width>
+     <height>26</height>
+    </size>
+   </property>
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
@@ -325,7 +413,19 @@
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
-   <widget class="QWidget" name="widget_3">
+   <widget class="QFrame" name="widget_3">
+    <property name="minimumSize">
+     <size>
+      <width>1</width>
+      <height>1</height>
+     </size>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <property name="spacing">
       <number>0</number>
@@ -335,6 +435,9 @@
      </property>
      <item>
       <widget class="FileList" name="filelist">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
        <property name="verticalScrollMode">
         <enum>QAbstractItemView::ScrollPerPixel</enum>
        </property>

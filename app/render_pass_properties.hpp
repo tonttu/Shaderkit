@@ -230,6 +230,7 @@ public:
   virtual ~RenderPassProperties();
 
   void init();
+  QList<RenderPassPtr> list();
 
 public slots:
   /// This render pass has been changed / created
@@ -238,6 +239,8 @@ public slots:
   void remove(RenderPassPtr pass);
   /// User changed property value (to variant)
   //void valueChanged(QtProperty* property, const QVariant& variant);
+  void selectionChanged();
+  void recalcLayout();
 
 protected:
   struct Sub {
@@ -246,28 +249,14 @@ protected:
     Sub() : item(0) {}
   };
 
+  void dropEvent(QDropEvent* event);
+
   void init(Sub& sub, RenderPassPtr pass);
 
   /// Every render pass has one group property whose children are the actual passes
   QMap<RenderPassPtr, Sub> m_renderpasses;
-  /*
-  struct Sub {
-    enum Type {
-      Clear
-    };
 
-    Sub() : obj(0) {}
-    QtVariantProperty* obj;
-    QtVariantProperty* clear;
-  };
-
-
-  /// Every render pass has one group property whose children are the actual passes
-  QMap<RenderPassPtr, Sub> m_renderpasses;
-
-  typedef QMap<QtProperty*, QPair<Sub::Type, RenderPassPtr> > PropertyMap;
-
-  PropertyMap m_properties;*/
+  QAction *m_create, *m_duplicate, *m_edit, *m_destroy;
 
   static RenderPassProperties* s_instance;
 };

@@ -295,6 +295,7 @@ ObjectsEditor::ObjectsEditor(QTreeWidgetItem* parent, RenderPassPtr pass)
   updated(pass);
 
   QTreeWidgetItem* item = new QTreeWidgetItem(this);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   treeWidget()->setItemWidget(item, 1, new ObjectInserter(pass));
 
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
@@ -321,6 +322,7 @@ void ObjectsEditor::updated(RenderPassPtr pass) {
   // new objects
   foreach (ObjectPtr o, objs - current) {
     QTreeWidgetItem* item = new QTreeWidgetItem;
+    item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
     insertChild(0, item);
     ObjectEditor* editor = new ObjectEditor(pass, o);
     treeWidget()->setItemWidget(item, 1, editor);
@@ -419,6 +421,7 @@ void LightsEditor::updated(RenderPassPtr pass) {
   // new lights
   foreach (LightPtr l, all_lights - current) {
     QTreeWidgetItem* item = new QTreeWidgetItem(this);
+    item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
     LightEditor* editor = new LightEditor(pass, l);
     editor->setStatus(pass_lights.contains(l));
     //item->setText(0, l->name());
@@ -775,12 +778,15 @@ RenderPassProperties &RenderPassProperties::instance() {
 }
 
 RenderPassProperties::RenderPassProperties(QWidget* parent)
-  : Properties(parent) {
+  : Properties(parent),
+    m_create(0), m_duplicate(0), m_edit(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 
   //setHeaderLabels(QStringList() << "Property" << "Value");
+  connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
+  connect(this, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(recalcLayout()));
 }
 
 RenderPassProperties::~RenderPassProperties() {
@@ -792,12 +798,48 @@ void RenderPassProperties::init() {
   assert(tb);
 
   tb->layout()->setMargin(0);
-  tb->addAction(QIcon(":/icons/new2.png"), "New render pass");
+  m_create = tb->addAction(QIcon(":/icons/new2.png"), "New render pass");
   tb->addSeparator();
-  tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate render pass");
+  m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate render pass");
   tb->addSeparator();
-  tb->addAction(QIcon(":/icons/edit.png"), "Edit");
-  tb->addAction(QIcon(":/icons/delete.png"), "Delete");
+  m_edit = tb->addAction(QIcon(":/icons/edit.png"), "Edit");
+  m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete");
+
+  m_create->setDisabled(true);
+  m_duplicate->setDisabled(true);
+  m_edit->setDisabled(true);
+  m_destroy->setDisabled(true);
+}
+
+QList<RenderPassPtr> RenderPassProperties::list() {
+  QList<RenderPassPtr> out;
+
+  QMap<QTreeWidgetItem*, RenderPassPtr> map;
+  for (QMap<RenderPassPtr, Sub>::iterator it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it)
+    map[it.value().item] = it.key();
+
+  int s = topLevelItemCount();
+  for (int i = 0; i < s; ++i) {
+    QTreeWidgetItem* item = topLevelItem(i);
+    RenderPassPtr p = map[item];
+    if (p) out << p;
+  }
+  return out;
+}
+
+void RenderPassProperties::dropEvent(QDropEvent* event) {
+  Properties::dropEvent(event);
+
+  if (event->isAccepted()) {
+    QSet<ScenePtr> scenes;
+    foreach (RenderPassPtr rp, m_renderpasses.keys())
+      scenes << rp->scene();
+
+    foreach (ScenePtr scene, scenes)
+      scene->renderPassesChanged();
+
+    recalcLayout();
+  }
 }
 
 void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
@@ -813,8 +855,8 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   addProperty(sub.obj);*/
 
   sub.item = new QTreeWidgetItem(this);
+  sub.item->setFlags(sub.item->flags() & ~Qt::ItemIsDropEnabled);
   sub.item->setIcon(0, pass->icon());
-  sub.item->setFirstColumnSpanned(true);
   /// @todo fix
   sub.item->setBackgroundColor(0, QColor(240, 240, 240));
   QFont font = sub.item->font(0);
@@ -824,6 +866,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   expandItem(sub.item);
 
   QTreeWidgetItem* item = new QTreeWidgetItem(sub.item);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item->setIcon(0, QIcon(":/icons/shader.png"));
   item->setText(0, "Shader");
   font = item->font(0);
@@ -832,6 +875,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   setItemWidget(item, 1, new ShaderEditor(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item->setIcon(0, QIcon(":/icons/size.png"));
   item->setText(0, "Size");
   font = item->font(0);
@@ -840,6 +884,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   setItemWidget(item, 1, new SizeEditor(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item->setIcon(0, QIcon(":/icons/viewport.png"));
   item->setText(0, "Viewport");
   font = item->font(0);
@@ -848,6 +893,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   setItemWidget(item, 1, new CameraEditor(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item->setIcon(0, QIcon(":/icons/clear.png"));
   item->setText(0, "Clear");
   font = item->font(0);
@@ -856,15 +902,16 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   setItemWidget(item, 1, new ClearEditor(pass));
 
   item = new ObjectsEditor(sub.item, pass);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item = new LightsEditor(sub.item, pass);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item = new TexturesEditor(sub.item, pass);
+  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
 
 /*  QFontMetrics m(font);
   int w = m.width("Viewport");
   setColumnWidth(0, w+16+10+35);*/
-  resizeColumnToContents(0);
-  resizeColumnToContents(1);
-  resizeColumnToContents(2);
+  recalcLayout();
 
   /// @todo group and hide/show items by render pass type
 }
@@ -942,4 +989,30 @@ void RenderPassProperties::remove(RenderPassPtr pass) {
   /// @todo Remove all old subproperties and clean m_properties
   removeProperty(sub.obj);
   m_renderpasses.remove(pass);*/
+}
+
+void RenderPassProperties::selectionChanged() {
+  if (!m_create) return;
+
+  QList<QTreeWidgetItem*> items = selectedItems();
+  if (items.size() == 1) {
+    /// @todo implement
+    /*m_duplicate->setEnabled(true);
+    m_edit->setEnabled(true);
+    m_destroy->setEnabled(true);*/
+  } else {
+    m_duplicate->setEnabled(false);
+    m_edit->setEnabled(false);
+    m_destroy->setEnabled(false);
+  }
+}
+
+void RenderPassProperties::recalcLayout() {
+  int s = topLevelItemCount();
+  for (int i = 0; i < s; ++i) {
+    QTreeWidgetItem* item = topLevelItem(i);
+    item->setFirstColumnSpanned(true);
+  }
+  for (int i = 0; i < columnCount(); ++i)
+    resizeColumnToContents(i);
 }

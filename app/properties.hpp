@@ -87,6 +87,7 @@ public slots:
   void update(MaterialPtr mat);
   void setActiveMaterials(QSet<MaterialPtr> materials);
   void updateMaterialList(ScenePtr scene);
+  void selectionChanged();
 
 protected:
   struct Sub {
@@ -102,6 +103,8 @@ protected:
   virtual void startDrag(Qt::DropActions supportedActions);
 
   QMap<MaterialPtr, Sub> m_materials;
+
+  QAction *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
 
   static MaterialProperties* s_instance;
 };
@@ -128,11 +131,14 @@ public slots:
   void update(ShaderPtr shader);
   void activateFile(QTreeWidgetItem* item, int column);
   void remove(ShaderPtr shader);
+  void selectionChanged();
 
 protected:
   QMap<QString, QTreeWidgetItem*> m_files;
   QMap<QTreeWidgetItem*, ShaderPtr> m_items;
   QTreeWidgetItem* m_src;
+
+  QAction *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
 
   static FileList* s_instance;
 };

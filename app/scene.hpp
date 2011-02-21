@@ -37,7 +37,7 @@ class Scene : public QObject, public std::enable_shared_from_this<Scene> {
   Q_OBJECT
 
 public:
-  typedef QList<QPair<QString, RenderPassPtr> > RenderPasses;
+  typedef QList<RenderPassPtr> RenderPasses;
   struct Import {
     ObjImporter::Filter filter;
     ObjImporter::Options options;
@@ -119,6 +119,8 @@ public:
 
   void merge(const ObjImporter::Scene& s);
 
+  void renderPassesChanged();
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -160,6 +162,8 @@ protected:
   QPair<ObjectPtr, MeshPtr> m_picked;
   QPointF m_picking;
   MaterialPtr m_material_assign;
+
+  bool m_renderPassesChanged;
 };
 
 /// Convert array of three doubles to vector

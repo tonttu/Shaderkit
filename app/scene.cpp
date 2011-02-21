@@ -30,6 +30,7 @@
 #include "model.hpp"
 #include "utils.hpp"
 #include "properties.hpp"
+#include "render_pass_properties.hpp"
 
 #include <QVariantMap>
 
@@ -132,7 +133,8 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 
 Scene::Scene(QString filename)
   : m_width(-1), m_height(-1),
-    m_filename(filename), m_node(new Node), m_picking(-1, -1) {
+    m_filename(filename), m_node(new Node), m_picking(-1, -1),
+    m_renderPassesChanged(false) {
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
   m_time.start();
@@ -153,9 +155,13 @@ void Scene::render() {
 
   CameraPtr defcam = camera();
 
+  if (m_renderPassesChanged) {
+    m_render_passes = RenderPassProperties::instance().list();
+    m_renderPassesChanged = false;
+  }
+
   bool ui = false;
-  for (RenderPasses::iterator it = m_render_passes.begin(); it != m_render_passes.end(); ++it) {
-    RenderPassPtr p = it->second;
+  foreach (RenderPassPtr p, m_render_passes) {
     opts.ui = !ui && p->type() == RenderPass::Normal;
 
     bool pick = false;
@@ -271,8 +277,8 @@ QVariantMap Scene::save() const {
   if (!tmp.isEmpty()) map["lab"] = tmp, tmp.clear();
 
   QVariantList render_passes;
-  foreach (RenderPasses::value_type p, m_render_passes)
-    render_passes << p.second->save();
+  foreach (RenderPassPtr p, m_render_passes)
+    render_passes << p->save();
   if (!render_passes.isEmpty()) map["render passes"] = render_passes;
 
   return map;
@@ -412,7 +418,7 @@ void Scene::load(QVariantMap map) {
     QVariantMap map = item.toMap();
     RenderPassPtr pass(new RenderPass(map["name"].toString(), shared_from_this()));
     pass->load(map);
-    m_render_passes.push_back(qMakePair(pass->name(), pass));
+    m_render_passes << pass;
   }
 
 }
@@ -442,6 +448,10 @@ void Scene::merge(const ObjImporter::Scene& s) {
   m_models.unite(s.models);
   /// @todo animations
   /// @todo add a default shader if the material has shader hint
+}
+
+void Scene::renderPassesChanged() {
+  m_renderPassesChanged = true;
 }
 
 QString Scene::search(QString filename) const {
