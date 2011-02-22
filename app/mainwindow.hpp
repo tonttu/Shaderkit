@@ -68,6 +68,8 @@ public:
 
   QList<Editor*> editors() { return m_editors; }
 
+  ProjectPtr project() { return m_project; }
+
   static MainWindow& instance();
 
 public slots:

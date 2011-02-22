@@ -104,6 +104,16 @@ void Highlighter::loadConfig() {
   /// @todo All these should be loadable from some kind of config file run time,
   //        maybe with the help of setProperty and QVariant.
 
+  QTextCharFormat* formats[] = { &m_errorFormat, &m_commentFormat, &m_ppFormat,
+    &m_typeFormat, &m_qualifierFormat, &m_keywordFormat, &m_constantFormat, &m_operatorFormat,
+    &m_parenthesesFormat, &m_buildinVarFormat, &m_idFormat, 0 };
+  QTextCharFormat** it = formats;
+  while (*it) {
+    QTextCharFormat* f = *it++;
+    f->setForeground(Qt::black);
+    //f->setBackground(Qt::white);
+  }
+
   m_errorFormat.setUnderlineColor(Qt::red);
   m_errorFormat.setUnderlineStyle(QTextCharFormat::WaveUnderline);
 

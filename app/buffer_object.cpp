@@ -4,11 +4,22 @@
 BufferObject::BufferObject() : m_id(0), m_target(0), m_cache_size(0) {
 }
 
+BufferObject::BufferObject(const BufferObject& obj)
+  : m_id(0), m_target(obj.m_target), m_cache_size(0) {
+}
+
 BufferObject::~BufferObject() {
   if (m_id) {
     glRun(glDeleteBuffers(1, &m_id));
     m_id = 0;
   }
+}
+
+BufferObject& BufferObject::operator=(const BufferObject& obj) {
+  m_id = 0;
+  m_cache_size = 0;
+  m_target = obj.m_target;
+  return *this;
 }
 
 void BufferObject::enableArray(State& state, GLenum cap, int components) {

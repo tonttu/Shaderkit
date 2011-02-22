@@ -55,6 +55,10 @@ Editor::Editor(QWidget* parent, ShaderPtr shader)
 
   setFont(font);
 
+  QPalette p = palette();
+  p.setColor(QPalette::Base, Qt::white);
+  setPalette(p);
+
   QColor lineColor = QColor(Qt::yellow).lighter(180);
   m_currentLineSelection.format.setBackground(lineColor);
   m_currentLineSelection.format.setProperty(QTextFormat::FullWidthSelection, true);

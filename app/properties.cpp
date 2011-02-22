@@ -182,9 +182,7 @@ void MaterialProperties::update(MaterialPtr mat) {
     // sub.item->setIcon(0, mat->icon());
     expandItem(sub.item);
     sub.item->setFirstColumnSpanned(true);
-    /// @todo The last thing we want to use is hard coded color values when
-    ///       everything else is controlled by qt style. fix this.
-    sub.item->setBackgroundColor(0, QColor(240, 240, 240));
+    sub.item->setBackgroundColor(0, palette().color(QPalette::Dark));
     QFont font = sub.item->font(0);
     font.setBold(true);
     sub.item->setFont(0, font);
@@ -298,8 +296,7 @@ FileList::FileList(QWidget* parent)
     m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
 
-  /// @todo fix this
-  m_src->setBackgroundColor(0, QColor(240, 240, 240));
+  m_src->setBackgroundColor(0, palette().color(QPalette::Dark));
   QFont font = m_src->font(0);
   font.setBold(true);
   m_src->setFont(0, font);

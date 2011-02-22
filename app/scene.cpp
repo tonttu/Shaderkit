@@ -162,6 +162,8 @@ void Scene::render() {
 
   bool ui = false;
   foreach (RenderPassPtr p, m_render_passes) {
+    if (!p->viewport()) continue;
+
     opts.ui = !ui && p->type() == RenderPass::Normal;
 
     bool pick = false;

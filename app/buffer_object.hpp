@@ -46,7 +46,10 @@ public:
    */
 
   BufferObject();
+  BufferObject(const BufferObject& obj);
   virtual ~BufferObject();
+
+  BufferObject& operator=(const BufferObject& obj);
 
   void enableArray(State& state, GLenum cap, int components, std::vector<float>& data);
   void enableArray(State& state, GLenum cap, int components);

@@ -24,6 +24,8 @@
 #include "camera.hpp"
 #include "texture.hpp"
 #include "material.hpp"
+#include "project.hpp"
+#include "utils.hpp"
 
 /// @todo this is only for IconBtn
 #include "mainwindow.hpp"
@@ -455,9 +457,13 @@ CameraEditor::CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(p
   {
     QListWidget* view = new QListWidget(this);
 
-    QListWidgetItem* item = new QListWidgetItem("Post");
+    QListWidgetItem* item = new QListWidgetItem("Disabled");
     QFont font = item->font();
     font.setBold(true);
+    item->setFont(font);
+    view->addItem(item);
+
+    item = new QListWidgetItem("Post");
     item->setFont(font);
     view->addItem(item);
 
@@ -494,8 +500,8 @@ CameraEditor::CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(p
 
 void CameraEditor::updateList() {
   /// @todo just update changed data
-  while (m_list->count() > 2)
-    m_list->removeItem(2);
+  while (m_list->count() > 3)
+    m_list->removeItem(3);
 
   CameraPtr selected = m_pass->viewport();
   bool found = false;
@@ -521,6 +527,8 @@ void CameraEditor::updated(RenderPassPtr pass) {
 
 void CameraEditor::listActivated(int index) {
   if (index == 0) {
+    m_pass->setType(RenderPass::Disabled);
+  } else if (index == 1) {
     m_pass->setType(RenderPass::PostProc);
   } else {
     m_pass->setType(RenderPass::Normal);
@@ -779,7 +787,7 @@ RenderPassProperties &RenderPassProperties::instance() {
 
 RenderPassProperties::RenderPassProperties(QWidget* parent)
   : Properties(parent),
-    m_create(0), m_duplicate(0), m_edit(0), m_destroy(0) {
+    m_create(0), m_duplicate(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
@@ -802,13 +810,13 @@ void RenderPassProperties::init() {
   tb->addSeparator();
   m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate render pass");
   tb->addSeparator();
-  m_edit = tb->addAction(QIcon(":/icons/edit.png"), "Edit");
   m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete");
 
-  m_create->setDisabled(true);
-  m_duplicate->setDisabled(true);
-  m_edit->setDisabled(true);
-  m_destroy->setDisabled(true);
+  connect(m_create, SIGNAL(triggered()), this, SLOT(create()));
+  connect(m_duplicate, SIGNAL(triggered()), this, SLOT(duplicate()));
+  connect(m_destroy, SIGNAL(triggered()), this, SLOT(remove()));
+
+  selectionChanged();
 }
 
 QList<RenderPassPtr> RenderPassProperties::list() {
@@ -858,7 +866,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   sub.item->setFlags(sub.item->flags() & ~Qt::ItemIsDropEnabled);
   sub.item->setIcon(0, pass->icon());
   /// @todo fix
-  sub.item->setBackgroundColor(0, QColor(240, 240, 240));
+  sub.item->setBackgroundColor(0, palette().color(QPalette::Dark));
   QFont font = sub.item->font(0);
   font.setBold(true);
   sub.item->setFont(0, font);
@@ -981,14 +989,13 @@ void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& va
 //}
 
 void RenderPassProperties::remove(RenderPassPtr pass) {
-  /*if (!m_renderpasses.contains(pass))
+  if (!m_renderpasses.contains(pass))
     return;
 
   Sub& sub = m_renderpasses[pass];
+  delete sub.item;
 
-  /// @todo Remove all old subproperties and clean m_properties
-  removeProperty(sub.obj);
-  m_renderpasses.remove(pass);*/
+  m_renderpasses.remove(pass);
 }
 
 void RenderPassProperties::selectionChanged() {
@@ -996,13 +1003,10 @@ void RenderPassProperties::selectionChanged() {
 
   QList<QTreeWidgetItem*> items = selectedItems();
   if (items.size() == 1) {
-    /// @todo implement
-    /*m_duplicate->setEnabled(true);
-    m_edit->setEnabled(true);
-    m_destroy->setEnabled(true);*/
+    m_duplicate->setEnabled(true);
+    m_destroy->setEnabled(true);
   } else {
     m_duplicate->setEnabled(false);
-    m_edit->setEnabled(false);
     m_destroy->setEnabled(false);
   }
 }
@@ -1015,4 +1019,54 @@ void RenderPassProperties::recalcLayout() {
   }
   for (int i = 0; i < columnCount(); ++i)
     resizeColumnToContents(i);
+}
+
+void RenderPassProperties::create() {
+  ProjectPtr p = MainWindow::instance().project();
+  ScenePtr s;
+  if (p) s = p->activeScene();
+  if (!s) {
+    Log::error("No active scene");
+  } else {
+    QList<QString> names;
+    foreach (RenderPassPtr rp, s->renderPasses()) names << rp->name();
+    RenderPassPtr rp(new RenderPass(Utils::uniqueName("Untitled", names), s));
+    update(rp);
+    s->renderPassesChanged();
+  }
+}
+
+void RenderPassProperties::duplicate() {
+  if (selectedItems().size() != 1) return;
+  QTreeWidgetItem* item = selectedItems()[0];
+
+  QMap<RenderPassPtr, Sub>::iterator it;
+  for (it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
+    if (it->item == item) {
+      RenderPassPtr orig = it.key();
+      ScenePtr s = orig->scene();
+
+      QList<QString> names;
+      foreach (RenderPassPtr rp, s->renderPasses()) names << rp->name();
+
+      RenderPassPtr cloned = orig->clone();
+      cloned->setName(Utils::uniqueName(cloned->name(), names));
+
+      update(cloned);
+      s->renderPassesChanged();
+      return;
+    }
+  }
+}
+
+void RenderPassProperties::remove() {
+  foreach (QTreeWidgetItem* item, selectedItems()) {
+    QMap<RenderPassPtr, Sub>::iterator it;
+    for (it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
+      if (it->item == item) {
+        remove(it.key());
+        break;
+      }
+    }
+  }
 }

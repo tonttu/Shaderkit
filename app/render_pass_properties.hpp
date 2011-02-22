@@ -241,6 +241,9 @@ public slots:
   //void valueChanged(QtProperty* property, const QVariant& variant);
   void selectionChanged();
   void recalcLayout();
+  void create();
+  void duplicate();
+  void remove();
 
 protected:
   struct Sub {
@@ -256,7 +259,7 @@ protected:
   /// Every render pass has one group property whose children are the actual passes
   QMap<RenderPassPtr, Sub> m_renderpasses;
 
-  QAction *m_create, *m_duplicate, *m_edit, *m_destroy;
+  QAction *m_create, *m_duplicate, *m_destroy;
 
   static RenderPassProperties* s_instance;
 };

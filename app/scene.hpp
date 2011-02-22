@@ -59,10 +59,10 @@ public:
   int height() const { return m_height; }
 
   //ProgramPtr shader(const QString& name) { return m_shaders[name]; }
-  ObjectPtr object(const QString& name) { return m_objects[name]; }
-  LightPtr light(const QString& name) { return m_lights[name]; }
-  CameraPtr camera(const QString& name) { return m_cameras[name]; }
-  MaterialPtr material(const QString& name) { return m_materials[name]; }
+  ObjectPtr object(const QString& name) const { return m_objects.value(name); }
+  LightPtr light(const QString& name) const { return m_lights.value(name); }
+  CameraPtr camera(const QString& name) const { return m_cameras.value(name); }
+  MaterialPtr material(const QString& name) const { return m_materials.value(name); }
   TexturePtr genTexture(const QString& name);
 
   /// Finds all the shaders with given file name.

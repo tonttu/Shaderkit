@@ -29,7 +29,7 @@
 #include "state.hpp"
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
-  : m_type(Normal), m_name(name), m_scene(scene), m_clear(0),
+  : m_type(Disabled), m_name(name), m_scene(scene), m_clear(0),
     m_width(0), m_height(0), m_autosize(true) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
@@ -88,11 +88,17 @@ QString RenderPass::name() const {
   return m_name;
 }
 
+void RenderPass::setName(const QString& name) {
+  m_name = name;
+}
+
 void RenderPass::setType(Type type) {
   if (type == m_type) return;
   if (type == PostProc) {
     m_viewport.reset(new Camera("post"));
     m_viewport->setRect();
+  } else if (type == Disabled) {
+    m_viewport.reset();
   }
   m_type = type;
   emit changed(shared_from_this());
@@ -128,12 +134,30 @@ void RenderPass::setViewport(CameraPtr camera) {
 
 QIcon RenderPass::icon() {
   const char* icon = 0;
-  if(m_type == PostProc)
+  if (m_type == PostProc)
     icon = ":/icons/2dpass.png";
-  else
+  else if (m_type == Normal)
     icon = ":/icons/3dpass.png";
+  else
+    icon = ":/icons/disabled_pass.png";
 
   return QIcon(icon);
+}
+
+RenderPassPtr RenderPass::clone() const {
+  RenderPassPtr r(new RenderPass(m_name, m_scene));
+  r->m_type = m_type;
+  r->m_objects = m_objects;
+  r->m_lights = m_lights;
+  r->m_defaultMaterial = m_defaultMaterial;
+  r->m_viewport = m_viewport;
+  r->m_clear = m_clear;
+  r->m_width = m_width;
+  r->m_height = m_height;
+  r->m_autosize = m_autosize;
+  r->m_depth = m_depth;
+  r->m_color = m_color;
+  return r;
 }
 
 void RenderPass::render(State& state, const RenderOptions& render_opts) {

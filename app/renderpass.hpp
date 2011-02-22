@@ -54,7 +54,8 @@ class RenderPass : public QObject, public std::enable_shared_from_this<RenderPas
 public:
   enum Type {
     Normal,
-    PostProc
+    PostProc,
+    Disabled
   } m_type;
 
   /// @todo separate Object from Model. Object is an instance of Model, including
@@ -86,6 +87,7 @@ public:
   FBOImagePtr out(const QString& name) const;
 
   QString name() const;
+  void setName(const QString& name);
 
   Type type() const { return m_type; }
   void setType(Type type);
@@ -105,6 +107,8 @@ public:
   void setViewport(CameraPtr camera);
 
   QIcon icon();
+
+  RenderPassPtr clone() const;
 
 signals:
   void changed(RenderPassPtr);
