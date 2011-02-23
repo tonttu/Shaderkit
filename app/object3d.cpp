@@ -49,6 +49,16 @@ void Object3D::setDefaultMaterial(MaterialPtr mat) {
   m_default_material = mat;
 }
 
+void Object3D::remove(MaterialPtr mat) {
+  if (mat == m_default_material) m_default_material = MaterialPtr();
+
+  QMap<QString, MaterialPtr>::iterator it;
+  for (it = m_materials.begin(); it != m_materials.end();) {
+    if (*it == mat) it = m_materials.erase(it);
+    else ++it;
+  }
+}
+
 QVariantMap Object3D::save() const {
   QVariantMap map = SceneObject::save();
 

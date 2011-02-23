@@ -116,10 +116,13 @@ public:
   void attachMaterialTo(float x, float y, QString material);
 
   void setMaterial(QString name, MaterialPtr material);
+  void addTexture(TexturePtr t);
 
   void merge(const ObjImporter::Scene& s);
 
   void renderPassesChanged();
+
+  void remove(MaterialPtr m);
 
 signals:
   void shaderListUpdated();

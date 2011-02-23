@@ -22,6 +22,8 @@
 #include "texture.hpp"
 #include "material.hpp"
 #include "scene.hpp"
+#include "mainwindow.hpp"
+#include "utils.hpp"
 
 #include <cassert>
 
@@ -137,7 +139,7 @@ Properties::Properties(QWidget* parent)
 
 MaterialProperties::MaterialProperties(QWidget* parent)
   : Properties(parent),
-    m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0) {
+    m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
   setColumnWidth(0, 90);
   setColumnWidth(1, 45);
@@ -156,19 +158,30 @@ void MaterialProperties::init() {
   assert(tb);
 
   tb->layout()->setMargin(0);
-  m_create = tb->addAction(QIcon(":/icons/new2.png"), "New material");
-  m_open = tb->addAction(QIcon(":/icons/load_texture.png"), "New material from texture");
+  //QIcon icon(":/icons/sliders.png");
+  QIcon icon(":/icons/uniforms_off.png");
+  icon.addFile(":/icons/uniforms.png", QSize(), QIcon::Normal, QIcon::On);
+  m_only_uniforms = tb->addAction(icon, "Show only uniform variables",
+                                  this, SLOT(toggleMode()));
+  m_only_uniforms->setCheckable(true);
+  m_only_uniforms->setChecked(false);
   tb->addSeparator();
-  m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate selected material");
+  m_create = tb->addAction(QIcon(":/icons/new2.png"), "New material",
+                           this, SLOT(create()));
+  m_open = tb->addAction(QIcon(":/icons/load_texture.png"), "New material from texture",
+                         this, SLOT(load()));
   tb->addSeparator();
-  m_edit = tb->addAction(QIcon(":/icons/edit.png"), "Edit selected material");
-  m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete selected material");
+  m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate material",
+                              this, SLOT(duplicate()));
+  tb->addSeparator();
+  m_edit = tb->addAction(QIcon(":/icons/edit.png"), "Edit material",
+                         this, SLOT(edit()));
+  m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete material",
+                            this, SLOT(remove()));
 
-  m_create->setDisabled(true);
-  m_open->setDisabled(true);
-  m_duplicate->setDisabled(true);
   m_edit->setDisabled(true);
-  m_destroy->setDisabled(true);
+
+  selectionChanged();
 }
 
 void MaterialProperties::update(MaterialPtr mat) {
@@ -188,11 +201,10 @@ void MaterialProperties::update(MaterialPtr mat) {
     sub.item->setFont(0, font);
   }
 
-  if (!mat->prog()) {
-    sub.item->setText(0, mat->name() + " (fixed pipeline)");
-  } else {
-    sub.item->setText(0, mat->name());
-  }
+  QString progname = mat->prog() ? mat->prog()->name() : "fixed pipeline";
+  int t = mat->textureNames().size();
+  sub.item->setText(0, QString(t == 1 ? "%1 - %2 - %3 texture" : "%1 - %2 - %3 textures").
+                      arg(mat->name()).arg(progname).arg(t));
 
   QSet<QString> names;
   foreach (UniformVar var, list) {
@@ -237,21 +249,97 @@ void MaterialProperties::setActiveMaterials(QSet<MaterialPtr> materials) {
 void MaterialProperties::selectionChanged() {
   if (!m_create) return;
 
+  MaterialPtr m;
   QList<QTreeWidgetItem*> items = selectedItems();
-  if (items.size() == 1) {
+  if (items.size() == 1) m = get(items[0]);
+  if (m) {
+    m_duplicate->setEnabled(true);
     /// @todo implement
-    /*m_duplicate->setEnabled(true);
-    m_edit->setEnabled(true);
-    m_destroy->setEnabled(true);*/
+    m_edit->setEnabled(false);
+    m_destroy->setEnabled(true);
+
+    QString name = m->name();
+    m_duplicate->setText(QString("Duplicate \"%1\"").arg(name));
+    m_edit->setText(QString("Edit \"%1\"").arg(name));
+    m_destroy->setText(QString("Delete \"%1\"").arg(name));
   } else {
     m_duplicate->setEnabled(false);
     m_edit->setEnabled(false);
     m_destroy->setEnabled(false);
+
+    m_duplicate->setText("Duplicate material");
+    m_edit->setText("Edit material");
+    m_destroy->setText("Delete material");
   }
 }
 
+void MaterialProperties::create() {
+  ScenePtr s = MainWindow::activeScene();
+  if (!s) return;
+
+  MaterialPtr m(new Material(Utils::uniqueName("Untitled", s->materials().keys())));
+  s->setMaterial(m->name(), m);
+}
+
+void MaterialProperties::load() {
+  ScenePtr s = MainWindow::activeScene();
+  if (!s) return;
+
+  QStringList lst;
+  foreach(QByteArray a, QImageReader::supportedImageFormats())
+    lst << QString("*.%1").arg(QString::fromUtf8(a));
+
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QString dir = settings.value("history/last_import_dir",
+                               settings.value("history/last_dir",
+                               QVariant(QDir::currentPath()))).toString();
+  QString filter = tr("Images (%1)").arg(lst.join(" "));
+  QString file = QFileDialog::getOpenFileName(this, tr("Create a new material from an image"), dir, filter);
+  if (!file.isEmpty()) {
+    QFileInfo fi(file);
+    settings.setValue("history/last_import_dir", fi.absolutePath());
+
+    MaterialPtr m(new Material(Utils::uniqueName(fi.baseName(), s->materials().keys())));
+    TextureFile* tex = new TextureFile(Utils::uniqueName(fi.baseName(), s->textures().keys()));
+    tex->setFile(file);
+
+    m->addTexture("diffuse", TexturePtr(tex));
+    s->setMaterial(m->name(), m);
+  }
+}
+
+void MaterialProperties::duplicate() {
+  if (selectedItems().size() != 1) return;
+  MaterialPtr orig = get(selectedItems()[0]);
+  if (!orig) return;
+  ScenePtr s = orig->scene();
+  if (!s) return;
+
+  MaterialPtr cloned = orig->clone(true);
+  cloned->setName(Utils::uniqueName(cloned->name(), s->materials().keys()));
+  s->setMaterial(cloned->name(), cloned);
+}
+
+void MaterialProperties::edit() {
+  /// @todo implement
+}
+
+void MaterialProperties::remove() {
+  foreach (QTreeWidgetItem* item, selectedItems()) {
+    MaterialPtr m = get(item);
+    if (!m) return;
+    ScenePtr s = m->scene();
+    if (!s) return;
+    s->remove(m);
+  }
+}
+
+void MaterialProperties::toggleMode() {
+
+}
+
 UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
-                                        const ShaderTypeInfo& type, QTreeWidgetItem* p) {
+                                          const ShaderTypeInfo& type, QTreeWidgetItem* p) {
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {
       return new FloatEditor(p, mat, var);
@@ -267,12 +355,8 @@ UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
 void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
   MaterialPtr material;
   foreach (QTreeWidgetItem* item, selectedItems()) {
-    for (QMap<MaterialPtr, Sub>::iterator it = m_materials.begin(); it != m_materials.end(); ++it) {
-      if (it->item == item) {
-        material = it.key();
-        break;
-      }
-    }
+    material = get(item);
+    if (material) break;
   }
   if (!material) return;
 
@@ -285,6 +369,48 @@ void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
   drag->setHotSpot(QPoint(8, 8));
   drag->exec(supportedActions);
  // drag->setDragCursor(QCursor(Qt::BlankCursor).pixmap(), Qt::CopyAction);
+}
+
+void MaterialProperties::contextMenuEvent(QContextMenuEvent* e) {
+  e->accept();
+  QMenu* menu = new QMenu;
+  QTreeWidgetItem* item = itemAt(e->pos());
+  MaterialPtr m = get(item);
+
+  if (m) {
+    menu->addAction(m_duplicate);
+    menu->addSeparator();
+    menu->addAction(m_edit);
+    menu->addAction(m_destroy);
+    menu->addSeparator();
+    setCurrentItem(item);
+    selectionChanged();
+  }
+
+  menu->addAction(m_only_uniforms);
+  menu->addSeparator();
+  menu->addAction(m_create);
+  menu->addAction(m_open);
+  menu->exec(e->globalPos());
+}
+
+MaterialPtr MaterialProperties::get(QTreeWidgetItem*& item) const {
+  if (!item) return MaterialPtr();
+
+  QSet<QTreeWidgetItem*> set;
+  do {
+    set << item;
+    item = item->parent();
+  } while (item);
+
+  QMap<MaterialPtr, Sub>::const_iterator it;
+  for (it = m_materials.begin(); it != m_materials.end(); ++it) {
+    if (set.contains(it->item)) {
+      item = it->item;
+      return it.key();
+    }
+  }
+  return MaterialPtr();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

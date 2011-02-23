@@ -71,6 +71,7 @@ public:
   ProjectPtr project() { return m_project; }
 
   static MainWindow& instance();
+  static ScenePtr activeScene();
 
 public slots:
   /// Updates the error list

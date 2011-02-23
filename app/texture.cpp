@@ -279,6 +279,7 @@ TexturePtr TextureFile::clone() const {
   t->m_id = 0;
   t->m_fbos.clear();
   t->m_bindedTexture = 0;
+  t->m_loadedFile.clear();
   return TexturePtr(t);
 }
 

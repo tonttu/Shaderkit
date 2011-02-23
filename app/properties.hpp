@@ -89,6 +89,14 @@ public slots:
   void updateMaterialList(ScenePtr scene);
   void selectionChanged();
 
+protected slots:
+  void create();
+  void load();
+  void duplicate();
+  void edit();
+  void remove();
+  void toggleMode();
+
 protected:
   struct Sub {
     Sub() : item(0) {}
@@ -101,10 +109,12 @@ protected:
                         const ShaderTypeInfo& type, QTreeWidgetItem* p);
 
   virtual void startDrag(Qt::DropActions supportedActions);
+  virtual void contextMenuEvent(QContextMenuEvent* e);
+  MaterialPtr get(QTreeWidgetItem*& item) const;
 
   QMap<MaterialPtr, Sub> m_materials;
 
-  QAction *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
+  QAction *m_only_uniforms, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
 
   static MaterialProperties* s_instance;
 };

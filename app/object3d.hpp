@@ -51,6 +51,7 @@ public:
   MaterialPtr material(QString name);
   void setMaterial(QString name, MaterialPtr mat);
   void setDefaultMaterial(MaterialPtr mat);
+  void remove(MaterialPtr mat);
 
   virtual QVariantMap save() const;
   virtual void load(QVariantMap map);

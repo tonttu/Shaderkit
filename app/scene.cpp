@@ -444,6 +444,8 @@ void Scene::merge(const ObjImporter::Scene& s) {
     emit textureListUpdated();
   }
   if (!s.materials.isEmpty()) {
+    foreach (MaterialPtr m, s.materials)
+      m->setScene(shared_from_this());
     m_materials.unite(s.materials);
     emit materialListUpdated(shared_from_this());
   }
@@ -454,6 +456,22 @@ void Scene::merge(const ObjImporter::Scene& s) {
 
 void Scene::renderPassesChanged() {
   m_renderPassesChanged = true;
+}
+
+void Scene::remove(MaterialPtr m) {
+  QMap<QString, MaterialPtr>::iterator it;
+  for (it = m_materials.begin(); it != m_materials.end();) {
+    if (*it == m) it = m_materials.erase(it);
+    else ++it;
+  }
+
+  foreach (RenderPassPtr rp, m_render_passes)
+    if (rp->defaultMaterial() == m) rp->setDefaultMaterial(MaterialPtr());
+
+  foreach (ObjectPtr o, m_objects)
+    o->remove(m);
+
+  emit materialListUpdated(shared_from_this());
 }
 
 QString Scene::search(QString filename) const {
@@ -485,5 +503,12 @@ void Scene::attachMaterialTo(float x, float y, QString material) {
 
 void Scene::setMaterial(QString name, MaterialPtr material) {
   m_materials[name] = material;
+  material->setScene(shared_from_this());
   emit materialListUpdated(shared_from_this());
+}
+
+void Scene::addTexture(TexturePtr t) {
+  QString name = Utils::uniqueName(t->name(), m_textures.keys());
+  t->setName(name);
+  m_textures[name] = t;
 }

@@ -29,6 +29,9 @@
         <file>load_texture.png</file>
         <file>load_textfile.png</file>
         <file>disabled_pass.png</file>
+        <file>sliders.png</file>
+        <file>uniforms_off.png</file>
+        <file>uniforms.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>

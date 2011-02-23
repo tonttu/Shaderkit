@@ -850,6 +850,44 @@ void RenderPassProperties::dropEvent(QDropEvent* event) {
   }
 }
 
+void RenderPassProperties::contextMenuEvent(QContextMenuEvent* e) {
+  e->accept();
+  QMenu* menu = new QMenu;
+  QTreeWidgetItem* item = itemAt(e->pos());
+  RenderPassPtr m = get(item);
+
+  if (m) {
+    menu->addAction(m_duplicate);
+    menu->addSeparator();
+    menu->addAction(m_destroy);
+    menu->addSeparator();
+    setCurrentItem(item);
+    selectionChanged();
+  }
+
+  menu->addAction(m_create);
+  menu->exec(e->globalPos());
+}
+
+RenderPassPtr RenderPassProperties::get(QTreeWidgetItem*& item) const {
+  if (!item) return RenderPassPtr();
+
+  QSet<QTreeWidgetItem*> set;
+  do {
+    set << item;
+    item = item->parent();
+  } while (item);
+
+  QMap<RenderPassPtr, Sub>::const_iterator it;
+  for (it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
+    if (set.contains(it->item)) {
+      item = it->item;
+      return it.key();
+    }
+  }
+  return RenderPassPtr();
+}
+
 void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   /*sub.obj = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), pass->name());
 
@@ -1001,10 +1039,16 @@ void RenderPassProperties::remove(RenderPassPtr pass) {
 void RenderPassProperties::selectionChanged() {
   if (!m_create) return;
 
+  RenderPassPtr rp;
   QList<QTreeWidgetItem*> items = selectedItems();
-  if (items.size() == 1) {
+  if (items.size() == 1) rp = get(items[0]);
+  if (rp) {
     m_duplicate->setEnabled(true);
     m_destroy->setEnabled(true);
+
+    QString name = rp->name();
+    m_duplicate->setText(QString("Duplicate \"%1\"").arg(name));
+    m_destroy->setText(QString("Delete \"%1\"").arg(name));
   } else {
     m_duplicate->setEnabled(false);
     m_destroy->setEnabled(false);
@@ -1022,9 +1066,7 @@ void RenderPassProperties::recalcLayout() {
 }
 
 void RenderPassProperties::create() {
-  ProjectPtr p = MainWindow::instance().project();
-  ScenePtr s;
-  if (p) s = p->activeScene();
+  ScenePtr s = MainWindow::activeScene();
   if (!s) {
     Log::error("No active scene");
   } else {

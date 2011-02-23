@@ -253,6 +253,8 @@ protected:
   };
 
   void dropEvent(QDropEvent* event);
+  virtual void contextMenuEvent(QContextMenuEvent* e);
+  RenderPassPtr get(QTreeWidgetItem*& item) const;
 
   void init(Sub& sub, RenderPassPtr pass);
 

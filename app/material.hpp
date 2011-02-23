@@ -46,10 +46,14 @@ public:
   ProgramPtr prog() { return m_program; }
   void setProg(ProgramPtr prog);
 
+  void setScene(ScenePtr scene);
+  ScenePtr scene() { return m_scene; }
+
   QVariantMap save() const;
   void load(QVariantMap map);
   /// Does not clone textures!
   MaterialPtr clone() const;
+  MaterialPtr clone(bool clone_textures) const;
 
   QStringList textureNames() const { return m_textures.keys(); }
   TexturePtr texture(QString key) { return m_textures.value(key); }
@@ -71,6 +75,8 @@ private:
 
   QMap<QString, TexturePtr> m_textures;
   bool m_prog_binded;
+
+  ScenePtr m_scene;
 };
 
 #endif // MATERIAL_HPP

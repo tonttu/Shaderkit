@@ -161,6 +161,12 @@ MainWindow& MainWindow::instance() {
   return *s_instance;
 }
 
+ScenePtr MainWindow::activeScene() {
+  ProjectPtr p = instance().project();
+  if (p) return p->activeScene();
+  return ScenePtr();
+}
+
 void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   bool changed = false;
   for (int i = 0; i < m_ui->error_list->rowCount(); ++i) {

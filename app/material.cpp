@@ -69,6 +69,10 @@ void Material::unbind() {
   }
 }
 
+void Material::setScene(ScenePtr scene) {
+  m_scene = scene;
+}
+
 void Material::setProg(ProgramPtr prog) {
   m_program = prog;
 }
@@ -129,5 +133,18 @@ MaterialPtr Material::clone() const {
   m->colors = colors;
   m->style = style;
   m->m_program = m_program;
+  m->m_scene = m_scene;
+  return m;
+}
+
+MaterialPtr Material::clone(bool clone_textures) const {
+  MaterialPtr m = clone();
+  if (clone_textures) {
+    for (QMap<QString, TexturePtr>::const_iterator it = m_textures.begin(); it != m_textures.end(); ++it) {
+      TexturePtr t = it.value()->clone();
+      if (m_scene) m_scene->addTexture(t);
+      m->m_textures[it.key()] = t;
+    }
+  }
   return m;
 }
