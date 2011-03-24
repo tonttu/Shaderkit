@@ -27,16 +27,58 @@
 
 #include <cassert>
 
-UEditor::UEditor(QTreeWidgetItem *p, MaterialPtr mat_, UniformVar& var)
- : QTreeWidgetItem(p),
+namespace {
+  class BranchItem : public QLabel {
+  public:
+    BranchItem() : QLabel("Foo"), m_hover(false) {
+      setMouseTracking(true);
+    }
+//    QSize sizeHint() { return QSize(128, 128); }
+    void paintEvent(QPaintEvent * e) {
+
+      //qApp->widgetAt()
+      QPainter painter(this);
+      QStyleOption opt;
+      opt.rect = e->rect().translated(0, 5);
+      opt.state = QStyle::State_Item | QStyle::State_Children | QStyle::State_Open
+          /*| QStyle::State_MouseOver*/ | QStyle::State_Enabled | QStyle::State_Active;
+
+      if (m_hover) opt.state |= QStyle::State_MouseOver;
+
+      style()->drawPrimitive(QStyle::PE_IndicatorBranch, &opt, &painter, 0);
+    }
+
+    void enterEvent(QEvent* event) {
+      QLabel::enterEvent(event);
+      m_hover = true;
+    }
+
+    void leaveEvent(QEvent* event) {
+      QLabel::leaveEvent(event);
+      m_hover = false;
+    }
+
+    bool m_hover;
+  };
+
+  class LineEdit : public QLineEdit {
+  public:
+    QSize sizeHint() const { return m_size_hint; }
+    QSize m_size_hint;
+  };
+}
+
+UEditor::UEditor(QTableWidget* w, int row, MaterialPtr mat_, UniformVar& var)
+ : QTableWidgetItem(/*p*/),
    mat(mat_),
    name(var.name()) {
   setFlags(flags() & ~Qt::ItemIsSelectable);
+  w->insertRow(row);
 }
 
-FloatEditor::FloatEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var)
-  : UEditor(p, mat, var),
-    edit(new QLineEdit),
+FloatEditor::FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
+  : UEditor(w, row, mat, var),
+    edit(new LineEdit),
     slider(new QSlider(Qt::Horizontal)),
     min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min()),
     m_reset_action(new QAction("Reset", slider)) {
@@ -45,9 +87,13 @@ FloatEditor::FloatEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var)
   slider->setContextMenuPolicy(Qt::ActionsContextMenu);
   slider->addAction(m_reset_action);
 
-  setText(0, var.name());
-  treeWidget()->setItemWidget(this, 1, edit);
-  treeWidget()->setItemWidget(this, 2, slider);
+  QFontMetrics m(edit->font());
+  ((LineEdit*)edit)->m_size_hint = QSize(m.width("888.888"), m.height());
+  edit->setFrame(false);
+
+  w->setItem(row, 1, new QTableWidgetItem(var.name()));
+  w->setCellWidget(row, 2, edit);
+  w->setCellWidget(row, 3, slider);
 
   connect(edit, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
   connect(slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
@@ -115,7 +161,6 @@ UniformVar* FloatEditor::getVar() {
   return 0;
 }
 
-
 MaterialProperties* MaterialProperties::s_instance = 0;
 FileList* FileList::s_instance = 0;
 
@@ -138,14 +183,16 @@ Properties::Properties(QWidget* parent)
 }
 
 MaterialProperties::MaterialProperties(QWidget* parent)
-  : Properties(parent),
-    m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0) {
+  : QTableWidget(parent),
+    m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
+    m_hover_row(-1) {
   if (!s_instance) s_instance = this;
-  setColumnWidth(0, 90);
-  setColumnWidth(1, 45);
-  //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
-  //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
+  //setColumnWidth(0, 90);
+  //setColumnWidth(1, 45);
 
+  verticalHeader()->hide();
+  horizontalHeader()->hide();
+  horizontalHeader()->setStretchLastSection(true);
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 }
 
@@ -189,22 +236,36 @@ void MaterialProperties::update(MaterialPtr mat) {
 
   Sub& sub = m_materials[mat];
   if (!sub.item) {
-    sub.item = new QTreeWidgetItem(this);
+    int r = rowCount();
+    setRowCount(r+1);
+
+    setCellWidget(r, 0, new BranchItem);
+
+    sub.item = new QTableWidgetItem;
+    setItem(r, 1, sub.item);
+    setSpan(r, 1, 1, 3);
     sub.item->setFlags(sub.item->flags() | Qt::ItemIsDragEnabled);
     /// @todo change icon when the type changes
     // sub.item->setIcon(0, mat->icon());
-    expandItem(sub.item);
+/*    expandItem(sub.item);
     sub.item->setFirstColumnSpanned(true);
-    sub.item->setBackgroundColor(0, palette().color(QPalette::Dark));
-    QFont font = sub.item->font(0);
+    sub.item->setBackgroundColor(0, palette().color(QPalette::Dark));*/
+    QFont font = sub.item->font();
     font.setBold(true);
-    sub.item->setFont(0, font);
-  }
+    sub.item->setFont(font);
 
+    QFontMetrics m(font);
+    sub.item->setSizeHint(QSize(50, m.height()+10));
+    sub.item->setTextAlignment(Qt::AlignLeft | Qt::AlignBottom);
+  }
   QString progname = mat->prog() ? mat->prog()->name() : "fixed pipeline";
   int t = mat->textureNames().size();
-  sub.item->setText(0, QString(t == 1 ? "%1 - %2 - %3 texture" : "%1 - %2 - %3 textures").
-                      arg(mat->name()).arg(progname).arg(t));
+  sub.item->setText(QString(t == 1 ? "%1 - %2 - %3 texture" : "%1 - %2 - %3 textures").
+                    arg(mat->name()).arg(progname).arg(t));
+
+  resizeColumnsToContents();
+  setColumnWidth(0, 20);
+  resizeRowsToContents();
 
   QSet<QString> names;
   foreach (UniformVar var, list) {
@@ -250,7 +311,7 @@ void MaterialProperties::selectionChanged() {
   if (!m_create) return;
 
   MaterialPtr m;
-  QList<QTreeWidgetItem*> items = selectedItems();
+  QList<QTableWidgetItem*> items = selectedItems();
   if (items.size() == 1) m = get(items[0]);
   if (m) {
     m_duplicate->setEnabled(true);
@@ -325,7 +386,7 @@ void MaterialProperties::edit() {
 }
 
 void MaterialProperties::remove() {
-  foreach (QTreeWidgetItem* item, selectedItems()) {
+  foreach (QTableWidgetItem* item, selectedItems()) {
     MaterialPtr m = get(item);
     if (!m) return;
     ScenePtr s = m->scene();
@@ -339,10 +400,11 @@ void MaterialProperties::toggleMode() {
 }
 
 UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
-                                          const ShaderTypeInfo& type, QTreeWidgetItem* p) {
+                                          const ShaderTypeInfo& type, QTableWidgetItem* p) {
+  int r = row(p) + 1;
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {
-      return new FloatEditor(p, mat, var);
+      return new FloatEditor(this, r, mat, var);
     } else {
       /// @todo implement
     }
@@ -354,11 +416,15 @@ UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
 
 void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
   MaterialPtr material;
-  foreach (QTreeWidgetItem* item, selectedItems()) {
+  foreach (QTableWidgetItem* item, selectedItems()) {
     material = get(item);
     if (material) break;
   }
-  if (!material) return;
+  if (!material) {
+    Log::info("no material");
+    return;
+  }
+  //qApp->setOverrideCursor(QCursor(QPixmap(":/icons/shader.png")));
 
   QMimeData* data = new QMimeData;
   data->setData("text/x-glsl-lab-material", material->name().toUtf8());
@@ -374,7 +440,7 @@ void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
 void MaterialProperties::contextMenuEvent(QContextMenuEvent* e) {
   e->accept();
   QMenu* menu = new QMenu;
-  QTreeWidgetItem* item = itemAt(e->pos());
+  QTableWidgetItem* item = itemAt(e->pos());
   MaterialPtr m = get(item);
 
   if (m) {
@@ -394,24 +460,45 @@ void MaterialProperties::contextMenuEvent(QContextMenuEvent* e) {
   menu->exec(e->globalPos());
 }
 
-MaterialPtr MaterialProperties::get(QTreeWidgetItem*& item) const {
-  if (!item) return MaterialPtr();
+MaterialPtr MaterialProperties::get(QTableWidgetItem*& i) const {
+  if (!i) return MaterialPtr();
 
-  QSet<QTreeWidgetItem*> set;
-  do {
-    set << item;
-    item = item->parent();
-  } while (item);
+  QSet<QTableWidgetItem*> set;
+  int r = i->row();
+  for (int c = 0; c < columnCount(); ++c)
+    set << item(r, c);
 
   QMap<MaterialPtr, Sub>::const_iterator it;
   for (it = m_materials.begin(); it != m_materials.end(); ++it) {
     if (set.contains(it->item)) {
-      item = it->item;
+      i = it->item;
       return it.key();
     }
   }
   return MaterialPtr();
 }
+
+bool MaterialProperties::viewportEvent(QEvent* event) {
+  if (event->type() == QEvent::MouseMove) {
+    QMouseEvent* me = static_cast<QMouseEvent*>(event);
+    int r = rowAt(me->pos().y());
+    if (r != m_hover_row) {
+      Log::info("%d", r);
+      m_hover_row = r;
+    }
+  }
+
+  return QTableWidget::viewportEvent(event);
+}
+
+QItemSelectionModel::SelectionFlags MaterialProperties::selectionCommand(
+    const QModelIndex& index, const QEvent* event) const {
+  QTableWidgetItem* i = item(index.row(), 1);
+  if (i && (i->flags() & Qt::ItemIsSelectable))
+    return QTableWidget::selectionCommand(index, event);
+  return QItemSelectionModel::NoUpdate;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

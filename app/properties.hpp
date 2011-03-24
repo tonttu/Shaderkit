@@ -22,10 +22,11 @@
 #include "shader/uniform.hpp"
 
 #include <QMap>
+#include <QTableWidget>
 
-class UEditor : public QObject, public QTreeWidgetItem {
+class UEditor : public QObject, public QTableWidgetItem {
 public:
-  UEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var);
+  UEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
   virtual ~UEditor() {}
   virtual void updateUI(UniformVar& var) = 0;
 
@@ -37,7 +38,7 @@ class FloatEditor : public UEditor {
   Q_OBJECT
 
 public:
-  FloatEditor(QTreeWidgetItem* p, MaterialPtr mat, UniformVar& var);
+  FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
   virtual ~FloatEditor();
 
   void updateUI(UniformVar& var);
@@ -56,7 +57,6 @@ private:
   QAction* m_reset_action;
 };
 
-
 class Properties : public QTreeWidget {
   Q_OBJECT
 
@@ -72,7 +72,7 @@ protected:
  *
  * This is a singleton class.
  */
-class MaterialProperties : public Properties {
+class MaterialProperties : public QTableWidget {
   Q_OBJECT
 
 public:
@@ -101,20 +101,23 @@ protected:
   struct Sub {
     Sub() : item(0) {}
     ~Sub();
-    QTreeWidgetItem* item;
+    QTableWidgetItem* item;
     QMap<QString, UEditor*> editors;
   };
-
   UEditor* createEditor(MaterialPtr mat, UniformVar& var,
-                        const ShaderTypeInfo& type, QTreeWidgetItem* p);
-
+                        const ShaderTypeInfo& type, QTableWidgetItem* p);
   virtual void startDrag(Qt::DropActions supportedActions);
   virtual void contextMenuEvent(QContextMenuEvent* e);
-  MaterialPtr get(QTreeWidgetItem*& item) const;
+  MaterialPtr get(QTableWidgetItem*& item) const;
+
+  bool viewportEvent(QEvent* event);
+  QItemSelectionModel::SelectionFlags selectionCommand(const QModelIndex& index,
+                                                       const QEvent* event) const;
 
   QMap<MaterialPtr, Sub> m_materials;
 
   QAction *m_only_uniforms, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
+  int m_hover_row;
 
   static MaterialProperties* s_instance;
 };

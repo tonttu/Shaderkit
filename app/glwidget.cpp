@@ -136,6 +136,12 @@ void GLWidget::dragLeaveEvent(QDragLeaveEvent* event) {
 void GLWidget::dragMoveEvent(QDragMoveEvent* event) {
   m_scene->setPickDisplay(float(event->pos().x())/width(),
                           1.0f-float(event->pos().y())/height());
+  /*QCursor* cursor = QApplication::overrideCursor();
+  if (cursor) {
+    cursor->setShape(Qt::BusyCursor);
+    QApplication::changeOverrideCursor(QCursor(*cursor));
+  }
+  event->acceptProposedAction();*/
 }
 
 void GLWidget::dropEvent(QDropEvent* event) {

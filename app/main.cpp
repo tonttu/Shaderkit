@@ -26,8 +26,24 @@
 
 #include <GL/glut.h>
 
+/*#include <X11/Xlib.h>
+
+class App : public QApplication {
+public:
+  App(int& argc, char* argv[]) : QApplication(argc, argv) {}
+
+  bool x11EventFilter(XEvent* e) {
+    if (e->type == ButtonRelease) {
+      restoreOverrideCursor();
+      Log::info("Restore");
+    }
+    return false;
+  }
+};*/
+
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
+  //App app(argc, argv);
   glutInit(&argc, argv);
   Log log;
 
