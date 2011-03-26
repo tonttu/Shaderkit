@@ -425,7 +425,7 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
 }
 
 QString ObjImporter::getName(QMap<QString, int>& map, int index) const {
-  for (QMap<QString, int>::const_iterator it = map.begin(); it != map.end(); ++it) {
+  for (auto it = map.begin(); it != map.end(); ++it) {
     if (it.value() == index) return it.key();
   }
   return "";

@@ -100,7 +100,7 @@ public slots:
 
 protected:
   RenderPassPtr m_pass;
-  QMap<ObjectPtr, QPair<QTreeWidgetItem*, ObjectEditor*> > m_objs;
+  QMap<ObjectPtr, QPair<QTreeWidgetItem*, ObjectEditor*>> m_objs;
 };
 
 class LightEditor : public QWidget {
@@ -133,7 +133,7 @@ public slots:
 
 protected:
   RenderPassPtr m_pass;
-  QMap<LightPtr, QPair<QTreeWidgetItem*, LightEditor*> > m_lights;
+  QMap<LightPtr, QPair<QTreeWidgetItem*, LightEditor*>> m_lights;
 };
 
 class CameraEditor : public QWidget {
@@ -212,7 +212,7 @@ public slots:
 
 protected:
   RenderPassPtr m_pass;
-  QList<QPair<QTreeWidgetItem*, TextureEditor*> > m_editors;
+  QList<QPair<QTreeWidgetItem*, TextureEditor*>> m_editors;
 };
 
 

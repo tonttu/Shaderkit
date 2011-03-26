@@ -26,7 +26,7 @@ private:
 
   typedef std::map<std::string, std::string> Objs;
   struct Func {
-    std::vector<std::pair<std::string, int> > chunks;
+    std::vector<std::pair<std::string, int>> chunks;
   };
   typedef std::map<std::string, Func> Funcs;
 

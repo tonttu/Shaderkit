@@ -19,6 +19,8 @@
 #include "scene.hpp"
 #include "wrap_glext.h"
 #include "camera.hpp"
+#include "object3d.hpp"
+#include "model.hpp"
 
 /// @todo include something less massive
 #include <QtGui>
@@ -130,12 +132,12 @@ void GLWidget::dragEnterEvent(QDragEnterEvent* event) {
 }
 
 void GLWidget::dragLeaveEvent(QDragLeaveEvent* event) {
-  m_scene->setPickDisplay(-1.0f, -1.0f);
+  m_scene->pick(-1, -1);
 }
 
 void GLWidget::dragMoveEvent(QDragMoveEvent* event) {
-  m_scene->setPickDisplay(float(event->pos().x())/width(),
-                          1.0f-float(event->pos().y())/height());
+  /*m_scene->setPickDisplay(float(event->pos().x())/width(),
+                          1.0f-float(event->pos().y())/height());*/
   /*QCursor* cursor = QApplication::overrideCursor();
   if (cursor) {
     cursor->setShape(Qt::BusyCursor);
@@ -145,8 +147,19 @@ void GLWidget::dragMoveEvent(QDragMoveEvent* event) {
 }
 
 void GLWidget::dropEvent(QDropEvent* event) {
-  m_scene->attachMaterialTo(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(),
-                       event->mimeData()->data("text/x-glsl-lab-material"));
+  MaterialPtr material = m_scene->material(event->mimeData()->data("text/x-glsl-lab-material"));
+  if(material) {
+    /* m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
+                  [=](ObjectPtr obj, MeshPtr mesh){ obj->setMaterial(mesh->name, material); }); */
+    struct hate_too_old_gcc { static void func(MaterialPtr material, ObjectPtr obj, MeshPtr mesh) {
+        obj->setMaterial(mesh->name, material);
+    }};
+    using namespace std::placeholders;
+    m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
+                  std::bind(&hate_too_old_gcc::func, material, _1, _2));
+  } else {
+    m_scene->pick(-1, -1);
+  }
 }
 
 

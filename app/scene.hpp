@@ -37,6 +37,7 @@ class Scene : public QObject, public std::enable_shared_from_this<Scene> {
   Q_OBJECT
 
 public:
+  typedef std::function<void(ObjectPtr, MeshPtr)> PickFunc;
   typedef QList<RenderPassPtr> RenderPasses;
   struct Import {
     ObjImporter::Filter filter;
@@ -112,8 +113,7 @@ public:
 
   CameraPtr camera();
 
-  void setPickDisplay(float x, float y);
-  void attachMaterialTo(float x, float y, QString material);
+  void pick(float x, float y, bool once = true, PickFunc func = PickFunc());
 
   void setMaterial(QString name, MaterialPtr material);
   void addTexture(TexturePtr t);
@@ -164,7 +164,8 @@ protected:
 
   QPair<ObjectPtr, MeshPtr> m_picked;
   QPointF m_picking;
-  MaterialPtr m_material_assign;
+  bool m_pickOnce;
+  PickFunc m_pickFunc;
 
   bool m_renderPassesChanged;
 };

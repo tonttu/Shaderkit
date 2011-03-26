@@ -96,8 +96,8 @@ void ShaderEditor::updateShaderList() {
   MaterialPtr selected = m_pass->defaultMaterial();
   bool found = false;
 
-  QMap<QString, MaterialPtr> lst = m_pass->scene()->materials();
-  for (QMap<QString, MaterialPtr>::iterator it = lst.begin(); it != lst.end(); ++it) {
+  auto lst = m_pass->scene()->materials();
+  for (auto it = lst.begin(); it != lst.end(); ++it) {
     m_shaderlist->addItem((*it)->name(), it.key());
     if (!found && selected == *it) {
       m_shaderlist->setCurrentIndex(m_shaderlist->count()-1);
@@ -224,10 +224,10 @@ ObjectInserter::ObjectInserter(RenderPassPtr pass) : m_pass(pass) {
 void ObjectInserter::updateObjectList() {
   m_availableObjects->clear();
 
-  QMap<QString, ObjectPtr> lst = m_pass->scene()->objects();
+  auto lst = m_pass->scene()->objects();
   RenderPass::Objects objs = m_pass->objects();
 
-  for (QMap<QString, ObjectPtr>::iterator it = lst.begin(); it != lst.end(); ++it)
+  for (auto it = lst.begin(); it != lst.end(); ++it)
     if (!objs.contains(*it))
       m_availableObjects->addItem((*it)->name(), it.key());
 }
@@ -507,7 +507,7 @@ void CameraEditor::updateList() {
   bool found = false;
 
   QMap<QString, CameraPtr> lst = m_pass->scene()->cameras();
-  for (QMap<QString, CameraPtr>::iterator it = lst.begin(); it != lst.end(); ++it) {
+  for (auto it = lst.begin(); it != lst.end(); ++it) {
     m_list->addItem((*it)->name(), it.key());
     if (!found && selected == *it) {
       m_list->setCurrentIndex(m_list->count()-1);
@@ -823,7 +823,7 @@ QList<RenderPassPtr> RenderPassProperties::list() {
   QList<RenderPassPtr> out;
 
   QMap<QTreeWidgetItem*, RenderPassPtr> map;
-  for (QMap<RenderPassPtr, Sub>::iterator it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it)
+  for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it)
     map[it.value().item] = it.key();
 
   int s = topLevelItemCount();
@@ -878,8 +878,7 @@ RenderPassPtr RenderPassProperties::get(QTreeWidgetItem*& item) const {
     item = item->parent();
   } while (item);
 
-  QMap<RenderPassPtr, Sub>::const_iterator it;
-  for (it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
+  for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
     if (set.contains(it->item)) {
       item = it->item;
       return it.key();
@@ -1082,8 +1081,7 @@ void RenderPassProperties::duplicate() {
   if (selectedItems().size() != 1) return;
   QTreeWidgetItem* item = selectedItems()[0];
 
-  QMap<RenderPassPtr, Sub>::iterator it;
-  for (it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
+  for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
     if (it->item == item) {
       RenderPassPtr orig = it.key();
       ScenePtr s = orig->scene();
@@ -1103,8 +1101,7 @@ void RenderPassProperties::duplicate() {
 
 void RenderPassProperties::remove() {
   foreach (QTreeWidgetItem* item, selectedItems()) {
-    QMap<RenderPassPtr, Sub>::iterator it;
-    for (it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
+    for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
       if (it->item == item) {
         remove(it.key());
         break;

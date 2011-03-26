@@ -51,7 +51,7 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   QStringList files = ShaderDB::instance().localProjects();
   int count = 0;
   typedef QPair<QDateTime, QString> V;
-  std::priority_queue<V, std::vector<V>, std::greater<V> > recent;
+  std::priority_queue<V, std::vector<V>, std::greater<V>> recent;
 
   foreach (QString file, files) {
     MetaInfo info = MetaInfo::ping(file);

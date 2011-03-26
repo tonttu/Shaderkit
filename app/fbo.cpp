@@ -113,7 +113,7 @@ void FrameBufferObject::bind() {
   glRun(glDrawBuffers(max_attachments, buffers));
   delete[] buffers;
 
-  for (Buffers::iterator it = m_buffers.begin(); it != m_buffers.end(); ++it)
+  for (auto it = m_buffers.begin(); it != m_buffers.end(); ++it)
     (*it)->setup(m_id, m_width, m_height);
 
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER_EXT);

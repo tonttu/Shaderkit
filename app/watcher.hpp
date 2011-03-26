@@ -69,7 +69,7 @@ private:
   QSet<QString> m_waiting;
 
   /// directory -> set of all watched files
-  QMap<QString, QSet<QString> > m_directories;
+  QMap<QString, QSet<QString>> m_directories;
 
   Watcher();
 

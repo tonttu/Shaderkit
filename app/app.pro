@@ -1,5 +1,7 @@
 include(../lab.pri)
 
+QMAKE_CXXFLAGS += -std=c++0x
+
 TARGET = lab
 
 unix {
@@ -15,7 +17,6 @@ SOURCES += glsl_yacc.cpp glsl_lex.cpp
 }
 
 HEADERS += \
-    lab_tr1.hpp \
     forward.hpp \
     highlighter.hpp \
     watcher.hpp \

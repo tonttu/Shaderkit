@@ -18,7 +18,7 @@ class aiMaterial;
 
 class ObjImporter {
 public:
-  typedef QList<QPair<QString, QString> > InfoList;
+  typedef QList<QPair<QString, QString>> InfoList;
   typedef QMap<QString, bool> Options;
 
   struct SceneInfo {
@@ -84,7 +84,7 @@ private:
 
   Assimp::Importer* m_importer;
   const aiScene* m_aiscene;
-  QMap<QString, QList<NodePtr> > m_nodeIndex;
+  QMap<QString, QList<NodePtr>> m_nodeIndex;
   QVector<MeshPtr> m_meshIndex;
   QVector<MaterialPtr> m_materialIndex;
   Filter m_filter;

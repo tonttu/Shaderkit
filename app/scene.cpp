@@ -69,7 +69,7 @@ namespace {
 void loadRefs(QMap<QString, Scene::Import>& imports, QVariant src,
               QSet<QString> ObjImporter::Filter::*target) {
   QVariantMap tmp = src.toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+  for (auto it = tmp.begin(); it != tmp.end(); ++it) {
     QVariantMap item = it->toMap();
     if (item.contains("ref")) {
       QStringList ref = item["ref"].toStringList();
@@ -86,7 +86,7 @@ struct P {
 QList<P> iterate(QVariant map) {
   QList<P> out;
   QVariantMap tmp = map.toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+  for (auto it = tmp.begin(); it != tmp.end(); ++it) {
     P p;
     p.name = it.key();
     p.map = it.value().toMap();
@@ -97,7 +97,7 @@ QList<P> iterate(QVariant map) {
 
 template <typename T>
 std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p,
-                         QMap<QString, std::shared_ptr<T> > ObjImporter::Scene::*src,
+                         QMap<QString, std::shared_ptr<T>> ObjImporter::Scene::*src,
                          bool create = true) {
   typedef std::shared_ptr<T> Ptr;
   QStringList ref = p.map["ref"].toStringList();
@@ -126,7 +126,8 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
   }
   return Ptr(create ? new T(p.name) : 0);
 }
-}
+
+} // namespace
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -182,18 +183,18 @@ void Scene::render() {
     ui = opts.ui || ui;
   }
 
-  if (m_material_assign) {
+  if (m_pickFunc) {
     if (m_picked.first && m_picked.second) {
-      m_picked.first->setMaterial(m_picked.second->name, m_material_assign);
+      m_pickFunc(m_picked.first, m_picked.second);
     }
-    setPickDisplay(-1.0f, -1.0f);
-    m_picked = QPair<ObjectPtr, MeshPtr>();
-    m_material_assign.reset();
+    if (m_pickOnce) {
+      pick(-1.0f, -1.0f);
+      m_picked = QPair<ObjectPtr, MeshPtr>();
+    }
   }
 
   if (m_picked.first && m_picking.x() < 0) {
     m_picked = QPair<ObjectPtr, MeshPtr>();
-    m_material_assign.reset();
   }
 
   MaterialProperties::instance().setActiveMaterials(state.usedMaterials());
@@ -304,7 +305,7 @@ void Scene::load(QVariantMap map) {
   m_metainfo.load(map["lab"].toMap());
 
   QVariantMap tmp = map["import"].toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+  for (auto it = tmp.begin(); it != tmp.end(); ++it) {
     Import& im = m_imports[it.key()];
     QVariantMap item = it->toMap();
     im.file = item["file"].toString();
@@ -321,7 +322,7 @@ void Scene::load(QVariantMap map) {
   loadRefs(m_imports, map["camera"], &ObjImporter::Filter::cameras);
   loadRefs(m_imports, map["lights"], &ObjImporter::Filter::lights);
 
-  for (QMap<QString, Import>::iterator it = m_imports.begin(); it != m_imports.end(); ++it) {
+  for (auto it = m_imports.begin(); it != m_imports.end(); ++it) {
     if (importer.readFile(search(it->file), it->options)) {
       imported[it.key()] = importer.load(it->filter);
       m_node->children << imported[it.key()].node;
@@ -379,7 +380,7 @@ void Scene::load(QVariantMap map) {
 
     QVariantMap tmp = p.map["textures"].toMap();
     /// @todo is the texture name always unique and correct?
-    for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it)
+    for (auto it = tmp.begin(); it != tmp.end(); ++it)
       m->addTexture(it.key(), genTexture(it.value().toString()));
   }
 
@@ -392,7 +393,7 @@ void Scene::load(QVariantMap map) {
     if (m_models.contains(model)) o->setModel(m_models[model]);
 
     QVariantMap tmp = p.map["materials"].toMap();
-    for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+    for (auto it = tmp.begin(); it != tmp.end(); ++it) {
       QString n = it.value().toString();
       if (m_materials.contains(n))
         o->setMaterial(it.key(), m_materials[n]);
@@ -459,8 +460,7 @@ void Scene::renderPassesChanged() {
 }
 
 void Scene::remove(MaterialPtr m) {
-  QMap<QString, MaterialPtr>::iterator it;
-  for (it = m_materials.begin(); it != m_materials.end();) {
+  for (auto it = m_materials.begin(); it != m_materials.end();) {
     if (*it == m) it = m_materials.erase(it);
     else ++it;
   }
@@ -490,15 +490,10 @@ CameraPtr Scene::camera() {
   return CameraPtr();
 }
 
-void Scene::setPickDisplay(float x, float y) {
+void Scene::pick(float x, float y, bool once, PickFunc func) {
   m_picking = QPointF(x, y);
-}
-
-void Scene::attachMaterialTo(float x, float y, QString material) {
-  if (m_materials.contains(material)) {
-    setPickDisplay(x, y);
-    m_material_assign = m_materials[material];
-  } else setPickDisplay(-1.0f, -1.0f);
+  m_pickOnce = once;
+  m_pickFunc = func;
 }
 
 void Scene::setMaterial(QString name, MaterialPtr material) {

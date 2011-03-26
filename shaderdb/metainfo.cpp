@@ -90,7 +90,7 @@ void MetaInfo::load(QVariantMap map) {
   authors = getList(map, "authors");
 
   QVariantMap tmp = map["dependencies"].toMap();
-  for (QVariantMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+  for (auto it = tmp.begin(); it != tmp.end(); ++it) {
     QVariantList lst = it.value().toList();
     if (lst.isEmpty()) {
       dependencies[it.key()] = qMakePair(it.value().toString(), -1);

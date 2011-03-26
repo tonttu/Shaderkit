@@ -52,8 +52,7 @@ void Object3D::setDefaultMaterial(MaterialPtr mat) {
 void Object3D::remove(MaterialPtr mat) {
   if (mat == m_default_material) m_default_material = MaterialPtr();
 
-  QMap<QString, MaterialPtr>::iterator it;
-  for (it = m_materials.begin(); it != m_materials.end();) {
+  for (auto it = m_materials.begin(); it != m_materials.end();) {
     if (*it == mat) it = m_materials.erase(it);
     else ++it;
   }
@@ -65,7 +64,7 @@ QVariantMap Object3D::save() const {
   if (m_default_material) map["material"] = m_default_material->name();
   if (m_model) map["model"] = m_model->name();
   QVariantMap materials;
-  for (QMap<QString, MaterialPtr>::const_iterator it = m_materials.begin(); it != m_materials.end(); ++it) {
+  for (auto it = m_materials.begin(); it != m_materials.end(); ++it) {
     if (*it) materials[it.key()] = (*it)->name();
   }
   if (!materials.isEmpty()) map["materials"] = materials;

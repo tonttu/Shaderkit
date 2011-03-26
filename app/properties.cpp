@@ -468,8 +468,7 @@ MaterialPtr MaterialProperties::get(QTableWidgetItem*& i) const {
   for (int c = 0; c < columnCount(); ++c)
     set << item(r, c);
 
-  QMap<MaterialPtr, Sub>::const_iterator it;
-  for (it = m_materials.begin(); it != m_materials.end(); ++it) {
+  for (auto it = m_materials.begin(); it != m_materials.end(); ++it) {
     if (set.contains(it->item)) {
       i = it->item;
       return it.key();

@@ -35,7 +35,7 @@
   long integer;
   std::vector<std::string>* strlst;
   std::map<std::string, int>* tokenmap;
-  std::list<std::pair<std::string, int> >* tokenlst;
+  std::list<std::pair<std::string, int>>* tokenlst;
 }
 
 %debug

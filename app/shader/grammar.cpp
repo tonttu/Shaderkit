@@ -61,7 +61,7 @@ std::string& ShaderLexer::toLines() {
   // the length of the splitted src is the length of all tokens splitted to lines
   m_splitted.reserve(m_tokenized_length + m_tokens.size());
   const char *data = m_data.data();
-  for (QVector<Token>::const_iterator it = m_tokens.begin(); it != m_tokens.end(); it++) {
+  for (auto it = m_tokens.begin(); it != m_tokens.end(); it++) {
     m_splitted.append(data + it->pos, it->len);
     m_splitted.append(1, '\n');
   }

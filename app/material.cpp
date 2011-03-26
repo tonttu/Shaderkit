@@ -81,7 +81,7 @@ QVariantMap Material::save() const {
   QVariantMap map = SceneObject::save();
 
   QVariantMap textures;
-  for (QMap<QString, TexturePtr>::const_iterator it = m_textures.begin(); it != m_textures.end(); ++it) {
+  for (auto it = m_textures.begin(); it != m_textures.end(); ++it) {
     if (!*it) continue;
     textures[it.key()] = (*it)->name();
   }
@@ -140,7 +140,7 @@ MaterialPtr Material::clone() const {
 MaterialPtr Material::clone(bool clone_textures) const {
   MaterialPtr m = clone();
   if (clone_textures) {
-    for (QMap<QString, TexturePtr>::const_iterator it = m_textures.begin(); it != m_textures.end(); ++it) {
+    for (auto it = m_textures.begin(); it != m_textures.end(); ++it) {
       TexturePtr t = it.value()->clone();
       if (m_scene) m_scene->addTexture(t);
       m->m_textures[it.key()] = t;

@@ -39,7 +39,7 @@ public:
   QStringList releases;
   QStringList servers;
   QStringList categories;
-  QMap<QString, QPair<QString, int> > dependencies;
+  QMap<QString, QPair<QString, int>> dependencies;
   QStringList licenses;
   QStringList authors;
   QStringList renderer;

@@ -89,8 +89,8 @@ public:
   std::vector<float> normals;
   std::vector<float> tangents;
   std::vector<float> bitangents;
-  std::vector<std::vector<float> > colors;
-  std::vector<std::vector<float> > uvs;
+  std::vector<std::vector<float>> colors;
+  std::vector<std::vector<float>> uvs;
   std::vector<int> uv_sizes;
   std::vector<unsigned int> indices;
 

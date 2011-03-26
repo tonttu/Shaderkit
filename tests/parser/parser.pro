@@ -1,5 +1,7 @@
 include(../../lab.pri)
 
+QMAKE_CXXFLAGS += -std=c++0x
+
 INCLUDEPATH += ../../app
 
 SOURCES += parser_test.cpp

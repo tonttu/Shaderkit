@@ -178,7 +178,7 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
     }
   }
 
-  for (ShaderError::List::iterator e = errors.begin(); e != errors.end(); ++e) {
+  for (auto e = errors.begin(); e != errors.end(); ++e) {
     int r = m_ui->error_list->rowCount();
     m_ui->error_list->setRowCount(r+1);
 

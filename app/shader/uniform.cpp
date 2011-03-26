@@ -75,7 +75,7 @@ const ShaderTypeInfo& ShaderTypeInfo::typeInfo(GLenum type) {
     types[GL_FALSE]             = P();
   }
 
-  QMap<GLenum, ShaderTypeInfo>::const_iterator it = types.find(type);
+  auto it = types.find(type);
   if (it != types.end()) return *it;
   return types[GL_FALSE];
 }

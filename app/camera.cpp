@@ -40,10 +40,10 @@ void Camera::prepare(int width, int height) {
     glMatrixMode(GL_PROJECTION);
     glLoadTransposeMatrixf(p);
 
-    float m[] = { m_right.x(),  m_right.y(),  m_right.z(), 0.0f,
-                     m_up.x(),     m_up.y(),     m_up.z(), 0.0f,
-                 -m_front.x(), -m_front.y(), -m_front.z(), 0.0f,
-                         0.0f,         0.0f,         0.0f, 1.0f };
+    float m[] = { float(m_right.x()),  float(m_right.y()),  float(m_right.z()), 0.0f,
+                     float(m_up.x()),     float(m_up.y()),     float(m_up.z()), 0.0f,
+                 float(-m_front.x()), float(-m_front.y()), float(-m_front.z()), 0.0f,
+                                0.0f,                0.0f,                0.0f, 1.0f };
     glMatrixMode(GL_MODELVIEW);
     glLoadTransposeMatrixf(m);
 
