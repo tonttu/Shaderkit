@@ -51,7 +51,7 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   QStringList files = ShaderDB::instance().localProjects();
   int count = 0;
   typedef QPair<QDateTime, QString> V;
-  std::priority_queue<V, std::vector<V>, std::greater<V>> recent;
+  std::priority_queue<V, std::vector<V>> recent;
 
   foreach (QString file, files) {
     MetaInfo info = MetaInfo::ping(file);
@@ -70,6 +70,8 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
       recent.push(qMakePair(finfo.lastModified(), file));
     }
   }
+  setMinimumSize(sizeHint());
+  setMaximumSize(sizeHint());
 
   for (count = 0; count < 4 && !recent.empty(); ++count) {
     const V& v = recent.top();
@@ -77,7 +79,7 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
     MetaInfo info = MetaInfo::ping(v.second);
     WelcomeButton * btn = new WelcomeButton(m_ui->recent_frame, v.second);
     btn->setIcon(QIcon(":/icons/project_hl.png"));
-    m_ui->recent_layout->insertWidget(0, btn);
+    m_ui->recent_layout->insertWidget(count, btn);
     btn->setText(info.name);
     btn->setDescription(info.description);
     connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
