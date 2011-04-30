@@ -16,12 +16,20 @@
  */
 
 #include "editor.hpp"
+#include "material.hpp"
+#include "shader/program.hpp"
 
 #include <QPainter>
 #include <QTextBlock>
 #include <QFile>
 #include <QToolTip>
 #include <QMessageBox>
+#include <QScrollArea>
+#include <QListWidget>
+#include <QVBoxLayout>
+#include <QSplitter>
+#include <QDebug>
+#include <QScrollBar>
 
 EditorMargin::EditorMargin(Editor* editor) : QWidget(editor), m_editor(editor) {}
 
@@ -37,12 +45,12 @@ void EditorMargin::paintEvent(QPaintEvent* event) {
 ///////////////////////////////////////////////////////////////////////////////
 
 Editor::Editor(QWidget* parent, ShaderPtr shader)
-  : QPlainTextEdit(parent), m_margin(new EditorMargin(this)),
-    m_highlighter(new Highlighter(this->document())), m_shader(shader), m_sync(true) {
+  : QTextEdit(parent), m_margin(new EditorMargin(this)),
+    m_highlighter(new Highlighter(this->document())), m_shader(shader), m_sync(true),
+    m_marginWidth(10) {
   setObjectName("editor");
 
-  connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateMarginWidth(int)));
-  connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateMargin(QRect,int)));
+  connect(document(), SIGNAL(blockCountChanged(int)), this, SLOT(updateMarginWidth(int)));
   connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
   connect(this, SIGNAL(textChanged()), this, SLOT(textChangedSlot()));
 
@@ -69,20 +77,15 @@ Editor::Editor(QWidget* parent, ShaderPtr shader)
 
   updateMarginWidth(0);
   highlightCurrentLine();
-}
 
-void Editor::updateMargin(const QRect& rect, int dy) {
-  if (dy)
-    m_margin->scroll(0, dy);
-  else
-    m_margin->update(0, rect.y(), m_margin->width(), rect.height());
+  setFrameShape(QFrame::NoFrame);
 
-  if (rect.contains(viewport()->rect()))
-    updateMarginWidth(0);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 void Editor::resizeEvent(QResizeEvent* e) {
-  QPlainTextEdit::resizeEvent(e);
+  QTextEdit::resizeEvent(e);
 
   QRect cr = contentsRect();
   m_margin->setGeometry(QRect(cr.left(), cr.top(), marginWidth(), cr.height()));
@@ -136,7 +139,7 @@ void Editor::fileUpdated(const QString& filename) {
 
 void Editor::focusOnError(ShaderError error) {
   setTextCursor(m_errors[error]);
-  centerCursor();
+  ensureCursorVisible();
 }
 
 bool Editor::viewportEvent(QEvent* event) {
@@ -164,7 +167,7 @@ bool Editor::viewportEvent(QEvent* event) {
       }
     }
   }
-  return QPlainTextEdit::viewportEvent(event);
+  return QTextEdit::viewportEvent(event);
 }
 
 void Editor::updateExtraSelections() {
@@ -245,10 +248,13 @@ void Editor::marginPaintEvent(QPaintEvent* event) {
   QPainter painter(m_margin);
   painter.fillRect(event->rect(), QColor(Qt::lightGray).lighter(120));
 
-  QTextBlock block = firstVisibleBlock();
+  QTextDocument* doc = document();
+  QAbstractTextDocumentLayout* l = doc->documentLayout();
+
+  QTextBlock block = doc->begin();
   int blockNumber = block.blockNumber();
-  int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-  int bottom = top + static_cast<int>(blockBoundingRect(block).height());
+  int top = l->blockBoundingRect(block).top();
+  int bottom = top + l->blockBoundingRect(block).height();
 
   while (block.isValid() && top <= event->rect().bottom()) {
     if (block.isVisible() && bottom >= event->rect().top()) {
@@ -259,20 +265,177 @@ void Editor::marginPaintEvent(QPaintEvent* event) {
     }
 
     block = block.next();
-    top = bottom;
-    bottom = top + static_cast<int>(blockBoundingRect(block).height());
-    ++blockNumber;
+    if(block.isValid()) {
+      top = bottom;
+      bottom = top + l->blockBoundingRect(block).height();
+      ++blockNumber;
+    }
   }
 }
 
-void Editor::updateMarginWidth(int /*blockCount*/) {
-  setViewportMargins(marginWidth(), 0, 0, 0);
+void Editor::updateMarginWidth(int blockCount) {
+  int digits = 1;
+  int lines = qMax(1, blockCount);
+  while (lines >= 10) lines /= 10, ++digits;
+
+  m_marginWidth = 8 + fontMetrics().width(QLatin1Char('9')) * digits;
+  setViewportMargins(m_marginWidth, 0, 0, 0);
 }
 
 int Editor::marginWidth() const {
-  int digits = 1;
-  int lines = qMax(1, blockCount());
-  while (lines >= 10) lines /= 10, ++digits;
+  return m_marginWidth;
+}
 
-  return 8 + fontMetrics().width(QLatin1Char('9')) * digits;
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+FileListWidget::FileListWidget(QWidget* parent)
+  : QListWidget(parent) {}
+
+int FileListWidget::preferredWidth() {
+  return contentsSize().width() + 10;
+}
+
+MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
+  : QFrame(parent),
+    m_viewport(new QWidget(this)),
+    m_list(new FileListWidget(this)),
+    m_material(material),
+    m_mapper(new QSignalMapper(this)) {
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Sunken);
+
+  QVBoxLayout* main_layout = new QVBoxLayout(this);
+  main_layout->setContentsMargins(0, 0, 0, 0);
+
+  m_splitter = new QSplitter(Qt::Horizontal, this);
+
+  m_area = new QScrollArea(m_splitter);
+  m_area->setWidgetResizable(true);
+  m_area->setWidget(m_viewport);
+  m_area->setFrameShape(QFrame::NoFrame);
+
+  m_list->setFrameShape(QFrame::NoFrame);
+
+  m_splitter->addWidget(m_list);
+  m_splitter->addWidget(m_area);
+  m_splitter->setStretchFactor(0, 0);
+  m_splitter->setStretchFactor(1, 1);
+
+  main_layout->addWidget(m_splitter);
+
+  new QVBoxLayout(m_viewport);
+
+  connect(m_mapper, SIGNAL(mapped(QString)), this, SLOT(autosize(QString)));
+
+  ProgramPtr prog = m_material->prog();
+  if (prog) {
+    foreach(ShaderPtr shader, prog->shaders())
+      addShader(shader);
+  }
+
+  connect(m_list, SIGNAL(doubleClicked(QModelIndex)),
+          this, SLOT(scrollTo(QModelIndex)));
+}
+
+void MultiEditor::addShader(ShaderPtr shader) {
+  QFileInfo fi(shader->filename());
+  QFile f(shader->filename());
+  if(f.open(QFile::ReadOnly)) {
+    Section& s = m_sections[shader->filename()];
+
+    s.item = new QListWidgetItem(shader->icon(), fi.fileName());
+    s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable);
+    /// @todo handle hide/show
+    s.item->setCheckState(Qt::Checked);
+    s.item->setData(Qt::UserRole, shader->filename());
+    m_list->addItem(s.item);
+
+    QByteArray data = f.readAll();
+
+    s.header = new QWidget(m_viewport);
+    QHBoxLayout* l = new QHBoxLayout(s.header);
+
+    s.label = new QLabel("<b>"+fi.fileName()+"</b>", s.header);
+    s.icon = new QLabel(s.header);
+    s.icon->setPixmap(shader->icon().pixmap(16));
+    l->addWidget(s.icon);
+    l->addWidget(s.label);
+    l->addStretch();
+    l->setContentsMargins(2, 2, 0, 0);
+    m_viewport->layout()->addWidget(s.header);
+
+    s.editor = new Editor(this, shader);
+
+    m_viewport->layout()->addWidget(s.editor);
+
+    m_mapper->setMapping(s.editor->document()->documentLayout(), shader->filename());
+    connect(s.editor->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)),
+            m_mapper, SLOT(map()));
+
+    connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
+            this, SLOT(editorModified(bool)));
+
+    s.editor->setText(data);
+    QTimer::singleShot(50, this, SLOT(relayout()));
+  }
+}
+
+void MultiEditor::relayout() {
+  int w = m_list->preferredWidth();
+  m_list->setMaximumWidth(w);
+  QList<int> sizes = m_splitter->sizes();
+  sizes[0] = w;
+  m_splitter->setSizes(sizes);
+}
+
+void MultiEditor::editorModified(bool b) {
+  emit modificationChanged(b);
+}
+
+void MultiEditor::autosize(QString file) {
+  Section s = m_sections.value(file);
+  if (s.editor) {
+    QSize size = s.editor->document()->size().toSize();
+    size.setWidth(size.width() + s.editor->marginWidth());
+    s.editor->setMinimumSize(size);
+  }
+}
+
+void MultiEditor::scrollTo(QModelIndex idx) {
+  QString file = idx.data(Qt::UserRole).toString();
+  Section s = m_sections.value(file);
+  if (s.header) {
+    m_area->verticalScrollBar()->setValue(s.header->pos().y() - 5);
+  }
+}
+
+void MultiEditor::focusOnError(ShaderError error) {
+  Editor* e = editor(error.shader());
+  if (e) {
+    /// @todo this really won't work!
+    e->focusOnError(error);
+  }
+/*
+  QTextCursor cursor =
+  QMap<ShaderError, QTextCursor>
+  setTextCursor(m_errors[error]);
+  ensureCursorVisible();*/
+}
+
+void MultiEditor::syncToggled(bool sync) {
+
+}
+
+void MultiEditor::save() {
+  /// @todo
+}
+
+Editor* MultiEditor::editor(ShaderPtr shader) const {
+  foreach (const Section& s, m_sections) {
+    /// @todo fix this so ->filename wouldn't be necessary
+    if (s.editor->shader()->filename() == shader->filename())
+      return s.editor;
+  }
+  return 0;
 }

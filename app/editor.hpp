@@ -24,6 +24,14 @@
 #include "watcher.hpp"
 
 #include <QPlainTextEdit>
+#include <QModelIndex>
+#include <QListWidget>
+
+class QSignalMapper;
+class QListWidgetItem;
+class QLabel;
+class QScrollArea;
+class QSplitter;
 
 /**
  * The (left) margin on the text editor, that shows the line numbers.
@@ -52,7 +60,7 @@ protected:
  * @todo Split Editor to GLSLEditor and Editor, so we could make plain text editor,
  *       JSON editor and maybe even C++ editor.
  */
-class Editor : public QPlainTextEdit {
+class Editor : public QTextEdit {
   Q_OBJECT
 
 public:
@@ -109,7 +117,6 @@ private slots:
   void updateMarginWidth(int blockCount);
   /// When the text cursor moves, this is called and the line is highlighted
   void highlightCurrentLine();
-  void updateMargin(const QRect& rect, int dy);
 
 private:
   EditorMargin* m_margin;
@@ -145,6 +152,66 @@ private:
   /// signals from all of those textChanged-signals.
   /// @todo isn't there any better way to do this?
   QString m_lastdata;
+
+  int m_marginWidth;
+};
+
+class FileListWidget : public QListWidget {
+public:
+  FileListWidget(QWidget* parent);
+  int preferredWidth();
+};
+
+class MultiEditor : public QFrame {
+  Q_OBJECT
+
+public:
+  MultiEditor(QWidget* parent, MaterialPtr material);
+  virtual ~MultiEditor() {}
+
+  MaterialPtr material() const { return m_material; }
+  void save();
+
+  Editor* editor(ShaderPtr shader) const;
+
+  void focusOnError(ShaderError error);
+
+signals:
+  void modificationChanged(bool);
+
+public slots:
+  /// Sync status (autocompile on text change) change.
+  void syncToggled(bool sync);
+
+private slots:
+  void autosize(QString);
+  void scrollTo(QModelIndex);
+  void relayout();
+  void editorModified(bool);
+
+private:
+  void addShader(ShaderPtr shader);
+
+  QWidget* m_viewport;
+  FileListWidget* m_list;
+  QScrollArea* m_area;
+  QSplitter* m_splitter;
+
+  MaterialPtr m_material;
+
+  struct Section {
+    Section() : item(0), header(0), editor(0), icon(0), label(0) {}
+    QListWidgetItem* item;
+    QWidget* header;
+    Editor* editor;
+    QLabel* icon;
+    QLabel* label;
+  };
+
+  /// key is a filename
+  QMap<QString, Section> m_sections;
+
+  QSignalMapper* m_mapper;
 };
 
 #endif // EDITOR_H

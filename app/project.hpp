@@ -66,7 +66,7 @@ public slots:
   void codeChanged(Editor& editor);
   void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
   void linked(ProgramPtr shader, ShaderError::List errors);
-  void openShader(ShaderPtr shader);
+  //void openShader(ShaderPtr shader);
 
 protected:
   /// Creates a new editor for a shader

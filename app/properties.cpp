@@ -162,17 +162,17 @@ UniformVar* FloatEditor::getVar() {
 }
 
 MaterialProperties* MaterialProperties::s_instance = 0;
-FileList* FileList::s_instance = 0;
+//FileList* FileList::s_instance = 0;
 
 MaterialProperties &MaterialProperties::instance() {
   if (s_instance) return *s_instance;
   return *(new MaterialProperties);
 }
 
-FileList &FileList::instance() {
+/*FileList &FileList::instance() {
   if (s_instance) return *s_instance;
   return *(new FileList);
-}
+}*/
 
 MaterialProperties::Sub::~Sub() {
 }
@@ -194,6 +194,8 @@ MaterialProperties::MaterialProperties(QWidget* parent)
   horizontalHeader()->hide();
   horizontalHeader()->setStretchLastSection(true);
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
+  connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
+          this, SLOT(itemSelected(QTableWidgetItem*)));
 }
 
 MaterialProperties::~MaterialProperties() {
@@ -284,6 +286,11 @@ void MaterialProperties::update(MaterialPtr mat) {
 
   foreach (QString name, sub.editors.keys().toSet() - names)
     sub.editors.remove(name);
+}
+
+void MaterialProperties::itemSelected(QTableWidgetItem* item) {
+  MaterialPtr m = get(item);
+  if (m) emit select(m);
 }
 
 void MaterialProperties::updateMaterialList(ScenePtr scene) {
@@ -501,7 +508,7 @@ QItemSelectionModel::SelectionFlags MaterialProperties::selectionCommand(
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
+#if 0
 FileList::FileList(QWidget* parent)
   : QTreeWidget(parent),
     m_src(new QTreeWidgetItem(this)),
@@ -591,3 +598,4 @@ void FileList::selectionChanged() {
     m_destroy->setEnabled(false);
   }
 }
+#endif

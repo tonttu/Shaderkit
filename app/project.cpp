@@ -82,7 +82,8 @@ void Project::codeChanged(Editor& editor) {
   }
 }
 
-void Project::openShader(ShaderPtr shader) {
+/// @todo is this needed?
+/*void Project::openShader(ShaderPtr shader) {
   Editor* editor = findEditor(shader);
   if (!editor) {
     editor = m_main_window.createEditor(shader);
@@ -90,28 +91,29 @@ void Project::openShader(ShaderPtr shader) {
   } else {
     m_main_window.activateEditor(editor);
   }
-}
+}*/
 
 void Project::addShader(ShaderPtr shader) {
   Watcher::instance().add(this, shader->filename());
-  FileList::instance().update(shader);
+/*  FileList::instance().update(shader);
   connect(&FileList::instance(), SIGNAL(openFile(ShaderPtr)),
-          this, SLOT(openShader(ShaderPtr)));
+          this, SLOT(openShader(ShaderPtr)));*/
 }
 
 Editor* Project::findEditor(ShaderPtr shader) {
-  QList<Editor*> editors = m_main_window.editors();
+  QList<MultiEditor*> editors = m_main_window.editors();
   for (int i = 0; i < editors.size(); ++i) {
-    if (editors[i]->shader()->filename() == shader->filename()) return editors[i];
+    Editor* e = editors[i]->editor(shader);
+    if (e) return e;
   }
   return 0;
 }
 
 Editor* Project::findEditor(const QString& filename) {
-  QList<Editor*> editors = m_main_window.editors();
+  /*QList<Editor*> editors = m_main_window.editors();
   for (int i = 0; i < editors.size(); ++i) {
     if (editors[i]->shader()->filename() == filename) return editors[i];
-  }
+  }*/
   return 0;
 }
 
@@ -140,9 +142,9 @@ void Project::setScene(ScenePtr scene) {
       disconnect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
                  this, SLOT(linked(ProgramPtr, ShaderError::List)));
 
-      foreach (ShaderPtr shader, prog->shaders()) {
+      /*foreach (ShaderPtr shader, prog->shaders()) {
         FileList::instance().remove(shader);
-      }
+      }*/
     }
 
     foreach (RenderPassPtr p, m_active_scene->renderPasses()) {

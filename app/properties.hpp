@@ -82,6 +82,9 @@ public:
 
   void init();
 
+signals:
+  void select(MaterialPtr);
+
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
   void update(MaterialPtr mat);
@@ -96,6 +99,8 @@ protected slots:
   void edit();
   void remove();
   void toggleMode();
+
+  void itemSelected(QTableWidgetItem*);
 
 protected:
   struct Sub {
@@ -127,6 +132,7 @@ protected:
  *
  * This is a singleton class.
  */
+/*
 class FileList : public QTreeWidget {
   Q_OBJECT
 
@@ -155,5 +161,5 @@ protected:
 
   static FileList* s_instance;
 };
-
+*/
 #endif // PROPERTIES_HPP

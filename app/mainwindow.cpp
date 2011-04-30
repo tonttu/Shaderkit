@@ -22,6 +22,8 @@
 #include "project.hpp"
 #include "scene.hpp"
 #include "importer_wizard.hpp"
+#include "material.hpp"
+#include "shader/program.hpp"
 
 #include <QKeyEvent>
 #include <QFile>
@@ -53,7 +55,7 @@ MainWindow::MainWindow(QWidget* parent)
     s_instance = this;
 
   m_ui->setupUi(this);
-  m_ui->filelist->init();
+  //m_ui->filelist->init();
   m_ui->renderpass_properties->init();
   m_ui->material_properties->init();
 
@@ -78,8 +80,8 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
 
   QAction* actions[] = {m_ui->action_glwidget, m_ui->action_material_properties,
-      m_ui->action_render_properties, m_ui->action_file_list, m_ui->action_error_log};
-  QDockWidget* widgets[] = {m_ui->gldock, m_ui->shaderdock, m_ui->renderdock, m_ui->filesdock, m_ui->errordock};
+      m_ui->action_render_properties, m_ui->action_error_log};
+  QDockWidget* widgets[] = {m_ui->gldock, m_ui->shaderdock, m_ui->renderdock, m_ui->errordock};
   for (size_t i = 0; i < sizeof(actions)/sizeof(*actions); ++i) {
     connect(actions[i], SIGNAL(triggered(bool)), widgets[i], SLOT(setVisible(bool)));
     connect(widgets[i], SIGNAL(visibilityChanged(bool)), actions[i], SLOT(setChecked(bool)));
@@ -92,6 +94,9 @@ MainWindow::MainWindow(QWidget* parent)
 
   connect(m_ui->action_sandbox_compiler, SIGNAL(toggled(bool)),
           this, SLOT(setSandboxCompiler(bool)));
+
+  connect(&MaterialProperties::instance(), SIGNAL(select(MaterialPtr)),
+          this, SLOT(openMaterial(MaterialPtr)));
 
   QSettings settings("GLSL-Lab", "GLSL-Lab");
   m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
@@ -111,7 +116,7 @@ void MainWindow::setProject(ProjectPtr p) {
     restore();
 }
 
-Editor* MainWindow::createEditor(ShaderPtr shader) {
+MultiEditor* MainWindow::createEditor(MaterialPtr material) {
   QWidget* widget = new QWidget();
   QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, widget);
   layout->setMargin(0);
@@ -122,7 +127,7 @@ Editor* MainWindow::createEditor(ShaderPtr shader) {
   bottom_layout->setMargin(5);
   bottom_layout->setSpacing(0);
 
-  Editor* editor = new Editor(widget, shader);
+  MultiEditor* editor = new MultiEditor(widget, material);
   connect(editor, SIGNAL(modificationChanged(bool)), this, SLOT(modificationChanged(bool)));
 
   QPushButton* btn = new IconBtn(bottom);
@@ -142,17 +147,14 @@ Editor* MainWindow::createEditor(ShaderPtr shader) {
   layout->addWidget(editor);
   layout->addWidget(bottom);
 
-  editor->readFile(shader->filename());
-
   m_editors.push_back(editor);
 
-  QFileInfo fi(shader->filename());
-  m_ui->editor_tabs->addTab(widget, fi.fileName());
+  m_ui->editor_tabs->addTab(widget, material->name());
   m_ui->editor_tabs->setCurrentIndex(m_ui->editor_tabs->count()-1);
   return editor;
 }
 
-void MainWindow::activateEditor(Editor* editor) {
+void MainWindow::activateEditor(MultiEditor* editor) {
   m_ui->editor_tabs->setCurrentWidget(editor->parentWidget());
 }
 
@@ -255,11 +257,24 @@ void MainWindow::setProjectChanged(bool status) {
   }
 }
 
+MultiEditor* MainWindow::findEditor(MaterialPtr mat) {
+  foreach(MultiEditor* editor, m_editors)
+    if(editor->material() == mat) return editor;
+  return 0;
+}
+
+void MainWindow::openMaterial(MaterialPtr mat) {
+  MultiEditor* editor = findEditor(mat);
+  if(!editor) editor = createEditor(mat);
+  m_ui->editor_tabs->setCurrentIndex(m_editors.indexOf(editor));
+}
+
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   ShaderError err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
 
   for (int idx = 0; idx < m_editors.size(); ++idx) {
-    if (m_editors[idx]->shader() == err.shader()) {
+    ProgramPtr prog = m_editors[idx]->material()->prog();
+    if(prog && prog->shaders().contains(err.shader())) {
       m_editors[idx]->focusOnError(err);
       m_ui->editor_tabs->setCurrentIndex(idx);
       break;
@@ -268,11 +283,11 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
 }
 
 void MainWindow::modificationChanged(bool b) {
-  Editor* editor = dynamic_cast<Editor*>(sender());
+  MultiEditor* editor = dynamic_cast<MultiEditor*>(sender());
   if (editor) {
-    QFileInfo fi(editor->filename());
     m_ui->editor_tabs->setTabText(m_editors.indexOf(editor),
-                                  fi.fileName() + (b ? "*" : ""));
+                                  editor->material()->name()
+                                  + (b ? "*" : ""));
   }
 }
 
@@ -283,12 +298,13 @@ void MainWindow::save(int index) {
   if (index == -1)
     return;
 
-  Editor* editor = m_editors[index];
-  QFile file(editor->filename());
+  MultiEditor* editor = m_editors[index];
+  editor->save();
+/*  QFile file(editor->filename());
   if (file.open(QIODevice::WriteOnly)) {
     file.write(editor->toPlainText().toUtf8());
     editor->document()->setModified(false);
-  }
+  }*/
 }
 
 void MainWindow::saveProject() {
@@ -320,8 +336,10 @@ void MainWindow::closeEditor(int index) {
 
   QWidget* widget = m_ui->editor_tabs->widget(index);
   if (widget) {
-    Editor* editor = widget->findChild<Editor*>("editor");
+    MultiEditor* editor = widget->findChild<MultiEditor*>("editor");
     if (editor) {
+      /// @todo
+      /*
       if (editor->document()->isModified()) {
         int ret = QMessageBox::question(this, "Unsaved changes", "The file has some unsaved changes, what to do?",
                                         QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
@@ -330,7 +348,7 @@ void MainWindow::closeEditor(int index) {
         } else if (ret != QMessageBox::Close) {
           return;
         }
-      }
+      }*/
 
       m_editors.removeAll(editor);
       m_ui->editor_tabs->removeTab(index);

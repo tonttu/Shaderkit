@@ -61,12 +61,12 @@ public:
   /// Sets the active project.
   void setProject(ProjectPtr p);
 
-  /// Creates a new editor widget for given shader, and add the editor to a new tab.
-  Editor* createEditor(ShaderPtr shader);
+  /// Creates a new editor widget for given material, and adds the editor to a new tab.
+  MultiEditor* createEditor(MaterialPtr material);
 
-  void activateEditor(Editor* editor);
+  void activateEditor(MultiEditor* editor);
 
-  QList<Editor*> editors() { return m_editors; }
+  QList<MultiEditor*> editors() { return m_editors; }
 
   ProjectPtr project() { return m_project; }
 
@@ -86,6 +86,9 @@ public slots:
   /// but tries to keep the same state
   bool reload();
   void setProjectChanged(bool status);
+
+  MultiEditor* findEditor(MaterialPtr mat);
+  void openMaterial(MaterialPtr mat);
 
 protected:
   void keyPressEvent(QKeyEvent* event);
@@ -117,7 +120,7 @@ private:
   ProjectPtr m_project;
 
   /// List of all editors, in the same order as they are in editor_tabs.
-  QList<Editor*> m_editors;
+  QList<MultiEditor*> m_editors;
 
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
