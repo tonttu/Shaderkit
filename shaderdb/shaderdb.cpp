@@ -77,7 +77,7 @@ ScenePtr ShaderDB::newLocalProject(QString name, QString srcfile) {
 
   QString target = makeUniqPath(path, name + ".lab");
 
-  ScenePtr scene = Project::load(srcfile);
+  ScenePtr scene = Scene::load(srcfile);
   if (!scene) return scene;
 
   scene->setFilename(target);

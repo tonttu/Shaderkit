@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 #include "shader/error.hpp"
+#include "watcher.hpp"
 
 #include <QMainWindow>
 #include <QTableWidgetItem>
@@ -51,15 +52,12 @@ private:
 /**
  * All other widgets are part of the widget tree that the Main Window starts as a root widget.
  */
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow, public Watchable {
   Q_OBJECT
 
 public:
   MainWindow(QWidget* parent = 0);
   ~MainWindow();
-
-  /// Sets the active project.
-  void setProject(ProjectPtr p);
 
   /// Creates a new editor widget for given material, and adds the editor to a new tab.
   MultiEditor* createEditor(MaterialPtr material);
@@ -68,10 +66,8 @@ public:
 
   QList<MultiEditor*> editors() { return m_editors; }
 
-  ProjectPtr project() { return m_project; }
-
   static MainWindow& instance();
-  static ScenePtr activeScene();
+  static ScenePtr scene();
 
 public slots:
   /// Updates the error list
@@ -85,10 +81,12 @@ public slots:
   /// Reloads the project file, basically just loads the same file again,
   /// but tries to keep the same state
   bool reload();
-  void setProjectChanged(bool status);
+  void setSceneChanged(bool status);
 
   MultiEditor* findEditor(MaterialPtr mat);
   void openMaterial(MaterialPtr mat);
+
+  void fileUpdated(const QString& filename);
 
 protected:
   void keyPressEvent(QKeyEvent* event);
@@ -116,8 +114,8 @@ private:
   /// Main layout generated from the .ui -file.
   std::auto_ptr<Ui::MainWindow> m_ui;
 
-  /// Currently there is exactly one project for one MainWindow.
-  ProjectPtr m_project;
+  /// Currently there is exactly one scene for one MainWindow.
+  ScenePtr m_scene;
 
   /// List of all editors, in the same order as they are in editor_tabs.
   QList<MultiEditor*> m_editors;
@@ -125,7 +123,7 @@ private:
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
 
-  bool m_projectChanged;
+  bool m_sceneChanged;
   static MainWindow * s_instance;
 };
 

@@ -32,6 +32,10 @@
 #include "properties.hpp"
 #include "render_pass_properties.hpp"
 
+// qjson
+#include <parser.h>
+#include <serializer.h>
+
 #include <QVariantMap>
 
 #include <cassert>
@@ -472,6 +476,42 @@ void Scene::remove(MaterialPtr m) {
     o->remove(m);
 
   emit materialListUpdated(shared_from_this());
+}
+
+ScenePtr Scene::load(const QString& filename) {
+  ScenePtr scene;
+
+  QDir dir(filename);
+  QString root;
+  if (dir.cdUp())
+    root = dir.canonicalPath();
+  if (root.isEmpty())
+    return scene;
+
+  QJson::Parser parser;
+  bool ok;
+  QFile file(filename);
+  QVariant data = parser.parse(&file, &ok);
+  if (ok) {
+    scene.reset(new Scene(filename));
+    scene->setRoot(root);
+    scene->load(data.toMap());
+  }
+  return scene;
+}
+
+bool Scene::save(const QString& filename) {
+  QJson::Serializer serializer;
+  QFile file(filename);
+  // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
+  // that isn't what we want.
+  const QByteArray str = serializer.serialize(save());
+  if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
+    file.write(str);
+    m_filename = filename;
+    return true;
+  }
+  return false;
 }
 
 QString Scene::search(QString filename) const {

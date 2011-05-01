@@ -94,6 +94,10 @@ public:
   /// Load the scene from map
   void load(QVariantMap map);
 
+  /// Saves the scene to JSON file.
+  /// @returns true if saving succeeds
+  bool save(const QString& filename);
+
   /// Returns the metainfo loaded from the project file
   MetaInfo & metainfo() { return m_metainfo; }
 
@@ -123,6 +127,9 @@ public:
   void renderPassesChanged();
 
   void remove(MaterialPtr m);
+
+  /// Loads a scene from JSON file.
+  static ScenePtr load(const QString& filename);
 
 signals:
   void shaderListUpdated();

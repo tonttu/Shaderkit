@@ -1065,7 +1065,7 @@ void RenderPassProperties::recalcLayout() {
 }
 
 void RenderPassProperties::create() {
-  ScenePtr s = MainWindow::activeScene();
+  ScenePtr s = MainWindow::scene();
   if (!s) {
     Log::error("No active scene");
   } else {

@@ -50,7 +50,7 @@ void IconBtn::paintEvent(QPaintEvent*) {
 MainWindow * MainWindow::s_instance = 0;
 
 MainWindow::MainWindow(QWidget* parent)
-  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_projectChanged(false) {
+  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_sceneChanged(false) {
   if (!s_instance)
     s_instance = this;
 
@@ -107,15 +107,6 @@ MainWindow::~MainWindow() {
     s_instance = 0;
 }
 
-void MainWindow::setProject(ProjectPtr p) {
-  bool should_restore = !m_project;
-  m_project = p;
-  connect(p.get(), SIGNAL(sceneChanged(ScenePtr)),
-          m_ui->gl_widget, SLOT(sceneChange(ScenePtr)));
-  if (should_restore)
-    restore();
-}
-
 MultiEditor* MainWindow::createEditor(MaterialPtr material) {
   QWidget* widget = new QWidget();
   QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, widget);
@@ -163,11 +154,24 @@ MainWindow& MainWindow::instance() {
   return *s_instance;
 }
 
-ScenePtr MainWindow::activeScene() {
-  ProjectPtr p = instance().project();
-  if (p) return p->activeScene();
-  return ScenePtr();
+ScenePtr MainWindow::scene() {
+  return instance().m_scene;
 }
+
+/// @todo add something like this
+/*
+void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
+  Editor* editor = findEditor(shader);
+
+  if (editor) {
+    editor->clearErrors();
+    for (int i = 0; i < errors.size(); ++i) {
+      editor->compileError(errors[i]);
+    }
+  }
+
+  m_main_window.shaderCompiled(shader, errors);
+}*/
 
 void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   bool changed = false;
@@ -212,48 +216,76 @@ bool MainWindow::openScene(ScenePtr scene) {
   if (!scene)
     return false;
 
-  ProjectPtr project(new Project(*this, scene->filename()));
-  setProject(project);
-  project->setScene(scene);
+  // do this only once
+  bool should_restore_settings = !m_scene;
+
+  if (m_scene) {
+    foreach (ProgramPtr prog, m_scene->programs()) {
+      disconnect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
+                 this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+      disconnect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
+                 this, SLOT(linked(ProgramPtr, ShaderError::List)));
+    }
+
+    foreach (RenderPassPtr p, m_scene->renderPasses()) {
+      RenderPassProperties::instance().remove(p);
+    }
+  }
+
+  m_scene = scene;
+
+  foreach (ProgramPtr prog, m_scene->programs()) {
+    connect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
+            this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
+    connect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
+            this, SLOT(linked(ProgramPtr, ShaderError::List)));
+
+    foreach (ShaderPtr shader, prog->shaders()) {
+      Watcher::instance().add(this, shader->filename());
+    }
+  }
+
+  if (should_restore_settings)
+    restore();
+
+  m_ui->gl_widget->sceneChange(m_scene);
+
   resize(sizeHint());
 
-  setProjectChanged(false);
+  setSceneChanged(false);
 
-  m_ui->statusbar->showMessage("Opened project " + m_project->filename(), 5000);
+  m_ui->statusbar->showMessage("Opened scene " + scene->filename(), 5000);
   show();
 
   return true;
 }
 
 bool MainWindow::openProject(QString filename) {
-  return openScene(Project::load(filename));
+  return openScene(Scene::load(filename));
 }
 
 bool MainWindow::reload() {
-  ScenePtr scene = Project::load(m_project->filename());
-  if (!scene) {
-    m_ui->statusbar->showMessage("Failed to reload " + m_project->filename(), 5000);
+  if (!m_scene) return false;
+
+  ScenePtr scene = Scene::load(m_scene->filename());
+  if (scene && openScene(scene)) {
+    m_ui->statusbar->showMessage("Reloaded " + scene->filename(), 5000);
+    return true;
+  } else {
+    m_ui->statusbar->showMessage("Failed to reload " + m_scene->filename(), 5000);
     return false;
   }
-
-  m_project->setScene(scene);
-
-  m_ui->statusbar->showMessage("Reloaded " + m_project->filename(), 5000);
-  setProjectChanged(false);
-  m_projectChanged = false;
-
-  return true;
 }
 
-void MainWindow::setProjectChanged(bool status) {
-  if (!m_project)
+void MainWindow::setSceneChanged(bool status) {
+  if (!m_scene)
     return;
-  m_projectChanged = status;
+  m_sceneChanged = status;
   m_ui->action_saveproject->setEnabled(status);
   if (status) {
-    setWindowTitle(m_project->activeScene()->metainfo().name + " (unsaved) - GLSL Lab");
+    setWindowTitle(m_scene->metainfo().name + " (unsaved) - GLSL Lab");
   } else {
-    setWindowTitle(m_project->activeScene()->metainfo().name + " - GLSL Lab");
+    setWindowTitle(m_scene->metainfo().name + " - GLSL Lab");
   }
 }
 
@@ -267,6 +299,19 @@ void MainWindow::openMaterial(MaterialPtr mat) {
   MultiEditor* editor = findEditor(mat);
   if(!editor) editor = createEditor(mat);
   m_ui->editor_tabs->setCurrentIndex(m_editors.indexOf(editor));
+}
+
+void MainWindow::fileUpdated(const QString& filename) {
+  /// @todo implement
+/*  Editor* editor = findEditor(filename);
+  // If there is an editor, it is a job for it to handle the reloading
+  if (editor) {
+    editor->fileUpdated(filename);
+  } else {
+    QList<ShaderPtr> lst = m_active_scene->shadersByFilename(filename);
+    foreach (ShaderPtr s, lst)
+      s->loadFile(filename);
+  }*/
 }
 
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
@@ -308,11 +353,11 @@ void MainWindow::save(int index) {
 }
 
 void MainWindow::saveProject() {
-  if (m_project->save(m_project->filename())) {
-    setProjectChanged(false);
-    m_ui->statusbar->showMessage("Saved project to " + m_project->filename(), 5000);
+  if (m_scene->save(m_scene->filename())) {
+    setSceneChanged(false);
+    m_ui->statusbar->showMessage("Saved scene to " + m_scene->filename(), 5000);
   } else {
-    m_ui->statusbar->showMessage("Failed to save project to " + m_project->filename(), 5000);
+    m_ui->statusbar->showMessage("Failed to save scene to " + m_scene->filename(), 5000);
   }
 }
 
@@ -369,8 +414,8 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 }
 
 void MainWindow::changed(RenderPassPtr) {
-  if (!m_projectChanged)
-    setProjectChanged(true);
+  if (!m_sceneChanged)
+    setSceneChanged(true);
 }
 
 void MainWindow::setSandboxCompiler(bool v) {
@@ -380,7 +425,7 @@ void MainWindow::setSandboxCompiler(bool v) {
 }
 
 void MainWindow::import() {
-  ImporterWizard* w = new ImporterWizard(m_project->activeScene());
+  ImporterWizard* w = new ImporterWizard(m_scene);
   w->show();
 }
 

@@ -342,7 +342,7 @@ void MaterialProperties::selectionChanged() {
 }
 
 void MaterialProperties::create() {
-  ScenePtr s = MainWindow::activeScene();
+  ScenePtr s = MainWindow::scene();
   if (!s) return;
 
   MaterialPtr m(new Material(Utils::uniqueName("Untitled", s->materials().keys())));
@@ -350,7 +350,7 @@ void MaterialProperties::create() {
 }
 
 void MaterialProperties::load() {
-  ScenePtr s = MainWindow::activeScene();
+  ScenePtr s = MainWindow::scene();
   if (!s) return;
 
   QStringList lst;

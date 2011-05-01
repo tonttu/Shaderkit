@@ -35,43 +35,6 @@ Project::Project(MainWindow& main_window, QString filename)
 Project::~Project() {
 }
 
-ScenePtr Project::load(const QString& filename) {
-  ScenePtr scene;
-
-  QDir dir(filename);
-  QString root;
-  if (dir.cdUp())
-    root = dir.canonicalPath();
-  if (root.isEmpty())
-    return scene;
-
-  QJson::Parser parser;
-  bool ok;
-  QFile file(filename);
-  QVariant data = parser.parse(&file, &ok);
-  if (ok) {
-    scene.reset(new Scene(filename));
-    scene->setRoot(root);
-    scene->load(data.toMap());
-  }
-  return scene;
-}
-
-bool Project::save(const QString& filename) {
-  if (!m_active_scene)
-    return false;
-  QJson::Serializer serializer;
-  QFile file(filename);
-  // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
-  // that isn't what we want.
-  const QByteArray str = serializer.serialize(m_active_scene->save());
-  if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
-    file.write(str);
-    return true;
-  }
-  return false;
-}
-
 void Project::codeChanged(Editor& editor) {
   if (editor.sync()) {
     QList<ShaderPtr> lst = m_active_scene->shadersByFilename(editor.filename());
@@ -92,13 +55,6 @@ void Project::codeChanged(Editor& editor) {
     m_main_window.activateEditor(editor);
   }
 }*/
-
-void Project::addShader(ShaderPtr shader) {
-  Watcher::instance().add(this, shader->filename());
-/*  FileList::instance().update(shader);
-  connect(&FileList::instance(), SIGNAL(openFile(ShaderPtr)),
-          this, SLOT(openShader(ShaderPtr)));*/
-}
 
 Editor* Project::findEditor(ShaderPtr shader) {
   QList<MultiEditor*> editors = m_main_window.editors();
@@ -132,54 +88,4 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
 
 void Project::linked(ProgramPtr, ShaderError::List errors) {
   m_main_window.shaderCompiled(ShaderPtr(), errors);
-}
-
-void Project::setScene(ScenePtr scene) {
-  if (m_active_scene) {
-    foreach (ProgramPtr prog, m_active_scene->programs()) {
-      disconnect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
-                 this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
-      disconnect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
-                 this, SLOT(linked(ProgramPtr, ShaderError::List)));
-
-      /*foreach (ShaderPtr shader, prog->shaders()) {
-        FileList::instance().remove(shader);
-      }*/
-    }
-
-    foreach (RenderPassPtr p, m_active_scene->renderPasses()) {
-      RenderPassProperties::instance().remove(p);
-    }
-  }
-
-  m_active_scene = scene;
-
-  foreach (ProgramPtr prog, scene->programs()) {
-    connect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
-            this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
-    connect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
-            this, SLOT(linked(ProgramPtr, ShaderError::List)));
-
-    foreach (ShaderPtr shader, prog->shaders()) {
-      addShader(shader);
-    }
-  }
-
-  emit sceneChanged(scene);
-}
-
-void Project::fileUpdated(const QString& filename) {
-  Editor* editor = findEditor(filename);
-  // If there is an editor, it is a job for it to handle the reloading
-  if (editor) {
-    editor->fileUpdated(filename);
-  } else {
-    QList<ShaderPtr> lst = m_active_scene->shadersByFilename(filename);
-    foreach (ShaderPtr s, lst)
-      s->loadFile(filename);
-  }
-}
-
-QString Project::filename() const {
-  return m_filename;
 }
