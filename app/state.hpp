@@ -62,6 +62,7 @@ public:
   void pushMaterial(MaterialPtr);
   void popMaterial();
 
+  MaterialPtr material() const;
   QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
   void setCamera(CameraPtr camera);

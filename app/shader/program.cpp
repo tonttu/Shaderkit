@@ -19,6 +19,7 @@
 #include "shader/shader.hpp"
 #include "shader/compiler_output_parser.hpp"
 #include "app/properties.hpp"
+#include "state.hpp"
 
 #include <cassert>
 
@@ -51,7 +52,7 @@ GLProgram::~GLProgram() {
   if (m_prog) glDeleteProgram(m_prog);
 }
 
-bool GLProgram::bind() {
+bool GLProgram::bind(State* state) {
   if (!m_compiled) {
     bool relink = !isLinked();
     if (!m_prog) {
@@ -63,9 +64,9 @@ bool GLProgram::bind() {
       return false;
 
     for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
-      ShaderError::List errors;
+      ShaderErrorList errors(state ? state->material() : MaterialPtr(), name(), (*it)->res());
       Shader::CompileStatus status = (*it)->compile(errors);
-      if (status != Shader::NONE) emit ShaderManager::instance().compiled((*it)->res(), errors);
+      if (status != Shader::NONE) emit ShaderManager::instance().compiled(errors);
       if (status == Shader::OK || status == Shader::WARNINGS) {
         /// @todo This should not be re-attached
         glRun(glAttachShader(m_prog, (*it)->id()));
@@ -75,7 +76,7 @@ bool GLProgram::bind() {
 
     m_compiled = true;
     if (relink)
-      link();
+      link(state);
   }
   if (isLinked()) {
     glRun(glUseProgram(m_prog));
@@ -103,7 +104,7 @@ ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type) {
   return shader;
 }
 
-void GLProgram::link() {
+void GLProgram::link(State* state) {
   glCheck("GLProgram::link");
   GLint prog = 0;
   glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
@@ -112,7 +113,7 @@ void GLProgram::link() {
     m_uniformList = getUniformList();
   }
 
-  ShaderError::List errors;
+  ShaderErrorList errors(state ? state->material() : MaterialPtr(), name());
 
   glRun(glLinkProgram(m_prog));
   GLint ok = 0;
@@ -126,16 +127,14 @@ void GLProgram::link() {
     GLsizei size = len;
     glRun(glGetProgramInfoLog(m_prog, size, &size, &log[0]));
     ShaderCompilerOutputParser parser(QString::fromUtf8(&log[0], size));
-    errors = parser.parse();
-    for (int i = 0; i < errors.size(); ++i)
-      errors[i].setRes(res());
+    parser.parse(errors);
   }
 
   if (ok) {
     glRun(glUseProgram(m_prog)); /// @todo Do we need this?
     setUniform(m_uniformList);
   }
-  emit ShaderManager::instance().linked(res(), errors);
+  emit ShaderManager::instance().linked(errors);
 
   glRun(glUseProgram(prog));
 }
@@ -200,8 +199,4 @@ QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
     map["fragment"] = shaders[Shader::Fragment];
 
   return map;
-}
-
-QString GLProgram::res() const {
-  return "$programs/" + name();
 }

@@ -95,10 +95,10 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_sandbox_compiler, SIGNAL(toggled(bool)),
           this, SLOT(setSandboxCompiler(bool)));
 
-  connect(&ShaderManager::instance(), SIGNAL(linked(QString,ShaderError::List)),
-          this, SLOT(shaderCompiled(QString, ShaderError::List)));
-  connect(&ShaderManager::instance(), SIGNAL(compiled(QString,ShaderError::List)),
-          this, SLOT(shaderCompiled(QString, ShaderError::List)));
+  connect(&ShaderManager::instance(), SIGNAL(linked(ShaderErrorList)),
+          this, SLOT(updateErrors(ShaderErrorList)));
+  connect(&ShaderManager::instance(), SIGNAL(compiled(ShaderErrorList)),
+          this, SLOT(updateErrors(ShaderErrorList)));
 
   QSettings settings("GLSL-Lab", "GLSL-Lab");
   m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
@@ -161,7 +161,7 @@ ScenePtr MainWindow::scene() {
 
 /// @todo add something like this
 /*
-void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
+void Project::shaderCompiled(ShaderPtr shader, ShaderErrorList errors) {
   Editor* editor = findEditor(shader);
 
   if (editor) {
@@ -174,33 +174,31 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   m_main_window.shaderCompiled(shader, errors);
 }*/
 
-/// @todo m_error_list_items should more generic, in addition to compile/link
-///       errors you should be able to put everything there
-/// @todo rename to something like updateErrors
-void MainWindow::shaderCompiled(QString res, ShaderError::List errors) {
+void MainWindow::updateErrors(ShaderErrorList errors) {
   bool changed = false;
   for (int i = 0; i < m_ui->error_list->rowCount(); ++i) {
     QTableWidgetItem* item = m_ui->error_list->item(i, 0);
-    if (m_error_list_items[item].res() == res) {
+    if (m_error_list_items[item].shader() == errors.shader &&
+        m_error_list_items[item].program() == errors.program) {
       m_error_list_items.remove(item);
       m_ui->error_list->removeRow(i--);
       changed = true;
     }
   }
 
-  for (auto e = errors.begin(); e != errors.end(); ++e) {
+  foreach (ShaderError e, errors) {
     int r = m_ui->error_list->rowCount();
     m_ui->error_list->setRowCount(r+1);
 
     /// @todo change order, put this on top
-    /// @todo add a material column, maybe?
-    QTableWidgetItem* msg = new QTableWidgetItem(e->msg());
-    msg->setIcon(QIcon(QPixmap(e->type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
+    /// @todo add a material/program column, maybe?
+    QTableWidgetItem* msg = new QTableWidgetItem(e.msg());
+    msg->setIcon(QIcon(QPixmap(e.type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
     m_ui->error_list->setItem(r, 0, msg);
-    if (!res.isEmpty())
-      m_ui->error_list->setItem(r, 1, new QTableWidgetItem(ResourceLocator::ui(res)));
-    m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e->line()+1)));
-    m_error_list_items[msg] = *e;
+    if (!e.shader().isEmpty())
+      m_ui->error_list->setItem(r, 1, new QTableWidgetItem(ResourceLocator::ui(e.shader())));
+    m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e.line()+1)));
+    m_error_list_items[msg] = e;
     changed = true;
   }
 
@@ -287,10 +285,11 @@ MultiEditor* MainWindow::findEditor(MaterialPtr mat) {
   return 0;
 }
 
-void MainWindow::openMaterial(MaterialPtr mat) {
+MultiEditor* MainWindow::openMaterial(MaterialPtr mat) {
   MultiEditor* editor = findEditor(mat);
   if(!editor) editor = createEditor(mat);
   m_ui->editor_tabs->setCurrentWidget(m_editors[editor]);
+  return editor;
 }
 
 void MainWindow::fileUpdated(const QString& filename) {
@@ -309,21 +308,36 @@ void MainWindow::fileUpdated(const QString& filename) {
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   ShaderError err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
 
+  if (err.material()) {
+    MultiEditor* editor = openMaterial(err.material());
+    editor->focusOnError(err);
+    return;
+  }
+
+  MultiEditor* editor = m_editors.key(m_ui->editor_tabs->currentWidget());
+  if (editor) {
+    ProgramPtr prog = editor->material()->prog();
+    if (prog && prog->name() == err.program()) {
+      editor->focusOnError(err);
+      return;
+    }
+  }
+
   for (auto it = m_editors.begin(); it != m_editors.end(); ++it) {
     ProgramPtr prog = it.key()->material()->prog();
-    bool m = prog && prog->res() == err.res();
-    if (prog && !m) {
-      foreach(ShaderPtr s, prog->shaders()) {
-        if (s->res() == err.res()) {
-          m = true;
-          break;
-        }
-      }
-    }
-    if(m) {
-      it.key()->focusOnError(err);
+    if (prog && prog->name() == err.program()) {
       m_ui->editor_tabs->setCurrentWidget(*it);
-      break;
+      it.key()->focusOnError(err);
+      return;
+    }
+  }
+
+  foreach (MaterialPtr m, m_scene->materials().values()) {
+    ProgramPtr prog = m->prog();
+    if (prog && prog->name() == err.program()) {
+      MultiEditor* editor = openMaterial(m);
+      editor->focusOnError(err);
+      return;
     }
   }
 }

@@ -27,7 +27,7 @@ public:
   SandboxCompiler(const char* argv0);
   ~SandboxCompiler();
 
-  static bool check(ShaderPtr shader, QByteArray src, ShaderError::List& errors);
+  static bool check(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
   static void close();
 
   static void init(const char* argv0);
@@ -41,7 +41,7 @@ private:
 
   std::string m_argv0, m_cwd;
 
-  bool doCheck(ShaderPtr shader, QByteArray src, ShaderError::List& errors);
+  bool doCheck(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
   bool start();
   void killSandbox();
 };

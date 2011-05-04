@@ -40,7 +40,7 @@ public:
   /// @todo Implement also some other formats than "1.50 NVIDIA via Cg compiler"
   ShaderCompilerOutputParser(QString compiler_output);
 
-  ShaderError::List parse();
+  bool parse(ShaderErrorList& errors);
 
 protected:
   /// The current parsing regexp, compiled in the constructor

@@ -51,13 +51,14 @@ bool Shader::loadSrc(const QString& data) {
     m_src = data;
     m_needCompile = true;
     // Tell the program object, that it needs to recompile stuff
-    m_prog->setIsCompiled(false);
+    ProgramPtr p = m_prog.lock();
+    if (p) p->setIsCompiled(false);
     return true;
   }
   return false;
 }
 
-Shader::CompileStatus Shader::compile(ShaderError::List& errors) {
+Shader::CompileStatus Shader::compile(ShaderErrorList& errors) {
   glCheck("Shader::compile");
   if (m_needCompile) {
     m_needCompile = false;
@@ -134,7 +135,7 @@ void Shader::setSandboxCompile(bool v) {
   s_sandbox_compile = v;
 }
 
-bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors) {
+bool Shader::handleCompilerOutput(const QString& src, ShaderErrorList& errors) {
   glCheck("handleCompilerOutput");
 
   // Split the source tokens to lines so that we can find the exact error location
@@ -163,20 +164,20 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
 
   ShaderCompilerOutputParser parser(QString::fromUtf8(&log[0], len));
   int l = lexer.tokens();
-  foreach (ShaderError e, parser.parse()) {
-    e.setRes(res());
-
+  ShaderErrorList tmp;
+  parser.parse(tmp);
+  foreach (ShaderError e, tmp) {
     if (e.line() > l || l == 0) {
       Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
                  e.line(), l, &log[0], data.c_str(), src.toUtf8().data());
-      errors.push_back(e);
+      errors << e;
       continue;
     }
     const ShaderLexer::Token& token = lexer.transform(e.line());
     e.setLine(token.line);
     e.setColumn(token.column);
     e.setLength(token.len);
-    errors.push_back(e);
+    errors << e;
     ok = true;
   }
 

@@ -18,12 +18,14 @@
 #include "shader/error.hpp"
 
 ShaderError::ShaderError() : m_line(0), m_column(0), m_length(0) {}
-ShaderError::ShaderError(QString res, QString msg, QString type, int line, int column, int length)
-  : m_res(res), m_msg(msg), m_type(type),
+ShaderError::ShaderError(QString msg, QString type, int line, int column, int length)
+  : m_msg(msg), m_type(type),
     m_line(line), m_column(column), m_length(length) {}
 
 bool ShaderError::operator<(const ShaderError& o) const {
-  if (m_res != o.m_res) return m_res < o.m_res;
+  if (m_material != o.m_material) return m_material < o.m_material;
+  if (m_program != o.m_program) return m_program < o.m_program;
+  if (m_shader != o.m_shader) return m_shader < o.m_shader;
   if (m_line != o.m_line) return m_line < o.m_line;
   if (m_column != o.m_column) return m_column < o.m_column;
   if (m_length != o.m_length) return m_length < o.m_length;

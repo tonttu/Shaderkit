@@ -38,9 +38,9 @@ public:
 
 signals:
   /// Emitted every time the program is linked
-  void linked(QString, ShaderError::List);
+  void linked(ShaderErrorList);
   /// Shader was compiled
-  void compiled(QString, ShaderError::List);
+  void compiled(ShaderErrorList);
 
   friend class GLProgram;
 };
@@ -70,7 +70,7 @@ public:
    * program object. Also (re)compiles all the shaders and (re)links the program
    * if needed. For every compiled shader the shaderCompiled()-signal is emitted.
    */
-  bool bind();
+  bool bind(State* state);
 
   /// Unbinds the program object.
   void unbind();
@@ -81,12 +81,12 @@ public:
   /// Sets a uniform variable, binds the object if needed,
   /// and restores the active program before returning.
   template <typename T>
-  void setUniform(QString name, T t, bool restore = false) {
+  void setUniform(State* state, QString name, T t, bool restore = false) {
     glCheck("setUniform");
     GLint prog = 0;
     glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
     if (!prog != m_prog)
-      bind();
+      bind(state);
 
     GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
     if(loc == -1) {
@@ -119,7 +119,7 @@ public:
    * (Re)Links the program. If the program is currently linked, saves the uniform
    * variable state before relinking. After successful linking, restores the state.
    */
-  virtual void link();
+  virtual void link(State* state);
 
   bool isLinked();
 
@@ -135,8 +135,6 @@ public:
   QVariantMap save(QVariantMap& map, QString root, bool pack = false) const;
 
   Shaders shaders() const { return m_shaders; }
-
-  QString res() const;
 
 protected:
   QString m_name;

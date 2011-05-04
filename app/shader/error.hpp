@@ -28,10 +28,6 @@
  */
 class ShaderError {
 public:
-  /// @todo move to global namespace, so we don't need to include this file
-  ///       to use the typedef
-  typedef QList<ShaderError> List;
-
   ShaderError();
   /**
    * @param type Should be "error" or "warning", but might also be
@@ -41,10 +37,12 @@ public:
    * @param length The length of the token/error area where the error was seen.
    *               Editor can use this information to underline the error part.
    */
-  ShaderError(QString res, QString msg, QString type,
+  ShaderError(QString msg, QString type,
               int line, int column = 0, int length = 0);
 
-  void setRes(QString res) { m_res = res; }
+  void setMaterial(MaterialPtr material) { m_material = material; }
+  void setProgram(QString res) { m_program = res; }
+  void setShader(QString res) { m_shader = res; }
   void setLine(int line) { m_line = line; }
   void setColumn(int column) { m_column = column; }
   void setLength(int length) { m_length = length; }
@@ -64,15 +62,40 @@ public:
   /// The length of the error area, obviously only a guess
   int length() const { return m_length; }
 
-  QString res() const { return m_res; }
+  MaterialPtr material() const { return m_material; }
+  QString program() const { return m_program; }
+  QString shader() const { return m_shader; }
 
   /// Implemented only for containers that require this.
   bool operator<(const ShaderError& o) const;
 
 protected:
-  QString m_res;
+  MaterialPtr m_material;
+  QString m_program, m_shader;
   QString m_msg, m_type;
   int m_line, m_column, m_length;
+};
+
+class ShaderErrorList : QList<ShaderError> {
+public:
+  typedef QList<ShaderError> List;
+  using List::const_iterator;
+  using List::begin;
+  using List::end;
+
+  ShaderErrorList(MaterialPtr material_ = MaterialPtr(), QString program_ = "", QString shader_ = "")
+    : material(material_), program(program_), shader(shader_) {}
+
+  ShaderErrorList& operator<<(const ShaderError& error) {
+    append(error);
+    back().setMaterial(material);
+    back().setProgram(program);
+    back().setShader(shader);
+    return *this;
+  }
+
+  MaterialPtr material;
+  QString program, shader;
 };
 
 #endif

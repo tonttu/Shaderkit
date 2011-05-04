@@ -79,6 +79,11 @@ void State::pushMaterial(MaterialPtr m) {
   if (m) m->bind(*this);
 }
 
+MaterialPtr State::material() const {
+  if (m_materials.isEmpty()) return MaterialPtr();
+  return m_materials.back();
+}
+
 void State::popMaterial() {
   if (m_materials.isEmpty()) {
     Log::error("State material push/pop mismatch");

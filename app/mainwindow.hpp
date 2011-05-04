@@ -71,7 +71,7 @@ public:
 
 public slots:
   /// Updates the error list
-  void shaderCompiled(QString res, ShaderError::List errors);
+  void updateErrors(ShaderErrorList errors);
   void about();
 
   bool openScene(ScenePtr scene);
@@ -84,7 +84,7 @@ public slots:
   void setSceneChanged(bool status);
 
   MultiEditor* findEditor(MaterialPtr mat);
-  void openMaterial(MaterialPtr mat);
+  MultiEditor* openMaterial(MaterialPtr mat);
 
   /// A file was changed on the disk.
   /// Delegates handling the event to right editor, or if no editor is open

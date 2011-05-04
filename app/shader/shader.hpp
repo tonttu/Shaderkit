@@ -76,7 +76,7 @@ public:
    *
    * @param errors All the compile errors will be appended to the list.
    */
-  CompileStatus compile(ShaderError::List& errors);
+  CompileStatus compile(ShaderErrorList& errors);
 
   /**
    * If the shader was once loaded from a file, return the original filename or
@@ -110,14 +110,14 @@ protected:
    *
    * Returns true if the output parsing is successful.
    */
-  bool handleCompilerOutput(const QString& src, ShaderError::List& errors);
+  bool handleCompilerOutput(const QString& src, ShaderErrorList& errors);
 
   /// The actual wrapped shader object
   GLuint m_shader;
 
   /// The shader program this shader belongs to.
   /// @todo can there actually be many programs? We don't probably want that?
-  ProgramPtr m_prog;
+  std::weak_ptr<GLProgram> m_prog;
 
   /// After loadFile or loadSrc this is set to true
   /// compile() won't do anything if this is false

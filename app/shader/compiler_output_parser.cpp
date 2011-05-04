@@ -33,7 +33,7 @@ ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) 
   m_lines = compiler_output.split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
 }
 
-ShaderError::List ShaderCompilerOutputParser::parse() {
+bool ShaderCompilerOutputParser::parse(ShaderErrorList& errors) {
   static QList<QRegExp> s_patterns;
   static QList<QRegExp> s_modes;
   static QList<QRegExp> s_ignore;
@@ -70,8 +70,8 @@ ShaderError::List ShaderCompilerOutputParser::parse() {
     s_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
   }
 
-  ShaderError::List out;
   QString mode = "";
+  bool ok = true;
 
   foreach (QString msg, m_lines) {
     bool found = false;
@@ -111,13 +111,14 @@ ShaderError::List ShaderCompilerOutputParser::parse() {
 
     if (list.size() == 4) {
       QString str = mode.isEmpty() ? list[3] : list[3] + " (" + mode + ")";
-      out << ShaderError("", str, list[2], list[1].toInt()-1);
+      errors << ShaderError(str, list[2], list[1].toInt()-1);
     } else {
       Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
+      ok = false;
       QString str = mode.isEmpty() ? msg : msg + " (" + mode + ")";
-      out << ShaderError("", msg, "error", 0, 0);
+      errors << ShaderError(msg, "error", 0, 0);
     }
   }
-  return out;
+  return ok;
 }
 

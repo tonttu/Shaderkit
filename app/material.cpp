@@ -32,21 +32,21 @@ Material::Style::Style()
     refracti(1.0f) {}
 
 void Material::bind(State& state) {
-  m_prog_binded = m_program ? m_program->bind() : false;
+  m_prog_binded = m_program ? m_program->bind(&state) : false;
 
   if (m_prog_binded) {
     m_program->setUniform(m_uniform_list);
     /// @todo handle these magical variables somehow better
-    m_program->setUniform("time", state.time());
-    m_program->setUniform("far", state.camera()->far());
-    m_program->setUniform("near", state.camera()->near());
+    m_program->setUniform(&state, "time", state.time());
+    m_program->setUniform(&state, "far", state.camera()->far());
+    m_program->setUniform(&state, "near", state.camera()->near());
   }
 
   foreach (QString name, m_textures.keys()) {
     int unit = state.reserveTexUnit(this, name);
     m_textures[name]->bind(unit);
     if (m_prog_binded)
-      m_program->setUniform(name, unit);
+      m_program->setUniform(&state, name, unit);
   }
 }
 
