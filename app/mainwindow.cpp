@@ -19,7 +19,6 @@
 #include "ui_mainwindow.h"
 #include "editor.hpp"
 #include "shader/shader.hpp"
-#include "project.hpp"
 #include "scene.hpp"
 #include "importer_wizard.hpp"
 #include "material.hpp"
@@ -71,7 +70,7 @@ MainWindow::MainWindow(QWidget* parent)
           this, SLOT(errorItemActivated(QTableWidgetItem*)));
   connect(m_ui->action_save, SIGNAL(triggered()), this, SLOT(save()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(load()));
-  connect(m_ui->action_saveproject, SIGNAL(triggered()), this, SLOT(saveProject()));
+  connect(m_ui->action_savescene, SIGNAL(triggered()), this, SLOT(saveScene()));
   /*connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
@@ -264,7 +263,7 @@ bool MainWindow::openScene(ScenePtr scene) {
   return true;
 }
 
-bool MainWindow::openProject(QString filename) {
+bool MainWindow::openScene(QString filename) {
   return openScene(Scene::load(filename));
 }
 
@@ -285,7 +284,7 @@ void MainWindow::setSceneChanged(bool status) {
   if (!m_scene)
     return;
   m_sceneChanged = status;
-  m_ui->action_saveproject->setEnabled(status);
+  m_ui->action_savescene->setEnabled(status);
   if (status) {
     setWindowTitle(m_scene->metainfo().name + " (unsaved) - GLSL Lab");
   } else {
@@ -365,12 +364,12 @@ void MainWindow::save(int index) {
   }*/
 }
 
-void MainWindow::saveProject() {
+void MainWindow::saveScene() {
   if (m_scene->save(m_scene->filename())) {
     setSceneChanged(false);
-    m_ui->statusbar->showMessage("Saved scene to " + m_scene->filename(), 5000);
+    m_ui->statusbar->showMessage("Saved project to " + m_scene->filename(), 5000);
   } else {
-    m_ui->statusbar->showMessage("Failed to save scene to " + m_scene->filename(), 5000);
+    m_ui->statusbar->showMessage("Failed to save project to " + m_scene->filename(), 5000);
   }
 }
 
@@ -382,7 +381,7 @@ bool MainWindow::load() {
   if (!file.isEmpty()) {
     QFileInfo fi(file);
     settings.setValue("history/last_dir", fi.absolutePath());
-    return openProject(file);
+    return openScene(file);
   }
 
   return false;

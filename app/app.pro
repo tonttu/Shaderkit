@@ -27,7 +27,6 @@ HEADERS += \
     editor.hpp \
     renderpass.hpp \
     scene.hpp \
-    project.hpp \
     glwidget.hpp \
     properties.hpp \
     mainwindow.hpp \
@@ -71,7 +70,6 @@ SOURCES += \
     editor.cpp \
     renderpass.cpp \
     scene.cpp \
-    project.cpp \
     glwidget.cpp \
     properties.cpp \
     mainwindow.cpp \

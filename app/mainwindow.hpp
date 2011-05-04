@@ -75,7 +75,7 @@ public slots:
   void about();
 
   bool openScene(ScenePtr scene);
-  bool openProject(QString filename);
+  bool openScene(QString filename);
   /// Load a new project from file, open a file browser
   bool load();
   /// Reloads the project file, basically just loads the same file again,
@@ -86,6 +86,9 @@ public slots:
   MultiEditor* findEditor(MaterialPtr mat);
   void openMaterial(MaterialPtr mat);
 
+  /// A file was changed on the disk.
+  /// Delegates handling the event to right editor, or if no editor is open
+  /// with this file, forces the shader to reload the file.
   void fileUpdated(const QString& filename);
 
 protected:
@@ -101,7 +104,7 @@ protected slots:
   /// Save the current file (the file open in the active editor)
   void save(int index = -1);
   /// Save the current project
-  void saveProject();
+  void saveScene();
   void closeEditor(int index);
 
   void closeEvent(QCloseEvent* event);

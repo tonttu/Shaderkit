@@ -33,7 +33,7 @@ private slots:
 
 private:
   Ui::NewWizard* m_ui;
-  QSet<QString> m_project_names;
+  QSet<QString> m_scene_names;
   QButtonGroup* m_group;
 
   QString getUniqName(QString str) const;

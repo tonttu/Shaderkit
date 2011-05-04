@@ -87,9 +87,6 @@ class MainWindow;
 class IconBtn;
 class GLWidget;
 
-class Project;
-typedef std::shared_ptr<Project> ProjectPtr;
-
 class QColor;
 class QVector3D;
 class QVector4D;

@@ -24,7 +24,6 @@
 #include "camera.hpp"
 #include "texture.hpp"
 #include "material.hpp"
-#include "project.hpp"
 #include "utils.hpp"
 
 /// @todo this is only for IconBtn

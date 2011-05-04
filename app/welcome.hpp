@@ -57,7 +57,7 @@ public:
 public slots:
   void open(QString filename);
   void load();
-  void newProject();
+  void newScene();
 
 private:
   Ui::Welcome* m_ui;

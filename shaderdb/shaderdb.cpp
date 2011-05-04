@@ -18,7 +18,6 @@
 #include "shaderdb.hpp"
 #include "metainfo.hpp"
 #include "scene.hpp"
-#include "project.hpp"
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 
@@ -55,7 +54,7 @@ void ShaderDB::addPath(QString path, bool make_primary) {
   }
 }
 
-QStringList ShaderDB::localProjects() {
+QStringList ShaderDB::localScenes() {
   QSet<QString> files;
 
   foreach (QString path, m_paths)
@@ -65,7 +64,7 @@ QStringList ShaderDB::localProjects() {
   return ret;
 }
 
-ScenePtr ShaderDB::newLocalProject(QString name, QString srcfile) {
+ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   QDir dir;
   QString path = makeUniqPath(m_defaultPath, name);
   if (!dir.mkpath(path)) {

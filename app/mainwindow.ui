@@ -44,11 +44,11 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="action_newproject"/>
+    <addaction name="action_newscene"/>
     <addaction name="action_new"/>
     <addaction name="action_open"/>
     <addaction name="separator"/>
-    <addaction name="action_saveproject"/>
+    <addaction name="action_savescene"/>
     <addaction name="action_save"/>
     <addaction name="action_saveas"/>
     <addaction name="separator"/>
@@ -430,7 +430,7 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="action_newproject">
+  <action name="action_newscene">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -476,7 +476,7 @@
     <string>New &amp;File</string>
    </property>
   </action>
-  <action name="action_saveproject">
+  <action name="action_savescene">
    <property name="text">
     <string>Save Project</string>
    </property>

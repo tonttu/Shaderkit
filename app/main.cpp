@@ -17,7 +17,6 @@
 
 #include "mainwindow.hpp"
 #include "welcome.hpp"
-#include "project.hpp"
 #include "resource_locator.hpp"
 #include "shaderdb/shaderdb.hpp"
 #include "shader/sandbox_compiler.hpp"

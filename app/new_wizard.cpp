@@ -28,8 +28,8 @@ NewWizard::NewWizard(QWidget* parent)
     m_group(new QButtonGroup(this)) {
   m_ui->setupUi(this);
 
-  m_ui->empty_project->hide();
-  m_ui->default_project->hide();
+  m_ui->empty_scene->hide();
+  m_ui->default_scene->hide();
   m_ui->advanced->hide();
 
   /// @todo these should be dependent on the current template selection
@@ -38,19 +38,19 @@ NewWizard::NewWizard(QWidget* parent)
 
   m_group->setExclusive(true);
 
-  QStringList files = ShaderDB::instance().localProjects();
+  QStringList files = ShaderDB::instance().localScenes();
   foreach (QString file, files) {
     MetaInfo info = MetaInfo::ping(file);
 
     if (!info.name.isEmpty()) {
       WelcomeButton* btn = 0;
-      m_project_names << info.name.toLower();
+      m_scene_names << info.name.toLower();
 
       if (info.categories.contains("built-in")) {
         if (info.name == "Empty project") {
-          btn = m_ui->empty_project;
+          btn = m_ui->empty_scene;
         } else if (info.name == "Default shader project") {
-          btn = m_ui->default_project;
+          btn = m_ui->default_scene;
         } else continue;
         btn->show();
         btn->setFilename(file);
@@ -61,7 +61,7 @@ NewWizard::NewWizard(QWidget* parent)
 
       btn->setCheckable(true);
       m_group->addButton(btn);
-      btn->setIcon(m_ui->default_project->icon());
+      btn->setIcon(m_ui->default_scene->icon());
       btn->setText(info.name);
       btn->setDescription(info.description);
       connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
@@ -107,7 +107,7 @@ void NewWizard::nameEditingFinished() {
 }
 
 void NewWizard::nameEdited(QString str) {
-  if (m_project_names.contains(str.toLower())) {
+  if (m_scene_names.contains(str.toLower())) {
     m_ui->name_error->setText("Name is already in use");
   } else if (str.isEmpty()) {
     m_ui->name_error->setText("Name can't be empty");
@@ -128,7 +128,7 @@ void NewWizard::create() {
   ///       user saves it for the first time. Then you could start a new tmp
   ///       project without saving anything to ShaderDB. Then we could have
   ///       a recovery-feature if we find old tmp project on startup.
-  ScenePtr scene = db.newLocalProject(m_ui->name->text(), btn->filename());
+  ScenePtr scene = db.newLocalScene(m_ui->name->text(), btn->filename());
   MainWindow::instance().openScene(scene);
 }
 
@@ -136,7 +136,7 @@ QString NewWizard::getUniqName(QString str) const {
   if (str.isEmpty())
     str = "My Project";
 
-  if (!m_project_names.contains(str.toLower()))
+  if (!m_scene_names.contains(str.toLower()))
     return str;
 
   QString newname, base;
@@ -154,6 +154,6 @@ QString NewWizard::getUniqName(QString str) const {
   }
   do {
     newname = base + QString::number(++i);
-  } while (m_project_names.contains(newname.toLower()));
+  } while (m_scene_names.contains(newname.toLower()));
   return newname;
 }

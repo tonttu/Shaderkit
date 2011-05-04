@@ -46,9 +46,9 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   m_ui->setupUi(this);
 
   connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
-  connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newProject()));
+  connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newScene()));
 
-  QStringList files = ShaderDB::instance().localProjects();
+  QStringList files = ShaderDB::instance().localScenes();
   int count = 0;
   typedef QPair<QDateTime, QString> V;
   std::priority_queue<V, std::vector<V>> recent;
@@ -96,7 +96,7 @@ Welcome::~Welcome() {
 }
 
 void Welcome::open(QString filename) {
-  if (MainWindow::instance().openProject(filename)) {
+  if (MainWindow::instance().openScene(filename)) {
     deleteLater();
   }
 }
@@ -106,7 +106,7 @@ void Welcome::load() {
     deleteLater();
 }
 
-void Welcome::newProject() {
+void Welcome::newScene() {
   NewWizard* w = new NewWizard(this);
   connect(w, SIGNAL(rejected()), this, SLOT(show()));
   connect(w, SIGNAL(accepted()), this, SLOT(deleteLater()));
