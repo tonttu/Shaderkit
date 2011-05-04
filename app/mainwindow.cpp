@@ -121,7 +121,6 @@ MultiEditor* MainWindow::createEditor(MaterialPtr material) {
   bottom_layout->setSpacing(0);
 
   MultiEditor* editor = new MultiEditor(widget, material);
-  connect(editor, SIGNAL(modificationChanged(bool)), this, SLOT(modificationChanged(bool)));
 
   QPushButton* btn = new IconBtn(bottom);
   bottom_layout->addWidget(btn);
@@ -140,7 +139,7 @@ MultiEditor* MainWindow::createEditor(MaterialPtr material) {
   layout->addWidget(editor);
   layout->addWidget(bottom);
 
-  m_editors.push_back(editor);
+  m_editors[editor] = widget;
 
   m_ui->editor_tabs->addTab(widget, material->name());
   m_ui->editor_tabs->setCurrentIndex(m_ui->editor_tabs->count()-1);
@@ -283,7 +282,7 @@ void MainWindow::setSceneChanged(bool status) {
 }
 
 MultiEditor* MainWindow::findEditor(MaterialPtr mat) {
-  foreach(MultiEditor* editor, m_editors)
+  foreach(MultiEditor* editor, m_editors.keys())
     if(editor->material() == mat) return editor;
   return 0;
 }
@@ -291,7 +290,7 @@ MultiEditor* MainWindow::findEditor(MaterialPtr mat) {
 void MainWindow::openMaterial(MaterialPtr mat) {
   MultiEditor* editor = findEditor(mat);
   if(!editor) editor = createEditor(mat);
-  m_ui->editor_tabs->setCurrentIndex(m_editors.indexOf(editor));
+  m_ui->editor_tabs->setCurrentWidget(m_editors[editor]);
 }
 
 void MainWindow::fileUpdated(const QString& filename) {
@@ -310,8 +309,8 @@ void MainWindow::fileUpdated(const QString& filename) {
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   ShaderError err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
 
-  for (int idx = 0; idx < m_editors.size(); ++idx) {
-    ProgramPtr prog = m_editors[idx]->material()->prog();
+  for (auto it = m_editors.begin(); it != m_editors.end(); ++it) {
+    ProgramPtr prog = it.key()->material()->prog();
     bool m = prog && prog->res() == err.res();
     if (prog && !m) {
       foreach(ShaderPtr s, prog->shaders()) {
@@ -322,27 +321,31 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
       }
     }
     if(m) {
-      m_editors[idx]->focusOnError(err);
-      m_ui->editor_tabs->setCurrentIndex(idx);
+      it.key()->focusOnError(err);
+      m_ui->editor_tabs->setCurrentWidget(*it);
       break;
     }
   }
 }
 
 void MainWindow::modificationChanged(MultiEditor* editor, bool b) {
-  m_ui->editor_tabs->setTabText(m_editors.indexOf(editor),
-                                editor->material()->name()
-                                + (b ? "*" : ""));
+  int idx = m_ui->editor_tabs->indexOf(m_editors[editor]);
+  m_ui->editor_tabs->setTabText(idx,
+      editor->material()->name() + (b ? "*" : ""));
 }
 
 void MainWindow::save(int index) {
-  if (index == -1)
-    index = m_ui->editor_tabs->currentIndex();
+  QWidget* widget = 0;
+  if (index == -1) {
+    widget = m_ui->editor_tabs->currentWidget();
+  } else {
+    widget = m_ui->editor_tabs->widget(index);
+  }
 
-  if (index == -1)
+  if (!widget)
     return;
 
-  MultiEditor* editor = m_editors[index];
+  MultiEditor* editor = m_editors.key(widget);
   editor->save();
 /*  QFile file(editor->filename());
   if (file.open(QIODevice::WriteOnly)) {
@@ -375,28 +378,29 @@ bool MainWindow::load() {
 }
 
 void MainWindow::closeEditor(int index) {
-  if (index < 0)
-    index = m_ui->editor_tabs->currentIndex();
+  QWidget* widget = 0;
+  if (index == -1) {
+    widget = m_ui->editor_tabs->currentWidget();
+  } else {
+    widget = m_ui->editor_tabs->widget(index);
+  }
 
-  QWidget* widget = m_ui->editor_tabs->widget(index);
   if (widget) {
-    MultiEditor* editor = widget->findChild<MultiEditor*>("editor");
-    if (editor) {
-      /// @todo
-      /*
-      if (editor->document()->isModified()) {
-        int ret = QMessageBox::question(this, "Unsaved changes", "The file has some unsaved changes, what to do?",
-                                        QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save) {
-          save(index);
-        } else if (ret != QMessageBox::Close) {
-          return;
-        }
-      }*/
+    MultiEditor* editor = m_editors.key(widget);
+    /// @todo
+    /*
+    if (editor->document()->isModified()) {
+      int ret = QMessageBox::question(this, "Unsaved changes", "The file has some unsaved changes, what to do?",
+                                      QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
+      if (ret == QMessageBox::Save) {
+        save(index);
+      } else if (ret != QMessageBox::Close) {
+        return;
+      }
+    }*/
 
-      m_editors.removeAll(editor);
-      m_ui->editor_tabs->removeTab(index);
-    }
+    m_editors.remove(editor);
+    m_ui->editor_tabs->removeTab(index);
   }
 }
 

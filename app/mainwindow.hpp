@@ -64,7 +64,7 @@ public:
 
   void activateEditor(MultiEditor* editor);
 
-  QList<MultiEditor*> editors() { return m_editors; }
+//  QList<MultiEditor*> editors() { return m_editors; }
 
   static MainWindow& instance();
   static ScenePtr scene();
@@ -121,8 +121,8 @@ private:
   /// Currently there is exactly one scene for one MainWindow.
   ScenePtr m_scene;
 
-  /// List of all editors, in the same order as they are in editor_tabs.
-  QList<MultiEditor*> m_editors;
+  /// List of all editors and their respective root widgets in m_ui->editor_tabs.
+  QMap<MultiEditor*, QWidget*> m_editors;
 
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
