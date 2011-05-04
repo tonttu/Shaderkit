@@ -71,7 +71,7 @@ public:
 
 public slots:
   /// Updates the error list
-  void shaderCompiled(ShaderPtr shader, ShaderError::List errors);
+  void shaderCompiled(QString res, ShaderError::List errors);
   void about();
 
   bool openScene(ScenePtr scene);

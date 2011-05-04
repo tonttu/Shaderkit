@@ -168,7 +168,7 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
   ShaderCompilerOutputParser parser(QString::fromUtf8(log, len));
   int l = lexer.tokens();
   foreach (ShaderError e, parser.parse()) {
-    e.setShader(shared_from_this());
+    e.setRes(res());
 
     if (e.line() > l || l == 0) {
       Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",

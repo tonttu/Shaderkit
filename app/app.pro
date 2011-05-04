@@ -57,7 +57,8 @@ HEADERS += \
     shader/glpp.hpp \
     transform_feedback.hpp \
     shader/query_shader.hpp \
-    importer_wizard.hpp
+    importer_wizard.hpp \
+    resource_locator.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -99,7 +100,8 @@ SOURCES += \
     shader/glpp.cpp \
     transform_feedback.cpp \
     shader/query_shader.cpp \
-    importer_wizard.cpp
+    importer_wizard.cpp \
+    resource_locator.cpp
 
 FORMS += \
     mainwindow.ui \

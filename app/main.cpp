@@ -18,6 +18,7 @@
 #include "mainwindow.hpp"
 #include "welcome.hpp"
 #include "project.hpp"
+#include "resource_locator.hpp"
 #include "shaderdb/shaderdb.hpp"
 #include "shader/sandbox_compiler.hpp"
 
@@ -69,6 +70,9 @@ int main(int argc, char* argv[]) {
     }
     db.addPath(QDir::homePath() + "/.glsl-lab/shaderdb", true);
   }
+
+  ResourceLocator rl;
+  rl.setPath("db", db.defaultPath());
 
   MainWindow window;
   Welcome* welcome = new Welcome;

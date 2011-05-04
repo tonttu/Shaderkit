@@ -33,6 +33,8 @@ public:
 
   ScenePtr newLocalProject(QString name, QString srcfile);
 
+  QString defaultPath() const { return m_defaultPath; }
+
   static ShaderDB & instance();
 
 protected:

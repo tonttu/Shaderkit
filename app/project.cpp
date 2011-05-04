@@ -37,7 +37,7 @@ Project::~Project() {
 
 void Project::codeChanged(Editor& editor) {
   if (editor.sync()) {
-    QList<ShaderPtr> lst = m_active_scene->shadersByFilename(editor.filename());
+    QList<ShaderPtr> lst = m_active_scene->shaders(editor.filename());
     if (lst.empty()) return;
     QString plain = editor.toPlainText();
     foreach (ShaderPtr s, lst)
@@ -57,11 +57,11 @@ void Project::codeChanged(Editor& editor) {
 }*/
 
 Editor* Project::findEditor(ShaderPtr shader) {
-  QList<MultiEditor*> editors = m_main_window.editors();
+  /*QList<MultiEditor*> editors = m_main_window.editors();
   for (int i = 0; i < editors.size(); ++i) {
     Editor* e = editors[i]->editor(shader);
     if (e) return e;
-  }
+  }*/
   return 0;
 }
 
@@ -73,19 +73,3 @@ Editor* Project::findEditor(const QString& filename) {
   return 0;
 }
 
-void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
-  Editor* editor = findEditor(shader);
-
-  if (editor) {
-    editor->clearErrors();
-    for (int i = 0; i < errors.size(); ++i) {
-      editor->compileError(errors[i]);
-    }
-  }
-
-  m_main_window.shaderCompiled(shader, errors);
-}
-
-void Project::linked(ProgramPtr, ShaderError::List errors) {
-  m_main_window.shaderCompiled(ShaderPtr(), errors);
-}

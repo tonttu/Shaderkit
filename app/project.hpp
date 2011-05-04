@@ -54,7 +54,6 @@ signals:
 public slots:
   /// Shader code was changed on the editor
   void codeChanged(Editor& editor);
-  void linked(ProgramPtr shader, ShaderError::List errors);
   //void openShader(ShaderPtr shader);
 
 protected:

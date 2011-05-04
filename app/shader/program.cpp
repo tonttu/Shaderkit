@@ -44,7 +44,7 @@ bool GLProgram::bind() {
     for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
       ShaderError::List errors;
       Shader::CompileStatus status = (*it)->compile(errors);
-      if (status != Shader::NONE) emit shaderCompiled(*it, errors);
+      if (status != Shader::NONE) emit shaderCompiled((*it)->res(), errors);
       if (status == Shader::OK || status == Shader::WARNINGS) {
         /// @todo This should not be re-attached
         glRun(glAttachShader(m_prog, (*it)->id()));
@@ -101,26 +101,23 @@ void GLProgram::link() {
   glRun(glGetProgramiv(m_prog, GL_INFO_LOG_LENGTH, &len));
   // len may include the zero byte
   if (len > 1) {
-#ifdef _MSC_VER
     GLchar * log = new GLchar[len];
-#else
-    GLchar log[len];
-#endif
+
     GLsizei size = len;
     glRun(glGetProgramInfoLog(m_prog, size, &size, log));
     ShaderCompilerOutputParser parser(QString::fromUtf8(log, size));
     errors = parser.parse();
+    for (int i = 0; i < errors.size(); ++i)
+      errors[i].setRes(res());
 
-#ifdef _MSC_VER
     delete[] log;
-#endif
   }
 
   if (ok) {
     glRun(glUseProgram(m_prog)); /// @todo Do we need this?
     setUniform(m_uniformList);
   }
-  emit linked(shared_from_this(), errors);
+  emit linked(res(), errors);
 
   glRun(glUseProgram(prog));
 }
@@ -180,9 +177,10 @@ QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
 
   QMap<Shader::Type, QStringList> shaders;
 
+  /// @todo shouldn't use QDir here, res is already relative
   QDir rootd(root);
   foreach (ShaderPtr s, m_shaders)
-    shaders[s->type()] << rootd.relativeFilePath(s->filename());
+    shaders[s->type()] << rootd.relativeFilePath(s->res());
 
   if (shaders.contains(Shader::Geometry))
     map["geometry"] = shaders[Shader::Geometry];
@@ -192,4 +190,8 @@ QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
     map["fragment"] = shaders[Shader::Fragment];
 
   return map;
+}
+
+QString GLProgram::res() const {
+  return "$programs/" + name();
 }

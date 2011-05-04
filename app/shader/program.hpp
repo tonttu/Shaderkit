@@ -120,11 +120,13 @@ public:
 
   Shaders shaders() const { return m_shaders; }
 
+  QString res() const;
+
 signals:
   /// Emitted every time the program is linked
-  void linked(ProgramPtr, ShaderError::List);
+  void linked(QString, ShaderError::List);
   /// Shader was compiled
-  void shaderCompiled(ShaderPtr, ShaderError::List);
+  void shaderCompiled(QString, ShaderError::List);
 
 protected:
   QString m_name;

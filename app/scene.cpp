@@ -215,12 +215,12 @@ TexturePtr Scene::genTexture(const QString& name) {
   return tex;
 }
 
-QList<ShaderPtr> Scene::shadersByFilename(const QString& filename) {
-  QList<ShaderPtr> res;
+QList<ShaderPtr> Scene::shaders(const QString& res) {
+  QList<ShaderPtr> ret;
   foreach (ProgramPtr p, m_programs)
     foreach (ShaderPtr s, p->shaders())
-      if (s->filename() == filename) res << s;
-  return res;
+      if (s->res() == res) ret << s;
+  return ret;
 }
 
 QVariantMap Scene::save() const {

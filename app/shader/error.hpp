@@ -41,10 +41,10 @@ public:
    * @param length The length of the token/error area where the error was seen.
    *               Editor can use this information to underline the error part.
    */
-  ShaderError(ShaderPtr shader, QString msg, QString type,
+  ShaderError(QString res, QString msg, QString type,
               int line, int column = 0, int length = 0);
 
-  void setShader(ShaderPtr shader) { m_shader = shader; }
+  void setRes(QString res) { m_res = res; }
   void setLine(int line) { m_line = line; }
   void setColumn(int column) { m_column = column; }
   void setLength(int length) { m_length = length; }
@@ -64,13 +64,13 @@ public:
   /// The length of the error area, obviously only a guess
   int length() const { return m_length; }
 
-  ShaderPtr shader() const { return m_shader; }
+  QString res() const { return m_res; }
 
   /// Implemented only for containers that require this.
   bool operator<(const ShaderError& o) const;
 
 protected:
-  ShaderPtr m_shader;
+  QString m_res;
   QString m_msg, m_type;
   int m_line, m_column, m_length;
 };

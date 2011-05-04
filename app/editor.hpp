@@ -172,7 +172,7 @@ public:
   MaterialPtr material() const { return m_material; }
   void save();
 
-  Editor* editor(ShaderPtr shader) const;
+  Editor* editor(QString res) const;
 
   void focusOnError(ShaderError error);
 

@@ -88,8 +88,9 @@ public:
    *
    * Note that the source code might have changed either in the file or in the
    * shader (by loadSrc).
+   * /// @todo this should now be res, not filename
    */
-  QString filename() const { return m_filename; }
+  QString res() const { return m_filename; }
 
   void setFilename(QString filename) { m_filename = filename; }
 

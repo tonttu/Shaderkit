@@ -66,8 +66,8 @@ public:
   MaterialPtr material(const QString& name) const { return m_materials.value(name); }
   TexturePtr genTexture(const QString& name);
 
-  /// Finds all the shaders with given file name.
-  QList<ShaderPtr> shadersByFilename(const QString& filename);
+  /// Finds all the shaders with given resource name
+  QList<ShaderPtr> shaders(const QString& res);
 
   /// Name -> shader mapping
   QMap<QString, MaterialPtr> materials() { return m_materials; }

@@ -17,6 +17,7 @@
 
 #include "editor.hpp"
 #include "material.hpp"
+#include "resource_locator.hpp"
 #include "shader/program.hpp"
 
 #include <QPainter>
@@ -339,16 +340,15 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
 }
 
 void MultiEditor::addShader(ShaderPtr shader) {
-  QFileInfo fi(shader->filename());
-  QFile f(shader->filename());
+  QFile f(shader->res());
   if(f.open(QFile::ReadOnly)) {
-    Section& s = m_sections[shader->filename()];
+    Section& s = m_sections[shader->res()];
 
-    s.item = new QListWidgetItem(shader->icon(), fi.fileName());
+    s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->res()));
     s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable);
     /// @todo handle hide/show
     s.item->setCheckState(Qt::Checked);
-    s.item->setData(Qt::UserRole, shader->filename());
+    s.item->setData(Qt::UserRole, shader->res());
     m_list->addItem(s.item);
 
     QByteArray data = f.readAll();
@@ -356,7 +356,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
     s.header = new QWidget(m_viewport);
     QHBoxLayout* l = new QHBoxLayout(s.header);
 
-    s.label = new QLabel("<b>"+fi.fileName()+"</b>", s.header);
+    s.label = new QLabel("<b>"+ResourceLocator::ui(shader->res())+"</b>", s.header);
     s.icon = new QLabel(s.header);
     s.icon->setPixmap(shader->icon().pixmap(16));
     l->addWidget(s.icon);
@@ -369,7 +369,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
 
     m_viewport->layout()->addWidget(s.editor);
 
-    m_mapper->setMapping(s.editor->document()->documentLayout(), shader->filename());
+    m_mapper->setMapping(s.editor->document()->documentLayout(), shader->res());
     connect(s.editor->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)),
             m_mapper, SLOT(map()));
 
@@ -393,8 +393,8 @@ void MultiEditor::editorModified(bool b) {
   emit modificationChanged(b);
 }
 
-void MultiEditor::autosize(QString file) {
-  Section s = m_sections.value(file);
+void MultiEditor::autosize(QString res) {
+  Section s = m_sections.value(res);
   if (s.editor) {
     QSize size = s.editor->document()->size().toSize();
     size.setWidth(size.width() + s.editor->marginWidth());
@@ -411,11 +411,12 @@ void MultiEditor::scrollTo(QModelIndex idx) {
 }
 
 void MultiEditor::focusOnError(ShaderError error) {
-  Editor* e = editor(error.shader());
+  /// @todo implement
+/*  Editor* e = editor(error.res());
   if (e) {
     /// @todo this really won't work!
     e->focusOnError(error);
-  }
+  }*/
 /*
   QTextCursor cursor =
   QMap<ShaderError, QTextCursor>
@@ -431,10 +432,10 @@ void MultiEditor::save() {
   /// @todo
 }
 
-Editor* MultiEditor::editor(ShaderPtr shader) const {
+Editor* MultiEditor::editor(QString res) const {
   foreach (const Section& s, m_sections) {
-    /// @todo fix this so ->filename wouldn't be necessary
-    if (s.editor->shader()->filename() == shader->filename())
+    /// @todo handle other res choices too (material, shader)
+    if (s.editor->shader()->res() == res)
       return s.editor;
   }
   return 0;

@@ -23,6 +23,7 @@
 #include "scene.hpp"
 #include "importer_wizard.hpp"
 #include "material.hpp"
+#include "resource_locator.hpp"
 #include "shader/program.hpp"
 
 #include <QKeyEvent>
@@ -173,11 +174,14 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
   m_main_window.shaderCompiled(shader, errors);
 }*/
 
-void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
+/// @todo m_error_list_items should more generic, in addition to compile/link
+///       errors you should be able to put everything there
+/// @todo rename to something like updateErrors
+void MainWindow::shaderCompiled(QString res, ShaderError::List errors) {
   bool changed = false;
   for (int i = 0; i < m_ui->error_list->rowCount(); ++i) {
     QTableWidgetItem* item = m_ui->error_list->item(i, 0);
-    if (m_error_list_items[item].shader() == shader) {
+    if (m_error_list_items[item].res() == res) {
       m_error_list_items.remove(item);
       m_ui->error_list->removeRow(i--);
       changed = true;
@@ -189,13 +193,12 @@ void MainWindow::shaderCompiled(ShaderPtr shader, ShaderError::List errors) {
     m_ui->error_list->setRowCount(r+1);
 
     /// @todo change order, put this on top
+    /// @todo add a material column, maybe?
     QTableWidgetItem* msg = new QTableWidgetItem(e->msg());
     msg->setIcon(QIcon(QPixmap(e->type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
     m_ui->error_list->setItem(r, 0, msg);
-    if (shader) {
-      QFileInfo fi(shader->filename());
-      m_ui->error_list->setItem(r, 1, new QTableWidgetItem(fi.fileName()));
-    }
+    if (!res.isEmpty())
+      m_ui->error_list->setItem(r, 1, new QTableWidgetItem(ResourceLocator::ui(res)));
     m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e->line()+1)));
     m_error_list_items[msg] = *e;
     changed = true;
@@ -221,10 +224,10 @@ bool MainWindow::openScene(ScenePtr scene) {
 
   if (m_scene) {
     foreach (ProgramPtr prog, m_scene->programs()) {
-      disconnect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
-                 this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
-      disconnect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
-                 this, SLOT(linked(ProgramPtr, ShaderError::List)));
+      disconnect(prog.get(), SIGNAL(shaderCompiled(QString, ShaderError::List)),
+                 this, SLOT(shaderCompiled(QString, ShaderError::List)));
+      disconnect(prog.get(), SIGNAL(linked(QString, ShaderError::List)),
+                 this, SLOT(shaderCompiled(QString, ShaderError::List)));
     }
 
     foreach (RenderPassPtr p, m_scene->renderPasses()) {
@@ -233,15 +236,16 @@ bool MainWindow::openScene(ScenePtr scene) {
   }
 
   m_scene = scene;
+  ResourceLocator::setPath("scene", scene->root());
 
   foreach (ProgramPtr prog, m_scene->programs()) {
-    connect(prog.get(), SIGNAL(shaderCompiled(ShaderPtr, ShaderError::List)),
-            this, SLOT(shaderCompiled(ShaderPtr, ShaderError::List)));
-    connect(prog.get(), SIGNAL(linked(ProgramPtr, ShaderError::List)),
-            this, SLOT(linked(ProgramPtr, ShaderError::List)));
+    connect(prog.get(), SIGNAL(shaderCompiled(QString, ShaderError::List)),
+            this, SLOT(shaderCompiled(QString, ShaderError::List)));
+    connect(prog.get(), SIGNAL(linked(QString, ShaderError::List)),
+            this, SLOT(shaderCompiled(QString, ShaderError::List)));
 
     foreach (ShaderPtr shader, prog->shaders()) {
-      Watcher::instance().add(this, shader->filename());
+      Watcher::instance().add(this, shader->res());
     }
   }
 
@@ -319,7 +323,16 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
 
   for (int idx = 0; idx < m_editors.size(); ++idx) {
     ProgramPtr prog = m_editors[idx]->material()->prog();
-    if(prog && prog->shaders().contains(err.shader())) {
+    bool m = prog && prog->res() == err.res();
+    if (prog && !m) {
+      foreach(ShaderPtr s, prog->shaders()) {
+        if (s->res() == err.res()) {
+          m = true;
+          break;
+        }
+      }
+    }
+    if(m) {
       m_editors[idx]->focusOnError(err);
       m_ui->editor_tabs->setCurrentIndex(idx);
       break;

@@ -109,11 +109,11 @@ ShaderError::List ShaderCompilerOutputParser::parse() {
 
     if (list.size() == 4) {
       QString str = mode.isEmpty() ? list[3] : list[3] + " (" + mode + ")";
-      out << ShaderError(ShaderPtr(), str, list[2], list[1].toInt()-1);
+      out << ShaderError("", str, list[2], list[1].toInt()-1);
     } else {
       Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
       QString str = mode.isEmpty() ? msg : msg + " (" + mode + ")";
-      out << ShaderError(ShaderPtr(), msg, "error", 0, 0);
+      out << ShaderError("", msg, "error", 0, 0);
     }
   }
   return out;

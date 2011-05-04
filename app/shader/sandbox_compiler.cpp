@@ -177,7 +177,7 @@ bool SandboxCompiler::doCheck(ShaderPtr shader, QByteArray src, ShaderError::Lis
     // If the initialization fails, we take the risk and run things without the sandbox.
     // This really isn't meant to be any kind of security thingy.
     if (m_pid <= 0 && !start()) {
-      errors << ShaderError(shader, "Failed to initialize Sandbox Compiler", "warning", 0);
+      errors << ShaderError(shader->res(), "Failed to initialize Sandbox Compiler", "warning", 0);
       return true;
     }
 
@@ -187,10 +187,10 @@ bool SandboxCompiler::doCheck(ShaderPtr shader, QByteArray src, ShaderError::Lis
       int r = readResponse(m_read, 3.0);
       if (r < 2) killSandbox();
       if (r == 0) {
-        errors << ShaderError(shader, "Sandbox Compiler communication problem", "warning", 0);
+        errors << ShaderError(shader->res(), "Sandbox Compiler communication problem", "warning", 0);
       } else if (r == 1) {
-        errors << ShaderError(shader, "Sandbox Compiler crashed when trying to compile this code", "error", 0);
-        errors << ShaderError(shader, "Not compiling the shader because of possible driver bug", "warning", 0);
+        errors << ShaderError(shader->res(), "Sandbox Compiler crashed when trying to compile this code", "error", 0);
+        errors << ShaderError(shader->res(), "Not compiling the shader because of possible driver bug", "warning", 0);
       }
       return r != 1;
     }
