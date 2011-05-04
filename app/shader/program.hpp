@@ -28,6 +28,24 @@
 
 #include <set>
 
+class ShaderManager : public QObject {
+  Q_OBJECT
+
+public:
+  ShaderManager();
+  virtual ~ShaderManager();
+  static ShaderManager& instance();
+
+signals:
+  /// Emitted every time the program is linked
+  void linked(QString, ShaderError::List);
+  /// Shader was compiled
+  void compiled(QString, ShaderError::List);
+
+  friend class GLProgram;
+};
+
+
 /**
  * GLSL Program object.
  *
@@ -39,9 +57,7 @@
  * is created; shaders are compiled, underlying program object created and the
  * program linked when the object is bind()ed first time.
  */
-class GLProgram : public QObject, public std::enable_shared_from_this<GLProgram> {
-  Q_OBJECT
-
+class GLProgram : public std::enable_shared_from_this<GLProgram> {
 public:
   typedef QSet<ShaderPtr> Shaders;
 
@@ -121,12 +137,6 @@ public:
   Shaders shaders() const { return m_shaders; }
 
   QString res() const;
-
-signals:
-  /// Emitted every time the program is linked
-  void linked(QString, ShaderError::List);
-  /// Shader was compiled
-  void shaderCompiled(QString, ShaderError::List);
 
 protected:
   QString m_name;

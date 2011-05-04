@@ -91,6 +91,9 @@ public slots:
   /// with this file, forces the shader to reload the file.
   void fileUpdated(const QString& filename);
 
+  /// An editors modification status is changed and the star after the tab name is added/removed.
+  void modificationChanged(MultiEditor* editor, bool b);
+
 protected:
   void keyPressEvent(QKeyEvent* event);
   void changeEvent(QEvent* e);
@@ -99,8 +102,6 @@ protected:
 protected slots:
   /// Focus the correct tab and line for selected error.
   void errorItemActivated(QTableWidgetItem*);
-  /// An editors modification status is changed and the star after the tab name is added/removed.
-  void modificationChanged(bool b);
   /// Save the current file (the file open in the active editor)
   void save(int index = -1);
   /// Save the current project

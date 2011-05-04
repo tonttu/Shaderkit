@@ -20,6 +20,7 @@
 #include "resource_locator.hpp"
 #include "shaderdb/shaderdb.hpp"
 #include "shader/sandbox_compiler.hpp"
+#include "shader/program.hpp"
 
 #include <QApplication>
 #include <QDir>
@@ -72,6 +73,8 @@ int main(int argc, char* argv[]) {
 
   ResourceLocator rl;
   rl.setPath("db", db.defaultPath());
+
+  ShaderManager shader_manager;
 
   MainWindow window;
   Welcome* welcome = new Welcome;

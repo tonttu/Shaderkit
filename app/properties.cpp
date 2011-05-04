@@ -290,7 +290,7 @@ void MaterialProperties::update(MaterialPtr mat) {
 
 void MaterialProperties::itemSelected(QTableWidgetItem* item) {
   MaterialPtr m = get(item);
-  if (m) emit select(m);
+  if (m) MainWindow::instance().openMaterial(m);
 }
 
 void MaterialProperties::updateMaterialList(ScenePtr scene) {

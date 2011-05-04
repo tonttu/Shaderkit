@@ -155,24 +155,20 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
   if (len < 1) return false;
 
   // Read the info log
-#ifdef _MSC_VER
-  GLchar* log = new GLchar[len];
-#else
-  GLchar log[len];
-#endif
-  glRun(glGetShaderInfoLog(id(), len, &len, log));
+  std::vector<GLchar> log(len);
+  glRun(glGetShaderInfoLog(id(), len, &len, &log[0]));
 
   // unless we get something parsed from the output, we think this as a failure
   bool ok = false;
 
-  ShaderCompilerOutputParser parser(QString::fromUtf8(log, len));
+  ShaderCompilerOutputParser parser(QString::fromUtf8(&log[0], len));
   int l = lexer.tokens();
   foreach (ShaderError e, parser.parse()) {
     e.setRes(res());
 
     if (e.line() > l || l == 0) {
       Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
-                 e.line(), l, log, data.c_str(), src.toUtf8().data());
+                 e.line(), l, &log[0], data.c_str(), src.toUtf8().data());
       errors.push_back(e);
       continue;
     }
@@ -183,10 +179,6 @@ bool Shader::handleCompilerOutput(const QString& src, ShaderError::List& errors)
     errors.push_back(e);
     ok = true;
   }
-
-#ifdef _MSC_VER
-  delete[] log;
-#endif
 
   return ok;
 }

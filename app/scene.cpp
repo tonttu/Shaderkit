@@ -140,6 +140,7 @@ Scene::Scene(QString filename)
   : m_width(-1), m_height(-1),
     m_filename(filename), m_node(new Node), m_picking(-1, -1),
     m_renderPassesChanged(false) {
+  /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
   m_time.start();

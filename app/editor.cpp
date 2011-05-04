@@ -19,6 +19,7 @@
 #include "material.hpp"
 #include "resource_locator.hpp"
 #include "shader/program.hpp"
+#include "mainwindow.hpp"
 
 #include <QPainter>
 #include <QTextBlock>
@@ -390,7 +391,7 @@ void MultiEditor::relayout() {
 }
 
 void MultiEditor::editorModified(bool b) {
-  emit modificationChanged(b);
+  MainWindow::instance().modificationChanged(this, b);
 }
 
 void MultiEditor::autosize(QString res) {

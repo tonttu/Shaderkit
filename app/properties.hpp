@@ -82,9 +82,6 @@ public:
 
   void init();
 
-signals:
-  void select(MaterialPtr);
-
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
   void update(MaterialPtr mat);

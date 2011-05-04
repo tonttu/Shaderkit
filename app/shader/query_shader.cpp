@@ -44,10 +44,9 @@ bool QueryShader::compile(Shader::Type type, QString src) {
 
   if (!ok) {
     glRun(glGetShaderiv(m_shader, GL_INFO_LOG_LENGTH, &len));
-    GLchar* log = new GLchar[len];
-    glRun(glGetShaderInfoLog(m_shader, len, &len, log));
-    Log::error("Compile log: %s", log);
-    delete[] log;
+    std::vector<GLchar> log(len);
+    glRun(glGetShaderInfoLog(m_shader, len, &len, &log[0]));
+    Log::error("Compile log: %s", &log[0]);
     return false;
   }
 
@@ -68,11 +67,10 @@ bool QueryShader::bind(const char* name) {
   if (!ok) {
     GLint len = 0;
     glRun(glGetProgramiv(m_prog, GL_INFO_LOG_LENGTH, &len));
-    GLchar* log = new GLchar[len];
+    std::vector<GLchar> log(len);
     GLsizei size = len;
-    glRun(glGetProgramInfoLog(m_prog, size, &size, log));
-    Log::error("Link log: %s", log);
-    delete[] log;
+    glRun(glGetProgramInfoLog(m_prog, size, &size, &log[0]));
+    Log::error("Link log: %s", &log[0]);
     return false;
   }
 

@@ -10,7 +10,7 @@
 #include <QVector3D>
 #include <QString>
 
-class Material : public QObject, public std::enable_shared_from_this<Material>,
+class Material : public std::enable_shared_from_this<Material>,
                  public SceneObject {
 public:
   Material(QString name);
@@ -58,9 +58,6 @@ public:
   QStringList textureNames() const { return m_textures.keys(); }
   TexturePtr texture(QString key) { return m_textures.value(key); }
 //  QMap<QString, TexturePtr> in() const { return m_in; }
-
-signals:
-  void changed(MaterialPtr);
 
 private:
   friend void State::pushMaterial(MaterialPtr);

@@ -176,9 +176,6 @@ public:
 
   void focusOnError(ShaderError error);
 
-signals:
-  void modificationChanged(bool);
-
 public slots:
   /// Sync status (autocompile on text change) change.
   void syncToggled(bool sync);

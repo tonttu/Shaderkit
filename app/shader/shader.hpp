@@ -22,17 +22,13 @@
 #include "shader/error.hpp"
 #include "app/opengl.hpp"
 
-#include <QObject>
-
 /**
  * GLSL Shader.
  *
  * It is safe to create Shader objects before actually having an OpenGL context.
  * The actual shader object is created only when the shader is compiled the first time.
  */
-class Shader : public QObject, public std::enable_shared_from_this<Shader> {
-  Q_OBJECT
-
+class Shader : public std::enable_shared_from_this<Shader> {
 public:
   /// Supported shader types
   enum Type {

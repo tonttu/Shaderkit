@@ -22,6 +22,27 @@
 
 #include <cassert>
 
+namespace {
+  ShaderManager* s_shader_manager = 0;
+}
+
+ShaderManager::ShaderManager() {
+  assert(!s_shader_manager);
+  s_shader_manager = this;
+}
+
+ShaderManager::~ShaderManager() {
+  assert(s_shader_manager == this);
+  s_shader_manager = 0;
+}
+
+ShaderManager& ShaderManager::instance() {
+  assert(s_shader_manager);
+  return *s_shader_manager;
+}
+
+
+
 GLProgram::GLProgram(const QString& name)
     : m_name(name), m_prog(0), m_compiled(false) {
 }
@@ -44,7 +65,7 @@ bool GLProgram::bind() {
     for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
       ShaderError::List errors;
       Shader::CompileStatus status = (*it)->compile(errors);
-      if (status != Shader::NONE) emit shaderCompiled((*it)->res(), errors);
+      if (status != Shader::NONE) emit ShaderManager::instance().compiled((*it)->res(), errors);
       if (status == Shader::OK || status == Shader::WARNINGS) {
         /// @todo This should not be re-attached
         glRun(glAttachShader(m_prog, (*it)->id()));
@@ -101,23 +122,20 @@ void GLProgram::link() {
   glRun(glGetProgramiv(m_prog, GL_INFO_LOG_LENGTH, &len));
   // len may include the zero byte
   if (len > 1) {
-    GLchar * log = new GLchar[len];
-
+    std::vector<GLchar> log(len);
     GLsizei size = len;
-    glRun(glGetProgramInfoLog(m_prog, size, &size, log));
-    ShaderCompilerOutputParser parser(QString::fromUtf8(log, size));
+    glRun(glGetProgramInfoLog(m_prog, size, &size, &log[0]));
+    ShaderCompilerOutputParser parser(QString::fromUtf8(&log[0], size));
     errors = parser.parse();
     for (int i = 0; i < errors.size(); ++i)
       errors[i].setRes(res());
-
-    delete[] log;
   }
 
   if (ok) {
     glRun(glUseProgram(m_prog)); /// @todo Do we need this?
     setUniform(m_uniformList);
   }
-  emit linked(res(), errors);
+  emit ShaderManager::instance().linked(res(), errors);
 
   glRun(glUseProgram(prog));
 }
@@ -130,27 +148,19 @@ UniformVar::List GLProgram::getUniformList() {
   glRun(glGetProgramiv(m_prog, GL_ACTIVE_UNIFORMS, &num));
   glRun(glGetProgramiv(m_prog, GL_ACTIVE_UNIFORM_MAX_LENGTH, &buffer_size));
 
+  std::vector<GLchar> name(buffer_size);
   for (GLint i = 0; i < num; i++) {
-#ifdef _MSC_VER
-    GLchar* name = new GLchar[buffer_size];
-#else
-    GLchar name[buffer_size];
-#endif
     GLsizei length;
     GLint size;
     GLenum type;
     glRun(glGetActiveUniform(m_prog, i, buffer_size,
-                             &length, &size, &type, name));
+                             &length, &size, &type, &name[0]));
 
     // For now skip build-in uniforms, since those can't be changed the same way as others.
     /// @todo handle these magical variables somehow better
     QSet<QString> special; special << "time" << "far" << "near";
-    if (strncmp(name, "gl_", 3) != 0 && !special.contains(QString::fromAscii(name)))
-      list.push_back(UniformVar(shared_from_this(), name, type));
-
-#ifdef _MSC_VER
-    delete[] name;
-#endif
+    if (strncmp(&name[0], "gl_", 3) != 0 && !special.contains(QString::fromAscii(&name[0])))
+      list.push_back(UniformVar(shared_from_this(), &name[0], type));
   }
   return list;
 }

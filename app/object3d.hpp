@@ -21,7 +21,6 @@
 #include "forward.hpp"
 #include "scene_object.hpp"
 
-#include <QObject>
 #include <QVariantMap>
 
 /**
@@ -35,10 +34,8 @@
  * or similar renderable object. Shaders etc should be ready before calling
  * the render() method.
  */
-class Object3D : public QObject, public std::enable_shared_from_this<Object3D>,
+class Object3D : public std::enable_shared_from_this<Object3D>,
                  public SceneObject {
-  Q_OBJECT
-
 public:
   Object3D(QString name, ModelPtr model = ModelPtr());
   virtual ~Object3D();

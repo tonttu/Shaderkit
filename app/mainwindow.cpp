@@ -95,8 +95,10 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_sandbox_compiler, SIGNAL(toggled(bool)),
           this, SLOT(setSandboxCompiler(bool)));
 
-  connect(&MaterialProperties::instance(), SIGNAL(select(MaterialPtr)),
-          this, SLOT(openMaterial(MaterialPtr)));
+  connect(&ShaderManager::instance(), SIGNAL(linked(QString,ShaderError::List)),
+          this, SLOT(shaderCompiled(QString, ShaderError::List)));
+  connect(&ShaderManager::instance(), SIGNAL(compiled(QString,ShaderError::List)),
+          this, SLOT(shaderCompiled(QString, ShaderError::List)));
 
   QSettings settings("GLSL-Lab", "GLSL-Lab");
   m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
@@ -222,13 +224,6 @@ bool MainWindow::openScene(ScenePtr scene) {
   bool should_restore_settings = !m_scene;
 
   if (m_scene) {
-    foreach (ProgramPtr prog, m_scene->programs()) {
-      disconnect(prog.get(), SIGNAL(shaderCompiled(QString, ShaderError::List)),
-                 this, SLOT(shaderCompiled(QString, ShaderError::List)));
-      disconnect(prog.get(), SIGNAL(linked(QString, ShaderError::List)),
-                 this, SLOT(shaderCompiled(QString, ShaderError::List)));
-    }
-
     foreach (RenderPassPtr p, m_scene->renderPasses()) {
       RenderPassProperties::instance().remove(p);
     }
@@ -238,11 +233,6 @@ bool MainWindow::openScene(ScenePtr scene) {
   ResourceLocator::setPath("scene", scene->root());
 
   foreach (ProgramPtr prog, m_scene->programs()) {
-    connect(prog.get(), SIGNAL(shaderCompiled(QString, ShaderError::List)),
-            this, SLOT(shaderCompiled(QString, ShaderError::List)));
-    connect(prog.get(), SIGNAL(linked(QString, ShaderError::List)),
-            this, SLOT(shaderCompiled(QString, ShaderError::List)));
-
     foreach (ShaderPtr shader, prog->shaders()) {
       Watcher::instance().add(this, shader->res());
     }
@@ -339,13 +329,10 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   }
 }
 
-void MainWindow::modificationChanged(bool b) {
-  MultiEditor* editor = dynamic_cast<MultiEditor*>(sender());
-  if (editor) {
-    m_ui->editor_tabs->setTabText(m_editors.indexOf(editor),
-                                  editor->material()->name()
-                                  + (b ? "*" : ""));
-  }
+void MainWindow::modificationChanged(MultiEditor* editor, bool b) {
+  m_ui->editor_tabs->setTabText(m_editors.indexOf(editor),
+                                editor->material()->name()
+                                + (b ? "*" : ""));
 }
 
 void MainWindow::save(int index) {
