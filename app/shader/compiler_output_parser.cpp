@@ -27,6 +27,7 @@
  *
  * MESA:
  *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
+ *  0:1(15): preprocessor error: syntax error, unexpected IDENTIFIER, expecting NEWLINE
  */
 ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) {
   m_lines = compiler_output.split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
@@ -53,7 +54,8 @@ ShaderError::List ShaderCompilerOutputParser::parse() {
     /// @todo Use the column information here and skip the recompile hack totally
     pattern = "\\s*\\d+ : (\\d+) \\(\\d+\\)" // "0:8(1)", shader:line [1] (column)
               "\\s* : \\s*"                  // ":", separator
-              "([^\\s]+)"                    // "warning:", type [2]
+              "(?:[a-z]+ \\s+)?"                // "preprocessor ", optional
+              "([^\\s]+)"                    // "warning", type [2]
               "\\s* : \\s*"                  // ":", separator
               "(.*)";                        // the actual error [3]
     pattern.remove(QChar(' '));
