@@ -20,6 +20,7 @@
 #include "resource_locator.hpp"
 #include "shader/program.hpp"
 #include "mainwindow.hpp"
+#include "scene.hpp"
 
 #include <QPainter>
 #include <QTextBlock>
@@ -33,7 +34,7 @@
 #include <QDebug>
 #include <QScrollBar>
 
-EditorMargin::EditorMargin(Editor* editor) : QWidget(editor), m_editor(editor) {}
+EditorMargin::EditorMargin(GLSLEditor* editor) : QWidget(editor), m_editor(editor) {}
 
 QSize EditorMargin::sizeHint() const {
   return QSize(m_editor->marginWidth(), 0);
@@ -46,10 +47,14 @@ void EditorMargin::paintEvent(QPaintEvent* event) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Editor::Editor(QWidget* parent, ShaderPtr shader)
-  : QTextEdit(parent), m_margin(new EditorMargin(this)),
-    m_highlighter(new Highlighter(this->document())), m_shader(shader), m_sync(true),
-    m_marginWidth(10) {
+GLSLEditor::GLSLEditor(MultiEditor* parent, ShaderPtr shader, QTextDocument* doc)
+  : QTextEdit(parent), m_multiEditor(parent), m_margin(new EditorMargin(this)),
+    m_shader(shader), m_marginWidth(10) {
+
+  if (doc) setDocument(doc);
+
+  m_highlighter = new Highlighter(document());
+
   setObjectName("editor");
 
   connect(document(), SIGNAL(blockCountChanged(int)), this, SLOT(updateMarginWidth(int)));
@@ -74,6 +79,7 @@ Editor::Editor(QWidget* parent, ShaderPtr shader)
   m_currentLineSelection.format.setProperty(QTextFormat::FullWidthSelection, true);
 
   // tab stop is 2 characters. That has to be multiplied with 8 to get the correct result.
+  /// @todo these should be configurable
   setTabStopWidth(2*8);
   setLineWrapMode(NoWrap);
 
@@ -86,14 +92,17 @@ Editor::Editor(QWidget* parent, ShaderPtr shader)
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
-void Editor::resizeEvent(QResizeEvent* e) {
+GLSLEditor::~GLSLEditor() {
+}
+
+void GLSLEditor::resizeEvent(QResizeEvent* e) {
   QTextEdit::resizeEvent(e);
 
   QRect cr = contentsRect();
   m_margin->setGeometry(QRect(cr.left(), cr.top(), marginWidth(), cr.height()));
 }
 
-void Editor::clearErrors() {
+void GLSLEditor::clearErrors() {
   if (m_errors.isEmpty()) return;
 
   m_errorSelections.clear();
@@ -105,21 +114,21 @@ void Editor::clearErrors() {
   updateExtraSelections();
 }
 
-void Editor::readFile(const QString& filename) {
-  QFile qfile(filename);
+/*void GLSLEditor::readFile(const QString& res) {
+  QFile qfile(res);
   if (qfile.open(QFile::ReadOnly | QFile::Text)) {
-    m_filename = filename;
+    m_res = res;
     QString tmp = qfile.readAll();
     if (m_lastdata != tmp) {
       setPlainText(tmp);
     }
   }
-}
+}*/
 
-void Editor::fileUpdated(const QString& filename) {
-  QFile qfile(filename);
+/*void GLSLEditor::fileUpdated(const QString& res) {
+  QFile qfile(res);
   if (qfile.open(QFile::ReadOnly | QFile::Text)) {
-    m_filename = filename;
+    m_res = res;
     QString tmp = qfile.readAll();
     if (m_lastdata == tmp) return;
 
@@ -131,20 +140,15 @@ void Editor::fileUpdated(const QString& filename) {
           tr("File change"),
           tr("<p>File %1 was changed on the disk, but there are some unsaved "
              "changed to the code in the editor.<p>Load the file from the disk and "
-             "discard all the changes?").arg(filename),
+             "discard all the changes?").arg(res),
           QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
       setPlainText(tmp);
       document()->setModified(false);
     }
   }
-}
+}*/
 
-void Editor::focusOnError(ShaderError error) {
-  setTextCursor(m_errors[error]);
-  ensureCursorVisible();
-}
-
-bool Editor::viewportEvent(QEvent* event) {
+bool GLSLEditor::viewportEvent(QEvent* event) {
   if (event->type() == QEvent::ToolTip) {
     const QHelpEvent* he = static_cast<QHelpEvent*>(event);
 
@@ -172,7 +176,7 @@ bool Editor::viewportEvent(QEvent* event) {
   return QTextEdit::viewportEvent(event);
 }
 
-void Editor::updateExtraSelections() {
+void GLSLEditor::updateExtraSelections() {
   QList<QTextEdit::ExtraSelection> extraSelections;
 
   extraSelections.append(m_currentLineSelection);
@@ -182,7 +186,7 @@ void Editor::updateExtraSelections() {
   setExtraSelections(extraSelections);
 }
 
-void Editor::highlightCurrentLine() {
+void GLSLEditor::highlightCurrentLine() {
   if (isReadOnly()) return;
 
   m_currentLineSelection.cursor = textCursor();
@@ -191,7 +195,7 @@ void Editor::highlightCurrentLine() {
   updateExtraSelections();
 }
 
-void Editor::compileError(const ShaderError& e) {
+void GLSLEditor::compileError(const ShaderError& e) {
   if (isReadOnly()) return;
 
   bool warning = e.type() == "warning";
@@ -234,19 +238,18 @@ void Editor::compileError(const ShaderError& e) {
   updateExtraSelections();
 }
 
-void Editor::textChangedSlot() {
+void GLSLEditor::textChangedSlot() {
   QString tmp = toPlainText();
   if (m_lastdata != tmp) {
     m_lastdata = tmp;
-    emit codeChanged(*this);
+    if (m_multiEditor->sync()) {
+      foreach (ShaderPtr shader, MainWindow::scene()->shaders(m_shader->res()))
+        shader->loadSrc(tmp);
+    }
   }
 }
 
-void Editor::syncToggled(bool sync) {
-  m_sync = sync;
-}
-
-void Editor::marginPaintEvent(QPaintEvent* event) {
+void GLSLEditor::marginPaintEvent(QPaintEvent* event) {
   QPainter painter(m_margin);
   painter.fillRect(event->rect(), QColor(Qt::lightGray).lighter(120));
 
@@ -275,7 +278,7 @@ void Editor::marginPaintEvent(QPaintEvent* event) {
   }
 }
 
-void Editor::updateMarginWidth(int blockCount) {
+void GLSLEditor::updateMarginWidth(int blockCount) {
   int digits = 1;
   int lines = qMax(1, blockCount);
   while (lines >= 10) lines /= 10, ++digits;
@@ -284,7 +287,7 @@ void Editor::updateMarginWidth(int blockCount) {
   setViewportMargins(m_marginWidth, 0, 0, 0);
 }
 
-int Editor::marginWidth() const {
+int GLSLEditor::marginWidth() const {
   return m_marginWidth;
 }
 
@@ -303,6 +306,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
     m_viewport(new QWidget(this)),
     m_list(new FileListWidget(this)),
     m_material(material),
+    m_sync(true),
     m_mapper(new QSignalMapper(this)) {
   setFrameShape(QFrame::StyledPanel);
   setFrameShadow(QFrame::Sunken);
@@ -341,8 +345,11 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
 }
 
 void MultiEditor::addShader(ShaderPtr shader) {
+  QList<GLSLEditor*> editors = MainWindow::instance().findEditors(shader);
+  QTextDocument* doc = editors.isEmpty() ? 0 : editors[0]->document();
+
   QFile f(shader->res());
-  if(f.open(QFile::ReadOnly)) {
+  if(doc || f.open(QFile::ReadOnly)) {
     Section& s = m_sections[shader->res()];
 
     s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->res()));
@@ -351,8 +358,6 @@ void MultiEditor::addShader(ShaderPtr shader) {
     s.item->setCheckState(Qt::Checked);
     s.item->setData(Qt::UserRole, shader->res());
     m_list->addItem(s.item);
-
-    QByteArray data = f.readAll();
 
     s.header = new QWidget(m_viewport);
     QHBoxLayout* l = new QHBoxLayout(s.header);
@@ -366,7 +371,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
     l->setContentsMargins(2, 2, 0, 0);
     m_viewport->layout()->addWidget(s.header);
 
-    s.editor = new Editor(this, shader);
+    s.editor = new GLSLEditor(this, shader, doc);
 
     m_viewport->layout()->addWidget(s.editor);
 
@@ -377,7 +382,12 @@ void MultiEditor::addShader(ShaderPtr shader) {
     connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
             this, SLOT(editorModified(bool)));
 
-    s.editor->setText(data);
+    if (!doc) {
+      s.editor->setText(f.readAll());
+    } else {
+      /// @this is not enough, maybe using a timer?
+      autosize(shader->res());
+    }
     QTimer::singleShot(50, this, SLOT(relayout()));
   }
 }
@@ -433,10 +443,10 @@ void MultiEditor::save() {
   /// @todo
 }
 
-Editor* MultiEditor::editor(QString res) const {
+GLSLEditor* MultiEditor::editor(QString res) const {
   foreach (const Section& s, m_sections) {
     /// @todo handle other res choices too (material, shader)
-    if (s.editor->shader()->res() == res)
+    if (s.editor && s.editor->shader()->res() == res)
       return s.editor;
   }
   return 0;

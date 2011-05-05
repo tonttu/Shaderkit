@@ -42,7 +42,7 @@ class EditorMargin : public QWidget {
   Q_OBJECT
 
 public:
-  EditorMargin(Editor* editor);
+  EditorMargin(GLSLEditor* editor);
 
   /// Asks the width from Editor::marginWidth()
   QSize sizeHint() const;
@@ -51,7 +51,7 @@ protected:
   /// Asks the width from Editor::marginWidth()
   void paintEvent(QPaintEvent* event);
 
-  Editor* m_editor;
+  GLSLEditor* m_editor;
 };
 
 /**
@@ -60,11 +60,12 @@ protected:
  * @todo Split Editor to GLSLEditor and Editor, so we could make plain text editor,
  *       JSON editor and maybe even C++ editor.
  */
-class Editor : public QTextEdit {
+class GLSLEditor : public QTextEdit {
   Q_OBJECT
 
 public:
-  Editor(QWidget* parent, ShaderPtr shader);
+  GLSLEditor(MultiEditor* parent, ShaderPtr shader, QTextDocument* doc);
+  virtual ~GLSLEditor();
 
   /// Renders the line numbers.
   void marginPaintEvent(QPaintEvent* event);
@@ -72,17 +73,11 @@ public:
   /// Margin width, that is, the width of the are with line numbers.
   int marginWidth() const;
 
-  /// The filename of the file that is open in the editor.
-  const QString& filename() const { return m_filename; }
-
   /// Opens the editor with the contents of file.
-  void readFile(const QString& filename);
+  //void readFile(const QString& res);
 
   /// The file was changed on the disk.
-  void fileUpdated(const QString& filename);
-
-  /// Moves the focus to given error
-  void focusOnError(ShaderError error);
+  //void fileUpdated(const QString& res);
 
   /// Forgets all compile errors.
   void clearErrors();
@@ -93,13 +88,6 @@ public:
   /// Return the shader the object is editing.
   ShaderPtr shader() { return m_shader; }
 
-  /// Does the editor ask for autocompiling the shader after codeChanged().
-  bool sync() const { return m_sync; }
-
-signals:
-  /// Code was changed.
-  void codeChanged(Editor&);
-
 protected:
   /// Capture the resize event to set the margin geometry correctly.
   void resizeEvent(QResizeEvent* event);
@@ -109,8 +97,6 @@ public slots:
   void compileError(const ShaderError& e);
   /// For internal use, we wan't to separate real text changes from format changes.
   void textChangedSlot();
-  /// Sync status (autocompile on text change) change.
-  void syncToggled(bool sync);
 
 private slots:
   /// Called when line number is changed
@@ -119,13 +105,12 @@ private slots:
   void highlightCurrentLine();
 
 private:
+  MultiEditor* m_multiEditor;
   EditorMargin* m_margin;
   /// Syntax Highlight provider
   Highlighter* m_highlighter;
 
   ShaderPtr m_shader;
-
-  bool m_sync;
 
   /// Extra selections are used to highlight the current line and show
   /// compiler errors. When m_currentLineSelection or m_errorSelections etc
@@ -143,9 +128,6 @@ private:
 
   /// All errors and their locations
   QMap<ShaderError, QTextCursor> m_errors;
-
-  /// Set on readFile()
-  QString m_filename;
 
   /// Currently for every keypress we are updating the whole data to this
   /// variable to be able to actually separate correct codeChange
@@ -172,9 +154,13 @@ public:
   MaterialPtr material() const { return m_material; }
   void save();
 
-  Editor* editor(QString res) const;
+  GLSLEditor* editor(QString res) const;
 
+  /// Moves the focus to given error
   void focusOnError(ShaderError error);
+
+  /// Does the editor ask for autocompiling the shader after codeChanged().
+  bool sync() const { return m_sync; }
 
 public slots:
   /// Sync status (autocompile on text change) change.
@@ -195,17 +181,18 @@ private:
   QSplitter* m_splitter;
 
   MaterialPtr m_material;
+  bool m_sync;
 
   struct Section {
     Section() : item(0), header(0), editor(0), icon(0), label(0) {}
     QListWidgetItem* item;
     QWidget* header;
-    Editor* editor;
+    GLSLEditor* editor;
     QLabel* icon;
     QLabel* label;
   };
 
-  /// key is a filename
+  /// key is a res
   QMap<QString, Section> m_sections;
 
   QSignalMapper* m_mapper;

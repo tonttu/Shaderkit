@@ -32,6 +32,7 @@ class Highlighter : public QSyntaxHighlighter {
 
 public:
   Highlighter(QTextDocument* parent = 0);
+  virtual ~Highlighter();
 
 protected:
   /// Highlights one block (== one line)

@@ -200,3 +200,9 @@ QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
 
   return map;
 }
+
+bool GLProgram::hasShader(QString res) const {
+  foreach (ShaderPtr s, m_shaders)
+    if (s->res() == res) return true;
+  return false;
+}

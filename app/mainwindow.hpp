@@ -83,6 +83,7 @@ public slots:
   bool reload();
   void setSceneChanged(bool status);
 
+  QList<GLSLEditor*> findEditors(ShaderPtr shader);
   MultiEditor* findEditor(MaterialPtr mat);
   MultiEditor* openMaterial(MaterialPtr mat);
 

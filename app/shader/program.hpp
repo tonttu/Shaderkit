@@ -135,6 +135,7 @@ public:
   QVariantMap save(QVariantMap& map, QString root, bool pack = false) const;
 
   Shaders shaders() const { return m_shaders; }
+  bool hasShader(QString res) const;
 
 protected:
   QString m_name;

@@ -69,6 +69,9 @@ public:
   /// Implemented only for containers that require this.
   bool operator<(const ShaderError& o) const;
 
+  /// Error is a duplicate if other stuff except material/program match
+  bool isDuplicate(const ShaderError& o) const;
+
 protected:
   MaterialPtr m_material;
   QString m_program, m_shader;

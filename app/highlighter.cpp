@@ -17,6 +17,7 @@
 
 #include "highlighter.hpp"
 #include "shader/lexer.hpp"
+#include "log.hpp"
 
 #define YY_HEADER_EXPORT_START_CONDITIONS
 #include "glsl_lex.hpp"
@@ -100,9 +101,11 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
   loadConfig();
 }
 
+Highlighter::~Highlighter() {
+}
+
 void Highlighter::loadConfig() {
   /// @todo All these should be loadable from some kind of config file run time,
-  //        maybe with the help of setProperty and QVariant.
 
   QTextCharFormat* formats[] = { &m_errorFormat, &m_commentFormat, &m_ppFormat,
     &m_typeFormat, &m_qualifierFormat, &m_keywordFormat, &m_constantFormat, &m_operatorFormat,
@@ -135,7 +138,7 @@ void Highlighter::loadConfig() {
 
 void Highlighter::highlightBlock(const QString &text) {
   // Maps SyntaxType to format
-  static QTextCharFormat* formats[] = { &m_errorFormat, &m_commentFormat, &m_ppFormat,
+  QTextCharFormat* formats[] = { &m_errorFormat, &m_commentFormat, &m_ppFormat,
     &m_typeFormat, &m_qualifierFormat, &m_keywordFormat, &m_constantFormat, &m_operatorFormat,
     &m_parenthesesFormat, &m_buildinVarFormat, &m_idFormat };
 

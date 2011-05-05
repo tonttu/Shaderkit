@@ -32,3 +32,12 @@ bool ShaderError::operator<(const ShaderError& o) const {
   if (m_type != o.m_type) return m_type < o.m_type;
   return m_msg < o.m_msg;
 }
+
+bool ShaderError::isDuplicate(const ShaderError& o) const {
+  return m_shader == o.m_shader &&
+      m_line == o.m_line &&
+      m_column == o.m_column &&
+      m_length == o.m_length &&
+      m_type == o.m_type &&
+      m_msg == o.m_msg;
+}

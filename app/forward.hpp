@@ -75,7 +75,7 @@ class Node;
 typedef std::shared_ptr<Node> NodePtr;
 
 class MaterialProperties;
-class Editor;
+class GLSLEditor;
 class MultiEditor;
 class EditorMargin;
 class Highlighter;

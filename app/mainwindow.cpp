@@ -176,30 +176,44 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderErrorList errors) {
 
 void MainWindow::updateErrors(ShaderErrorList errors) {
   bool changed = false;
+
+  // first step is to remove old error messages
   for (int i = 0; i < m_ui->error_list->rowCount(); ++i) {
     QTableWidgetItem* item = m_ui->error_list->item(i, 0);
-    if (m_error_list_items[item].shader() == errors.shader &&
-        m_error_list_items[item].program() == errors.program) {
+    const ShaderError& e = m_error_list_items[item];
+    if (errors.shader == e.shader() &&
+        (!errors.shader.isEmpty() || errors.program == e.program())) {
       m_error_list_items.remove(item);
       m_ui->error_list->removeRow(i--);
       changed = true;
     }
   }
 
+  int row = 0;
   foreach (ShaderError e, errors) {
-    int r = m_ui->error_list->rowCount();
-    m_ui->error_list->setRowCount(r+1);
+    bool skip = false;
+    // make sure that there isn't equivalent error already in the list
+    foreach (const ShaderError& e2, m_error_list_items) {
+      if (e.isDuplicate(e2)) {
+        skip = true;
+        break;
+      }
+    }
+    if (skip) continue;
 
-    /// @todo change order, put this on top
-    /// @todo add a material/program column, maybe?
+    // error list hasn't material/program column on purpose, since one error
+    // can point to many different materials, and will use magical logic to
+    // determine the correct one when clicked
     QTableWidgetItem* msg = new QTableWidgetItem(e.msg());
     msg->setIcon(QIcon(QPixmap(e.type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
-    m_ui->error_list->setItem(r, 0, msg);
+    m_ui->error_list->insertRow(row);
+    m_ui->error_list->setItem(row, 0, msg);
     if (!e.shader().isEmpty())
-      m_ui->error_list->setItem(r, 1, new QTableWidgetItem(ResourceLocator::ui(e.shader())));
-    m_ui->error_list->setItem(r, 2, new QTableWidgetItem(QString::number(e.line()+1)));
+      m_ui->error_list->setItem(row, 1, new QTableWidgetItem(ResourceLocator::ui(e.shader())));
+    m_ui->error_list->setItem(row, 2, new QTableWidgetItem(QString::number(e.line()+1)));
     m_error_list_items[msg] = e;
     changed = true;
+    ++row;
   }
 
   if (changed) {
@@ -279,6 +293,15 @@ void MainWindow::setSceneChanged(bool status) {
   }
 }
 
+QList<GLSLEditor*> MainWindow::findEditors(ShaderPtr shader) {
+  QList<GLSLEditor*> ret;
+  foreach (MultiEditor* editor, m_editors.keys()) {
+    GLSLEditor* e = editor->editor(shader->res());
+    if (e) ret << e;
+  }
+  return ret;
+}
+
 MultiEditor* MainWindow::findEditor(MaterialPtr mat) {
   foreach(MultiEditor* editor, m_editors.keys())
     if(editor->material() == mat) return editor;
@@ -306,18 +329,13 @@ void MainWindow::fileUpdated(const QString& filename) {
 }
 
 void MainWindow::errorItemActivated(QTableWidgetItem* item) {
-  ShaderError err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
-
-  if (err.material()) {
-    MultiEditor* editor = openMaterial(err.material());
-    editor->focusOnError(err);
-    return;
-  }
+  const ShaderError& err = m_error_list_items[m_ui->error_list->item(item->row(), 0)];
 
   MultiEditor* editor = m_editors.key(m_ui->editor_tabs->currentWidget());
   if (editor) {
     ProgramPtr prog = editor->material()->prog();
-    if (prog && prog->name() == err.program()) {
+    if (prog && (prog->name() == err.program() ||
+                 prog->hasShader(err.shader()))) {
       editor->focusOnError(err);
       return;
     }
@@ -325,16 +343,24 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
 
   for (auto it = m_editors.begin(); it != m_editors.end(); ++it) {
     ProgramPtr prog = it.key()->material()->prog();
-    if (prog && prog->name() == err.program()) {
+    if (prog && (prog->name() == err.program() ||
+                 prog->hasShader(err.shader()))) {
       m_ui->editor_tabs->setCurrentWidget(*it);
       it.key()->focusOnError(err);
       return;
     }
   }
 
+  if (err.material()) {
+    MultiEditor* editor = openMaterial(err.material());
+    editor->focusOnError(err);
+    return;
+  }
+
   foreach (MaterialPtr m, m_scene->materials().values()) {
     ProgramPtr prog = m->prog();
-    if (prog && prog->name() == err.program()) {
+    if (prog && (prog->name() == err.program() ||
+                 prog->hasShader(err.shader()))) {
       MultiEditor* editor = openMaterial(m);
       editor->focusOnError(err);
       return;
@@ -415,6 +441,7 @@ void MainWindow::closeEditor(int index) {
 
     m_editors.remove(editor);
     m_ui->editor_tabs->removeTab(index);
+    delete widget;
   }
 }
 
