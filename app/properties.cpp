@@ -259,6 +259,8 @@ void MaterialProperties::update(MaterialPtr mat) {
     QFontMetrics m(font);
     sub.item->setSizeHint(QSize(50, m.height()+10));
     sub.item->setTextAlignment(Qt::AlignLeft | Qt::AlignBottom);
+
+    MainWindow::instance().openMaterial(mat);
   }
   QString progname = mat->prog() ? mat->prog()->name() : "fixed pipeline";
   int t = mat->textureNames().size();

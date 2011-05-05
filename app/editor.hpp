@@ -171,6 +171,7 @@ private slots:
   void scrollTo(QModelIndex);
   void relayout();
   void editorModified(bool);
+  void materialChanged();
 
 private:
   void addShader(ShaderPtr shader);

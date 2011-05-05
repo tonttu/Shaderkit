@@ -75,6 +75,7 @@ void Material::setScene(ScenePtr scene) {
 
 void Material::setProg(ProgramPtr prog) {
   m_program = prog;
+  emit changed();
 }
 
 QVariantMap Material::save() const {

@@ -242,7 +242,7 @@ void GLSLEditor::textChangedSlot() {
   QString tmp = toPlainText();
   if (m_lastdata != tmp) {
     m_lastdata = tmp;
-    if (m_multiEditor->sync()) {
+    if (m_multiEditor->sync() && MainWindow::scene()) {
       foreach (ShaderPtr shader, MainWindow::scene()->shaders(m_shader->res()))
         shader->loadSrc(tmp);
     }
@@ -338,7 +338,9 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   if (prog) {
     foreach(ShaderPtr shader, prog->shaders())
       addShader(shader);
+    connect(prog.get(), SIGNAL(changed()), this, SLOT(materialChanged()));
   }
+  connect(m_material.get(), SIGNAL(changed()), this, SLOT(materialChanged()));
 
   connect(m_list, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(scrollTo(QModelIndex)));
@@ -402,6 +404,23 @@ void MultiEditor::relayout() {
 
 void MultiEditor::editorModified(bool b) {
   MainWindow::instance().modificationChanged(this, b);
+}
+
+void MultiEditor::materialChanged() {
+  ProgramPtr prog = m_material->prog();
+  if (prog) {
+    QSet<ShaderPtr> target = prog->shaders();
+    QSet<ShaderPtr> current;
+    foreach (const Section& s, m_sections)
+      current << s.editor->shader();
+
+    foreach (ShaderPtr s, current - target) {
+      /// @todo remove shader
+    }
+    foreach (ShaderPtr s, target - current) {
+      addShader(s);
+    }
+  }
 }
 
 void MultiEditor::autosize(QString res) {

@@ -100,6 +100,7 @@ ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type) {
   ShaderPtr shader(new Shader(shared_from_this(), type));
   shader->loadFile(filename);
   m_shaders << shader;
+  emit changed();
 
   return shader;
 }
