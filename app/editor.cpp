@@ -327,6 +327,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   m_splitter->addWidget(m_area);
   m_splitter->setStretchFactor(0, 0);
   m_splitter->setStretchFactor(1, 1);
+  m_splitter->setCollapsible(1, false);
 
   main_layout->addWidget(m_splitter);
 
@@ -432,6 +433,13 @@ void MultiEditor::autosize(QString res) {
   }
 }
 
+void MultiEditor::refresh() {
+  foreach (QString res, m_sections.keys()) {
+    autosize(res);
+  }
+  relayout();
+}
+
 void MultiEditor::scrollTo(QModelIndex idx) {
   QString file = idx.data(Qt::UserRole).toString();
   Section s = m_sections.value(file);
@@ -452,6 +460,11 @@ void MultiEditor::focusOnError(ShaderError error) {
   QMap<ShaderError, QTextCursor>
   setTextCursor(m_errors[error]);
   ensureCursorVisible();*/
+}
+
+void MultiEditor::showEvent(QShowEvent* event) {
+  QFrame::showEvent(event);
+  refresh();
 }
 
 void MultiEditor::syncToggled(bool sync) {

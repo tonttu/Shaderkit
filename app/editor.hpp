@@ -162,9 +162,13 @@ public:
   /// Does the editor ask for autocompiling the shader after codeChanged().
   bool sync() const { return m_sync; }
 
+protected:
+  virtual void showEvent(QShowEvent* event);
+
 public slots:
   /// Sync status (autocompile on text change) change.
   void syncToggled(bool sync);
+  void refresh();
 
 private slots:
   void autosize(QString);
