@@ -159,15 +159,12 @@ public:
   /// Moves the focus to given error
   void focusOnError(ShaderError error);
 
-  /// Does the editor ask for autocompiling the shader after codeChanged().
-  bool sync() const { return m_sync; }
+  QList<GLSLEditor*> editors() const;
 
 protected:
   virtual void showEvent(QShowEvent* event);
 
 public slots:
-  /// Sync status (autocompile on text change) change.
-  void syncToggled(bool sync);
   void refresh();
 
 private slots:
@@ -186,7 +183,6 @@ private:
   QSplitter* m_splitter;
 
   MaterialPtr m_material;
-  bool m_sync;
 
   struct Section {
     Section() : item(0), header(0), editor(0), icon(0), label(0) {}

@@ -242,7 +242,7 @@ void GLSLEditor::textChangedSlot() {
   QString tmp = toPlainText();
   if (m_lastdata != tmp) {
     m_lastdata = tmp;
-    if (m_multiEditor->sync() && MainWindow::scene()) {
+    if (MainWindow::instance().autoCompileEnabled() && MainWindow::scene()) {
       foreach (ShaderPtr shader, MainWindow::scene()->shaders(m_shader->res()))
         shader->loadSrc(tmp);
     }
@@ -306,7 +306,6 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
     m_viewport(new QWidget(this)),
     m_list(new FileListWidget(this)),
     m_material(material),
-    m_sync(true),
     m_mapper(new QSignalMapper(this)) {
   setFrameShape(QFrame::StyledPanel);
   setFrameShadow(QFrame::Sunken);
@@ -462,13 +461,17 @@ void MultiEditor::focusOnError(ShaderError error) {
   ensureCursorVisible();*/
 }
 
+QList<GLSLEditor*> MultiEditor::editors() const {
+  QList<GLSLEditor*> ret;
+  foreach (const Section& s, m_sections) {
+    if (s.editor) ret << s.editor;
+  }
+  return ret;
+}
+
 void MultiEditor::showEvent(QShowEvent* event) {
   QFrame::showEvent(event);
   refresh();
-}
-
-void MultiEditor::syncToggled(bool sync) {
-
 }
 
 void MultiEditor::save() {

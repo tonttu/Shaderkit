@@ -84,6 +84,7 @@ public slots:
   void setSceneChanged(bool status);
 
   QList<GLSLEditor*> findEditors(ShaderPtr shader);
+  QList<GLSLEditor*> findEditors(QString res);
   MultiEditor* findEditor(MaterialPtr mat);
   MultiEditor* openMaterial(MaterialPtr mat);
 
@@ -94,6 +95,9 @@ public slots:
 
   /// An editors modification status is changed and the star after the tab name is added/removed.
   void modificationChanged(MultiEditor* editor, bool b);
+
+  /// Does the editor ask for autocompiling the shader after codeChanged().
+  bool autoCompileEnabled() const;
 
 protected:
   void keyPressEvent(QKeyEvent* event);
@@ -114,6 +118,7 @@ protected slots:
   void setSandboxCompiler(bool);
 
   void import();
+  void compileAll();
 
 private:
   /// Main layout generated from the .ui -file.
@@ -127,6 +132,8 @@ private:
 
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
+
+  QAction* m_sync;
 
   bool m_sceneChanged;
   static MainWindow * s_instance;

@@ -36,6 +36,7 @@
     <qresource prefix="/btns">
         <file>nosync.png</file>
         <file>sync.png</file>
+        <file>compile.png</file>
     </qresource>
     <qresource prefix="/images">
         <file>welcome_header.jpg</file>

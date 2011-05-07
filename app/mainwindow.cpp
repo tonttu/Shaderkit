@@ -50,7 +50,7 @@ void IconBtn::paintEvent(QPaintEvent*) {
 MainWindow * MainWindow::s_instance = 0;
 
 MainWindow::MainWindow(QWidget* parent)
-  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_sceneChanged(false) {
+  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_sync(0), m_sceneChanged(false) {
   if (!s_instance)
     s_instance = this;
 
@@ -102,6 +102,20 @@ MainWindow::MainWindow(QWidget* parent)
 
   QSettings settings("GLSL-Lab", "GLSL-Lab");
   m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
+
+  {
+    m_ui->editor_menu->layout()->setMargin(0);
+
+    QIcon icon(":/btns/nosync.png");
+    icon.addFile(":/btns/sync.png", QSize(), QIcon::Normal, QIcon::On);
+    m_sync = m_ui->editor_menu->addAction(icon, "Auto-compile");
+    m_sync->setCheckable(true);
+    m_sync->setChecked(true);
+
+    icon.addFile(":/btns/sync.png", QSize(), QIcon::Normal, QIcon::On);
+    m_ui->editor_menu->addAction(QIcon(":/btns/compile.png"), "Compile all",
+                                 this, SLOT(compileAll()));
+  }
 }
 
 MainWindow::~MainWindow() {
@@ -115,29 +129,9 @@ MultiEditor* MainWindow::createEditor(MaterialPtr material) {
   layout->setMargin(0);
   layout->setSpacing(0);
 
-  QWidget* bottom = new QWidget(widget);
-  QHBoxLayout* bottom_layout = new QHBoxLayout(bottom);
-  bottom_layout->setMargin(5);
-  bottom_layout->setSpacing(0);
-
   MultiEditor* editor = new MultiEditor(widget, material);
 
-  QPushButton* btn = new IconBtn(bottom);
-  bottom_layout->addWidget(btn);
-
-  QIcon icon;
-  icon.addFile(":/btns/nosync.png", QSize(), QIcon::Normal, QIcon::Off);
-  icon.addFile(":/btns/sync.png", QSize(), QIcon::Normal, QIcon::On);
-
-  btn->setIcon(icon);
-  btn->setCheckable(true);
-  btn->setChecked(true);
-  btn->setToolTip("Auto-compile");
-
-  connect(btn, SIGNAL(toggled(bool)), editor, SLOT(syncToggled(bool)));
-
-  layout->addWidget(editor);
-  layout->addWidget(bottom);
+  layout->addWidget(editor, 1);
 
   m_editors[editor] = widget;
 
@@ -175,6 +169,7 @@ void Project::shaderCompiled(ShaderPtr shader, ShaderErrorList errors) {
 }*/
 
 void MainWindow::updateErrors(ShaderErrorList errors) {
+  QList<GLSLEditor*> editors = findEditors(errors.shader);
   bool changed = false;
 
   // first step is to remove old error messages
@@ -189,8 +184,15 @@ void MainWindow::updateErrors(ShaderErrorList errors) {
     }
   }
 
+  if (!errors.shader.isEmpty())
+    foreach (GLSLEditor* e, editors)
+      e->clearErrors();
+
   int row = 0;
   foreach (ShaderError e, errors) {
+    foreach (GLSLEditor* ed, editors)
+      ed->compileError(e);
+
     bool skip = false;
     // make sure that there isn't equivalent error already in the list
     foreach (const ShaderError& e2, m_error_list_items) {
@@ -294,9 +296,13 @@ void MainWindow::setSceneChanged(bool status) {
 }
 
 QList<GLSLEditor*> MainWindow::findEditors(ShaderPtr shader) {
+  return findEditors(shader->res());
+}
+
+QList<GLSLEditor*> MainWindow::findEditors(QString res) {
   QList<GLSLEditor*> ret;
   foreach (MultiEditor* editor, m_editors.keys()) {
-    GLSLEditor* e = editor->editor(shader->res());
+    GLSLEditor* e = editor->editor(res);
     if (e) ret << e;
   }
   return ret;
@@ -372,6 +378,10 @@ void MainWindow::modificationChanged(MultiEditor* editor, bool b) {
   int idx = m_ui->editor_tabs->indexOf(m_editors[editor]);
   m_ui->editor_tabs->setTabText(idx,
       editor->material()->name() + (b ? "*" : ""));
+}
+
+bool MainWindow::autoCompileEnabled() const {
+  return m_sync->isChecked();
 }
 
 void MainWindow::save(int index) {
@@ -471,6 +481,16 @@ void MainWindow::setSandboxCompiler(bool v) {
 void MainWindow::import() {
   ImporterWizard* w = new ImporterWizard(m_scene);
   w->show();
+}
+
+void MainWindow::compileAll() {
+  foreach (MultiEditor* me, m_editors.keys()) {
+    foreach (GLSLEditor* e, me->editors()) {
+      QString tmp = e->toPlainText();
+      foreach (ShaderPtr shader, m_scene->shaders(e->shader()->res()))
+        shader->loadSrc(tmp);
+    }
+  }
 }
 
 void MainWindow::restore() {
