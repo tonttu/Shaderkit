@@ -69,7 +69,7 @@ MainWindow::MainWindow(QWidget* parent)
   //m_ui->properties
   connect(m_ui->error_list, SIGNAL(itemActivated(QTableWidgetItem*)),
           this, SLOT(errorItemActivated(QTableWidgetItem*)));
-  connect(m_ui->action_save, SIGNAL(triggered()), this, SLOT(save()));
+  connect(m_ui->action_savematerial, SIGNAL(triggered()), this, SLOT(saveMaterial()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(load()));
   connect(m_ui->action_savescene, SIGNAL(triggered()), this, SLOT(saveScene()));
   /*connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
@@ -389,24 +389,19 @@ bool MainWindow::autoCompileEnabled() const {
   return m_sync->isChecked();
 }
 
-void MainWindow::save(int index) {
+void MainWindow::saveMaterial(int index) {
   QWidget* widget = 0;
-  if (index == -1) {
-    widget = m_ui->editor_tabs->currentWidget();
-  } else {
+  if (index != -1)
     widget = m_ui->editor_tabs->widget(index);
-  }
+
+  if (!widget)
+    widget = m_ui->editor_tabs->currentWidget();
 
   if (!widget)
     return;
 
   MultiEditor* editor = m_editors.key(widget);
-  editor->save();
-/*  QFile file(editor->filename());
-  if (file.open(QIODevice::WriteOnly)) {
-    file.write(editor->toPlainText().toUtf8());
-    editor->document()->setModified(false);
-  }*/
+  editor->saveMaterial();
 }
 
 void MainWindow::saveScene() {

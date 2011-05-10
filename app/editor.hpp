@@ -88,6 +88,8 @@ public:
   /// Return the shader the object is editing.
   ShaderPtr shader() { return m_shader; }
 
+  void save();
+
 protected:
   /// Capture the resize event to set the margin geometry correctly.
   void resizeEvent(QResizeEvent* event);
@@ -152,7 +154,7 @@ public:
   virtual ~MultiEditor() {}
 
   MaterialPtr material() const { return m_material; }
-  void save();
+  void saveMaterial();
 
   GLSLEditor* editor(QString res) const;
 

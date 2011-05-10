@@ -178,6 +178,15 @@ bool GLSLEditor::viewportEvent(QEvent* event) {
   return QTextEdit::viewportEvent(event);
 }
 
+void GLSLEditor::save() {
+  /// @todo atomic writing
+  QFile file(m_shader->res());
+  if (file.open(QIODevice::WriteOnly)) {
+    file.write(toPlainText().toUtf8());
+    document()->setModified(false);
+  }
+}
+
 void GLSLEditor::updateExtraSelections() {
   QList<QTextEdit::ExtraSelection> extraSelections;
 
@@ -487,8 +496,12 @@ void MultiEditor::showEvent(QShowEvent* event) {
   refresh();
 }
 
-void MultiEditor::save() {
-  /// @todo
+void MultiEditor::saveMaterial() {
+  foreach (GLSLEditor* e, editors()) {
+    if (e->document()->isModified()) {
+      e->save();
+    }
+  }
 }
 
 GLSLEditor* MultiEditor::editor(QString res) const {

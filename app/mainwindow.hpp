@@ -110,7 +110,7 @@ protected slots:
   /// Focus the correct tab and line for selected error.
   void errorItemActivated(QTableWidgetItem*);
   /// Save the current file (the file open in the active editor)
-  void save(int index = -1);
+  void saveMaterial(int index = -1);
   /// Save the current project
   void saveScene();
   void closeEditor(int index);

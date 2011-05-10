@@ -77,7 +77,8 @@
     <addaction name="action_open"/>
     <addaction name="separator"/>
     <addaction name="action_savescene"/>
-    <addaction name="action_save"/>
+    <addaction name="action_savematerial"/>
+    <addaction name="action_savefile"/>
     <addaction name="action_saveas"/>
     <addaction name="separator"/>
     <addaction name="action_import"/>
@@ -446,9 +447,9 @@
     </layout>
    </widget>
   </widget>
-  <action name="action_save">
+  <action name="action_savematerial">
    <property name="text">
-    <string>&amp;Save File</string>
+    <string>&amp;Save Material</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -664,6 +665,11 @@
   <action name="action_textures">
    <property name="text">
     <string>&amp;Textures</string>
+   </property>
+  </action>
+  <action name="action_savefile">
+   <property name="text">
+    <string>Save Active File</string>
    </property>
   </action>
  </widget>
