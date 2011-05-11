@@ -34,6 +34,8 @@
 #include <QDebug>
 #include <QScrollBar>
 
+#include <cassert>
+
 EditorMargin::EditorMargin(GLSLEditor* editor) : QWidget(editor), m_editor(editor) {}
 
 QSize EditorMargin::sizeHint() const {
@@ -47,8 +49,8 @@ void EditorMargin::paintEvent(QPaintEvent* event) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-GLSLEditor::GLSLEditor(MultiEditor* parent, ShaderPtr shader, QTextDocument* doc)
-  : QTextEdit(parent), m_multiEditor(parent), m_margin(new EditorMargin(this)),
+GLSLEditor::GLSLEditor(MultiEditor& me, QWidget* parent, ShaderPtr shader, QTextDocument* doc)
+  : QTextEdit(parent), m_multiEditor(me), m_margin(new EditorMargin(this)),
     m_shader(shader), m_marginWidth(10) {
 
   if (doc) setDocument(doc);
@@ -307,8 +309,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
     m_list(new FileListWidget(this)),
     m_material(material),
     m_mapper(new QSignalMapper(this)) {
-  setFrameShape(QFrame::StyledPanel);
-  setFrameShadow(QFrame::Sunken);
+  setFrameShape(QFrame::NoFrame);
 
   QVBoxLayout* main_layout = new QVBoxLayout(this);
   main_layout->setContentsMargins(0, 0, 0, 0);
@@ -373,7 +374,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
     l->setContentsMargins(2, 2, 0, 0);
     m_viewport->layout()->addWidget(s.header);
 
-    s.editor = new GLSLEditor(this, shader, doc);
+    s.editor = new GLSLEditor(*this, m_viewport, shader, doc);
 
     m_viewport->layout()->addWidget(s.editor);
 
@@ -383,11 +384,14 @@ void MultiEditor::addShader(ShaderPtr shader) {
 
     connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
             this, SLOT(editorModified(bool)));
+    connect(s.editor, SIGNAL(cursorPositionChanged()),
+            this, SLOT(ensureCursorVisible()));
 
     if (!doc) {
       s.editor->setText(f.readAll());
     } else {
-      /// @this is not enough, maybe using a timer?
+      /// @todo this is not enough, maybe using a timer?
+      /// @todo ensurePolished?
       autosize(shader->res());
     }
     QTimer::singleShot(50, this, SLOT(relayout()));
@@ -421,6 +425,15 @@ void MultiEditor::materialChanged() {
       addShader(s);
     }
   }
+}
+
+void MultiEditor::ensureCursorVisible() {
+  GLSLEditor* ed = qobject_cast<GLSLEditor*>(sender());
+  assert(ed);
+  QRect r = ed->cursorRect().adjusted(-40, -10, 40, 10);
+  r.moveCenter(ed->viewport()->mapTo(m_viewport, r.center()));
+  m_area->ensureVisible(r.center().x(), r.center().y(),
+                        r.width(), r.height());
 }
 
 void MultiEditor::autosize(QString res) {

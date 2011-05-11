@@ -64,7 +64,7 @@ class GLSLEditor : public QTextEdit {
   Q_OBJECT
 
 public:
-  GLSLEditor(MultiEditor* parent, ShaderPtr shader, QTextDocument* doc);
+  GLSLEditor(MultiEditor& me, QWidget* parent, ShaderPtr shader, QTextDocument* doc);
   virtual ~GLSLEditor();
 
   /// Renders the line numbers.
@@ -105,7 +105,7 @@ private slots:
   void highlightCurrentLine();
 
 private:
-  MultiEditor* m_multiEditor;
+  MultiEditor& m_multiEditor;
   EditorMargin* m_margin;
   /// Syntax Highlight provider
   Highlighter* m_highlighter;
@@ -173,6 +173,7 @@ private slots:
   void relayout();
   void editorModified(bool);
   void materialChanged();
+  void ensureCursorVisible();
 
 private:
   void addShader(ShaderPtr shader);
