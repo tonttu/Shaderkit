@@ -18,6 +18,7 @@ class TextureWidgetGL : public QGLWidget {
 
 public:
   TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex);
+  void setTexture(TexturePtr tex);
 
 protected:
   void initializeGL();
@@ -34,8 +35,17 @@ class TextureWidget : public QWidget {
 public:
   TextureWidget(QWidget* parent, TexturePtr tex);
 
+  TextureWidgetGL* gl() const { return m_gl; }
+  void setSelected(bool s);
+  void setTexture(TexturePtr tex);
+  TexturePtr tex() const { return m_tex; }
+
+signals:
+  void select(TextureWidget*);
+
 protected:
   void paintEvent(QPaintEvent*);
+  void mouseReleaseEvent(QMouseEvent*);
 
 private:
   TextureWidgetGL* m_gl;
@@ -51,11 +61,17 @@ public:
 
   static TextureBrowser& instance();
 
-  virtual void showEvent(QShowEvent*);
+  void showEvent(QShowEvent*);
+  void paintEvent(QPaintEvent*);
+
+public slots:
+  void selected(TextureWidget*);
 
 private:
   explicit TextureBrowser(QWidget* parent = 0);
   Ui::TextureBrowser *m_ui;
+  QTimer* m_timer;
+  TextureWidget* m_selected;
 
   QMap<QString, TextureWidget*> m_textures;
 };
@@ -78,6 +94,7 @@ public:
 
 private:
   QSizeF m_itemsize;
+  int m_minHeight;
   QList<QLayoutItem*> m_items;
 };
 

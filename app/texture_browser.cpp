@@ -8,6 +8,7 @@
 #include <QDebug>
 
 #include <cassert>
+#include <cmath>
 
 namespace {
   TextureBrowser* s_browser = 0;
@@ -15,6 +16,10 @@ namespace {
 
 TextureWidgetGL::TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex)
   : QGLWidget(parent, shared), m_tex(tex) {
+}
+
+void TextureWidgetGL::setTexture(TexturePtr tex) {
+  m_tex = tex;
 }
 
 void TextureWidgetGL::initializeGL() {
@@ -56,11 +61,25 @@ TextureWidget::TextureWidget(QWidget* parent, TexturePtr tex)
  : QWidget(parent), m_gl(0), m_tex(tex), m_frame(new QFrame(this)) {
   setLayout(new QVBoxLayout);
   layout()->setMargin(0);
-  m_frame->setFrameStyle(QFrame::Raised);
-  m_frame->setFrameShape(QFrame::StyledPanel);
   m_frame->setLayout(new QVBoxLayout);
-  m_frame->layout()->setMargin(0);
+  m_frame->layout()->setMargin(3);
   layout()->addWidget(m_frame);
+}
+
+void TextureWidget::setSelected(bool s) {
+  if (s) {
+    setBackgroundRole(QPalette::Highlight);
+    setAutoFillBackground(true);
+  } else {
+    setBackgroundRole(QPalette::Background);
+    setAutoFillBackground(false);
+  }
+}
+
+void TextureWidget::setTexture(TexturePtr tex) {
+  if (m_tex == tex) return;
+  m_tex = tex;
+  if (m_gl) m_gl->setTexture(tex);
 }
 
 void TextureWidget::paintEvent(QPaintEvent* ev) {
@@ -74,11 +93,21 @@ void TextureWidget::paintEvent(QPaintEvent* ev) {
   }
 }
 
+void TextureWidget::mouseReleaseEvent(QMouseEvent* ev) {
+  QWidget::mouseReleaseEvent(ev);
+  emit select(this);
+}
+
 TextureBrowser::TextureBrowser(QWidget *parent)
   : QDialog(parent),
-    m_ui(new Ui::TextureBrowser) {
+    m_ui(new Ui::TextureBrowser),
+    m_timer(new QTimer(this)),
+    m_selected(0) {
   m_ui->setupUi(this);
-  m_ui->frame->setLayout(new FlowLayout);
+  m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
+
+  connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
+  m_timer->start(100);
 }
 
 TextureBrowser::~TextureBrowser() {
@@ -96,14 +125,46 @@ TextureBrowser& TextureBrowser::instance() {
 void TextureBrowser::showEvent(QShowEvent* ev) {
   QDialog::showEvent(ev);
   if (!MainWindow::instance().scene()) return;
-  auto textures = MainWindow::instance().scene()->textures();
-  for (auto it = textures.begin(); it != textures.end(); ++it) {
-    QString name = it.key();
-    TexturePtr tex = it.value();
-    TextureWidget* widget = new TextureWidget(m_ui->frame, tex);
-    m_ui->frame->layout()->addWidget(widget);
+  QMap<QString, TexturePtr> textures = MainWindow::instance().scene()->textures();
+
+  foreach (QString name, m_textures.keys().toSet() - textures.keys().toSet()) {
+    m_textures[name]->deleteLater();
+    m_textures.remove(name);
+  }
+
+  foreach (QString name, textures.keys().toSet() - m_textures.keys().toSet()) {
+    TextureWidget* widget = new TextureWidget(m_ui->viewport, textures[name]);
+    connect(widget, SIGNAL(select(TextureWidget*)), this, SLOT(selected(TextureWidget*)));
+    m_ui->viewport->layout()->addWidget(widget);
     m_textures[name] = widget;
   }
+
+  foreach (QString name, textures.keys().toSet() & m_textures.keys().toSet()) {
+    m_textures[name]->setTexture(textures[name]);
+  }
+
+  QMargins m = m_ui->viewport->contentsMargins();
+  QSize s = m_ui->viewport->layout()->minimumSize();
+  s.setWidth(s.width() + m.left() + m.right() +
+             m_ui->scrollArea->verticalScrollBar()->width() +
+             m_ui->scrollArea->frameWidth()*2);
+  s.setHeight(s.height() + m.top() + m.bottom());
+  m_ui->scrollArea->setMinimumWidth(s.width());
+}
+
+void TextureBrowser::paintEvent(QPaintEvent* ev) {
+  foreach (TextureWidget* w, m_textures) {
+    bool visible = !w->visibleRegion().isEmpty();
+    if (visible && w->gl()) w->gl()->updateGL();
+  }
+  QDialog::paintEvent(ev);
+}
+
+void TextureBrowser::selected(TextureWidget* t) {
+  if (m_selected == t) return;
+  if (m_selected) m_selected->setSelected(false);
+  t->setSelected(true);
+  m_selected = t;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,6 +173,7 @@ void TextureBrowser::showEvent(QShowEvent* ev) {
 FlowLayout::FlowLayout(QWidget* parent) : QLayout(parent)
 {
   m_itemsize = QSizeF(192.0f, 108.0f);
+  m_minHeight = m_itemsize.height()*2 + spacing()*3;
 }
 
 FlowLayout::~FlowLayout()
@@ -124,7 +186,7 @@ FlowLayout::~FlowLayout()
 QSize FlowLayout::minimumSize() const
 {
   return QSize(m_itemsize.width()*2 + spacing()*3,
-               m_itemsize.height()*2 + spacing()*3);
+               m_minHeight);
 }
 
 QSize FlowLayout::sizeHint() const
@@ -159,8 +221,6 @@ void FlowLayout::setGeometry(const QRect &r)
   if (m_items.isEmpty())
     return;
 
-  qDebug() << r << minimumSize();
-
   // m_itemsize.width() * n + spacing() * (n + 1) <= r.width();
   float itemw = m_itemsize.width(), itemh = m_itemsize.height();
   float spx = spacing(), spy = spacing();
@@ -177,4 +237,7 @@ void FlowLayout::setGeometry(const QRect &r)
                itemw, itemh);
     o->setGeometry(geom);
   }
+
+  int rows = std::ceil(m_items.size() / float(n));
+  m_minHeight = rows*itemh + (rows+1) * spy;
 }
