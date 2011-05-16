@@ -118,7 +118,14 @@
     <addaction name="action_file_list"/>
     <addaction name="action_error_log"/>
    </widget>
+   <widget class="QMenu" name="menu_edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="action_textures"/>
+   </widget>
    <addaction name="menu_file"/>
+   <addaction name="menu_edit"/>
    <addaction name="menuShader_Library"/>
    <addaction name="menuTools"/>
    <addaction name="menu_Window"/>
@@ -652,6 +659,11 @@
   <action name="action_import">
    <property name="text">
     <string>&amp;Import...</string>
+   </property>
+  </action>
+  <action name="action_textures">
+   <property name="text">
+    <string>&amp;Textures</string>
    </property>
   </action>
  </widget>

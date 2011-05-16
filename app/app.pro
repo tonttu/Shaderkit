@@ -57,7 +57,8 @@ HEADERS += \
     transform_feedback.hpp \
     shader/query_shader.hpp \
     importer_wizard.hpp \
-    resource_locator.hpp
+    resource_locator.hpp \
+    texture_browser.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -99,13 +100,15 @@ SOURCES += \
     transform_feedback.cpp \
     shader/query_shader.cpp \
     importer_wizard.cpp \
-    resource_locator.cpp
+    resource_locator.cpp \
+    texture_browser.cpp
 
 FORMS += \
     mainwindow.ui \
     welcome.ui \
     new_wizard.ui \
-    importer_wizard.ui
+    importer_wizard.ui \
+    texture_browser.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

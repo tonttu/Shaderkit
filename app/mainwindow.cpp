@@ -24,6 +24,7 @@
 #include "material.hpp"
 #include "resource_locator.hpp"
 #include "shader/program.hpp"
+#include "texture_browser.hpp"
 
 #include <QKeyEvent>
 #include <QFile>
@@ -151,6 +152,10 @@ MainWindow& MainWindow::instance() {
 
 ScenePtr MainWindow::scene() {
   return instance().m_scene;
+}
+
+GLWidget* MainWindow::glwidget() {
+  return m_ui->gl_widget;
 }
 
 /// @todo add something like this

@@ -69,6 +69,8 @@ public:
   static MainWindow& instance();
   static ScenePtr scene();
 
+  GLWidget* glwidget();
+
 public slots:
   /// Updates the error list
   void updateErrors(ShaderErrorList errors);
