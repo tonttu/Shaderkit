@@ -85,7 +85,7 @@ namespace {
       D(TEXTURE_COMPARE_FUNC, ALWAYS);
       D(TEXTURE_COMPARE_FUNC, NEVER);
 
-      // TEXTURE_BORDER_COLOR?
+      // TEXTURE_BORDER_COLOR? (vector)
 
       D2(TEXTURE_PRIORITY, s_floats);
       D2(TEXTURE_MIN_LOD, s_floats);
@@ -143,6 +143,19 @@ void Texture::setParam(unsigned int pname, float param) {
   m_paramsDirty = true;
 }
 
+bool Texture::setParam(QString pname, Param param) {
+  if (!s_enums.contains(pname)) {
+    Log::error("Invalid enum: %s", pname.toUtf8().data());
+    return false;
+  }
+  GLenum e = s_enums.value(pname);
+  if (param.is_float)
+    setParam(e, param.f);
+  else
+    setParam(e, param.i);
+  return true;
+}
+
 bool Texture::setParam(QString pname, QString param) {
   if (!s_enums.contains(pname)) {
     Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
@@ -184,12 +197,35 @@ bool Texture::setParam(QString pname, QString param) {
   return false;
 }
 
-QMap<QString, Texture::Param> Texture::paramStrings() {
+QMap<QString, Texture::Param> Texture::paramStrings() const {
   QMap<QString, Texture::Param> ret;
   for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
     ret[s_names.value(it.key())] = it.value();
   }
   return ret;
+}
+
+Texture::Param Texture::param(QString name) const {
+  if (!s_enums.contains(name)) {
+    Log::error("Unknown param %s", name.toUtf8().data());
+    return Param();
+  }
+  GLenum e = s_enums.value(name);
+  if (m_params.contains(e)) return m_params.value(e);
+
+  ParamType type = paramType(name);
+
+  if (type == ENUM || type == INT) {
+    GLint p;
+    glRun(glGetTexParameteriv(GL_TEXTURE_2D, e, &p));
+    return Param(p);
+  } else if (type == FLOAT) {
+    GLfloat p;
+    glRun(glGetTexParameterfv(GL_TEXTURE_2D, e, &p));
+    return Param(p);
+  }
+  assert(false && "Shouldn't happen");
+  return Param();
 }
 
 QStringList Texture::allParams() {
@@ -198,11 +234,11 @@ QStringList Texture::allParams() {
 
 Texture::ParamType Texture::paramType(QString name) {
   if (s_choices.contains(name)) {
-    return ParamType::ENUM;
+    return ENUM;
   } else if (s_ints.contains(name)) {
-    return ParamType::INT;
+    return INT;
   } else if (s_floats.contains(name)) {
-    return ParamType::FLOAT;
+    return FLOAT;
   }
   return ParamType::UNKNOWN;
 }

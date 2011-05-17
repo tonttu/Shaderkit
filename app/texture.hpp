@@ -46,9 +46,11 @@ public:
 
   void setParam(unsigned int pname, int param);
   void setParam(unsigned int pname, float param);
+  bool setParam(QString pname, Param param);
   bool setParam(QString pname, QString param);
 
-  QMap<QString, Param> paramStrings();
+  QMap<QString, Param> paramStrings() const;
+  Param param(QString name) const;
 
   static QStringList allParams();
   static ParamType paramType(QString name);

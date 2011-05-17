@@ -67,6 +67,9 @@ MainWindow::MainWindow(QWidget* parent)
 
              addDockWidget(Qt::LeftDockWidgetArea, dw);*/
   //m_ui->properties
+
+  connect(m_ui->action_textures, SIGNAL(triggered()), this, SLOT(openTextureBrowser()));
+
   connect(m_ui->error_list, SIGNAL(itemActivated(QTableWidgetItem*)),
           this, SLOT(errorItemActivated(QTableWidgetItem*)));
   connect(m_ui->action_savematerial, SIGNAL(triggered()), this, SLOT(saveMaterial()));
@@ -491,6 +494,10 @@ void MainWindow::compileAll() {
         shader->loadSrc(tmp);
     }
   }
+}
+
+void MainWindow::openTextureBrowser() {
+  TextureBrowser::instance().show();
 }
 
 void MainWindow::restore() {

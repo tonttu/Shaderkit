@@ -54,7 +54,7 @@ private:
   QFrame* m_frame;
 };
 
-class TextureBrowser : public QDialog {
+class TextureBrowser : public QWidget {
   Q_OBJECT
 
 public:
@@ -69,7 +69,8 @@ public slots:
   void selected(TextureWidget*, bool force = false);
 
 private slots:
-  void paramChanged(QString);
+  void paramChanged(QString = "");
+  void newParam(QString);
 
 private:
   explicit TextureBrowser(QWidget* parent = 0);

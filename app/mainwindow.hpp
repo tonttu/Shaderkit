@@ -122,6 +122,8 @@ protected slots:
   void import();
   void compileAll();
 
+  void openTextureBrowser();
+
 private:
   /// Main layout generated from the .ui -file.
   std::auto_ptr<Ui::MainWindow> m_ui;

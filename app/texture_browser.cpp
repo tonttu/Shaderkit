@@ -99,7 +99,7 @@ void TextureWidget::mouseReleaseEvent(QMouseEvent* ev) {
 }
 
 TextureBrowser::TextureBrowser(QWidget *parent)
-  : QDialog(parent),
+  : QWidget(parent),
     m_ui(new Ui::TextureBrowser),
     m_timer(new QTimer(this)),
     m_selected(0) {
@@ -123,7 +123,7 @@ TextureBrowser& TextureBrowser::instance() {
 }
 
 void TextureBrowser::showEvent(QShowEvent* ev) {
-  QDialog::showEvent(ev);
+  QWidget::showEvent(ev);
   if (!MainWindow::instance().scene()) return;
   QMap<QString, TexturePtr> textures = MainWindow::instance().scene()->textures();
 
@@ -157,7 +157,7 @@ void TextureBrowser::paintEvent(QPaintEvent* ev) {
     bool visible = !w->visibleRegion().isEmpty();
     if (visible && w->gl()) w->gl()->updateGL();
   }
-  QDialog::paintEvent(ev);
+  QWidget::paintEvent(ev);
 }
 
 void TextureBrowser::selected(TextureWidget* w, bool force) {
@@ -190,19 +190,27 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
     int r = m_ui->params->rowCount();
     m_ui->params->insertRow(r);
     m_ui->params->setItem(r, 0, new QTableWidgetItem(it.key()));
+    m_ui->params->item(r, 0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QWidget* w;
     Texture::ParamType type = Texture::paramType(it.key());
     if (type == Texture::ENUM) {
       QComboBox* tmp = new QComboBox;
+      tmp->setEditable(true);
       QStringList choices = Texture::paramChoices(it.key());
       tmp->addItems(choices);
-      tmp->setCurrentIndex(choices.indexOf(Texture::enumToString(it.value().i)));
+      QString value = Texture::enumToString(it.value().i);
+      if (value.isEmpty()) {
+        tmp->addItem(QString::number(it.value().i));
+        tmp->setCurrentIndex(tmp->count()-1);
+      } else {
+        tmp->setCurrentIndex(choices.indexOf(value));
+      }
       connect(tmp, SIGNAL(currentIndexChanged(QString)), this, SLOT(paramChanged(QString)));
       w = tmp;
     } else {
       QLineEdit* tmp = new QLineEdit(it.value().is_float ? QString::number(it.value().f)
                                                          : QString::number(it.value().i));
-      connect(tmp, SIGNAL(textEdited(QString)), this, SLOT(paramChanged(QString)));
+      connect(tmp, SIGNAL(editingFinished()), this, SLOT(paramChanged()));
       w = tmp;
     }
     m_ui->params->setCellWidget(r, 1, w);
@@ -217,6 +225,11 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
     param->addItems(rest);
     param->setCurrentIndex(-1);
     m_ui->params->setCellWidget(r, 0, param);
+    m_ui->params->setItem(r, 1, new QTableWidgetItem());
+    m_ui->params->item(r, 1)->setFlags(Qt::ItemIsEnabled);
+
+    connect(param, SIGNAL(currentIndexChanged(QString)),
+            this, SLOT(newParam(QString)));
   }
 
   m_ui->params->resizeColumnToContents(0);
@@ -232,8 +245,21 @@ void TextureBrowser::paramChanged(QString value) {
   }
   if (r >= m_ui->params->rowCount()) return;
 
+  if (value.isEmpty()) {
+    QLineEdit* tmp = qobject_cast<QLineEdit*>(w);
+    if (tmp) value = tmp->text();
+  }
+
   QString name = m_ui->params->item(r, 0)->text();
   m_selected->tex()->setParam(name, value);
+  selected(m_selected, true);
+}
+
+void TextureBrowser::newParam(QString name) {
+  if (name.isEmpty() || !m_selected || !m_selected->tex()) return;
+
+  m_selected->gl()->makeCurrent();
+  m_selected->tex()->setParam(name, m_selected->tex()->param(name));
   selected(m_selected, true);
 }
 
