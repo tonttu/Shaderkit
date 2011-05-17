@@ -18,10 +18,12 @@
 #include "texture.hpp"
 #include "opengl.hpp"
 
+#include <cassert>
+
 #define D_(pname, param, spname, sparam) \
   s_names[pname] = spname, s_names[param] = sparam, \
   s_enums[spname] = pname, s_enums[sparam] = param, \
-  s_choices[spname] << sparam;
+  s_choices[spname] << sparam
 #define D(pname, param) D_(GL_##pname, GL_##param, \
   QString::fromAscii(#pname), QString::fromAscii(#param))
 
@@ -92,6 +94,8 @@ namespace {
       D2(TEXTURE_BASE_LEVEL, s_ints);
       D2(TEXTURE_MAX_LEVEL, s_ints);
       D2(GENERATE_MIPMAP, s_ints); // actually a bool
+
+      assert(s_names.size() == s_enums.size());
     }
   }
 }
@@ -102,7 +106,7 @@ namespace {
 
 Texture::Texture(QString name)
   : FBOImage(name), m_bindedTexture(0),
-    m_blend(1.0), m_uv(1) {
+    m_blend(1.0), m_uv(1), m_paramsDirty(false) {
   s_init();
   setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -121,6 +125,7 @@ void Texture::bind(int texture) {
   if (m_id == 0) glRun(glGenTextures(1, &m_id));
   glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
   glRun(glBindTexture(GL_TEXTURE_2D, m_id));
+  if (m_paramsDirty) applyParams();
 }
 
 void Texture::unbind() {
@@ -130,10 +135,84 @@ void Texture::unbind() {
 
 void Texture::setParam(unsigned int pname, int param) {
   m_params[pname] = Param(param);
+  m_paramsDirty = true;
 }
 
 void Texture::setParam(unsigned int pname, float param) {
   m_params[pname] = Param(param);
+  m_paramsDirty = true;
+}
+
+bool Texture::setParam(QString pname, QString param) {
+  if (!s_enums.contains(pname)) {
+    Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
+    return false;
+  }
+  GLenum e = s_enums.value(pname);
+
+  bool ok;
+  if (s_choices.contains(pname)) {
+    int i = param.toInt(&ok);
+    if (ok) {
+      setParam(e, i);
+      return true;
+    } else if (!s_choices.value(pname).contains(param)) {
+      Log::error("Invalid value: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
+      return false;
+    }
+    assert(s_enums.contains(param));
+    setParam(e, int(s_enums.value(param)));
+    return true;
+  } else if (s_ints.contains(pname)) {
+    int i = param.toInt(&ok);
+    if (!ok) {
+      Log::error("Invalid value: %s = %s (should be int)", pname.toUtf8().data(), param.toUtf8().data());
+      return false;
+    }
+    setParam(e, i);
+    return true;
+  } else if (s_floats.contains(pname)) {
+    float f = param.toFloat(&ok);
+    if (!ok) {
+      Log::error("Invalid value: %s = %s (should be float)", pname.toUtf8().data(), param.toUtf8().data());
+      return false;
+    }
+    setParam(e, f);
+    return true;
+  }
+  Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
+  return false;
+}
+
+QMap<QString, Texture::Param> Texture::paramStrings() {
+  QMap<QString, Texture::Param> ret;
+  for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+    ret[s_names.value(it.key())] = it.value();
+  }
+  return ret;
+}
+
+QStringList Texture::allParams() {
+  return (s_choices.keys().toSet() | s_ints | s_floats).toList();
+}
+
+Texture::ParamType Texture::paramType(QString name) {
+  if (s_choices.contains(name)) {
+    return ParamType::ENUM;
+  } else if (s_ints.contains(name)) {
+    return ParamType::INT;
+  } else if (s_floats.contains(name)) {
+    return ParamType::FLOAT;
+  }
+  return ParamType::UNKNOWN;
+}
+
+QStringList Texture::paramChoices(QString name) {
+  return s_choices.value(name);
+}
+
+QString Texture::enumToString(unsigned int value) {
+  return s_names.value(value);
 }
 
 void Texture::setBlend(float value) {
@@ -184,6 +263,7 @@ void Texture::applyParams() {
     else
       glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
   }
+  m_paramsDirty = false;
 }
 
 TextureFile::TextureFile(QString name) : Texture(name) {}

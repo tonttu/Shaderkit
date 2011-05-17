@@ -12,6 +12,7 @@ namespace Ui {
 class TextureBrowser;
 }
 class QFrame;
+class QLabel;
 
 class TextureWidgetGL : public QGLWidget {
   Q_OBJECT
@@ -65,7 +66,10 @@ public:
   void paintEvent(QPaintEvent*);
 
 public slots:
-  void selected(TextureWidget*);
+  void selected(TextureWidget*, bool force = false);
+
+private slots:
+  void paramChanged(QString);
 
 private:
   explicit TextureBrowser(QWidget* parent = 0);

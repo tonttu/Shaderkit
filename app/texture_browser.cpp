@@ -160,11 +160,81 @@ void TextureBrowser::paintEvent(QPaintEvent* ev) {
   QDialog::paintEvent(ev);
 }
 
-void TextureBrowser::selected(TextureWidget* t) {
-  if (m_selected == t) return;
-  if (m_selected) m_selected->setSelected(false);
-  t->setSelected(true);
-  m_selected = t;
+void TextureBrowser::selected(TextureWidget* w, bool force) {
+  if (m_selected == w && !force) return;
+  if (m_selected != w) {
+    if (m_selected) m_selected->setSelected(false);
+    w->setSelected(true);
+    m_selected = w;
+  }
+
+  TexturePtr t = w->tex();
+  TextureFile* tf = dynamic_cast<TextureFile*>(t.get());
+
+  m_ui->name->setText(t->name());
+
+  if (tf) {
+    m_ui->filename->setText(tf->file());
+    m_ui->filename->show();
+    m_ui->browse->show();
+  } else {
+    m_ui->filename->hide();
+    m_ui->browse->hide();
+  }
+
+  m_ui->params->setRowCount(0);
+  QMap<QString, Texture::Param> lst = t->paramStrings();
+  QSet<QString> used_params;
+  for (auto it = lst.begin(); it != lst.end(); ++it) {
+    used_params << it.key();
+    int r = m_ui->params->rowCount();
+    m_ui->params->insertRow(r);
+    m_ui->params->setItem(r, 0, new QTableWidgetItem(it.key()));
+    QWidget* w;
+    Texture::ParamType type = Texture::paramType(it.key());
+    if (type == Texture::ENUM) {
+      QComboBox* tmp = new QComboBox;
+      QStringList choices = Texture::paramChoices(it.key());
+      tmp->addItems(choices);
+      tmp->setCurrentIndex(choices.indexOf(Texture::enumToString(it.value().i)));
+      connect(tmp, SIGNAL(currentIndexChanged(QString)), this, SLOT(paramChanged(QString)));
+      w = tmp;
+    } else {
+      QLineEdit* tmp = new QLineEdit(it.value().is_float ? QString::number(it.value().f)
+                                                         : QString::number(it.value().i));
+      connect(tmp, SIGNAL(textEdited(QString)), this, SLOT(paramChanged(QString)));
+      w = tmp;
+    }
+    m_ui->params->setCellWidget(r, 1, w);
+  }
+
+  QStringList rest = (Texture::allParams().toSet() - used_params).toList();
+  if (!rest.isEmpty()) {
+    int r = m_ui->params->rowCount();
+    m_ui->params->insertRow(r);
+
+    QComboBox* param = new QComboBox;
+    param->addItems(rest);
+    param->setCurrentIndex(-1);
+    m_ui->params->setCellWidget(r, 0, param);
+  }
+
+  m_ui->params->resizeColumnToContents(0);
+  //m_ui->params->
+}
+
+void TextureBrowser::paramChanged(QString value) {
+  QWidget* w = qobject_cast<QWidget*>(sender());
+  if (!w || !m_selected || !m_selected->tex()) return;
+  int r = 0;
+  for (; r < m_ui->params->rowCount(); ++r) {
+    if (m_ui->params->cellWidget(r, 1) == w) break;
+  }
+  if (r >= m_ui->params->rowCount()) return;
+
+  QString name = m_ui->params->item(r, 0)->text();
+  m_selected->tex()->setParam(name, value);
+  selected(m_selected, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
