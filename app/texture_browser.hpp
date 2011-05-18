@@ -62,21 +62,32 @@ public:
 
   static TextureBrowser& instance();
 
-  void showEvent(QShowEvent*);
   void paintEvent(QPaintEvent*);
+
+  void show();
 
 public slots:
   void selected(TextureWidget*, bool force = false);
+  void updateContent(ScenePtr s = ScenePtr());
 
 private slots:
   void paramChanged(QString = "");
   void newParam(QString);
+  void newScene(ScenePtr);
+
+  void create();
+  void duplicate();
+  void remove();
+  void load();
 
 private:
   explicit TextureBrowser(QWidget* parent = 0);
   Ui::TextureBrowser *m_ui;
   QTimer* m_timer;
   TextureWidget* m_selected;
+  TexturePtr m_select;
+
+  QAction *m_create, *m_duplicate, *m_destroy, *m_open;
 
   QMap<QString, TextureWidget*> m_textures;
 };

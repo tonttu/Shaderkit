@@ -106,8 +106,32 @@ TextureBrowser::TextureBrowser(QWidget *parent)
   m_ui->setupUi(this);
   m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
 
+  connect(&MainWindow::instance(), SIGNAL(newScene(ScenePtr)),
+          this, SLOT(newScene(ScenePtr)));
+  newScene(MainWindow::instance().scene());
+
+  setAttribute(Qt::WA_DeleteOnClose);
+
+  m_ui->scrollArea->setBackgroundRole(QPalette::Base);
+
+  m_ui->toolbar->layout()->setMargin(0);
+  m_create = m_ui->toolbar->addAction(QIcon(":/icons/new2.png"),
+                                      "New Texture", this, SLOT(create()));
+  m_open = m_ui->toolbar->addAction(QIcon(":/icons/load_texture.png"),
+                         "New Texture from file", this, SLOT(load()));
+  m_ui->toolbar->addSeparator();
+  m_duplicate = m_ui->toolbar->addAction(QIcon(":/icons/duplicate.png"),
+                                         "Duplicate texture", this, SLOT(duplicate()));
+  m_duplicate->setEnabled(false);
+  m_ui->toolbar->addSeparator();
+  m_destroy = m_ui->toolbar->addAction(QIcon(":/icons/delete.png"),
+                                       "Delete", this, SLOT(remove()));
+  m_destroy->setEnabled(false);
+
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->start(100);
+
+  connect(m_ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
 }
 
 TextureBrowser::~TextureBrowser() {
@@ -122,12 +146,15 @@ TextureBrowser& TextureBrowser::instance() {
   return *s_browser;
 }
 
-void TextureBrowser::showEvent(QShowEvent* ev) {
-  QWidget::showEvent(ev);
-  if (!MainWindow::instance().scene()) return;
-  QMap<QString, TexturePtr> textures = MainWindow::instance().scene()->textures();
+void TextureBrowser::updateContent(ScenePtr scene) {
+  if (!scene) scene = MainWindow::instance().scene();
+  if (!scene) return;
+  QMap<QString, TexturePtr> textures = scene->textures();
 
   foreach (QString name, m_textures.keys().toSet() - textures.keys().toSet()) {
+    if (m_selected && m_textures[name] == m_selected) {
+      selected(0);
+    }
     m_textures[name]->deleteLater();
     m_textures.remove(name);
   }
@@ -137,10 +164,19 @@ void TextureBrowser::showEvent(QShowEvent* ev) {
     connect(widget, SIGNAL(select(TextureWidget*)), this, SLOT(selected(TextureWidget*)));
     m_ui->viewport->layout()->addWidget(widget);
     m_textures[name] = widget;
+    if (m_select && widget->tex() == m_select) {
+      selected(widget);
+      m_select.reset();
+    }
   }
 
   foreach (QString name, textures.keys().toSet() & m_textures.keys().toSet()) {
-    m_textures[name]->setTexture(textures[name]);
+    TextureWidget* widget = m_textures[name];
+    widget->setTexture(textures[name]);
+    if (m_select && widget->tex() == m_select) {
+      selected(widget);
+      m_select.reset();
+    }
   }
 
   QMargins m = m_ui->viewport->contentsMargins();
@@ -160,12 +196,31 @@ void TextureBrowser::paintEvent(QPaintEvent* ev) {
   QWidget::paintEvent(ev);
 }
 
+void TextureBrowser::show() {
+  m_ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+  QWidget::show();
+}
+
 void TextureBrowser::selected(TextureWidget* w, bool force) {
   if (m_selected == w && !force) return;
   if (m_selected != w) {
     if (m_selected) m_selected->setSelected(false);
-    w->setSelected(true);
+    if (w) w->setSelected(true);
     m_selected = w;
+  }
+
+  m_ui->params->setRowCount(0);
+
+  if (w) {
+    m_duplicate->setEnabled(true);
+    m_destroy->setEnabled(true);
+  } else {
+    m_duplicate->setEnabled(false);
+    m_destroy->setEnabled(false);
+    m_ui->filename->hide();
+    m_ui->browse->hide();
+    m_ui->name->clear();
+    return;
   }
 
   TexturePtr t = w->tex();
@@ -182,7 +237,6 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
     m_ui->browse->hide();
   }
 
-  m_ui->params->setRowCount(0);
   QMap<QString, Texture::Param> lst = t->paramStrings();
   QSet<QString> used_params;
   for (auto it = lst.begin(); it != lst.end(); ++it) {
@@ -222,8 +276,10 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
     m_ui->params->insertRow(r);
 
     QComboBox* param = new QComboBox;
+    param->addItem("New parameter...");
+    param->insertSeparator(1);
     param->addItems(rest);
-    param->setCurrentIndex(-1);
+    param->setCurrentIndex(0);
     m_ui->params->setCellWidget(r, 0, param);
     m_ui->params->setItem(r, 1, new QTableWidgetItem());
     m_ui->params->item(r, 1)->setFlags(Qt::ItemIsEnabled);
@@ -233,7 +289,6 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   }
 
   m_ui->params->resizeColumnToContents(0);
-  //m_ui->params->
 }
 
 void TextureBrowser::paramChanged(QString value) {
@@ -261,6 +316,58 @@ void TextureBrowser::newParam(QString name) {
   m_selected->gl()->makeCurrent();
   m_selected->tex()->setParam(name, m_selected->tex()->param(name));
   selected(m_selected, true);
+}
+
+void TextureBrowser::newScene(ScenePtr scene) {
+  if (scene) {
+    connect(scene.get(), SIGNAL(textureListUpdated()), this, SLOT(updateContent()));
+  }
+  updateContent(scene);
+}
+
+void TextureBrowser::create() {
+  /// @todo implement
+}
+
+void TextureBrowser::duplicate() {
+  ScenePtr s = MainWindow::scene();
+  if (!s || !m_selected || !m_selected->tex()) return;
+
+  m_select = m_selected->tex()->clone();
+  s->addTexture(m_select);
+}
+
+void TextureBrowser::remove() {
+  ScenePtr s = MainWindow::scene();
+  if (!s || !m_selected || !m_selected->tex()) return;
+  s->remove(m_selected->tex());
+}
+
+/// @todo browse-button
+void TextureBrowser::load() {
+  ScenePtr s = MainWindow::scene();
+  if (!s) return;
+
+  QStringList lst;
+  foreach(QByteArray a, QImageReader::supportedImageFormats())
+    lst << QString("*.%1").arg(QString::fromUtf8(a));
+
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QString dir = settings.value("history/last_import_dir",
+                               settings.value("history/last_dir",
+                               QVariant(QDir::currentPath()))).toString();
+  QString filter = tr("Images (%1)").arg(lst.join(" "));
+  QString file = QFileDialog::getOpenFileName(this, tr("Create a new texture from an image"), dir, filter);
+  if (!file.isEmpty()) {
+    QFileInfo fi(file);
+    settings.setValue("history/last_import_dir", fi.absolutePath());
+
+    TextureFile* tex = new TextureFile(fi.baseName());
+    tex->setFile(file);
+    TexturePtr texp(tex);
+    m_select = texp;
+    s->addTexture(texp);
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -302,7 +409,7 @@ QLayoutItem* FlowLayout::itemAt(int index) const
 
 QLayoutItem* FlowLayout::takeAt(int index)
 {
-  return m_items.takeAt(index);
+  return index < 0 || index >= m_items.size() ? 0 : m_items.takeAt(index);
 }
 
 int FlowLayout::count() const

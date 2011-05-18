@@ -263,6 +263,7 @@ bool MainWindow::openScene(ScenePtr scene) {
     restore();
 
   m_ui->gl_widget->sceneChange(m_scene);
+  emit newScene(m_scene);
 
   resize(sizeHint());
 

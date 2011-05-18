@@ -66,6 +66,8 @@ public:
   MaterialPtr material(const QString& name) const { return m_materials.value(name); }
   TexturePtr genTexture(const QString& name);
 
+  void remove(TexturePtr t);
+
   /// Finds all the shaders with given resource name
   QList<ShaderPtr> shaders(const QString& res);
 

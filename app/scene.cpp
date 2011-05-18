@@ -216,6 +216,14 @@ TexturePtr Scene::genTexture(const QString& name) {
   return tex;
 }
 
+void Scene::remove(TexturePtr t) {
+  /// @todo should iterate all objects etc
+  QStringList tmp = m_textures.keys(t);
+  foreach (QString name, tmp)
+    m_textures.remove(name);
+  if (!tmp.isEmpty()) emit textureListUpdated();
+}
+
 QList<ShaderPtr> Scene::shaders(const QString& res) {
   QList<ShaderPtr> ret;
   foreach (ProgramPtr p, m_programs)
@@ -547,4 +555,5 @@ void Scene::addTexture(TexturePtr t) {
   QString name = Utils::uniqueName(t->name(), m_textures.keys());
   t->setName(name);
   m_textures[name] = t;
+  emit textureListUpdated();
 }

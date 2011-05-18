@@ -101,6 +101,9 @@ public slots:
   /// Does the editor ask for autocompiling the shader after codeChanged().
   bool autoCompileEnabled() const;
 
+signals:
+  void newScene(ScenePtr);
+
 protected:
   void keyPressEvent(QKeyEvent* event);
   void changeEvent(QEvent* e);
