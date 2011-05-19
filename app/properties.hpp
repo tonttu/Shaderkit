@@ -32,6 +32,9 @@ public:
 
   MaterialPtr mat;
   QString name;
+
+protected:
+  UniformVar* getVar();
 };
 
 class FloatEditor : public UEditor {
@@ -51,10 +54,26 @@ private slots:
   void editingFinished();
   void valueChanged(int);
   void reset();
-  UniformVar* getVar();
 
 private:
   QAction* m_reset_action;
+};
+
+class TextureEditor : public UEditor {
+  Q_OBJECT
+
+public:
+  TextureEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
+  virtual ~TextureEditor();
+
+  void updateUI(UniformVar& var);
+
+private slots:
+  void hoverBegin();
+
+private:
+  QLabel* m_texname;
+  TextureWidgetGL* m_icon;
 };
 
 class Properties : public QTreeWidget {

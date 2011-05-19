@@ -601,6 +601,8 @@ void ClearEditor::clicked() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+#if 0
+
 TextureEditor::TextureEditor(RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
@@ -775,7 +777,7 @@ void TexturesEditor::updated(RenderPassPtr pass) {
     m_editors << p;
   }*/
 }
-
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -949,8 +951,8 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
   item = new LightsEditor(sub.item, pass);
   item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
-  item = new TexturesEditor(sub.item, pass);
-  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
+//  item = new TexturesEditor(sub.item, pass);
+//  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
 
 /*  QFontMetrics m(font);
   int w = m.width("Viewport");

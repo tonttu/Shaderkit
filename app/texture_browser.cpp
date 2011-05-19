@@ -91,6 +91,28 @@ int TextureWidgetGL::heightForWidth(int w) const {
   return w;
 }
 
+void TextureWidgetGL::enterEvent(QEvent *e) {
+  QGLWidget::enterEvent(e);
+  if (m_tex) emit hoverBegin();
+}
+
+void TextureWidgetGL::leaveEvent(QEvent *e) {
+  QGLWidget::leaveEvent(e);
+  if (windowFlags().testFlag(Qt::ToolTip))
+    emit hoverEnd();
+}
+
+void TextureWidgetGL::mouseDoubleClickEvent(QMouseEvent* e) {
+  QGLWidget::mouseDoubleClickEvent(e);
+  if (windowFlags().testFlag(Qt::ToolTip)) {
+    QPoint c = mapToGlobal(rect().center());
+    setWindowFlags(Qt::Window);
+    setGeometry(c.x()-96, c.y()-96, 192, 192);
+    show();
+  }
+}
+
+
 TextureWidget::TextureWidget(QWidget* parent, TexturePtr tex)
  : QWidget(parent), m_gl(0), m_tex(tex), m_frame(new QFrame(this)) {
   setLayout(new QVBoxLayout);

@@ -21,8 +21,17 @@ class TextureWidgetGL : public QGLWidget {
 public:
   TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex);
   void setTexture(TexturePtr tex);
+  TexturePtr tex() const { return m_tex; }
 
   int heightForWidth(int w) const;
+
+  void enterEvent(QEvent* e);
+  void leaveEvent(QEvent* e);
+  void mouseDoubleClickEvent(QMouseEvent* e);
+
+signals:
+  void hoverBegin();
+  void hoverEnd();
 
 protected:
   void initializeGL();

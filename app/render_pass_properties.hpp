@@ -175,7 +175,7 @@ protected:
   QAction* m_stencil;
 };
 
-class TextureEditor : public QWidget {
+/*class TextureEditor : public QWidget {
   Q_OBJECT
 
 public:
@@ -213,7 +213,7 @@ public slots:
 protected:
   RenderPassPtr m_pass;
   QList<QPair<QTreeWidgetItem*, TextureEditor*>> m_editors;
-};
+};*/
 
 
 /**

@@ -24,6 +24,8 @@
 #include "scene.hpp"
 #include "mainwindow.hpp"
 #include "utils.hpp"
+#include "texture_browser.hpp"
+#include "glwidget.hpp"
 
 #include <cassert>
 
@@ -74,6 +76,15 @@ UEditor::UEditor(QTableWidget* w, int row, MaterialPtr mat_, UniformVar& var)
    name(var.name()) {
   setFlags(flags() & ~Qt::ItemIsSelectable);
   w->insertRow(row);
+}
+
+UniformVar* UEditor::getVar() {
+  UniformVar::List& list = mat->uniformList();
+  for (int i = 0; i < list.size(); ++i) {
+    if (list[i].name() == name)
+      return &list[i];
+  }
+  return 0;
 }
 
 FloatEditor::FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
@@ -152,14 +163,82 @@ void FloatEditor::reset() {
   }
 }
 
-UniformVar* FloatEditor::getVar() {
-  UniformVar::List& list = mat->uniformList();
-  for (int i = 0; i < list.size(); ++i) {
-    if (list[i].name() == name)
-      return &list[i];
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+class ARLayout : public QHBoxLayout {
+public:
+  void setGeometry(const QRect& r) {
+    if (count() == 2) {
+      QLayout::setGeometry(r);
+
+      QRect geom = r;
+      geom.setWidth(r.height());
+      itemAt(0)->setGeometry(geom);
+
+      geom.translate(r.height()+6, 0);
+      geom.setWidth(r.width() - r.height() - 6);
+      itemAt(1)->setGeometry(geom);
+    } else {
+      QHBoxLayout::setGeometry(r);
+    }
   }
-  return 0;
+};
+
+TextureEditor::TextureEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
+  : UEditor(w, row, mat, var) {
+
+  QWidget* container = new QWidget;
+  m_texname = new QLabel(container);
+
+  GLWidget* s = MainWindow::instance().glwidget();
+  assert(s);
+  m_icon = new TextureWidgetGL(container, s, TexturePtr());
+  m_icon->setMinimumSize(24, 24);
+
+  connect(m_icon, SIGNAL(hoverBegin()), this, SLOT(hoverBegin()));
+
+  QHBoxLayout* lo = new ARLayout;
+  container->setLayout(lo);
+  lo->setMargin(0);
+  lo->addWidget(m_icon);
+  lo->addWidget(m_texname);
+
+  w->setItem(row, 1, new QTableWidgetItem(var.name()));
+  w->setCellWidget(row, 2, container);
+  w->setSpan(row, 2, 1, 2);
 }
+
+TextureEditor::~TextureEditor() {
+}
+
+void TextureEditor::updateUI(UniformVar& var) {
+  TexturePtr tex = mat->texture(var.name());
+  m_icon->setTexture(tex);
+  QString n = tex ? tex->name() : "";
+  m_texname->setText(n);
+}
+
+void TextureEditor::hoverBegin() {
+  QPoint point = m_icon->mapToGlobal(m_icon->rect().center());
+
+  QWidget* w = QApplication::widgetAt(point);
+  if (w && w != m_icon) return;
+
+  TextureWidgetGL* zoom = new TextureWidgetGL(0, m_icon, m_icon->tex());
+  zoom->setWindowFlags(Qt::ToolTip | Qt::BypassGraphicsProxyWidget);
+  zoom->setAttribute(Qt::WA_DeleteOnClose);
+  zoom->setWindowTitle(QString("%1 - GLSL Lab").arg(m_icon->tex()->name()));
+
+  connect(zoom, SIGNAL(hoverEnd()), zoom, SLOT(deleteLater()));
+
+  zoom->setGeometry(point.x()-64, point.y()-64, 128, 128);
+  zoom->show();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 
 MaterialProperties* MaterialProperties::s_instance = 0;
 //FileList* FileList::s_instance = 0;
@@ -414,6 +493,8 @@ UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {
       return new FloatEditor(this, r, mat, var);
+    } else if (type.type == GL_SAMPLER_2D) {
+      return new TextureEditor(this, r, mat, var);
     } else {
       /// @todo implement
     }
@@ -491,7 +572,7 @@ bool MaterialProperties::viewportEvent(QEvent* event) {
     QMouseEvent* me = static_cast<QMouseEvent*>(event);
     int r = rowAt(me->pos().y());
     if (r != m_hover_row) {
-      Log::info("%d", r);
+      //Log::info("%d", r);
       m_hover_row = r;
     }
   }
