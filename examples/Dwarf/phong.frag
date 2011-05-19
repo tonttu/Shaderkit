@@ -3,7 +3,7 @@
 
 precision highp float;
 
-uniform sampler2D dwarf;
+uniform sampler2D diffuse_tex;
 
 uniform float shininess = 20.0;
 uniform float specular_light = 0.1;
@@ -28,7 +28,7 @@ out vec4 color;
 void main() {
   color = ambient;
   vec3 surface_unit = normalize(surface_normal);
-  vec4 tex = texture2D(dwarf, uv);
+  vec4 tex = texture2D(diffuse_tex, uv);
   vec3 eye_unit = normalize(eye);
 
   for (int light = 0; light < LIGHTS; light++) {

@@ -62,12 +62,6 @@ namespace {
 
     bool m_hover;
   };
-
-  class LineEdit : public QLineEdit {
-  public:
-    QSize sizeHint() const { return m_size_hint; }
-    QSize m_size_hint;
-  };
 }
 
 UEditor::UEditor(QTableWidget* w, int row, MaterialPtr mat_, UniformVar& var)
@@ -89,7 +83,7 @@ UniformVar* UEditor::getVar() {
 
 FloatEditor::FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
   : UEditor(w, row, mat, var),
-    edit(new LineEdit),
+    edit(new QLineEdit),
     slider(new QSlider(Qt::Horizontal)),
     min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min()),
     m_reset_action(new QAction("Reset", slider)) {
@@ -98,8 +92,6 @@ FloatEditor::FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& 
   slider->setContextMenuPolicy(Qt::ActionsContextMenu);
   slider->addAction(m_reset_action);
 
-  QFontMetrics m(edit->font());
-  ((LineEdit*)edit)->m_size_hint = QSize(m.width("888.888"), m.height());
   edit->setFrame(false);
 
   w->setItem(row, 1, new QTableWidgetItem(var.name()));
@@ -166,25 +158,6 @@ void FloatEditor::reset() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-class ARLayout : public QHBoxLayout {
-public:
-  void setGeometry(const QRect& r) {
-    if (count() == 2) {
-      QLayout::setGeometry(r);
-
-      QRect geom = r;
-      geom.setWidth(r.height());
-      itemAt(0)->setGeometry(geom);
-
-      geom.translate(r.height()+6, 0);
-      geom.setWidth(r.width() - r.height() - 6);
-      itemAt(1)->setGeometry(geom);
-    } else {
-      QHBoxLayout::setGeometry(r);
-    }
-  }
-};
-
 TextureEditor::TextureEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
   : UEditor(w, row, mat, var) {
 
@@ -195,18 +168,13 @@ TextureEditor::TextureEditor(QTableWidget* w, int row, MaterialPtr mat, UniformV
   assert(s);
   m_icon = new TextureWidgetGL(container, s, TexturePtr());
   m_icon->setMinimumSize(24, 24);
+  m_icon->setMaximumSize(24, 24);
 
   connect(m_icon, SIGNAL(hoverBegin()), this, SLOT(hoverBegin()));
 
-  QHBoxLayout* lo = new ARLayout;
-  container->setLayout(lo);
-  lo->setMargin(0);
-  lo->addWidget(m_icon);
-  lo->addWidget(m_texname);
-
   w->setItem(row, 1, new QTableWidgetItem(var.name()));
-  w->setCellWidget(row, 2, container);
-  w->setSpan(row, 2, 1, 2);
+  w->setCellWidget(row, 2, m_icon);
+  w->setCellWidget(row, 3, m_texname);
 }
 
 TextureEditor::~TextureEditor() {
@@ -214,8 +182,9 @@ TextureEditor::~TextureEditor() {
 
 void TextureEditor::updateUI(UniformVar& var) {
   TexturePtr tex = mat->texture(var.name());
+
   m_icon->setTexture(tex);
-  QString n = tex ? tex->name() : "";
+  QString n = tex ? tex->name() : "<i>texture not found</i>";
   m_texname->setText(n);
 }
 
@@ -258,7 +227,6 @@ MaterialProperties::Sub::~Sub() {
 
 Properties::Properties(QWidget* parent)
   : QTreeWidget(parent) {
-//  setResizeMode(Interactive);
 }
 
 MaterialProperties::MaterialProperties(QWidget* parent)
@@ -266,12 +234,11 @@ MaterialProperties::MaterialProperties(QWidget* parent)
     m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
     m_hover_row(-1) {
   if (!s_instance) s_instance = this;
-  //setColumnWidth(0, 90);
-  //setColumnWidth(1, 45);
 
   verticalHeader()->hide();
   horizontalHeader()->hide();
   horizontalHeader()->setStretchLastSection(true);
+
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
   connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
           this, SLOT(itemSelected(QTableWidgetItem*)));
@@ -308,6 +275,8 @@ void MaterialProperties::init() {
                             this, SLOT(remove()));
 
   m_edit->setDisabled(true);
+
+  ensurePolished();
 
   selectionChanged();
 }
@@ -346,9 +315,13 @@ void MaterialProperties::update(MaterialPtr mat) {
   sub.item->setText(QString(t == 1 ? "%1 - %2 - %3 texture" : "%1 - %2 - %3 textures").
                     arg(mat->name()).arg(progname).arg(t));
 
-  resizeColumnsToContents();
-  setColumnWidth(0, 20);
-  resizeRowsToContents();
+  horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  horizontalHeader()->setResizeMode(1, QHeaderView::ResizeToContents);
+  QFontMetrics m(font());
+  setColumnWidth(2, m.width("888.888"));
+
+  verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+
 
   QSet<QString> names;
   foreach (UniformVar var, list) {

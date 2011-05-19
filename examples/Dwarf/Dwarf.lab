@@ -65,7 +65,7 @@
     "Axe" : {
       "ref" : ["dwarf", "Material0"],
       "textures" : {
-        "axe" : "axe"
+        "diffuse_tex" : "axe"
       },
       "fragment" : ["phong.frag"],
       "vertex" : ["phong.vert"]
@@ -73,7 +73,7 @@
     "White" : {
       "ref" : ["dwarf", "Material1"],
       "textures" : {
-        "dwarf" : "dwarf-white"
+        "diffuse_tex" : "dwarf-white"
       },
       "fragment" : ["phong.frag"],
       "vertex" : ["phong2.vert"]
@@ -81,7 +81,7 @@
     "Black" : {
       "ref" : ["dwarf", "Material2"],
       "textures" : {
-        "dwarf" : "dwarf-black"
+        "diffuse_tex" : "dwarf-black"
       },
       "fragment" : ["phong.frag"],
       "vertex" : ["phong2.vert"]
