@@ -14,6 +14,13 @@ void Material::addTexture(QString name, TexturePtr tex) {
   m_textures[Utils::uniqueName(name, m_textures.keys())] = tex;
 }
 
+void Material::removeTexture(TexturePtr tex) {
+  for (auto it = m_textures.begin(); it != m_textures.end();) {
+    if (*it == tex) it = m_textures.erase(it);
+    else ++it;
+  }
+}
+
 Material::Colors::Colors()
   : diffuse(0.8f, 0.8f, 0.8f),
     specular(1.0f, 1.0f, 1.0f),

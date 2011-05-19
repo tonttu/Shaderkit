@@ -36,11 +36,16 @@ public:
 
   QString role() const { return m_role; }
 
+  int width() const { return m_width; }
+  int height() const { return m_height; }
+
   /// Is this a "texture", "renderbuffer" or what
   virtual QString imageClass() const = 0;
 
   virtual QVariantMap save() const;
   virtual void load(QVariantMap);
+
+  unsigned int id() const { return m_id; }
 
 protected:
   QString m_role;

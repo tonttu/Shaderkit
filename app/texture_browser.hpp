@@ -2,6 +2,7 @@
 #define TEXTURE_BROWSER_HPP
 
 #include "forward.hpp"
+#include "buffer_object.hpp"
 
 #include <QDialog>
 #include <QMap>
@@ -27,6 +28,8 @@ protected:
   void resizeGL(int w, int h);
 
 private:
+  /// @todo this could be shared between all texture widgets..
+  BufferObject m_vertices, m_uv0;
   TexturePtr m_tex;
 };
 
@@ -80,8 +83,14 @@ private slots:
   void remove();
   void load();
 
+  void filenameChanged();
+  void browse();
+
 private:
   explicit TextureBrowser(QWidget* parent = 0);
+
+  QString selectFile(QString tip);
+
   Ui::TextureBrowser *m_ui;
   QTimer* m_timer;
   TextureWidget* m_selected;

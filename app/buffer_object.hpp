@@ -51,7 +51,7 @@ public:
 
   BufferObject& operator=(const BufferObject& obj);
 
-  void enableArray(State& state, GLenum cap, int components, std::vector<float>& data);
+  void enableArray(State& state, GLenum cap, int components, const void* data, size_t len);
   void enableArray(State& state, GLenum cap, int components);
 
   void bind(State& state, GLenum target, const void* data, size_t len);
@@ -62,9 +62,21 @@ public:
     bind(state, target, &data.front(), data.size()*sizeof(data.front()));
   }
 
+  template <typename T>
+  void enableArray(State& state, GLenum cap, int components, const std::vector<T>& data) {
+    enableArray(state, cap, components, &data.front(), data.size()*sizeof(data.front()));
+  }
+
+  template <typename T>
+  void enableArray(State& state, GLenum cap, int components, size_t points, const T* data) {
+    enableArray(state, cap, components, data, components * points * sizeof(T));
+  }
+
   /// @todo use state
   void bind(/*State& state, */ GLenum target, GLenum hint, size_t size);
   void unbind();
+
+  void setCache(bool v) { m_use_cache = v; }
 
   size_t size() const { return m_cache_size; }
 
@@ -75,6 +87,7 @@ private:
   unsigned int m_id;
   GLenum m_target;
   size_t m_cache_size;
+  bool m_use_cache;
 };
 
 #endif // BUFFER_OBJECT_HPP

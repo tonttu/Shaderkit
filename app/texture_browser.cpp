@@ -4,6 +4,7 @@
 #include "mainwindow.hpp"
 #include "scene.hpp"
 #include "texture.hpp"
+#include "state.hpp"
 
 #include <QDebug>
 
@@ -16,6 +17,8 @@ namespace {
 
 TextureWidgetGL::TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex)
   : QGLWidget(parent, shared), m_tex(tex) {
+  m_vertices.setCache(false);
+  m_uv0.setCache(false);
 }
 
 void TextureWidgetGL::setTexture(TexturePtr tex) {
@@ -28,23 +31,40 @@ void TextureWidgetGL::initializeGL() {
 
 void TextureWidgetGL::paintGL() {
   glCheck("TextureWidgetGL #1");
+
+  bool clip_mode = true;
+
+  float ar = m_tex->width() / float(m_tex->height());
+  float w = 1.0f, h = 1.0f;
+  if (ar >= 1.0f) {
+    h = w / ar;
+  } else {
+    w = h * ar;
+  }
+
+  if (clip_mode && std::fabs(ar - 1.0f) > 0.0001f) {
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
+
+  float full[] = {0,0, 1,0, 1,1, 0,1};
+
+  float xa = (1-w)/2, xb = (1+w)/2,
+        ya = (1-h)/2, yb = (1+h)/2;
+  float clipped[] = {xa,ya, xb,ya, xb,yb, xa,yb};
+
+  xa = -(1-w)/(2*w), xb = 1+(1-w)/(2*w),
+  ya = -(1-h)/(2*h), yb = 1+(1-h)/(2*h);
+  float wrap[] = {xa,ya, xb,ya, xb,yb, xa,yb};
+
+  float * vertices = clip_mode ? clipped : full;
+  float * uvs = clip_mode ? full : wrap;
+
+  State state(0);
+  m_vertices.enableArray(state, GL_VERTEX_ARRAY, 2, 4, vertices);
+  m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, 2, 4, uvs);
   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
   m_tex->bind();
-  glBegin(GL_QUADS);
-
-  glTexCoord2f(0.0f, 0.0f);
-  glVertex2f(0.0f, 0.0f);
-
-  glTexCoord2f(1.0f, 0.0f);
-  glVertex2f(1.0f, 0.0f);
-
-  glTexCoord2f(1.0f, 1.0f);
-  glVertex2f(1.0f, 1.0f);
-
-  glTexCoord2f(0.0f, 1.0f);
-  glVertex2f(0.0f, 1.0f);
-
-  glEnd();
+  glDrawArrays(GL_QUADS, 0, 4);
   glCheck("TextureWidgetGL #2");
 }
 
@@ -128,6 +148,9 @@ TextureBrowser::TextureBrowser(QWidget *parent)
                                        "Delete", this, SLOT(remove()));
   m_destroy->setEnabled(false);
 
+  connect(m_ui->filename, SIGNAL(editingFinished()), this, SLOT(filenameChanged()));
+  connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
+
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->start(100);
 
@@ -199,6 +222,7 @@ void TextureBrowser::paintEvent(QPaintEvent* ev) {
 void TextureBrowser::show() {
   m_ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
   QWidget::show();
+  updateContent();
 }
 
 void TextureBrowser::selected(TextureWidget* w, bool force) {
@@ -220,6 +244,7 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
     m_ui->filename->hide();
     m_ui->browse->hide();
     m_ui->name->clear();
+    m_ui->sizeinfo->clear();
     return;
   }
 
@@ -227,6 +252,8 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   TextureFile* tf = dynamic_cast<TextureFile*>(t.get());
 
   m_ui->name->setText(t->name());
+  m_ui->sizeinfo->setText(QString("Texture #%1 %2x%3 %4").arg(t->id()).
+                          arg(t->width()).arg(t->height()).arg(t->internalFormatStr()));
 
   if (tf) {
     m_ui->filename->setText(tf->file());
@@ -343,10 +370,37 @@ void TextureBrowser::remove() {
   s->remove(m_selected->tex());
 }
 
-/// @todo browse-button
 void TextureBrowser::load() {
+  QString file = selectFile(tr("Create a new texture from an image"));
+  if (!file.isEmpty()) {
+    QFileInfo fi(file);
+
+    TextureFile* tex = new TextureFile(fi.baseName());
+    tex->setFile(file);
+    TexturePtr texp(tex);
+    m_select = texp;
+    MainWindow::scene()->addTexture(texp);
+  }
+}
+
+void TextureBrowser::filenameChanged() {
+  if (!m_selected) return;
+  TextureFile* tf = dynamic_cast<TextureFile*>(m_selected->tex().get());
+  if (!tf || tf->file() == m_ui->filename->text()) return;
+  tf->setFile(m_ui->filename->text());
+}
+
+void TextureBrowser::browse() {
+  QString file = selectFile(tr("Select an image"));
+  if (!file.isEmpty()) {
+    m_ui->filename->setText(file);
+    filenameChanged();
+  }
+}
+
+QString TextureBrowser::selectFile(QString tip) {
   ScenePtr s = MainWindow::scene();
-  if (!s) return;
+  if (!s) return "";
 
   QStringList lst;
   foreach(QByteArray a, QImageReader::supportedImageFormats())
@@ -356,18 +410,20 @@ void TextureBrowser::load() {
   QString dir = settings.value("history/last_import_dir",
                                settings.value("history/last_dir",
                                QVariant(QDir::currentPath()))).toString();
+  /*if (m_selected) {
+    TextureFile* tf = dynamic_cast<TextureFile*>(m_selected->tex().get());
+    if (tf) {
+      QFileInfo fi(tf->file());
+      dir = fi.absolutePath();
+    }
+  }*/
   QString filter = tr("Images (%1)").arg(lst.join(" "));
-  QString file = QFileDialog::getOpenFileName(this, tr("Create a new texture from an image"), dir, filter);
+  QString file = QFileDialog::getOpenFileName(this, tip, dir, filter);
   if (!file.isEmpty()) {
     QFileInfo fi(file);
     settings.setValue("history/last_import_dir", fi.absolutePath());
-
-    TextureFile* tex = new TextureFile(fi.baseName());
-    tex->setFile(file);
-    TexturePtr texp(tex);
-    m_select = texp;
-    s->addTexture(texp);
   }
+  return file;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -375,8 +431,8 @@ void TextureBrowser::load() {
 
 FlowLayout::FlowLayout(QWidget* parent) : QLayout(parent)
 {
-  m_itemsize = QSizeF(192.0f, 108.0f);
-  m_minHeight = m_itemsize.height()*2 + spacing()*3;
+  m_itemsize = QSizeF(150.0f, 150.0f);
+  m_minHeight = m_itemsize.height() + spacing()*2;
 }
 
 FlowLayout::~FlowLayout()

@@ -1,11 +1,11 @@
 #include "buffer_object.hpp"
 #include "state.hpp"
 
-BufferObject::BufferObject() : m_id(0), m_target(0), m_cache_size(0) {
+BufferObject::BufferObject() : m_id(0), m_target(0), m_cache_size(0), m_use_cache(true) {
 }
 
 BufferObject::BufferObject(const BufferObject& obj)
-  : m_id(0), m_target(obj.m_target), m_cache_size(0) {
+  : m_id(0), m_target(obj.m_target), m_cache_size(0), m_use_cache(true) {
 }
 
 BufferObject::~BufferObject() {
@@ -18,6 +18,7 @@ BufferObject::~BufferObject() {
 BufferObject& BufferObject::operator=(const BufferObject& obj) {
   m_id = 0;
   m_cache_size = 0;
+  m_use_cache = obj.m_use_cache;
   m_target = obj.m_target;
   return *this;
 }
@@ -39,8 +40,8 @@ void BufferObject::enableArray(State& state, GLenum cap, int components) {
 }
 
 void BufferObject::enableArray(State& state, GLenum cap, int components,
-                               std::vector<float>& data) {
-  bind(state, GL_ARRAY_BUFFER, data);
+                               const void* data, size_t len) {
+  bind(state, GL_ARRAY_BUFFER, data, len);
   enableArray(state, cap, components);
 }
 
@@ -57,7 +58,7 @@ void BufferObject::bind(State& state, GLenum target) {
 void BufferObject::bind(State& state, GLenum target, const void* data, size_t len) {
   bind(state, target);
 
-  if (len > 0 && m_cache_size != len) {
+  if (len > 0 && (!m_use_cache || m_cache_size != len)) {
     glRun(glBufferData(target, len, data, GL_STATIC_DRAW));
     m_cache_size = len;
   }
@@ -66,7 +67,7 @@ void BufferObject::bind(State& state, GLenum target, const void* data, size_t le
 void BufferObject::bind(/*State& state, */ GLenum target, GLenum hint, size_t len) {
   State state(0);
   bind(state, target);
-  if (len > 0 && m_cache_size != len) {
+  if (len > 0 && (!m_use_cache || m_cache_size != len)) {
     glRun(glBufferData(target, len, 0, hint));
     m_cache_size = len;
   }

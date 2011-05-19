@@ -217,7 +217,9 @@ TexturePtr Scene::genTexture(const QString& name) {
 }
 
 void Scene::remove(TexturePtr t) {
-  /// @todo should iterate all objects etc
+  foreach (auto m, m_materials)
+    m->removeTexture(t);
+
   QStringList tmp = m_textures.keys(t);
   foreach (QString name, tmp)
     m_textures.remove(name);

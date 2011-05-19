@@ -31,12 +31,17 @@
   s_enums[spname] = pname, target << spname
 #define D2(pname, target) D2_(GL_##pname, QString::fromAscii(#pname), target)
 
+#define I_(e, name) s_internalFormats[e] = #name, s_internalFormatsStr[#name] = e
+#define I(name) I_(GL_##name, name)
+
 namespace {
   QMap<GLenum, QString> s_names;
   QMap<QString, GLenum> s_enums;
   QMap<QString, QStringList> s_choices;
   QSet<QString> s_ints;
   QSet<QString> s_floats;
+  QMap<int, QString> s_internalFormats;
+  QMap<QString, int> s_internalFormatsStr;
 
   void s_init() {
     if (s_names.isEmpty()) {
@@ -96,6 +101,71 @@ namespace {
       D2(GENERATE_MIPMAP, s_ints); // actually a bool
 
       assert(s_names.size() == s_enums.size());
+
+      I(ALPHA);
+      I(ALPHA4);
+      I(ALPHA8);
+      I(ALPHA12);
+      I(ALPHA16);
+      I(COMPRESSED_ALPHA);
+      I(COMPRESSED_LUMINANCE);
+      I(COMPRESSED_LUMINANCE_ALPHA);
+      I(COMPRESSED_INTENSITY);
+      I(COMPRESSED_RGB);
+      I(COMPRESSED_RGBA);
+      I(DEPTH_COMPONENT);
+      I(DEPTH_COMPONENT16);
+      I(DEPTH_COMPONENT24);
+      I(DEPTH_COMPONENT32);
+      I(LUMINANCE);
+      I(LUMINANCE4);
+      I(LUMINANCE8);
+      I(LUMINANCE12);
+      I(LUMINANCE16);
+      I(LUMINANCE_ALPHA);
+      I(LUMINANCE4_ALPHA4);
+      I(LUMINANCE6_ALPHA2);
+      I(LUMINANCE8_ALPHA8);
+      I(LUMINANCE12_ALPHA4);
+      I(LUMINANCE12_ALPHA12);
+      I(LUMINANCE16_ALPHA16);
+      I(INTENSITY);
+      I(INTENSITY4);
+      I(INTENSITY8);
+      I(INTENSITY12);
+      I(INTENSITY16);
+      I(R3_G3_B2);
+      I(RGB);
+      I(RGB4);
+      I(RGB5);
+      I(RGB8);
+      I(RGB10);
+      I(RGB12);
+      I(RGB16);
+      I(RGBA);
+      I(RGBA2);
+      I(RGBA4);
+      I(RGB5_A1);
+      I(RGBA8);
+      I(RGB10_A2);
+      I(RGBA12);
+      I(RGBA16);
+      I(SLUMINANCE);
+      I(SLUMINANCE8);
+      I(SLUMINANCE_ALPHA);
+      I(SLUMINANCE8_ALPHA8);
+      I(SRGB);
+      I(SRGB8);
+      I(SRGB_ALPHA);
+      I(SRGB8_ALPHA8);
+
+      assert(s_internalFormats.size() == s_internalFormatsStr.size());
+
+      // these are correct, right?
+      s_internalFormats[1] = "LUMINANCE",
+      s_internalFormats[2] = "LUMINANCE_ALPHA";
+      s_internalFormats[3] = "GL_RGB";
+      s_internalFormats[4] = "GL_RGBA";
     }
   }
 }
@@ -105,7 +175,7 @@ namespace {
 #undef D
 
 Texture::Texture(QString name)
-  : FBOImage(name), m_bindedTexture(0),
+  : FBOImage(name), m_bindedTexture(0), m_internalFormat(0),
     m_blend(1.0), m_uv(1), m_paramsDirty(false) {
   s_init();
   setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -271,11 +341,13 @@ void Texture::setup(unsigned int fbo, int width, int height) {
     if (m_type == GL_DEPTH_ATTACHMENT) {
       glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, GL_DEPTH_COMPONENT24, width, height,
                          0 /* border */, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL /* data */));
+      m_internalFormat = GL_DEPTH_COMPONENT24;
     } else if (m_type == GL_STENCIL_ATTACHMENT) {
       /// @todo implement
     } else {
       glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, GL_RGBA8, width, height,
                          0 /* border */, GL_RGBA, GL_UNSIGNED_BYTE, NULL /* data */));
+      m_internalFormat = GL_RGBA8;
     }
 
     applyParams();
@@ -390,6 +462,10 @@ void Texture::load(QVariantMap map) {
     if (map.contains(pname)) setParam(s_enums[pname], map[pname].toFloat());
 }
 
+QString Texture::internalFormatStr() const {
+  return s_internalFormats.value(m_internalFormat);
+}
+
 TexturePtr TextureFile::clone() const {
   TextureFile* t = new TextureFile(*this);
   t->m_id = 0;
@@ -429,6 +505,7 @@ void TextureFile::bind(int texture) {
                  QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
         m_width = image.width();
         m_height = image.height();
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_internalFormat);
         applyParams();
         Log::info("Image %s, #%d %dx%d", m_file.toUtf8().data(), m_id, m_width, m_height);
       }

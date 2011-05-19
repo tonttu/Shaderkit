@@ -18,6 +18,7 @@ public:
   Material(QString name);
 
   void addTexture(QString name, TexturePtr tex);
+  void removeTexture(TexturePtr tex);
 
   struct Colors {
     Colors();

@@ -66,11 +66,15 @@ public:
   virtual QVariantMap save() const;
   virtual void load(QVariantMap map);
 
+  int internalFormat() const { return m_internalFormat; }
+  QString internalFormatStr() const;
+
 protected:
   void applyParams();
 
   QMap<unsigned int, Param> m_params;
   unsigned int m_bindedTexture;
+  int m_internalFormat;
   float m_blend;
   int m_uv;
   bool m_paramsDirty;
