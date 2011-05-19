@@ -23,6 +23,34 @@
 
 #include <QVariantMap>
 
+class QTimer;
+
+/// Signals when OpenGL texture was changed, so for example this isn't emitted
+/// on setParam but only on applyParams
+class TextureChangeManager : public QObject {
+  Q_OBJECT
+
+public:
+  virtual ~TextureChangeManager();
+
+  static void listen(TexturePtr texture, QObject* listener, std::function<void ()> func);
+  static void forget(TexturePtr texture, QObject* listener);
+
+  static void changed(Texture* tex);
+  static void removed(Texture* tex);
+
+private slots:
+  void listenerDeleted(QObject*);
+  void run();
+
+private:
+  TextureChangeManager();
+  typedef QList<std::pair<QObject*, std::function<void ()>>> List;
+  QMap<Texture*, List> m_callbacks;
+  QSet<Texture*> m_queue;
+  QTimer* m_timer;
+};
+
 class Texture : public FBOImage {
 public:
   enum ParamType { UNKNOWN, ENUM, INT, FLOAT };
@@ -68,6 +96,8 @@ public:
 
   int internalFormat() const { return m_internalFormat; }
   QString internalFormatStr() const;
+
+  void dataUpdated();
 
 protected:
   void applyParams();

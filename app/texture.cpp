@@ -168,11 +168,90 @@ namespace {
       s_internalFormats[4] = "GL_RGBA";
     }
   }
+
+  TextureChangeManager* s_instance = 0;
 }
 #undef D2_
 #undef D2
 #undef D_
 #undef D
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+TextureChangeManager::TextureChangeManager() : m_timer(new QTimer(this)) {
+  assert(!s_instance);
+  m_timer->start(100);
+  connect(m_timer, SIGNAL(timeout()), this, SLOT(run()));
+}
+
+TextureChangeManager::~TextureChangeManager() {
+}
+
+void TextureChangeManager::listen(TexturePtr texture, QObject* listener, std::function<void ()> func) {
+  if (!s_instance) s_instance = new TextureChangeManager;
+  s_instance->m_callbacks[texture.get()] << std::make_pair(listener, func);
+  connect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
+}
+
+void TextureChangeManager::forget(TexturePtr texture, QObject* listener) {
+  if (!s_instance) return;
+  auto it = s_instance->m_callbacks.find(texture.get());
+  for (auto it2 = it->begin(); it2 != it->end(); ) {
+    if (it2->first == listener) it2 = it->erase(it2);
+    else ++it2;
+  }
+  if (it->isEmpty()) it = s_instance->m_callbacks.erase(it);
+  if (s_instance->m_callbacks.isEmpty()) {
+    s_instance->deleteLater();
+    s_instance = 0;
+  }
+}
+
+void TextureChangeManager::changed(Texture* tex) {
+  if (!s_instance) return;
+  s_instance->m_queue << tex;
+}
+
+void TextureChangeManager::removed(Texture* tex) {
+  if (!s_instance) return;
+  s_instance->m_callbacks.remove(tex);
+  if (s_instance->m_callbacks.isEmpty()) {
+    s_instance->deleteLater();
+    s_instance = 0;
+  }
+}
+
+void TextureChangeManager::listenerDeleted(QObject* obj) {
+  assert(s_instance == this);
+  for (auto it = m_callbacks.begin(); it != m_callbacks.end();) {
+    for (auto it2 = it->begin(); it2 != it->end(); ) {
+      if (it2->first == obj) it2 = it->erase(it2);
+      else ++it2;
+    }
+    if (it->isEmpty()) it = m_callbacks.erase(it);
+    else ++it;
+  }
+  if (m_callbacks.isEmpty()) {
+    deleteLater();
+    s_instance = 0;
+  }
+}
+
+void TextureChangeManager::run() {
+  assert(s_instance == this);
+  foreach (Texture* tex, m_queue) {
+    auto it = m_callbacks.find(tex);
+    if (it != m_callbacks.end()) {
+      for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+        it2->second();
+    }
+  }
+  m_queue.clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 Texture::Texture(QString name)
   : FBOImage(name), m_bindedTexture(0), m_internalFormat(0),
@@ -185,6 +264,7 @@ Texture::Texture(QString name)
 }
 
 Texture::~Texture() {
+  TextureChangeManager::removed(this);
   if (m_id)
     glDeleteTextures(1, &m_id);
   m_id = 0;
@@ -372,6 +452,7 @@ void Texture::applyParams() {
       glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
   }
   m_paramsDirty = false;
+  TextureChangeManager::changed(this);
 }
 
 TextureFile::TextureFile(QString name) : Texture(name) {}
@@ -385,6 +466,7 @@ TexturePtr Texture::clone() const {
   t->m_id = 0;
   t->m_fbos.clear();
   t->m_bindedTexture = 0;
+  t->m_paramsDirty = true;
   return t;
 }
 
@@ -466,11 +548,16 @@ QString Texture::internalFormatStr() const {
   return s_internalFormats.value(m_internalFormat);
 }
 
+void Texture::dataUpdated() {
+  TextureChangeManager::changed(this);
+}
+
 TexturePtr TextureFile::clone() const {
   TextureFile* t = new TextureFile(*this);
   t->m_id = 0;
   t->m_fbos.clear();
   t->m_bindedTexture = 0;
+  t->m_paramsDirty = true;
   t->m_loadedFile.clear();
   return TexturePtr(t);
 }

@@ -47,6 +47,8 @@ public:
 
   unsigned int id() const { return m_id; }
 
+  virtual void dataUpdated();
+
 protected:
   QString m_role;
 

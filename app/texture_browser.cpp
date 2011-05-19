@@ -19,9 +19,13 @@ TextureWidgetGL::TextureWidgetGL(QWidget* parent, const QGLWidget* shared, Textu
   : QGLWidget(parent, shared), m_tex(tex) {
   m_vertices.setCache(false);
   m_uv0.setCache(false);
+  if (tex) TextureChangeManager::listen(tex, this, std::bind(&TextureWidgetGL::updateGL, this));
 }
 
 void TextureWidgetGL::setTexture(TexturePtr tex) {
+  if (tex == m_tex) return;
+  if (tex) TextureChangeManager::listen(tex, this, std::bind(&TextureWidgetGL::updateGL, this));
+  if (m_tex) TextureChangeManager::forget(m_tex, this);
   m_tex = tex;
 }
 
@@ -31,6 +35,11 @@ void TextureWidgetGL::initializeGL() {
 
 void TextureWidgetGL::paintGL() {
   glCheck("TextureWidgetGL #1");
+
+  if (!m_tex) {
+    glClear(GL_COLOR_BUFFER_BIT);
+    return;
+  }
 
   bool clip_mode = true;
 
@@ -77,6 +86,11 @@ void TextureWidgetGL::resizeGL(int w, int h) {
   glLoadIdentity();
 }
 
+int TextureWidgetGL::heightForWidth(int w) const {
+  //if (m_tex) return w *  m_tex->height() / m_tex->width();
+  return w;
+}
+
 TextureWidget::TextureWidget(QWidget* parent, TexturePtr tex)
  : QWidget(parent), m_gl(0), m_tex(tex), m_frame(new QFrame(this)) {
   setLayout(new QVBoxLayout);
@@ -121,7 +135,6 @@ void TextureWidget::mouseReleaseEvent(QMouseEvent* ev) {
 TextureBrowser::TextureBrowser(QWidget *parent)
   : QWidget(parent),
     m_ui(new Ui::TextureBrowser),
-    m_timer(new QTimer(this)),
     m_selected(0) {
   m_ui->setupUi(this);
   m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
@@ -150,9 +163,6 @@ TextureBrowser::TextureBrowser(QWidget *parent)
 
   connect(m_ui->filename, SIGNAL(editingFinished()), this, SLOT(filenameChanged()));
   connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
-
-  connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
-  m_timer->start(100);
 
   connect(m_ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
 }
@@ -209,14 +219,6 @@ void TextureBrowser::updateContent(ScenePtr scene) {
              m_ui->scrollArea->frameWidth()*2);
   s.setHeight(s.height() + m.top() + m.bottom());
   m_ui->scrollArea->setMinimumWidth(s.width());
-}
-
-void TextureBrowser::paintEvent(QPaintEvent* ev) {
-  foreach (TextureWidget* w, m_textures) {
-    bool visible = !w->visibleRegion().isEmpty();
-    if (visible && w->gl()) w->gl()->updateGL();
-  }
-  QWidget::paintEvent(ev);
 }
 
 void TextureBrowser::show() {

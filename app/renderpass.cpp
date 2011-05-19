@@ -243,6 +243,8 @@ void RenderPass::beginFBO() {
 
 void RenderPass::endFBO() {
   if (m_fbo) m_fbo->unbind();
+  if (m_depth) m_depth->dataUpdated();
+  if (m_color) m_color->dataUpdated();
 }
 
 void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {

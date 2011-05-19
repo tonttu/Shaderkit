@@ -86,6 +86,7 @@ namespace Ui {
 class MainWindow;
 class IconBtn;
 class GLWidget;
+class TextureWidgetGL;
 
 class QColor;
 class QVector3D;

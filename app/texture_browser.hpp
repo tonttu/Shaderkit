@@ -22,6 +22,8 @@ public:
   TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex);
   void setTexture(TexturePtr tex);
 
+  int heightForWidth(int w) const;
+
 protected:
   void initializeGL();
   void paintGL();
@@ -65,8 +67,6 @@ public:
 
   static TextureBrowser& instance();
 
-  void paintEvent(QPaintEvent*);
-
   void show();
 
 public slots:
@@ -92,7 +92,6 @@ private:
   QString selectFile(QString tip);
 
   Ui::TextureBrowser *m_ui;
-  QTimer* m_timer;
   TextureWidget* m_selected;
   TexturePtr m_select;
 
