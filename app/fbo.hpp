@@ -49,13 +49,16 @@ public:
 
   virtual void dataUpdated();
 
+  void setFBO(FBOPtr fbo);
+
 protected:
   QString m_role;
 
   unsigned int m_id;
   int m_type, m_active_type;
   int m_width, m_height;
-  QSet<unsigned int> m_fbos;
+  std::weak_ptr<FrameBufferObject> m_fbo;
+  unsigned int m_fbo_num;
 };
 
 class RenderBuffer : public FBOImage {
@@ -72,8 +75,9 @@ private:
   void unbind();
 };
 
-class FrameBufferObject {
+class FrameBufferObject : public std::enable_shared_from_this<FrameBufferObject> {
 public:
+  typedef QMap<int, FBOImagePtr> Buffers;
   FrameBufferObject();
   virtual ~FrameBufferObject();
 
@@ -88,8 +92,9 @@ public:
 
   static int colorAttachments();
 
+  Buffers buffers() const { return m_buffers; }
+
 private:
-  typedef QMap<int, FBOImagePtr> Buffers;
   Buffers m_buffers;
   unsigned int m_id;
   int m_width, m_height;

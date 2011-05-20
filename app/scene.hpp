@@ -93,6 +93,9 @@ public:
 
   QVariantMap save() const;
 
+  /// Finds the render pass that owns the fbo that uses the given texture as a render buffer
+  RenderPassPtr findRenderer(TexturePtr tex);
+
   /// Load the scene from map
   void load(QVariantMap map);
 
@@ -140,6 +143,7 @@ signals:
   void cameraListUpdated();
   void textureListUpdated();
   void materialListUpdated(ScenePtr);
+  void renderPassesListUpdated();
 
 protected:
   QMap<QString, Import> m_imports;

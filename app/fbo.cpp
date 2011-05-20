@@ -43,7 +43,7 @@ void RenderBuffer::setup(unsigned int fbo, int width, int height) {
 
   bool type_changed = m_type != m_active_type,
        size_changed = m_width != width || m_height != height,
-       fbo_changed = !m_fbos.contains(fbo);
+       fbo_changed = !m_fbo_num != fbo;
 
   if (type_changed || size_changed) {
     int format = m_type == GL_DEPTH_ATTACHMENT ? GL_DEPTH_COMPONENT24 :
@@ -62,7 +62,7 @@ void RenderBuffer::setup(unsigned int fbo, int width, int height) {
   m_width = width;
   m_height = height;
   m_active_type = m_type;
-  if (fbo_changed) m_fbos.insert(fbo);
+  if (fbo_changed) m_fbo_num = fbo;
 }
 
 QVariantMap FBOImage::save() const {
@@ -79,6 +79,12 @@ void FBOImage::load(QVariantMap map) {
 
 void FBOImage::dataUpdated() {}
 
+void FBOImage::setFBO(FBOPtr fbo) {
+  FBOPtr old = m_fbo.lock();
+  assert(!old);
+  m_fbo = fbo;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -88,6 +94,9 @@ FrameBufferObject::FrameBufferObject() : m_id(0), m_width(0), m_height(0) {
 FrameBufferObject::~FrameBufferObject() {
   if (m_id)
     glRun(glDeleteFramebuffers(1, &m_id));
+
+  foreach (FBOImagePtr img, m_buffers)
+    img->setFBO(0);
 }
 
 void FrameBufferObject::resize(int width, int heigth) {
@@ -97,6 +106,7 @@ void FrameBufferObject::resize(int width, int heigth) {
 
 void FrameBufferObject::set(int type, FBOImagePtr buffer) {
   buffer->setType(type);
+  buffer->setFBO(shared_from_this());
   m_buffers[type] = buffer;
 }
 

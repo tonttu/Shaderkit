@@ -414,7 +414,7 @@ void Texture::setup(unsigned int fbo, int width, int height) {
 
   bool type_changed = m_type != m_active_type,
        size_changed = m_width != width || m_height != height,
-       fbo_changed = !m_fbos.contains(fbo);
+       fbo_changed = !m_fbo_num != fbo;
 
   if (type_changed || size_changed) {
     bind();
@@ -441,7 +441,7 @@ void Texture::setup(unsigned int fbo, int width, int height) {
   m_width = width;
   m_height = height;
   m_active_type = m_type;
-  if (fbo_changed) m_fbos.insert(fbo);
+  if (fbo_changed) m_fbo_num = fbo;
 }
 
 void Texture::applyParams() {
@@ -464,7 +464,8 @@ void TextureFile::setFile(QString file) {
 TexturePtr Texture::clone() const {
   TexturePtr t(new Texture(*this));
   t->m_id = 0;
-  t->m_fbos.clear();
+  t->m_fbo.reset();
+  t->m_fbo_num = 0;
   t->m_bindedTexture = 0;
   t->m_paramsDirty = true;
   return t;
@@ -555,7 +556,8 @@ void Texture::dataUpdated() {
 TexturePtr TextureFile::clone() const {
   TextureFile* t = new TextureFile(*this);
   t->m_id = 0;
-  t->m_fbos.clear();
+  t->m_fbo.reset();
+  t->m_fbo_num = 0;
   t->m_bindedTexture = 0;
   t->m_paramsDirty = true;
   t->m_loadedFile.clear();

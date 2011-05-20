@@ -5,6 +5,7 @@
 #include "scene.hpp"
 #include "texture.hpp"
 #include "state.hpp"
+#include "renderpass.hpp"
 
 #include <QDebug>
 
@@ -104,14 +105,28 @@ void TextureWidgetGL::leaveEvent(QEvent *e) {
 
 void TextureWidgetGL::mouseDoubleClickEvent(QMouseEvent* e) {
   QGLWidget::mouseDoubleClickEvent(e);
+  QPoint c = mapToGlobal(rect().center());
   if (windowFlags().testFlag(Qt::ToolTip)) {
-    QPoint c = mapToGlobal(rect().center());
     setWindowFlags(Qt::Window);
     setGeometry(c.x()-96, c.y()-96, 192, 192);
     show();
+  } else {
+    TextureWidgetGL* pr = preview();
+    pr->show();
   }
 }
 
+TextureWidgetGL* TextureWidgetGL::preview(Qt::WindowFlags f, QSize size) const {
+  TextureWidgetGL* ret = new TextureWidgetGL(0, this, tex());
+  if (f) ret->setWindowFlags(f);
+  ret->setAttribute(Qt::WA_DeleteOnClose);
+  if (tex())
+    ret->setWindowTitle(QString("%1 - GLSL Lab").arg(tex()->name()));
+
+  QPoint c = mapToGlobal(rect().center());
+  ret->setGeometry(QRect(c - QPoint(size.width() / 2, size.height() / 2), size));
+  return ret;
+}
 
 TextureWidget::TextureWidget(QWidget* parent, TexturePtr tex)
  : QWidget(parent), m_gl(0), m_tex(tex), m_frame(new QFrame(this)) {
@@ -161,9 +176,17 @@ TextureBrowser::TextureBrowser(QWidget *parent)
   m_ui->setupUi(this);
   m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
 
+  m_ui->color->addItem("Depth buffer");
+  for (int i = 0; i < 8; ++i)
+    m_ui->color->addItem(QString("Color buffer %1").arg(i));
+
+  m_ui->renderpass->hide();
+  m_ui->color->hide();
+
   connect(&MainWindow::instance(), SIGNAL(newScene(ScenePtr)),
           this, SLOT(newScene(ScenePtr)));
   newScene(MainWindow::instance().scene());
+  renderPassesChanged();
 
   setAttribute(Qt::WA_DeleteOnClose);
 
@@ -269,6 +292,8 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
     m_ui->browse->hide();
     m_ui->name->clear();
     m_ui->sizeinfo->clear();
+    m_ui->renderpass->hide();
+    m_ui->color->hide();
     return;
   }
 
@@ -278,6 +303,25 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   m_ui->name->setText(t->name());
   m_ui->sizeinfo->setText(QString("Texture #%1 %2x%3 %4").arg(t->id()).
                           arg(t->width()).arg(t->height()).arg(t->internalFormatStr()));
+
+  RenderPassPtr rp = MainWindow::scene()->findRenderer(t);
+  if (rp) {
+    m_ui->renderpass->setCurrentIndex(m_ui->renderpass->findText(rp->name()));
+    FBOPtr fbo = rp->fbo();
+
+    int buffer = fbo->buffers().key(t);
+    if (buffer == GL_DEPTH_ATTACHMENT)
+      m_ui->color->setCurrentIndex(0);
+    else if (buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 8)
+      m_ui->color->setCurrentIndex(buffer - GL_COLOR_ATTACHMENT0);
+    else
+      m_ui->color->setCurrentIndex(-1);
+    m_ui->renderpass->show();
+    m_ui->color->show();
+  } else {
+    m_ui->renderpass->hide();
+    m_ui->color->hide();
+  }
 
   if (tf) {
     m_ui->filename->setText(tf->file());
@@ -370,10 +414,20 @@ void TextureBrowser::newParam(QString name) {
 }
 
 void TextureBrowser::newScene(ScenePtr scene) {
+  /// @todo what about the old signals?
   if (scene) {
     connect(scene.get(), SIGNAL(textureListUpdated()), this, SLOT(updateContent()));
+    connect(scene.get(), SIGNAL(renderPassesListUpdated()), this, SLOT(renderPassesChanged()));
   }
   updateContent(scene);
+}
+
+void TextureBrowser::renderPassesChanged() {
+  m_ui->renderpass->clear();
+  ScenePtr s = MainWindow::scene();
+  if (!s) return;
+  foreach (RenderPassPtr rp, s->renderPasses())
+    m_ui->renderpass->addItem(rp->icon(), rp->name());
 }
 
 void TextureBrowser::create() {

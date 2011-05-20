@@ -29,6 +29,8 @@ public:
   void leaveEvent(QEvent* e);
   void mouseDoubleClickEvent(QMouseEvent* e);
 
+  TextureWidgetGL* preview(Qt::WindowFlags f = 0, QSize size = QSize(192, 192)) const;
+
 signals:
   void hoverBegin();
   void hoverEnd();
@@ -86,6 +88,7 @@ private slots:
   void paramChanged(QString = "");
   void newParam(QString);
   void newScene(ScenePtr);
+  void renderPassesChanged();
 
   void create();
   void duplicate();

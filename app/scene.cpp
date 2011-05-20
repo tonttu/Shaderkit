@@ -164,6 +164,7 @@ void Scene::render() {
   if (m_renderPassesChanged) {
     m_render_passes = RenderPassProperties::instance().list();
     m_renderPassesChanged = false;
+    emit renderPassesListUpdated();
   }
 
   bool ui = false;
@@ -300,6 +301,17 @@ QVariantMap Scene::save() const {
   if (!render_passes.isEmpty()) map["render passes"] = render_passes;
 
   return map;
+}
+
+RenderPassPtr Scene::findRenderer(TexturePtr tex) {
+  foreach (RenderPassPtr rp, m_render_passes) {
+    FBOPtr fbo = rp->fbo();
+    if (fbo) {
+      foreach (FBOImagePtr img, fbo->buffers())
+        if (img == tex) return rp;
+    }
+  }
+  return 0;
 }
 
 void Scene::load(QVariantMap map) {

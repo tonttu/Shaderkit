@@ -110,6 +110,8 @@ public:
 
   RenderPassPtr clone() const;
 
+  FBOPtr fbo() const { return m_fbo; }
+
 signals:
   void changed(RenderPassPtr);
 

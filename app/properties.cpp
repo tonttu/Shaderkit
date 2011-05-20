@@ -194,14 +194,8 @@ void TextureEditor::hoverBegin() {
   QWidget* w = QApplication::widgetAt(point);
   if (w && w != m_icon) return;
 
-  TextureWidgetGL* zoom = new TextureWidgetGL(0, m_icon, m_icon->tex());
-  zoom->setWindowFlags(Qt::ToolTip | Qt::BypassGraphicsProxyWidget);
-  zoom->setAttribute(Qt::WA_DeleteOnClose);
-  zoom->setWindowTitle(QString("%1 - GLSL Lab").arg(m_icon->tex()->name()));
-
+  TextureWidgetGL* zoom = m_icon->preview(Qt::ToolTip | Qt::BypassGraphicsProxyWidget, QSize(128, 128));
   connect(zoom, SIGNAL(hoverEnd()), zoom, SLOT(deleteLater()));
-
-  zoom->setGeometry(point.x()-64, point.y()-64, 128, 128);
   zoom->show();
 }
 
