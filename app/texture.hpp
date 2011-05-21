@@ -95,7 +95,12 @@ public:
   virtual void load(QVariantMap map);
 
   int internalFormat() const { return m_internalFormat; }
+  virtual void setInternalFormat(int format);
   QString internalFormatStr() const;
+
+  static QSet<int> colorRenderableInternalFormats();
+  static QSet<int> depthRenderableInternalFormats();
+  static QSet<int> stencilRenderableInternalFormats();
 
   void dataUpdated();
 
@@ -107,7 +112,7 @@ protected:
   int m_internalFormat;
   float m_blend;
   int m_uv;
-  bool m_paramsDirty;
+  bool m_paramsDirty, m_dirty;
 };
 
 class TextureFile : public Texture {
@@ -119,6 +124,7 @@ public:
   QString file() const { return m_file; }
 
   virtual void bind(int texture = 0);
+  virtual void setInternalFormat(int format);
 
   virtual TexturePtr clone() const;
   virtual QVariantMap save() const;

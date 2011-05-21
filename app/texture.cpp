@@ -103,74 +103,147 @@ namespace {
       assert(s_names.size() == s_enums.size());
 
       I(ALPHA);
-      I(ALPHA4);
-      I(ALPHA8);
       I(ALPHA12);
       I(ALPHA16);
-      I(COMPRESSED_ALPHA);
-      I(COMPRESSED_LUMINANCE);
-      I(COMPRESSED_LUMINANCE_ALPHA);
-      I(COMPRESSED_INTENSITY);
-      I(COMPRESSED_RGB);
-      I(COMPRESSED_RGBA);
+      I(ALPHA4);
+      I(ALPHA8);
       I(DEPTH_COMPONENT);
       I(DEPTH_COMPONENT16);
       I(DEPTH_COMPONENT24);
       I(DEPTH_COMPONENT32);
-      I(LUMINANCE);
-      I(LUMINANCE4);
-      I(LUMINANCE8);
-      I(LUMINANCE12);
-      I(LUMINANCE16);
-      I(LUMINANCE_ALPHA);
-      I(LUMINANCE4_ALPHA4);
-      I(LUMINANCE6_ALPHA2);
-      I(LUMINANCE8_ALPHA8);
-      I(LUMINANCE12_ALPHA4);
-      I(LUMINANCE12_ALPHA12);
-      I(LUMINANCE16_ALPHA16);
+      I(DEPTH_COMPONENT32F);
+      I(DEPTH24_STENCIL8);
+      I(DEPTH32F_STENCIL8);
       I(INTENSITY);
-      I(INTENSITY4);
-      I(INTENSITY8);
       I(INTENSITY12);
       I(INTENSITY16);
+      I(INTENSITY4);
+      I(INTENSITY8);
+      I(LUMINANCE);
+      I(LUMINANCE12);
+      I(LUMINANCE12_ALPHA12);
+      I(LUMINANCE12_ALPHA4);
+      I(LUMINANCE16);
+      I(LUMINANCE16_ALPHA16);
+      I(LUMINANCE4);
+      I(LUMINANCE4_ALPHA4);
+      I(LUMINANCE6_ALPHA2);
+      I(LUMINANCE8);
+      I(LUMINANCE8_ALPHA8);
+      I(LUMINANCE_ALPHA);
+      I(R11F_G11F_B10F);
+      I(R16);
+      I(R16F);
+      I(R16I);
+      I(R16_SNORM);
+      I(R16UI);
+      I(R32F);
+      I(R32I);
+      I(R32UI);
       I(R3_G3_B2);
+      I(R8);
+      I(R8I);
+      I(R8_SNORM);
+      I(R8UI);
+      I(RG16);
+      I(RG16F);
+      I(RG16I);
+      I(RG16_SNORM);
+      I(RG16UI);
+      I(RG32F);
+      I(RG32I);
+      I(RG32UI);
+      I(RG8);
+      I(RG8I);
+      I(RG8_SNORM);
+      I(RG8UI);
       I(RGB);
-      I(RGB4);
-      I(RGB5);
-      I(RGB8);
       I(RGB10);
+      I(RGB10_A2);
+      I(RGB10_A2UI);
       I(RGB12);
       I(RGB16);
-      I(RGBA);
-      I(RGBA2);
-      I(RGBA4);
+      I(RGB16F);
+      I(RGB16I);
+      I(RGB16_SNORM);
+      I(RGB16UI);
+      I(RGB32F);
+      I(RGB32I);
+      I(RGB32UI);
+      I(RGB4);
+      I(RGB5);
       I(RGB5_A1);
-      I(RGBA8);
-      I(RGB10_A2);
+      I(RGB8);
+      I(RGB8I);
+      I(RGB8_SNORM);
+      I(RGB8UI);
+      I(RGB9_E5);
+      I(RGBA);
       I(RGBA12);
       I(RGBA16);
+      I(RGBA16F);
+      I(RGBA16I);
+      I(RGBA16_SNORM);
+      I(RGBA16UI);
+      I(RGBA2);
+      I(RGBA32F);
+      I(RGBA32I);
+      I(RGBA32UI);
+      I(RGBA4);
+      I(RGBA8);
+      I(RGBA8I);
+      I(RGBA8_SNORM);
+      I(RGBA8UI);
       I(SLUMINANCE);
       I(SLUMINANCE8);
-      I(SLUMINANCE_ALPHA);
       I(SLUMINANCE8_ALPHA8);
+      I(SLUMINANCE_ALPHA);
       I(SRGB);
       I(SRGB8);
-      I(SRGB_ALPHA);
       I(SRGB8_ALPHA8);
+      I(SRGB_ALPHA);
+
+      I(STENCIL);
+      I(DEPTH_STENCIL);
+      I(STENCIL_INDEX1);
+      I(STENCIL_INDEX4);
+      I(STENCIL_INDEX8);
+      I(STENCIL_INDEX16);
+
+      I(COMPRESSED_RED);
+      I(COMPRESSED_RG);
+      I(COMPRESSED_RGB);
+      I(COMPRESSED_RGBA);
+      I(COMPRESSED_SRGB);
+      I(COMPRESSED_SRGB_ALPHA);
+      I(COMPRESSED_RED_RGTC1);
+      I(COMPRESSED_SIGNED_RED_RGTC1);
+      I(COMPRESSED_RG_RGTC2);
+      I(COMPRESSED_SIGNED_RG_RGTC2);
+
+      I(COMPRESSED_ALPHA);
+      I(COMPRESSED_INTENSITY);
+      I(COMPRESSED_LUMINANCE);
+      I(COMPRESSED_LUMINANCE_ALPHA);
+
+      I(COMPRESSED_RGB_S3TC_DXT1_EXT);
+      I(COMPRESSED_RGBA_S3TC_DXT1_EXT);
+      I(COMPRESSED_RGBA_S3TC_DXT3_EXT);
+      I(COMPRESSED_RGBA_S3TC_DXT5_EXT);
 
       assert(s_internalFormats.size() == s_internalFormatsStr.size());
 
       // these are correct, right?
       s_internalFormats[1] = "LUMINANCE",
       s_internalFormats[2] = "LUMINANCE_ALPHA";
-      s_internalFormats[3] = "GL_RGB";
-      s_internalFormats[4] = "GL_RGBA";
+      s_internalFormats[3] = "RGB";
+      s_internalFormats[4] = "RGBA";
     }
   }
 
   TextureChangeManager* s_instance = 0;
 }
+#undef I
 #undef D2_
 #undef D2
 #undef D_
@@ -254,8 +327,8 @@ void TextureChangeManager::run() {
 ///////////////////////////////////////////////////////////////////////////////
 
 Texture::Texture(QString name)
-  : FBOImage(name), m_bindedTexture(0), m_internalFormat(0),
-    m_blend(1.0), m_uv(1), m_paramsDirty(false) {
+  : FBOImage(name), m_bindedTexture(0), m_internalFormat(GL_RGBA),
+    m_blend(1.0), m_uv(1), m_paramsDirty(false), m_dirty(false) {
   s_init();
   setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -412,22 +485,29 @@ void Texture::setUV(int idx) {
 void Texture::setup(unsigned int fbo, int width, int height) {
   if (m_id == 0) glRun(glGenTextures(1, &m_id));
 
-  bool type_changed = m_type != m_active_type,
+  bool type_changed = m_attachment != m_active_attachment,
        size_changed = m_width != width || m_height != height,
        fbo_changed = !m_fbo_num != fbo;
 
-  if (type_changed || size_changed) {
+  if (m_dirty || type_changed || size_changed) {
     bind();
-    if (m_type == GL_DEPTH_ATTACHMENT) {
-      glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, GL_DEPTH_COMPONENT24, width, height,
+    if (m_attachment == GL_DEPTH_ATTACHMENT) {
+      if (!depthRenderableInternalFormats().contains(m_internalFormat)) {
+        m_internalFormat = GL_DEPTH_COMPONENT;
+      }
+      glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, m_internalFormat, width, height,
                          0 /* border */, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL /* data */));
-      m_internalFormat = GL_DEPTH_COMPONENT24;
-    } else if (m_type == GL_STENCIL_ATTACHMENT) {
+    } else if (m_attachment == GL_STENCIL_ATTACHMENT) {
+      if (!stencilRenderableInternalFormats().contains(m_internalFormat)) {
+        m_internalFormat = GL_STENCIL;
+      }
       /// @todo implement
-    } else {
-      glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, GL_RGBA8, width, height,
+    } else { // GL_COLOR_ATTACHMENTN
+      if (!colorRenderableInternalFormats().contains(m_internalFormat)) {
+        m_internalFormat = GL_RGBA;
+      }
+      glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, m_internalFormat, width, height,
                          0 /* border */, GL_RGBA, GL_UNSIGNED_BYTE, NULL /* data */));
-      m_internalFormat = GL_RGBA8;
     }
 
     applyParams();
@@ -435,14 +515,15 @@ void Texture::setup(unsigned int fbo, int width, int height) {
   }
 
   /// @todo Should we run this if only size was changed?
-  if (type_changed || size_changed || fbo_changed) {
-    glRun(glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_type, GL_RENDERBUFFER, 0));
-    glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_type, GL_TEXTURE_2D, m_id, 0 /* level */));
+  if (m_dirty || type_changed || size_changed || fbo_changed) {
+    glRun(glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, 0));
+    glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_attachment, GL_TEXTURE_2D, m_id, 0 /* level */));
   }
 
   m_width = width;
   m_height = height;
-  m_active_type = m_type;
+  m_active_attachment = m_attachment;
+  m_dirty = false;
   if (fbo_changed) m_fbo_num = fbo;
 }
 
@@ -547,9 +628,97 @@ void Texture::load(QVariantMap map) {
     if (map.contains(pname)) setParam(s_enums[pname], map[pname].toFloat());
 }
 
+void Texture::setInternalFormat(int format) {
+  m_internalFormat = format;
+  m_dirty = true;
+}
+
 QString Texture::internalFormatStr() const {
   return s_internalFormats.value(m_internalFormat);
 }
+
+QSet<int> Texture::colorRenderableInternalFormats() {
+  /**
+   * OpenGL specification 4.1 Core Profile:
+   *
+   * The following base internal formats from table 3.11 are color-renderable:
+   * RED, RG, RGB, and RGBA. The sized internal formats from table 3.12 that
+   * have a color-renderable base internal format are also color-renderable. No
+   * other formats, including compressed internal formats, are color-renderable.
+   *
+   * .. side note: Every format in 3.12 have color-renderable base internal
+   *               format, so this is set of 3.11, 3.12 and those special
+   *               3 / 4 values that should work too imo.
+   */
+
+  /*s_internalFormats[1] = "LUMINANCE",
+  s_internalFormats[2] = "LUMINANCE_ALPHA";
+  s_internalFormats[3] = "RGB";
+  s_internalFormats[4] = "RGBA";*/
+
+  static QSet<int> set;
+  if (!set.isEmpty()) return set;
+
+  set << GL_RED << GL_RG << GL_RGB << GL_RGBA
+      << 3 << 4; // RGB and RGBA
+
+  set << GL_R11F_G11F_B10F << GL_R16 << GL_R16F << GL_R16I << GL_R16UI << GL_R16_SNORM
+      << GL_R32F << GL_R32I << GL_R32UI << GL_R3_G3_B2 << GL_R8 << GL_R8I << GL_R8UI
+      << GL_R8_SNORM << GL_RG16 << GL_RG16F << GL_RG16I << GL_RG16UI << GL_RG16_SNORM
+      << GL_RG32F << GL_RG32I << GL_RG32UI << GL_RG8 << GL_RG8I << GL_RG8UI
+      << GL_RG8_SNORM << GL_RGB10 << GL_RGB10_A2 << GL_RGB10_A2UI << GL_RGB12
+      << GL_RGB16 << GL_RGB16F << GL_RGB16I << GL_RGB16UI << GL_RGB16_SNORM
+      << GL_RGB32F << GL_RGB32I << GL_RGB32UI << GL_RGB4 << GL_RGB5 << GL_RGB5_A1
+      << GL_RGB8 << GL_RGB8I << GL_RGB8UI << GL_RGB8_SNORM << GL_RGB9_E5 << GL_RGBA12
+      << GL_RGBA16 << GL_RGBA16F << GL_RGBA16I << GL_RGBA16UI << GL_RGBA16_SNORM
+      << GL_RGBA2 << GL_RGBA32F << GL_RGBA32I << GL_RGBA32UI << GL_RGBA4 << GL_RGBA8
+      << GL_RGBA8I << GL_RGBA8UI << GL_RGBA8_SNORM << GL_SRGB8 << GL_SRGB8_ALPHA8;
+
+  return set;
+}
+
+QSet<int> Texture::depthRenderableInternalFormats() {
+  /**
+   * OpenGL specification 4.1 Core Profile:
+   *
+   * An internal format is depth-renderable if it is DEPTH_COMPONENT or one of
+   * the formats from table 3.13 whose base internal format is DEPTH_COMPONENT
+   * or DEPTH_STENCIL. No other formats are depth-renderable.
+   */
+
+  static QSet<int> set;
+  if (!set.isEmpty()) return set;
+
+  /// @todo should DEPTH_STENCIL also be in this list?
+
+  set << GL_DEPTH_COMPONENT << GL_DEPTH_COMPONENT16 << GL_DEPTH_COMPONENT24
+      << GL_DEPTH_COMPONENT32 << GL_DEPTH_COMPONENT32F << GL_DEPTH24_STENCIL8
+      << GL_DEPTH32F_STENCIL8;
+
+  return set;
+}
+
+QSet<int> Texture::stencilRenderableInternalFormats() {
+  /**
+   * OpenGL specification 4.1 Core Profile:
+   *
+   * An internal format is stencil-renderable if it is STENCIL_INDEX or
+   * DEPTH_STENCIL, if it is one of the STENCIL_INDEX formats from table 4.10,
+   * or if it is one of the formats from table 3.13 whose base internal
+   * format is DEPTH_STENCIL. No other formats are stencil-renderable.
+   */
+
+  static QSet<int> set;
+  if (!set.isEmpty()) return set;
+
+  set << GL_STENCIL << GL_DEPTH_STENCIL
+      << GL_STENCIL_INDEX1 << GL_STENCIL_INDEX4 << GL_STENCIL_INDEX8
+      << GL_STENCIL_INDEX16
+      << GL_DEPTH24_STENCIL8 << GL_DEPTH32F_STENCIL8;
+
+  return set;
+}
+
 
 void Texture::dataUpdated() {
   TextureChangeManager::changed(this);
@@ -592,7 +761,7 @@ void TextureFile::bind(int texture) {
       if (image.isNull()) {
         Log::error("Failed to load image: %s", m_file.toUtf8().data());
       } else {
-        m_id = cx->bindTexture(image, GL_TEXTURE_2D,
+        m_id = cx->bindTexture(image, GL_TEXTURE_2D, m_internalFormat,
                  QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
         m_width = image.width();
         m_height = image.height();
@@ -607,4 +776,7 @@ void TextureFile::bind(int texture) {
   Texture::bind(texture);
 }
 
-
+void TextureFile::setInternalFormat(int format) {
+  Texture::setInternalFormat(format);
+  m_loadedFile = "";
+}

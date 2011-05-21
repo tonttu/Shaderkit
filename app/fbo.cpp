@@ -21,7 +21,7 @@
 #include <cassert>
 
 FBOImage::FBOImage(QString name) : SceneObject(name),
-  m_id(0), m_type(0), m_active_type(0), m_width(0), m_height(0) {}
+  m_id(0), m_attachment(0), m_active_attachment(0), m_width(0), m_height(0) {}
 
 RenderBuffer::RenderBuffer(QString name) : FBOImage(name) {}
 
@@ -41,13 +41,14 @@ void RenderBuffer::unbind() {
 void RenderBuffer::setup(unsigned int fbo, int width, int height) {
   if (m_id == 0) glRun(glGenRenderbuffers(1, &m_id));
 
-  bool type_changed = m_type != m_active_type,
+  bool type_changed = m_attachment != m_active_attachment,
        size_changed = m_width != width || m_height != height,
        fbo_changed = !m_fbo_num != fbo;
 
   if (type_changed || size_changed) {
-    int format = m_type == GL_DEPTH_ATTACHMENT ? GL_DEPTH_COMPONENT24 :
-                 m_type == GL_STENCIL_ATTACHMENT ? GL_DEPTH24_STENCIL8 : /** @todo is this right? */
+    /// @todo needs m_internalformat
+    int format = m_attachment == GL_DEPTH_ATTACHMENT ? GL_DEPTH_COMPONENT24 :
+                 m_attachment == GL_STENCIL_ATTACHMENT ? GL_DEPTH24_STENCIL8 : /** @todo is this right? */
                  GL_RGBA;
     bind();
     glRun(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 0 /* samples */,
@@ -57,11 +58,11 @@ void RenderBuffer::setup(unsigned int fbo, int width, int height) {
 
   /// @todo Should we run this if only size was changed?
   if (type_changed || size_changed || fbo_changed)
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_type, GL_RENDERBUFFER, m_id);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, m_id);
 
   m_width = width;
   m_height = height;
-  m_active_type = m_type;
+  m_active_attachment = m_attachment;
   if (fbo_changed) m_fbo_num = fbo;
 }
 
@@ -109,7 +110,7 @@ void FrameBufferObject::resize(int width, int heigth) {
 
 void FrameBufferObject::set(int type, FBOImagePtr buffer) {
   remove(buffer);
-  buffer->setType(type);
+  buffer->setAttachment(type);
   buffer->setFBO(shared_from_this());
   m_buffers[type] = buffer;
 }

@@ -30,7 +30,7 @@ public:
   virtual ~FBOImage() {}
   virtual void setup(unsigned int fbo, int width, int height) = 0;
   /// type is GL_DEPTH_ATTACHMENT etc..
-  void setType(int type) { m_type = type; }
+  void setAttachment(int attachment) { m_attachment = attachment; }
   /// Role, like "diffuse", "normalmap", "lightmap" etc
   void setRole(QString role) { m_role = role; }
 
@@ -55,7 +55,7 @@ protected:
   QString m_role;
 
   unsigned int m_id;
-  int m_type, m_active_type;
+  int m_attachment, m_active_attachment;
   int m_width, m_height;
   std::weak_ptr<FrameBufferObject> m_fbo;
   unsigned int m_fbo_num;
