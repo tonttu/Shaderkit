@@ -98,9 +98,16 @@ public:
   virtual void setInternalFormat(int format);
   QString internalFormatStr() const;
 
+  static QSet<QString> allInternalFormatsStr();
+
   static QSet<int> colorRenderableInternalFormats();
+  static QSet<QString> colorRenderableInternalFormatsStr();
+
   static QSet<int> depthRenderableInternalFormats();
+  static QSet<QString> depthRenderableInternalFormatsStr();
+
   static QSet<int> stencilRenderableInternalFormats();
+  static QSet<QString> stencilRenderableInternalFormatsStr();
 
   void dataUpdated();
 

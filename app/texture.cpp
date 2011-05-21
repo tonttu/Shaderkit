@@ -102,6 +102,11 @@ namespace {
 
       assert(s_names.size() == s_enums.size());
 
+      I(RED);
+      I(RG);
+      I(RGB);
+      I(RGBA);
+
       I(ALPHA);
       I(ALPHA12);
       I(ALPHA16);
@@ -157,7 +162,6 @@ namespace {
       I(RG8I);
       I(RG8_SNORM);
       I(RG8UI);
-      I(RGB);
       I(RGB10);
       I(RGB10_A2);
       I(RGB10_A2UI);
@@ -178,7 +182,6 @@ namespace {
       I(RGB8_SNORM);
       I(RGB8UI);
       I(RGB9_E5);
-      I(RGBA);
       I(RGBA12);
       I(RGBA16);
       I(RGBA16F);
@@ -637,6 +640,10 @@ QString Texture::internalFormatStr() const {
   return s_internalFormats.value(m_internalFormat);
 }
 
+QSet<QString> Texture::allInternalFormatsStr() {
+  return s_internalFormatsStr.keys().toSet();
+}
+
 QSet<int> Texture::colorRenderableInternalFormats() {
   /**
    * OpenGL specification 4.1 Core Profile:
@@ -677,6 +684,15 @@ QSet<int> Texture::colorRenderableInternalFormats() {
   return set;
 }
 
+QSet<QString> Texture::colorRenderableInternalFormatsStr() {
+  QSet<QString> set;
+  foreach (int i, colorRenderableInternalFormats()) {
+    assert(s_internalFormats.contains(i));
+    set << s_internalFormats.value(i);
+  }
+  return set;
+}
+
 QSet<int> Texture::depthRenderableInternalFormats() {
   /**
    * OpenGL specification 4.1 Core Profile:
@@ -695,6 +711,15 @@ QSet<int> Texture::depthRenderableInternalFormats() {
       << GL_DEPTH_COMPONENT32 << GL_DEPTH_COMPONENT32F << GL_DEPTH24_STENCIL8
       << GL_DEPTH32F_STENCIL8;
 
+  return set;
+}
+
+QSet<QString> Texture::depthRenderableInternalFormatsStr() {
+  QSet<QString> set;
+  foreach (int i, depthRenderableInternalFormats()) {
+    assert(s_internalFormats.contains(i));
+    set << s_internalFormats.value(i);
+  }
   return set;
 }
 
@@ -719,6 +744,14 @@ QSet<int> Texture::stencilRenderableInternalFormats() {
   return set;
 }
 
+QSet<QString> Texture::stencilRenderableInternalFormatsStr() {
+  QSet<QString> set;
+  foreach (int i, stencilRenderableInternalFormats()) {
+    assert(s_internalFormats.contains(i));
+    set << s_internalFormats.value(i);
+  }
+  return set;
+}
 
 void Texture::dataUpdated() {
   TextureChangeManager::changed(this);

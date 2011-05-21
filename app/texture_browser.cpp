@@ -189,6 +189,10 @@ TextureBrowser::TextureBrowser(QWidget *parent)
 
   setAttribute(Qt::WA_DeleteOnClose);
 
+  QListWidget* view = new QListWidget(this);
+  m_ui->internal_format->setModel(view->model());
+  m_ui->internal_format->setView(view);
+
   m_ui->scrollArea->setBackgroundRole(QPalette::Base);
 
   m_ui->toolbar->layout()->setMargin(0);
@@ -282,6 +286,7 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   }
 
   m_ui->params->setRowCount(0);
+  m_ui->internal_format->clear();
 
   if (w) {
     m_duplicate->setEnabled(true);
@@ -315,12 +320,13 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
                           arg(t->width()).arg(t->height()).arg(t->internalFormatStr()));
 
   RenderPassPtr rp = MainWindow::scene()->findRenderer(t);
+  int buffer = 0;
   if (rp) {
     m_ui->renderpass->setCurrentIndex(m_ui->renderpass->findText(rp->name()));
     FBOPtr fbo = rp->fbo();
     updateAttachmentIcons(fbo);
 
-    int buffer = fbo->buffers().key(t);
+    buffer = fbo->buffers().key(t);
     if (buffer == GL_DEPTH_ATTACHMENT)
       m_ui->color->setCurrentIndex(0);
     else if (buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 16)
@@ -402,6 +408,50 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
 
     connect(param, SIGNAL(currentIndexChanged(QString)),
             this, SLOT(newParam(QString)));
+  }
+
+  // update the internal format list
+  {
+    if (buffer == GL_DEPTH_ATTACHMENT) {
+    } else if (buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 16) {
+      QStringList lst = QStringList() << "Common formats" << "Float formats"
+                                      << "Integer formats" << "Unsigned integer formats"
+                                      << "Signed normalized formats" << "Special formats";
+      QList<QString> groups[6];
+
+      groups[0] << "RED" << "RG" << "RGB" << "RGBA";
+      QList<QString> all = (Texture::colorRenderableInternalFormatsStr()
+                            - groups[0].toSet()).toList();
+      qSort(all);
+
+      foreach (QString format, all) {
+        if (format.endsWith("SNORM"))
+          groups[4] << format;
+        else if (format.endsWith("F"))
+          groups[1] << format;
+        else if (format.endsWith("UI"))
+          groups[3] << format;
+        else if (format.endsWith("I"))
+          groups[2] << format;
+        else
+          groups[5] << format;
+      }
+
+      for (int i = 0; i < 6; ++i) {
+        QListWidgetItem* item = new QListWidgetItem(lst[i]);
+        QFont font = item->font();
+        font.setBold(true);
+        item->setFont(font);
+        ((QListWidget*)m_ui->internal_format->view())->addItem(item);
+
+        foreach (QString format, groups[i])
+          m_ui->internal_format->addItem(format);
+      }
+    } else if (buffer == GL_STENCIL_ATTACHMENT) {
+    } else {
+    }
+    m_ui->internal_format->setCurrentIndex(
+          m_ui->internal_format->findText(t->internalFormatStr()));
   }
 
   m_ui->params->resizeColumnToContents(0);
