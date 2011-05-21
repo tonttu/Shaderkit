@@ -98,6 +98,9 @@ private slots:
   void filenameChanged();
   void browse();
 
+  void changeRenderBuffer();
+  void updateAttachmentIcons(FBOPtr fbo);
+
 private:
   explicit TextureBrowser(QWidget* parent = 0);
 

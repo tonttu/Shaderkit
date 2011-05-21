@@ -24,7 +24,7 @@
 #include <QMap>
 #include <QSet>
 
-class FBOImage : public SceneObject {
+class FBOImage : public SceneObject, public std::enable_shared_from_this<FBOImage> {
 public:
   FBOImage(QString name);
   virtual ~FBOImage() {}
@@ -77,6 +77,7 @@ private:
 
 class FrameBufferObject : public std::enable_shared_from_this<FrameBufferObject> {
 public:
+  /// eg. GL_DEPTH_ATTACHMENT => texture
   typedef QMap<int, FBOImagePtr> Buffers;
   FrameBufferObject();
   virtual ~FrameBufferObject();
@@ -84,18 +85,25 @@ public:
   void resize(int width, int height);
 
   void set(int type, FBOImagePtr buffer);
+  void clearBuffers();
+  void remove(FBOImagePtr buffer);
+
   int width() const { return m_width; }
   int height() const { return m_height; }
 
   void bind();
   void unbind();
 
+  void printDebug();
+
   static int colorAttachments();
 
   Buffers buffers() const { return m_buffers; }
+  bool isEmpty() const { return m_buffers.isEmpty(); }
 
 private:
   Buffers m_buffers;
+  QSet<int> m_lazyRemove;
   unsigned int m_id;
   int m_width, m_height;
 };

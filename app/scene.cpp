@@ -311,7 +311,7 @@ RenderPassPtr Scene::findRenderer(TexturePtr tex) {
         if (img == tex) return rp;
     }
   }
-  return 0;
+  return RenderPassPtr();
 }
 
 void Scene::load(QVariantMap map) {

@@ -176,12 +176,11 @@ TextureBrowser::TextureBrowser(QWidget *parent)
   m_ui->setupUi(this);
   m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
 
-  m_ui->color->addItem("Depth buffer");
-  for (int i = 0; i < 8; ++i)
-    m_ui->color->addItem(QString("Color buffer %1").arg(i));
+  m_ui->color->addItem("Depth buffer", GL_DEPTH_ATTACHMENT);
+  for (int i = 0; i < 16; ++i)
+    m_ui->color->addItem(QString("Color buffer %1").arg(i), GL_COLOR_ATTACHMENT0 + i);
 
-  m_ui->renderpass->hide();
-  m_ui->color->hide();
+  m_ui->panel->setDisabled(true);
 
   connect(&MainWindow::instance(), SIGNAL(newScene(ScenePtr)),
           this, SLOT(newScene(ScenePtr)));
@@ -210,6 +209,8 @@ TextureBrowser::TextureBrowser(QWidget *parent)
   connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
 
   connect(m_ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
+  connect(m_ui->renderpass, SIGNAL(activated(int)), this, SLOT(changeRenderBuffer()));
+  connect(m_ui->color, SIGNAL(activated(int)), this, SLOT(changeRenderBuffer()));
 }
 
 TextureBrowser::~TextureBrowser() {
@@ -285,15 +286,24 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   if (w) {
     m_duplicate->setEnabled(true);
     m_destroy->setEnabled(true);
+    m_ui->panel->setDisabled(false);
   } else {
+    m_ui->panel->setDisabled(true);
     m_duplicate->setEnabled(false);
     m_destroy->setEnabled(false);
-    m_ui->filename->hide();
-    m_ui->browse->hide();
-    m_ui->name->clear();
+    m_ui->filename->clear();
+    m_ui->filename->show();
+    m_ui->filename_label->show();
+    m_ui->browse->show();
+    m_ui->name->setText("Texture");
     m_ui->sizeinfo->clear();
-    m_ui->renderpass->hide();
-    m_ui->color->hide();
+    m_ui->renderpass->setCurrentIndex(0);
+    m_ui->renderpass->show();
+    m_ui->renderpass_label->show();
+    for (int i = 0; i < m_ui->color->count(); ++i)
+      m_ui->color->setItemIcon(0, QIcon());
+    m_ui->color->setCurrentIndex(1);
+    m_ui->color->show();
     return;
   }
 
@@ -308,28 +318,39 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   if (rp) {
     m_ui->renderpass->setCurrentIndex(m_ui->renderpass->findText(rp->name()));
     FBOPtr fbo = rp->fbo();
+    updateAttachmentIcons(fbo);
 
     int buffer = fbo->buffers().key(t);
     if (buffer == GL_DEPTH_ATTACHMENT)
       m_ui->color->setCurrentIndex(0);
-    else if (buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 8)
-      m_ui->color->setCurrentIndex(buffer - GL_COLOR_ATTACHMENT0);
+    else if (buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 16)
+      m_ui->color->setCurrentIndex(buffer - GL_COLOR_ATTACHMENT0 + 1);
     else
       m_ui->color->setCurrentIndex(-1);
-    m_ui->renderpass->show();
-    m_ui->color->show();
   } else {
-    m_ui->renderpass->hide();
-    m_ui->color->hide();
+    m_ui->renderpass->setCurrentIndex(-1);
+    m_ui->color->setCurrentIndex(-1);
+    for (int i = 0; i < m_ui->color->count(); ++i)
+      m_ui->color->setItemIcon(0, QIcon());
   }
 
   if (tf) {
     m_ui->filename->setText(tf->file());
     m_ui->filename->show();
+    m_ui->filename_label->show();
     m_ui->browse->show();
+
+    m_ui->renderpass->hide();
+    m_ui->renderpass_label->hide();
+    m_ui->color->hide();
   } else {
     m_ui->filename->hide();
+    m_ui->filename_label->hide();
     m_ui->browse->hide();
+
+    m_ui->renderpass->show();
+    m_ui->renderpass_label->show();
+    m_ui->color->show();
   }
 
   QMap<QString, Texture::Param> lst = t->paramStrings();
@@ -427,7 +448,7 @@ void TextureBrowser::renderPassesChanged() {
   ScenePtr s = MainWindow::scene();
   if (!s) return;
   foreach (RenderPassPtr rp, s->renderPasses())
-    m_ui->renderpass->addItem(rp->icon(), rp->name());
+    m_ui->renderpass->addItem(rp->icon(), rp->name(), rp->name());
 }
 
 void TextureBrowser::create() {
@@ -475,6 +496,42 @@ void TextureBrowser::browse() {
     filenameChanged();
   }
 }
+
+void TextureBrowser::changeRenderBuffer() {
+  ScenePtr s = MainWindow::scene();
+  if (m_ui->renderpass->currentIndex() < 0 ||
+      m_ui->color->currentIndex() < 0 ||
+      !s || !m_selected->tex()) return;
+
+  QString rpname = m_ui->renderpass->itemData(m_ui->renderpass->currentIndex()).toString();
+  int target = m_ui->color->itemData(m_ui->color->currentIndex()).toInt();
+
+  foreach (RenderPassPtr rp, s->renderPasses()) {
+    if (rp->name() == rpname) {
+      if (rp->fbo()->buffers().value(target) != m_selected->tex()) {
+        rp->fbo()->set(target, m_selected->tex());
+        updateAttachmentIcons(rp->fbo());
+      }
+      break;
+    }
+  }
+}
+
+void TextureBrowser::updateAttachmentIcons(FBOPtr fbo) {
+  FrameBufferObject::Buffers buffers = fbo->buffers();
+
+  for (int i = 0; i < m_ui->color->count(); ++i) {
+    QIcon icon;
+    FBOImagePtr img = buffers.value(i == 0 ? GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0 + i - 1);
+    if (dynamic_cast<Texture*>(img.get())) {
+      icon = QIcon(":/icons/texture.png");
+    } else if (dynamic_cast<RenderBuffer*>(img.get())) {
+      icon = QIcon(":/icons/renderbuffer.png");
+    }
+    m_ui->color->setItemIcon(i, icon);
+  }
+}
+
 
 QString TextureBrowser::selectFile(QString tip) {
   ScenePtr s = MainWindow::scene();

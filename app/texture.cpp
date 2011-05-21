@@ -435,8 +435,10 @@ void Texture::setup(unsigned int fbo, int width, int height) {
   }
 
   /// @todo Should we run this if only size was changed?
-  if (type_changed || size_changed || fbo_changed)
+  if (type_changed || size_changed || fbo_changed) {
+    glRun(glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_type, GL_RENDERBUFFER, 0));
     glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_type, GL_TEXTURE_2D, m_id, 0 /* level */));
+  }
 
   m_width = width;
   m_height = height;

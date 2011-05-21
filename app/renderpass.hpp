@@ -112,6 +112,9 @@ public:
 
   FBOPtr fbo() const { return m_fbo; }
 
+  void remove(FBOImagePtr buffer);
+  void set(int target, FBOImagePtr buffer);
+
 signals:
   void changed(RenderPassPtr);
 
@@ -138,7 +141,6 @@ protected:
   int m_width, m_height; /// Output size, if zero, use scene size.
   bool m_autosize;
   FBOPtr m_fbo;
-  FBOImagePtr m_depth, m_color;
 
   BufferObject m_gridVertices, m_gridColors;
 };

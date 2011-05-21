@@ -30,7 +30,8 @@
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Disabled), m_name(name), m_scene(scene), m_clear(0),
-    m_width(0), m_height(0), m_autosize(true) {
+    m_width(0), m_height(0), m_autosize(true),
+    m_fbo(new FrameBufferObject) {
   /// @todo remove these, non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
@@ -70,20 +71,19 @@ void RenderPass::setClearBits(GLbitfield bits) {
   }
 }
 
+/// @todo delete these two functions
 QStringList RenderPass::out() const {
-  /// @todo put these in a map, and make sure the names are unique
-  QStringList tmp;
-  if (m_color) tmp.append(m_color->name());
-  if (m_depth) tmp.append(m_depth->name());
-  return tmp;
+  QStringList lst;
+  foreach (FBOImagePtr img, m_fbo->buffers())
+    lst << img->name();
+  return lst;
 }
 
 FBOImagePtr RenderPass::out(const QString& name) const {
-  if (m_color->name() == name) return m_color;
-  if (m_depth->name() == name) return m_depth;
+  foreach (FBOImagePtr img, m_fbo->buffers())
+    if (img->name() == name) return img;
   return FBOImagePtr();
 }
-
 
 QString RenderPass::name() const {
   return m_name;
@@ -156,8 +156,6 @@ RenderPassPtr RenderPass::clone() const {
   r->m_width = m_width;
   r->m_height = m_height;
   r->m_autosize = m_autosize;
-  r->m_depth = m_depth;
-  r->m_color = m_color;
   return r;
 }
 
@@ -228,23 +226,16 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
 }
 
 void RenderPass::beginFBO() {
-  if (!m_depth && !m_color)
-    return;
-
-  if (!m_fbo) {
-    m_fbo.reset(new FrameBufferObject);
-    if (m_depth) m_fbo->set(GL_DEPTH_ATTACHMENT, m_depth);
-    if (m_color) m_fbo->set(GL_COLOR_ATTACHMENT0 + 0, m_color);
-  }
+  if (m_fbo->isEmpty()) return;
 
   m_fbo->resize(width(), height());
   m_fbo->bind();
 }
 
 void RenderPass::endFBO() {
-  if (m_fbo) m_fbo->unbind();
-  if (m_depth) m_depth->dataUpdated();
-  if (m_color) m_color->dataUpdated();
+  m_fbo->unbind();
+  foreach (FBOImagePtr img, m_fbo->buffers())
+    img->dataUpdated();
 }
 
 void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
@@ -336,20 +327,22 @@ QVariantMap RenderPass::save() const {
   if (m_width > 0 && !m_autosize) out["width"] = m_width;
   if (m_height > 0 && !m_autosize) out["height"] = m_height;
 
-  if (m_depth) {
+  auto buffers = m_fbo->buffers();
+  for (auto it = buffers.begin(); it != buffers.end(); ++it) {
+    QString bufname;
+    if (it.key() == GL_DEPTH_ATTACHMENT) {
+      bufname = "depth";
+    } else if (it.key() >= GL_COLOR_ATTACHMENT0 && it.key() < GL_COLOR_ATTACHMENT0 + 8) {
+      bufname = QString("color%1").arg(it.key() - GL_COLOR_ATTACHMENT0);
+    } else {
+      Log::error("Corrupted fbo buffers, buffer name %d doesn't make sense", it.key());
+      continue;
+    }
     tmp.clear();
-    tmp << m_depth->imageClass();
-    if (!m_depth->name().isEmpty())
-      tmp << m_depth->name();
-    out["depth"] = tmp;
-  }
-
-  if (m_color) {
-    tmp.clear();
-    tmp << m_color->imageClass();
-    if (!m_color->name().isEmpty())
-      tmp << m_color->name();
-    out["color0"] = tmp;
+    tmp << (*it)->imageClass();
+    if (!(*it)->name().isEmpty())
+      tmp << (*it)->name();
+    out[bufname] = tmp;
   }
 
   /** @todo to material
@@ -401,25 +394,19 @@ void RenderPass::load(QVariantMap map) {
 
   m_autosize = m_width <= 0 || m_height <= 0;
 
-  tmp = out["depth"].toStringList();
-  if (tmp.size() == 2 && tmp[0] == "texture")
-    m_depth = m_scene->genTexture(tmp[1]);
+  for (int i = -1; i < 16; ++i) {
+    int target = i == -1 ? GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0 + i;
+    QString bufname = i == -1 ? "depth" : QString("color%1").arg(i);
+    tmp = out[bufname].toStringList();
+    if (tmp.size() == 2 && tmp[0] == "texture")
+      m_fbo->set(target, m_scene->genTexture(tmp[1]));
 
-  if (tmp.size() == 1 && tmp[0] == "renderbuffer")
-    m_depth.reset(new RenderBuffer);
+    if (tmp.size() == 1 && tmp[0] == "renderbuffer")
+      m_fbo->set(target, FBOImagePtr(new RenderBuffer));
 
-  if (tmp.size() == 2 && tmp[0] == "renderbuffer")
-    m_depth.reset(new RenderBuffer(tmp[1]));
-
-  tmp = out["color0"].toStringList();
-  if (tmp.size() == 2 && tmp[0] == "texture")
-    m_color = m_scene->genTexture(tmp[1]);
-
-  if (tmp.size() == 1 && tmp[0] == "renderbuffer")
-    m_color.reset(new RenderBuffer);
-
-  if (tmp.size() == 2 && tmp[0] == "renderbuffer")
-    m_color.reset(new RenderBuffer(tmp[1]));
+    if (tmp.size() == 2 && tmp[0] == "renderbuffer")
+      m_fbo->set(target, FBOImagePtr(new RenderBuffer(tmp[1])));
+  }
 
   emit changed(shared_from_this());
 }
