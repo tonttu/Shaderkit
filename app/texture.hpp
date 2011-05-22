@@ -33,10 +33,10 @@ class TextureChangeManager : public QObject {
 public:
   virtual ~TextureChangeManager();
 
-  static void listen(TexturePtr texture, QObject* listener, std::function<void ()> func);
+  static void listen(TexturePtr texture, QObject* listener, std::function<void ()> func, bool data = true);
   static void forget(TexturePtr texture, QObject* listener);
 
-  static void changed(Texture* tex);
+  static void changed(Texture* tex, bool data = false);
   static void removed(Texture* tex);
 
 private slots:
@@ -44,10 +44,16 @@ private slots:
   void run();
 
 private:
+  struct Listener {
+    QObject* obj;
+    bool data;
+    std::function<void ()> func;
+  };
+
   TextureChangeManager();
-  typedef QList<std::pair<QObject*, std::function<void ()>>> List;
+  typedef QList<Listener> List;
   QMap<Texture*, List> m_callbacks;
-  QSet<Texture*> m_queue;
+  QSet<Texture*> m_queue, m_queueData;
   QTimer* m_timer;
 };
 
@@ -96,18 +102,20 @@ public:
 
   int internalFormat() const { return m_internalFormat; }
   virtual void setInternalFormat(int format);
+  void setInternalFormat(QString format);
+
   QString internalFormatStr() const;
 
-  static QSet<QString> allInternalFormatsStr();
+  static const QList<QPair<QString, QStringList>>& internalFormats(bool colorRenderableOnly);
 
-  static QSet<int> colorRenderableInternalFormats();
-  static QSet<QString> colorRenderableInternalFormatsStr();
+  static const QSet<int>& colorRenderableInternalFormats();
+  static const QSet<QString>& colorRenderableInternalFormatsStr();
 
-  static QSet<int> depthRenderableInternalFormats();
-  static QSet<QString> depthRenderableInternalFormatsStr();
+  static const QSet<int>& depthRenderableInternalFormats();
+  static const QSet<QString>& depthRenderableInternalFormatsStr();
 
-  static QSet<int> stencilRenderableInternalFormats();
-  static QSet<QString> stencilRenderableInternalFormatsStr();
+  static const QSet<int>& stencilRenderableInternalFormats();
+  static const QSet<QString>& stencilRenderableInternalFormatsStr();
 
   void dataUpdated();
 

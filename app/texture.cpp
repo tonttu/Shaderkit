@@ -264,9 +264,13 @@ TextureChangeManager::TextureChangeManager() : m_timer(new QTimer(this)) {
 TextureChangeManager::~TextureChangeManager() {
 }
 
-void TextureChangeManager::listen(TexturePtr texture, QObject* listener, std::function<void ()> func) {
+void TextureChangeManager::listen(TexturePtr texture, QObject* listener, std::function<void ()> func, bool data) {
   if (!s_instance) s_instance = new TextureChangeManager;
-  s_instance->m_callbacks[texture.get()] << std::make_pair(listener, func);
+  Listener l;
+  l.obj = listener;
+  l.data = data;
+  l.func = func;
+  s_instance->m_callbacks[texture.get()] << l;
   connect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
 }
 
@@ -274,7 +278,7 @@ void TextureChangeManager::forget(TexturePtr texture, QObject* listener) {
   if (!s_instance) return;
   auto it = s_instance->m_callbacks.find(texture.get());
   for (auto it2 = it->begin(); it2 != it->end(); ) {
-    if (it2->first == listener) it2 = it->erase(it2);
+    if (it2->obj == listener) it2 = it->erase(it2);
     else ++it2;
   }
   if (it->isEmpty()) it = s_instance->m_callbacks.erase(it);
@@ -284,9 +288,9 @@ void TextureChangeManager::forget(TexturePtr texture, QObject* listener) {
   }
 }
 
-void TextureChangeManager::changed(Texture* tex) {
+void TextureChangeManager::changed(Texture* tex, bool data) {
   if (!s_instance) return;
-  s_instance->m_queue << tex;
+  (data ? s_instance->m_queueData : s_instance->m_queue) << tex;
 }
 
 void TextureChangeManager::removed(Texture* tex) {
@@ -302,7 +306,7 @@ void TextureChangeManager::listenerDeleted(QObject* obj) {
   assert(s_instance == this);
   for (auto it = m_callbacks.begin(); it != m_callbacks.end();) {
     for (auto it2 = it->begin(); it2 != it->end(); ) {
-      if (it2->first == obj) it2 = it->erase(it2);
+      if (it2->obj == obj) it2 = it->erase(it2);
       else ++it2;
     }
     if (it->isEmpty()) it = m_callbacks.erase(it);
@@ -320,10 +324,19 @@ void TextureChangeManager::run() {
     auto it = m_callbacks.find(tex);
     if (it != m_callbacks.end()) {
       for (auto it2 = it->begin(); it2 != it->end(); ++it2)
-        it2->second();
+        it2->func();
+    }
+  }
+  foreach (Texture* tex, m_queueData - m_queue) {
+    auto it = m_callbacks.find(tex);
+    if (it != m_callbacks.end()) {
+      for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+        if (it2->data)
+          it2->func();
     }
   }
   m_queue.clear();
+  m_queueData.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -636,15 +649,63 @@ void Texture::setInternalFormat(int format) {
   m_dirty = true;
 }
 
+void Texture::setInternalFormat(QString format) {
+  if (s_internalFormatsStr.contains(format))
+    setInternalFormat(s_internalFormatsStr.value(format));
+}
+
 QString Texture::internalFormatStr() const {
   return s_internalFormats.value(m_internalFormat);
 }
 
-QSet<QString> Texture::allInternalFormatsStr() {
-  return s_internalFormatsStr.keys().toSet();
+const QList<QPair<QString, QStringList>>& Texture::internalFormats(bool colorRenderableOnly) {
+  static QList<QPair<QString, QStringList>> s_res, s_res_color_renderable;
+  if (!s_res.isEmpty()) return colorRenderableOnly ? s_res_color_renderable : s_res;
+
+  QSet<QString> colors = colorRenderableInternalFormatsStr();
+
+  QList<QString> all = s_internalFormatsStr.keys();
+  qSort(all);
+
+  QList<QPair<QString, QRegExp>> regexps;
+  regexps << QPair<QString, QRegExp>("Common", QRegExp("^(RED|RG|RGB|RGBA)$"));
+  regexps << QPair<QString, QRegExp>("Float", QRegExp("F$"));
+  regexps << QPair<QString, QRegExp>("Integer", QRegExp("[^U]I$"));
+  regexps << QPair<QString, QRegExp>("Unsigned integer", QRegExp("UI$"));
+  regexps << QPair<QString, QRegExp>("Luminance/Intensity", QRegExp("(LUMINANCE|INTENSITY)"));
+  regexps << QPair<QString, QRegExp>("Signed normalized", QRegExp("SNORM$"));
+  regexps << QPair<QString, QRegExp>("Stencil", QRegExp("STENCIL"));
+  regexps << QPair<QString, QRegExp>("Depth", QRegExp("DEPTH"));
+  regexps << QPair<QString, QRegExp>("Compressed", QRegExp("COMPRESSED"));
+  regexps << QPair<QString, QRegExp>("Alpha", QRegExp("^ALPHA"));
+
+  QMap<QString, QStringList> tmp1, tmp2;
+
+  foreach (QString format, all) {
+    bool match = false;
+    for (auto it = regexps.begin(); it != regexps.end(); ++it) {
+      QRegExp& e = it->second;
+      if (e.indexIn(format) >= 0) {
+        tmp1[it->first] << format;
+        if (colors.contains(format)) tmp2[it->first] << format;
+        match = true;
+      }
+    }
+    if (!match) {
+      tmp1["Special"] << format;
+      if (colors.contains(format)) tmp2["Special"] << format;
+    }
+  }
+
+  foreach (auto p, regexps) {
+    if (!tmp1[p.first].isEmpty()) s_res << qMakePair(p.first, tmp1[p.first]);
+    if (!tmp2[p.first].isEmpty()) s_res_color_renderable << qMakePair(p.first, tmp2[p.first]);
+  }
+
+  return colorRenderableOnly ? s_res_color_renderable : s_res;
 }
 
-QSet<int> Texture::colorRenderableInternalFormats() {
+const QSet<int>& Texture::colorRenderableInternalFormats() {
   /**
    * OpenGL specification 4.1 Core Profile:
    *
@@ -663,13 +724,13 @@ QSet<int> Texture::colorRenderableInternalFormats() {
   s_internalFormats[3] = "RGB";
   s_internalFormats[4] = "RGBA";*/
 
-  static QSet<int> set;
-  if (!set.isEmpty()) return set;
+  static QSet<int> s_set;
+  if (!s_set.isEmpty()) return s_set;
 
-  set << GL_RED << GL_RG << GL_RGB << GL_RGBA
+  s_set << GL_RED << GL_RG << GL_RGB << GL_RGBA
       << 3 << 4; // RGB and RGBA
 
-  set << GL_R11F_G11F_B10F << GL_R16 << GL_R16F << GL_R16I << GL_R16UI << GL_R16_SNORM
+  s_set << GL_R11F_G11F_B10F << GL_R16 << GL_R16F << GL_R16I << GL_R16UI << GL_R16_SNORM
       << GL_R32F << GL_R32I << GL_R32UI << GL_R3_G3_B2 << GL_R8 << GL_R8I << GL_R8UI
       << GL_R8_SNORM << GL_RG16 << GL_RG16F << GL_RG16I << GL_RG16UI << GL_RG16_SNORM
       << GL_RG32F << GL_RG32I << GL_RG32UI << GL_RG8 << GL_RG8I << GL_RG8UI
@@ -681,19 +742,20 @@ QSet<int> Texture::colorRenderableInternalFormats() {
       << GL_RGBA2 << GL_RGBA32F << GL_RGBA32I << GL_RGBA32UI << GL_RGBA4 << GL_RGBA8
       << GL_RGBA8I << GL_RGBA8UI << GL_RGBA8_SNORM << GL_SRGB8 << GL_SRGB8_ALPHA8;
 
-  return set;
+  return s_set;
 }
 
-QSet<QString> Texture::colorRenderableInternalFormatsStr() {
-  QSet<QString> set;
+const QSet<QString>& Texture::colorRenderableInternalFormatsStr() {
+  static QSet<QString> s_set;
+  if (!s_set.isEmpty()) return s_set;
   foreach (int i, colorRenderableInternalFormats()) {
     assert(s_internalFormats.contains(i));
-    set << s_internalFormats.value(i);
+    s_set << s_internalFormats.value(i);
   }
-  return set;
+  return s_set;
 }
 
-QSet<int> Texture::depthRenderableInternalFormats() {
+const QSet<int>& Texture::depthRenderableInternalFormats() {
   /**
    * OpenGL specification 4.1 Core Profile:
    *
@@ -702,28 +764,29 @@ QSet<int> Texture::depthRenderableInternalFormats() {
    * or DEPTH_STENCIL. No other formats are depth-renderable.
    */
 
-  static QSet<int> set;
-  if (!set.isEmpty()) return set;
+  static QSet<int> s_set;
+  if (!s_set.isEmpty()) return s_set;
 
   /// @todo should DEPTH_STENCIL also be in this list?
 
-  set << GL_DEPTH_COMPONENT << GL_DEPTH_COMPONENT16 << GL_DEPTH_COMPONENT24
+  s_set << GL_DEPTH_COMPONENT << GL_DEPTH_COMPONENT16 << GL_DEPTH_COMPONENT24
       << GL_DEPTH_COMPONENT32 << GL_DEPTH_COMPONENT32F << GL_DEPTH24_STENCIL8
       << GL_DEPTH32F_STENCIL8;
 
-  return set;
+  return s_set;
 }
 
-QSet<QString> Texture::depthRenderableInternalFormatsStr() {
-  QSet<QString> set;
+const QSet<QString>& Texture::depthRenderableInternalFormatsStr() {
+  static QSet<QString> s_set;
+  if (!s_set.isEmpty()) return s_set;
   foreach (int i, depthRenderableInternalFormats()) {
     assert(s_internalFormats.contains(i));
-    set << s_internalFormats.value(i);
+    s_set << s_internalFormats.value(i);
   }
-  return set;
+  return s_set;
 }
 
-QSet<int> Texture::stencilRenderableInternalFormats() {
+const QSet<int>& Texture::stencilRenderableInternalFormats() {
   /**
    * OpenGL specification 4.1 Core Profile:
    *
@@ -733,28 +796,29 @@ QSet<int> Texture::stencilRenderableInternalFormats() {
    * format is DEPTH_STENCIL. No other formats are stencil-renderable.
    */
 
-  static QSet<int> set;
-  if (!set.isEmpty()) return set;
+  static QSet<int> s_set;
+  if (!s_set.isEmpty()) return s_set;
 
-  set << GL_STENCIL << GL_DEPTH_STENCIL
-      << GL_STENCIL_INDEX1 << GL_STENCIL_INDEX4 << GL_STENCIL_INDEX8
-      << GL_STENCIL_INDEX16
-      << GL_DEPTH24_STENCIL8 << GL_DEPTH32F_STENCIL8;
+  s_set << GL_STENCIL << GL_DEPTH_STENCIL
+        << GL_STENCIL_INDEX1 << GL_STENCIL_INDEX4 << GL_STENCIL_INDEX8
+        << GL_STENCIL_INDEX16
+        << GL_DEPTH24_STENCIL8 << GL_DEPTH32F_STENCIL8;
 
-  return set;
+  return s_set;
 }
 
-QSet<QString> Texture::stencilRenderableInternalFormatsStr() {
-  QSet<QString> set;
+const QSet<QString>& Texture::stencilRenderableInternalFormatsStr() {
+  static QSet<QString> s_set;
+  if (!s_set.isEmpty()) return s_set;
   foreach (int i, stencilRenderableInternalFormats()) {
     assert(s_internalFormats.contains(i));
-    set << s_internalFormats.value(i);
+    s_set << s_internalFormats.value(i);
   }
-  return set;
+  return s_set;
 }
 
 void Texture::dataUpdated() {
-  TextureChangeManager::changed(this);
+  TextureChangeManager::changed(this, true);
 }
 
 TexturePtr TextureFile::clone() const {

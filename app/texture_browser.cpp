@@ -172,7 +172,8 @@ void TextureWidget::mouseReleaseEvent(QMouseEvent* ev) {
 TextureBrowser::TextureBrowser(QWidget *parent)
   : QWidget(parent),
     m_ui(new Ui::TextureBrowser),
-    m_selected(0) {
+    m_selected(0),
+    m_attachment(0) {
   m_ui->setupUi(this);
   m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
 
@@ -189,9 +190,20 @@ TextureBrowser::TextureBrowser(QWidget *parent)
 
   setAttribute(Qt::WA_DeleteOnClose);
 
-  QListWidget* view = new QListWidget(this);
-  m_ui->internal_format->setModel(view->model());
-  m_ui->internal_format->setView(view);
+  QTableWidget* tw = new QTableWidget(this);
+  tw->verticalHeader()->hide();
+  tw->horizontalHeader()->hide();
+  tw->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  tw->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  tw->setGridStyle(Qt::DotLine);
+  tw->setFrameShape(QFrame::NoFrame);
+  tw->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  tw->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+  m_ui->internal_format->setModel(tw->model());
+  m_ui->internal_format->setView(tw);
+  connect(m_ui->internal_format, SIGNAL(activated(QString)),
+          this, SLOT(setInternalFormat(QString)));
 
   m_ui->scrollArea->setBackgroundRole(QPalette::Base);
 
@@ -280,13 +292,23 @@ void TextureBrowser::show() {
 void TextureBrowser::selected(TextureWidget* w, bool force) {
   if (m_selected == w && !force) return;
   if (m_selected != w) {
-    if (m_selected) m_selected->setSelected(false);
-    if (w) w->setSelected(true);
+    if (m_selected) {
+      m_selected->setSelected(false);
+      if (m_selected->tex())
+        TextureChangeManager::forget(m_selected->tex(), this);
+    }
+    if (w) {
+      w->setSelected(true);
+      if (w->tex()) {
+        TextureChangeManager::listen(w->tex(), this, std::bind(
+            &TextureBrowser::updateInternalFormat, this), false);
+      }
+    }
     m_selected = w;
   }
 
   m_ui->params->setRowCount(0);
-  m_ui->internal_format->clear();
+  updateInternalFormat();
 
   if (w) {
     m_duplicate->setEnabled(true);
@@ -316,8 +338,6 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   TextureFile* tf = dynamic_cast<TextureFile*>(t.get());
 
   m_ui->name->setText(t->name());
-  m_ui->sizeinfo->setText(QString("Texture #%1 %2x%3 %4").arg(t->id()).
-                          arg(t->width()).arg(t->height()).arg(t->internalFormatStr()));
 
   RenderPassPtr rp = MainWindow::scene()->findRenderer(t);
   int buffer = 0;
@@ -410,51 +430,114 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
             this, SLOT(newParam(QString)));
   }
 
-  // update the internal format list
-  {
-    if (buffer == GL_DEPTH_ATTACHMENT) {
-    } else if (buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 16) {
-      QStringList lst = QStringList() << "Common formats" << "Float formats"
-                                      << "Integer formats" << "Unsigned integer formats"
-                                      << "Signed normalized formats" << "Special formats";
-      QList<QString> groups[6];
+  m_ui->params->resizeColumnToContents(0);
+}
 
-      groups[0] << "RED" << "RG" << "RGB" << "RGBA";
-      QList<QString> all = (Texture::colorRenderableInternalFormatsStr()
-                            - groups[0].toSet()).toList();
+void TextureBrowser::updateInternalFormat() {
+  TexturePtr t = m_selected ? m_selected->tex() : TexturePtr();
+  if (!t) {
+    m_ui->internal_format->setCurrentIndex(-1);
+    return;
+  }
+
+  m_ui->sizeinfo->setText(QString("Texture #%1 %2x%3 %4").arg(t->id()).
+                          arg(t->width()).arg(t->height()).arg(t->internalFormatStr()));
+
+  int buffer = t->attachment();
+  QString current = t->internalFormatStr();
+
+  if (buffer == m_attachment &&
+      m_ui->internal_format->currentText() == current) return;
+
+  QTableWidget* tw = dynamic_cast<QTableWidget*>(m_ui->internal_format->view());
+  assert(tw);
+  if (buffer != m_attachment || tw->rowCount() == 0) {
+    m_attachment = buffer;
+    int columns = 1;
+    if (buffer == GL_DEPTH_ATTACHMENT || buffer == GL_STENCIL_ATTACHMENT) {
+      QList<QString> all = buffer == GL_DEPTH_ATTACHMENT
+          ? Texture::depthRenderableInternalFormatsStr().toList()
+          : Texture::stencilRenderableInternalFormatsStr().toList();
       qSort(all);
 
-      foreach (QString format, all) {
-        if (format.endsWith("SNORM"))
-          groups[4] << format;
-        else if (format.endsWith("F"))
-          groups[1] << format;
-        else if (format.endsWith("UI"))
-          groups[3] << format;
-        else if (format.endsWith("I"))
-          groups[2] << format;
-        else
-          groups[5] << format;
-      }
+      tw->setColumnCount(1);
+      tw->setRowCount(all.size());
+      m_ui->internal_format->setModelColumn(0);
+      m_ui->internal_format->setCurrentIndex(-1);
 
-      for (int i = 0; i < 6; ++i) {
-        QListWidgetItem* item = new QListWidgetItem(lst[i]);
+      for (int i = 0; i < all.size(); ++i) {
+        tw->setItem(i, 0, new QTableWidgetItem(all[i]));
+        if (all[i] == current) m_ui->internal_format->setCurrentIndex(i);
+      }
+    } else {
+      bool color = buffer >= GL_COLOR_ATTACHMENT0 && buffer < GL_COLOR_ATTACHMENT0 + 16;
+      const QList<QPair<QString, QStringList>>& formats = Texture::internalFormats(color);
+
+      columns = color ? 3 : 4;
+      int elements = formats.size();
+      for (auto it = formats.begin(); it != formats.end(); ++it) {
+        elements += it->second.size();
+      }
+      int rows = std::ceil(float(elements) / columns);
+
+      int selected_row = -1, selected_column = 0;
+
+      tw->setColumnCount(columns);
+      tw->setRowCount(rows);
+
+      int row = -1, column = 0;
+      for (auto it = formats.begin(); it != formats.end(); ++it) {
+        if (++row == rows) row = 0, ++column;
+        QTableWidgetItem* item = new QTableWidgetItem(it->first);
+        item->setFlags(Qt::ItemIsEnabled);
+
         QFont font = item->font();
         font.setBold(true);
         item->setFont(font);
-        ((QListWidget*)m_ui->internal_format->view())->addItem(item);
+        tw->setItem(row, column, item);
 
-        foreach (QString format, groups[i])
-          m_ui->internal_format->addItem(format);
+        foreach (QString n, it->second) {
+          if (++row == rows) row = 0, ++column;
+          tw->setItem(row, column, new QTableWidgetItem(n));
+          if (n == current && selected_row == -1)
+            selected_row = row, selected_column = column;
+        }
       }
-    } else if (buffer == GL_STENCIL_ATTACHMENT) {
-    } else {
-    }
-    m_ui->internal_format->setCurrentIndex(
-          m_ui->internal_format->findText(t->internalFormatStr()));
-  }
 
-  m_ui->params->resizeColumnToContents(0);
+      m_ui->internal_format->setModelColumn(selected_column);
+      m_ui->internal_format->setCurrentIndex(selected_row);
+    }
+
+    tw->horizontalHeader()->setStretchLastSection(columns == 1);
+    tw->ensurePolished();
+    int width = 0;
+    for (int i = 0; i < columns; ++i) width += tw->columnWidth(i);
+    tw->setMinimumWidth(columns == 1 ? std::max(width, m_ui->internal_format->width()): width);
+  } else {
+    bool found = false;
+    QAbstractItemModel* m = m_ui->internal_format->model();
+    for (int i = 0; i < tw->columnCount(); ++i) {
+      QModelIndexList lst = m->match(m->index(0, i), Qt::DisplayRole, current, 1, Qt::MatchExactly);
+      if (!lst.isEmpty()) {
+        m_ui->internal_format->setModelColumn(lst[0].column());
+        m_ui->internal_format->setCurrentIndex(lst[0].row());
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      m_ui->internal_format->setModelColumn(0);
+      m_ui->internal_format->setCurrentIndex(-1);
+    }
+  }
+}
+
+void TextureBrowser::setInternalFormat(QString value) {
+  TexturePtr t = m_selected ? m_selected->tex() : TexturePtr();
+  if (t) {
+    t->setInternalFormat(value);
+    updateInternalFormat();
+  }
 }
 
 void TextureBrowser::paramChanged(QString value) {

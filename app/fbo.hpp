@@ -51,6 +51,8 @@ public:
 
   void setFBO(FBOPtr fbo);
 
+  int attachment() const { return m_attachment; }
+
 protected:
   QString m_role;
 

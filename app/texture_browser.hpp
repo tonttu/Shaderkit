@@ -100,6 +100,8 @@ private slots:
 
   void changeRenderBuffer();
   void updateAttachmentIcons(FBOPtr fbo);
+  void updateInternalFormat();
+  void setInternalFormat(QString);
 
 private:
   explicit TextureBrowser(QWidget* parent = 0);
@@ -109,6 +111,8 @@ private:
   Ui::TextureBrowser *m_ui;
   TextureWidget* m_selected;
   TexturePtr m_select;
+
+  int m_attachment;
 
   QAction *m_create, *m_duplicate, *m_destroy, *m_open;
 
