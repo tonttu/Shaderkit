@@ -42,36 +42,52 @@ void TextureWidgetGL::paintGL() {
     return;
   }
 
-  bool clip_mode = true;
+  State state(0);
 
-  float ar = m_tex->width() / float(m_tex->height());
-  float w = 1.0f, h = 1.0f;
-  if (ar >= 1.0f) {
-    h = w / ar;
-  } else {
-    w = h * ar;
+  float ww = width(), wh = height();
+  float tex_ar = m_tex->width() / float(m_tex->height());
+  float win_ar = ww / wh;
+
+  int mode = 0;
+  if (mode == 0) {
+    float w, h;
+    if (tex_ar > win_ar) {
+      w = width(), h = w / tex_ar;
+    } else {
+      h = height(), w = h * tex_ar;
+    }
+    float oy = (height() - h) * 0.5f;
+    float ox = (width() - w) * 0.5f;
+    float vertices[] = {ox,oy, w+ox,oy, w+ox,h+oy, ox,h+oy};
+    float uvs[] = {0,0, 1,0, 1,1, 0,1};
+
+    m_vertices.enableArray(state, GL_VERTEX_ARRAY, 2, 4, vertices);
+    m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, 2, 4, uvs);
+  } else if (mode == 1) {
+    float vertices[] = {0, 0, ww,0, ww,wh, 0,wh};
+
+    float f = 0.2f;
+    float uv_w, uv_h;
+    if (tex_ar < win_ar) {
+      uv_h = 1.0f + 2.0f*f;
+      uv_w = uv_h * win_ar;
+    } else {
+      uv_w = 1.0f + 2.0f*f;
+      uv_h = uv_w / win_ar;
+    }
+
+    float x = (uv_w - 1.0f) * 0.5f;
+    float y = (uv_h - 1.0f) * 0.5f;
+    float uvs[] = {-x,-y, x+1,-y, x+1,y+1, -x,y+1};
+
+    m_vertices.enableArray(state, GL_VERTEX_ARRAY, 2, 4, vertices);
+    m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, 2, 4, uvs);
   }
 
-  if (clip_mode && std::fabs(ar - 1.0f) > 0.0001f) {
+  if (mode == 0 && std::fabs(tex_ar - win_ar) > 0.0001f) {
     glClear(GL_COLOR_BUFFER_BIT);
   }
 
-  float full[] = {0,0, 1,0, 1,1, 0,1};
-
-  float xa = (1-w)/2, xb = (1+w)/2,
-        ya = (1-h)/2, yb = (1+h)/2;
-  float clipped[] = {xa,ya, xb,ya, xb,yb, xa,yb};
-
-  xa = -(1-w)/(2*w), xb = 1+(1-w)/(2*w),
-  ya = -(1-h)/(2*h), yb = 1+(1-h)/(2*h);
-  float wrap[] = {xa,ya, xb,ya, xb,yb, xa,yb};
-
-  float * vertices = clip_mode ? clipped : full;
-  float * uvs = clip_mode ? full : wrap;
-
-  State state(0);
-  m_vertices.enableArray(state, GL_VERTEX_ARRAY, 2, 4, vertices);
-  m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, 2, 4, uvs);
   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
   m_tex->bind();
   glDrawArrays(GL_QUADS, 0, 4);
@@ -82,7 +98,7 @@ void TextureWidgetGL::resizeGL(int w, int h) {
   glViewport(0, 0, w, h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, 1, 0, 1, -1, 1);
+  glOrtho(0, w, 0, h, -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
