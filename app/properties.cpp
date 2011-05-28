@@ -77,6 +77,9 @@ namespace {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 class PropertyLayout;
 struct PropertyLayoutData {
   PropertyLayoutData(int columns);
@@ -114,6 +117,9 @@ private:
 PropertyLayoutData::PropertyLayoutData(int c) : columns(c) {
   padding.resize(columns);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 PropertyLayout::PropertyLayout(PropertyLayoutData& data)
   : m_data(data), m_row(insert(data.items)) {
@@ -260,10 +266,52 @@ QSize LineEdit::sizeHint() const {
   return minimumSizeHint();
 }
 
-
 void LineEdit::updateSizes() {
   updateGeometry();
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+class HeaderWidget : public QWidget {
+public:
+  void setText(QString text) { m_text = text; }
+  QString text() const { return m_text; }
+
+  void setIcon(const QIcon& icon) { m_icon = icon; }
+  QIcon icon() const { return m_icon; }
+
+protected:
+  void paintEvent(QPaintEvent* ev) {
+    QPainter painter(this);
+    painter.setClipRect(ev->rect());
+
+    QStyleOptionHeader opt;
+    opt.state = QStyle::State_On | QStyle::State_Raised |
+        QStyle::State_Horizontal | QStyle::State_Enabled;
+    //opt.state |= QStyle::State_MouseOver;
+
+    opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+    opt.orientation = Qt::Horizontal;
+
+    opt.text = m_text;
+    opt.icon = m_icon;
+
+    /// clip borders
+    QRect r = ev->rect();
+    r.setRight(r.right() + 3);
+    r.setBottom(r.bottom() + 1);
+    opt.rect = r;
+
+    style()->drawControl(QStyle::CE_Header, &opt, &painter, this);
+  }
+
+  QString m_text;
+  QIcon m_icon;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 UEditor::UEditor(QTableWidget* w, int row, MaterialPtr mat_, UniformVar& var)
  : QTableWidgetItem(/*p*/),
