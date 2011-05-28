@@ -64,6 +64,45 @@ namespace {
   };
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+LineEdit::LineEdit(QWidget* parent) : QLineEdit(parent) {
+  connect(this, SIGNAL(textChanged(QString)), this, SLOT(updateSizes()));
+}
+
+QSize LineEdit::minimumSizeHint() const {
+  const int vertical_margin = 1;
+  const int horizontal_margin = 2;
+
+  ensurePolished();
+  QFontMetrics fm = fontMetrics();
+  QMargins margins = contentsMargins();
+  QMargins text_margins = textMargins();
+
+  int w = qMax(fm.width(text()), fm.width("888.88")) +
+      2 * horizontal_margin +
+      margins.left() + margins.right() +
+      text_margins.left() + text_margins.right();
+  int h = fm.height() + qMax(2*vertical_margin, fm.leading()) +
+      margins.top() + margins.bottom() +
+      text_margins.top() + text_margins.bottom();
+
+  QStyleOptionFrameV2 opt;
+  initStyleOption(&opt);
+  return style()->sizeFromContents(QStyle::CT_LineEdit, &opt, QSize(w, h).
+                                   expandedTo(QApplication::globalStrut()), this);
+}
+
+QSize LineEdit::sizeHint() const {
+  return minimumSizeHint();
+}
+
+
+void LineEdit::updateSizes() {
+  updateGeometry();
+}
+
 UEditor::UEditor(QTableWidget* w, int row, MaterialPtr mat_, UniformVar& var)
  : QTableWidgetItem(/*p*/),
    mat(mat_),

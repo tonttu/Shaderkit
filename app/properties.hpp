@@ -24,6 +24,22 @@
 #include <QMap>
 #include <QTableWidget>
 
+/**
+ * This line editor updates its size hints automatically based on the content.
+ */
+class LineEdit : public QLineEdit {
+  Q_OBJECT
+
+public:
+  LineEdit(QWidget* parent = 0);
+
+  QSize minimumSizeHint() const;
+  QSize sizeHint() const;
+
+private slots:
+  void updateSizes();
+};
+
 class UEditor : public QObject, public QTableWidgetItem {
 public:
   UEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
