@@ -663,6 +663,10 @@
    </property>
   </action>
   <action name="action_textures">
+   <property name="icon">
+    <iconset resource="../gfx/gfx.qrc">
+     <normaloff>:/icons/texture_browser.png</normaloff>:/icons/texture_browser.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Textures</string>
    </property>

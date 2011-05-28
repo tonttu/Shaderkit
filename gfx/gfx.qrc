@@ -33,6 +33,7 @@
         <file>uniforms_off.png</file>
         <file>uniforms.png</file>
         <file>renderbuffer.png</file>
+        <file>texture_browser.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>
