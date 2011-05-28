@@ -62,6 +62,168 @@ namespace {
 
     bool m_hover;
   };
+
+  class PropertyItem : public QWidgetItem {
+  public:
+    PropertyItem(QWidget* w, int colspan = 1) : QWidgetItem(w), m_colspan(colspan) {}
+    int colspan() const { return m_colspan; }
+
+  private:
+    int m_colspan;
+  };
+  template <typename T> T& insert(QList<T>& l) {
+    l.push_back(T());
+    return l.back();
+  }
+}
+
+class PropertyLayout;
+struct PropertyLayoutData {
+  PropertyLayoutData(int columns);
+
+private:
+  int columns;
+  typedef QList<QVector<PropertyItem*> > Items;
+  Items items;
+  QVector<QMargins> padding;
+  QSize min_size;
+
+  friend class PropertyLayout;
+};
+
+class PropertyLayout : public QLayout {
+public:
+  PropertyLayout(PropertyLayoutData& data);
+
+  virtual QSize minimumSize() const;
+  virtual QSize sizeHint() const;
+  virtual void addItem(QLayoutItem*);
+  virtual QLayoutItem* itemAt(int index) const;
+  virtual QLayoutItem* takeAt(int index);
+  virtual int count() const;
+
+  void setWidget(int column, int colspan, QWidget* widget);
+
+  void setGeometry(const QRect& r);
+
+private:
+  PropertyLayoutData& m_data;
+  QVector<PropertyItem*>& m_row;
+};
+
+PropertyLayoutData::PropertyLayoutData(int c) : columns(c) {
+  padding.resize(columns);
+}
+
+PropertyLayout::PropertyLayout(PropertyLayoutData& data)
+  : m_data(data), m_row(insert(data.items)) {
+  m_row.resize(m_data.columns);
+}
+
+QSize PropertyLayout::minimumSize() const {
+  return m_data.min_size;
+}
+
+QSize PropertyLayout::sizeHint() const {
+  return m_data.min_size;
+}
+
+void PropertyLayout::addItem(QLayoutItem*) {
+  Log::fatal("PropertyLayout::addItem shouldn't be called directly");
+}
+
+QLayoutItem* PropertyLayout::itemAt(int index) const {
+  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
+    foreach (PropertyItem* item, *it) {
+      if (!item) continue;
+      if (index-- == 0) return item;
+    }
+  }
+  return 0;
+}
+
+QLayoutItem* PropertyLayout::takeAt(int index) {
+  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
+    for (int c = 0; c < m_data.columns; ++c) {
+      PropertyItem* ret = (*it)[c];
+      if (!ret) continue;
+      if (index-- == 0) {
+        (*it)[c] = 0;
+        return ret;
+      }
+    }
+  }
+  return 0;
+}
+
+int PropertyLayout::count() const {
+  int c = 0;
+  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
+    foreach (PropertyItem* item, *it) {
+      if (item) ++c;
+    }
+  }
+  return c;
+}
+
+void PropertyLayout::setWidget(int column, int colspan, QWidget* widget) {
+  assert(!m_row[column]);
+  m_row[column] = new PropertyItem(widget, colspan);
+}
+
+void PropertyLayout::setGeometry(const QRect& r) {
+  /// (start column (inclusive), end column (inclusive)) => min width
+  QMap<QPair<int, int>, int> spans;
+
+  int height = 0;
+  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
+    for (int c = 0; c < m_data.columns; ++c) {
+      PropertyItem* item = (*it)[c];
+      if (!item) continue;
+
+      int c2 = c+item->colspan()-1;
+      QSize size = item->sizeHint();
+
+      int & w = spans[qMakePair(c, c2)];
+      w = qMax(w, size.width() +
+               m_data.padding[c].left() + m_data.padding[c2].right());
+
+      if (&m_row == &*it) {
+        int padding_height = 0;
+        for (int i = c; i <= c2; ++i) {
+          int tmp = m_data.padding[i].top() + m_data.padding[i].bottom();
+          padding_height = qMax(padding_height, tmp);
+        }
+        height = qMax(height, size.height() + padding_height);
+      }
+    }
+  }
+
+  QVector<int> pos(m_data.columns);
+  // last item is always stretched, no need to calculate that
+  for (int c = 0; c < m_data.columns - 1; ++c) {
+    int & p = pos[c+1];
+    p = pos[c];
+    for (auto it = spans.begin(); it != spans.end(); ++it) {
+      if (it.key().second == c)
+        p = qMax(p, pos[it.key().first] + *it);
+    }
+  }
+  m_data.min_size = QSize(pos.last(), height);
+
+  for (int c = 0; c < m_data.columns; ++c) {
+    PropertyItem* item = m_row[c];
+    if (!item) continue;
+
+    bool last = c == m_data.columns - 1;
+    int x = pos[c];
+    int w = last ? r.width() - x : pos[c+1] - pos[c];
+
+    QMargins& m = m_data.padding[c];
+
+    item->setGeometry(QRect(x + m.left(), r.top() + m.top(),
+                            w - m.left() - m.right(), r.height() - m.right()));
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -265,12 +427,19 @@ Properties::Properties(QWidget* parent)
 MaterialProperties::MaterialProperties(QWidget* parent)
   : QTableWidget(parent),
     m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
-    m_hover_row(-1) {
+    m_hover_row(-1), m_data(new PropertyLayoutData(2)) {
   if (!s_instance) s_instance = this;
+
+  setColumnCount(2);
 
   verticalHeader()->hide();
   horizontalHeader()->hide();
+
+  horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
   horizontalHeader()->setStretchLastSection(true);
+
+  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
   connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
@@ -279,6 +448,7 @@ MaterialProperties::MaterialProperties(QWidget* parent)
 
 MaterialProperties::~MaterialProperties() {
   if (s_instance == this) s_instance = 0;
+  delete m_data;
 }
 
 void MaterialProperties::init() {

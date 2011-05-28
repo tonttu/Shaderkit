@@ -102,6 +102,8 @@ public:
 protected:
 };
 
+class PropertyLayoutData;
+
 /**
  * Real-time property editor for shader properties, like uniform variables.
  *
@@ -155,6 +157,8 @@ protected:
 
   QAction *m_only_uniforms, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
   int m_hover_row;
+
+  PropertyLayoutData* m_data;
 
   static MaterialProperties* s_instance;
 };
