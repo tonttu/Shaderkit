@@ -12,17 +12,19 @@
 class QString;
 class Log {
 public:
-  enum Level { LOG_NONE = 0, LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG } level;
+  enum Level { LOG_NONE = 0, LOG_FATAL, LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG } level;
   FILE* target;
 
   Log();
   ~Log();
 
+  static void fatal(const char* fmt, ...) PRINTF_CHECK(1);
   static void error(const char* fmt, ...) PRINTF_CHECK(1);
   static void warn(const char* fmt, ...) PRINTF_CHECK(1);
   static void info(const char* fmt, ...) PRINTF_CHECK(1);
   static void debug(const char* fmt, ...) PRINTF_CHECK(1);
 
+  static void fatal(const QString& str, ...);
   static void error(const QString& str, ...);
   static void warn(const QString& str, ...);
   static void info(const QString& str, ...);

@@ -12,6 +12,7 @@
 namespace {
   void writelog(Log::Level l, FILE* target, const char* fmt, va_list ap) {
     static const char* prefixes[] = {"          ",
+                                     " Fatal    ",
                                      " Error    ",
                                      " Warning  ",
                                      " Info     ",
@@ -51,7 +52,7 @@ Log::~Log() {
   va_list ap; \
   va_start(ap, fmt); \
   writelog(type, s_log->target, fmt, ap); \
-  va_end(ap);
+  va_end(ap)
 
 #define LOG_IMPL2(type) \
   assert(s_log); \
@@ -59,17 +60,19 @@ Log::~Log() {
   va_list ap; \
   va_start(ap, str); \
   writelog(type, s_log->target, str.toUtf8().data(), ap); \
-  va_end(ap);
+  va_end(ap)
 
-void Log::error(const char* fmt, ...) { LOG_IMPL(LOG_ERROR) }
-void Log::warn(const char* fmt, ...) { LOG_IMPL(LOG_WARNING) }
-void Log::info(const char* fmt, ...) { LOG_IMPL(LOG_INFO) }
-void Log::debug(const char* fmt, ...) { LOG_IMPL(LOG_DEBUG) }
+void Log::fatal(const char* fmt, ...) { LOG_IMPL(LOG_FATAL); abort(); }
+void Log::error(const char* fmt, ...) { LOG_IMPL(LOG_ERROR); }
+void Log::warn(const char* fmt, ...) { LOG_IMPL(LOG_WARNING); }
+void Log::info(const char* fmt, ...) { LOG_IMPL(LOG_INFO); }
+void Log::debug(const char* fmt, ...) { LOG_IMPL(LOG_DEBUG); }
 
-void Log::error(const QString& str, ...) { LOG_IMPL2(LOG_ERROR) }
-void Log::warn(const QString& str, ...) { LOG_IMPL2(LOG_WARNING) }
-void Log::info(const QString& str, ...) { LOG_IMPL2(LOG_INFO) }
-void Log::debug(const QString& str, ...) { LOG_IMPL2(LOG_DEBUG) }
+void Log::fatal(const QString& str, ...) { LOG_IMPL2(LOG_FATAL); abort(); }
+void Log::error(const QString& str, ...) { LOG_IMPL2(LOG_ERROR); }
+void Log::warn(const QString& str, ...) { LOG_IMPL2(LOG_WARNING); }
+void Log::info(const QString& str, ...) { LOG_IMPL2(LOG_INFO); }
+void Log::debug(const QString& str, ...) { LOG_IMPL2(LOG_DEBUG); }
 
 void Log::log(Level level, const char* fmt, ...) {
   assert(s_log);
@@ -80,10 +83,10 @@ void Log::log(Level level, const char* fmt, ...) {
     level = LOG_ERROR;
     writelog(level, s_log->target, "Invalid log level", ap);
   }
-  if(s_log->level < level) return;
-
-  writelog(level, s_log->target, fmt, ap);
+  if (s_log->level >= level)
+    writelog(level, s_log->target, fmt, ap);
   va_end(ap);
+  if (level == LOG_FATAL) abort();
 }
 
 #undef LOG_IMPL2
