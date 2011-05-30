@@ -18,6 +18,7 @@ public:
   Material(QString name);
 
   void addTexture(QString name, TexturePtr tex);
+  void setTexture(QString name, TexturePtr tex);
   void removeTexture(TexturePtr tex);
 
   struct Colors {
@@ -63,7 +64,7 @@ public:
 //  QMap<QString, TexturePtr> in() const { return m_in; }
 
 signals:
-  void changed();
+  void changed(MaterialPtr);
 
 private:
   friend void State::pushMaterial(MaterialPtr);

@@ -6,6 +6,7 @@
 #include "texture.hpp"
 #include "state.hpp"
 #include "renderpass.hpp"
+#include "material.hpp"
 
 #include <QDebug>
 
@@ -247,6 +248,8 @@ TextureBrowser::TextureBrowser(QWidget *parent)
   connect(m_ui->filename, SIGNAL(editingFinished()), this, SLOT(filenameChanged()));
   connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
 
+  connect(m_ui->buttonBox, SIGNAL(accepted()), this, SLOT(apply()));
+  connect(m_ui->buttonBox, SIGNAL(accepted()), this, SLOT(close()));
   connect(m_ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
   connect(m_ui->renderpass, SIGNAL(activated(int)), this, SLOT(changeRenderBuffer()));
   connect(m_ui->color, SIGNAL(activated(int)), this, SLOT(changeRenderBuffer()));
@@ -307,7 +310,26 @@ void TextureBrowser::updateContent(ScenePtr scene) {
 }
 
 void TextureBrowser::show() {
+  selected(0);
+  m_ui->task_description->setText("");
+  m_target.first.reset();
   m_ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+  QWidget::show();
+  updateContent();
+}
+
+void TextureBrowser::show(MaterialPtr material, QString uniformName, TexturePtr current)
+{
+  selected(0);
+  m_select = current;
+  m_target = qMakePair(material, uniformName);
+  m_ui->task_description->setText(QString("Select a texture for variable <b>%1</b> in material <b>%2</b>.").
+                                  arg(uniformName).arg(material->name()));
+  m_ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Apply |
+                                      QDialogButtonBox::Close);
+  m_ui->buttonBox->button(QDialogButtonBox::Apply)->setDisabled(true);
+  connect(m_ui->buttonBox->button(QDialogButtonBox::Apply), SIGNAL(clicked()),
+          this, SLOT(apply()));
   QWidget::show();
   updateContent();
 }
@@ -332,6 +354,12 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
 
   m_ui->params->setRowCount(0);
   updateInternalFormat();
+
+  if (m_target.first) {
+    TexturePtr target = m_target.first->texture(m_target.second);
+    bool changed = w ? target != w->tex() : target;
+    m_ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(changed);
+  }
 
   if (w) {
     m_duplicate->setEnabled(true);
@@ -603,12 +631,17 @@ void TextureBrowser::renderPassesChanged() {
   m_ui->renderpass->clear();
   ScenePtr s = MainWindow::scene();
   if (!s) return;
+
+  /// @todo "None", change this to use different view/model
+  m_ui->renderpass->addItem("");
   foreach (RenderPassPtr rp, s->renderPasses())
     m_ui->renderpass->addItem(rp->icon(), rp->name(), rp->name());
 }
 
 void TextureBrowser::create() {
-  /// @todo implement
+  TexturePtr tex(new Texture("Untitled"));
+  m_select = tex;
+  MainWindow::scene()->addTexture(tex);
 }
 
 void TextureBrowser::duplicate() {
@@ -653,6 +686,13 @@ void TextureBrowser::browse() {
   }
 }
 
+void TextureBrowser::apply() {
+  if (m_target.first) {
+    m_target.first->setTexture(m_target.second, m_selected ? m_selected->tex() : TexturePtr());
+  }
+  m_ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+}
+
 void TextureBrowser::changeRenderBuffer() {
   ScenePtr s = MainWindow::scene();
   if (m_ui->renderpass->currentIndex() < 0 ||
@@ -661,6 +701,11 @@ void TextureBrowser::changeRenderBuffer() {
 
   QString rpname = m_ui->renderpass->itemData(m_ui->renderpass->currentIndex()).toString();
   int target = m_ui->color->itemData(m_ui->color->currentIndex()).toInt();
+
+  if (rpname.isEmpty()) {
+    m_selected->tex()->setFBO(FBOPtr());
+    return;
+  }
 
   foreach (RenderPassPtr rp, s->renderPasses()) {
     if (rp->name() == rpname) {

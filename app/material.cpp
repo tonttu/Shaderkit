@@ -12,6 +12,12 @@ Material::Material(QString name) : SceneObject(name), m_prog_binded(false) {
 
 void Material::addTexture(QString name, TexturePtr tex) {
   m_textures[Utils::uniqueName(name, m_textures.keys())] = tex;
+  emit changed(shared_from_this());
+}
+
+void Material::setTexture(QString name, TexturePtr tex) {
+  m_textures[name] = tex;
+  emit changed(shared_from_this());
 }
 
 void Material::removeTexture(TexturePtr tex) {
@@ -19,6 +25,7 @@ void Material::removeTexture(TexturePtr tex) {
     if (*it == tex) it = m_textures.erase(it);
     else ++it;
   }
+  emit changed(shared_from_this());
 }
 
 Material::Colors::Colors()
@@ -82,7 +89,7 @@ void Material::setScene(ScenePtr scene) {
 
 void Material::setProg(ProgramPtr prog) {
   m_program = prog;
-  emit changed();
+  emit changed(shared_from_this());
 }
 
 QVariantMap Material::save() const {

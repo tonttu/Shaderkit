@@ -106,6 +106,7 @@ public:
 
 private slots:
   void showPreview();
+  void browse();
 
 private:
   QLabel* m_texname;
@@ -156,6 +157,8 @@ protected slots:
   void edit();
   void remove();
   void toggleMode();
+
+  void materialChanged(MaterialPtr);
 
 protected:
   QMap<MaterialPtr, MaterialItem> m_materials;

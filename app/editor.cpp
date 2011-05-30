@@ -350,7 +350,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
       addShader(shader);
     connect(prog.get(), SIGNAL(changed()), this, SLOT(materialChanged()));
   }
-  connect(m_material.get(), SIGNAL(changed()), this, SLOT(materialChanged()));
+  connect(m_material.get(), SIGNAL(changed(MaterialPtr)), this, SLOT(materialChanged()));
 
   connect(m_list, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(scrollTo(QModelIndex)));

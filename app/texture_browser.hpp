@@ -80,6 +80,7 @@ public:
   static TextureBrowser& instance();
 
   void show();
+  void show(MaterialPtr material, QString uniformName, TexturePtr current);
 
 public slots:
   void selected(TextureWidget*, bool force = false);
@@ -99,6 +100,8 @@ private slots:
   void filenameChanged();
   void browse();
 
+  void apply();
+
   void changeRenderBuffer();
   void updateAttachmentIcons(FBOPtr fbo);
   void updateInternalFormat();
@@ -112,6 +115,8 @@ private:
   Ui::TextureBrowser *m_ui;
   TextureWidget* m_selected;
   TexturePtr m_select;
+
+  QPair<MaterialPtr, QString> m_target;
 
   int m_attachment;
 

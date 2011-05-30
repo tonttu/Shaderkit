@@ -447,6 +447,7 @@ TextureEditor::TextureEditor(MaterialProperties& prop, int row, MaterialPtr mat,
   icon->setMinimumSize(24, 24);
   icon->setMaximumSize(24, 24);
   l->setWidget(2, 1, icon);
+  connect(icon, SIGNAL(clicked()), this, SLOT(browse()));
 
   prop.setCellWidget(row, 1, container);
 
@@ -473,6 +474,10 @@ void TextureEditor::showPreview() {
   TextureWidgetGL* zoom = m_icon->preview(Qt::ToolTip | Qt::BypassGraphicsProxyWidget, QSize(128, 128));
   connect(zoom, SIGNAL(previewEnd()), zoom, SLOT(deleteLater()));
   zoom->show();
+}
+
+void TextureEditor::browse() {
+  TextureBrowser::instance().show(m_mat, m_name, m_icon->tex());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -591,14 +596,18 @@ void MaterialProperties::update(MaterialPtr mat) {
     /// @todo change icon when the type changes
     // sub.item->setIcon(0, mat->icon());
 
+    connect(mat.get(), SIGNAL(changed(MaterialPtr)),
+            this, SLOT(materialChanged(MaterialPtr)));
+
     MainWindow::instance().openMaterial(mat);
   }
 
-  QString progname = mat->prog() ? mat->prog()->name() : "fixed pipeline";
+  QString progname = mat->prog() ? mat->prog()->name() : "";
   if (mat->name() == progname) {
     item.header->setText(progname);
   } else {
-    item.header->setText(QString("%1 (shader %2)").arg(mat->name()).arg(progname));
+    item.header->setText(QString("%1 (%2)").arg(mat->name()).
+                         arg(mat->prog() ? "shader " + progname : "fixed pipeline"));
   }
 
   QSet<QString> names;
@@ -642,6 +651,9 @@ void MaterialProperties::updateMaterialList(ScenePtr scene) {
     foreach (UniformEditor* e, item.uniform_editors)
       e->deleteLater();
     m_materials.remove(m);
+    disconnect(m.get(), SIGNAL(changed(MaterialPtr)),
+               this, SLOT(materialChanged(MaterialPtr)));
+
   }
   foreach (MaterialPtr m, materials - current)
     update(m);
@@ -756,6 +768,10 @@ void MaterialProperties::remove() {
 
 void MaterialProperties::toggleMode() {
 
+}
+
+void MaterialProperties::materialChanged(MaterialPtr mat) {
+  update(mat);
 }
 
 UniformEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
