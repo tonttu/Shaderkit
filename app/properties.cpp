@@ -30,39 +30,6 @@
 #include <cassert>
 
 namespace {
-  class BranchItem : public QLabel {
-  public:
-    BranchItem() : QLabel("Foo"), m_hover(false) {
-      setMouseTracking(true);
-    }
-//    QSize sizeHint() { return QSize(128, 128); }
-    void paintEvent(QPaintEvent * e) {
-
-      //qApp->widgetAt()
-      QPainter painter(this);
-      QStyleOption opt;
-      opt.rect = e->rect().translated(0, 5);
-      opt.state = QStyle::State_Item | QStyle::State_Children | QStyle::State_Open
-          /*| QStyle::State_MouseOver*/ | QStyle::State_Enabled | QStyle::State_Active;
-
-      if (m_hover) opt.state |= QStyle::State_MouseOver;
-
-      style()->drawPrimitive(QStyle::PE_IndicatorBranch, &opt, &painter, 0);
-    }
-
-    void enterEvent(QEvent* event) {
-      QLabel::enterEvent(event);
-      m_hover = true;
-    }
-
-    void leaveEvent(QEvent* event) {
-      QLabel::leaveEvent(event);
-      m_hover = false;
-    }
-
-    bool m_hover;
-  };
-
   class PropertyItem : public QWidgetItem {
   public:
     PropertyItem(QWidget* w, int colspan = 1) : QWidgetItem(w), m_colspan(colspan) {}
@@ -82,21 +49,23 @@ namespace {
 
 class PropertyLayout;
 struct PropertyLayoutData {
-  PropertyLayoutData(int columns);
+  PropertyLayoutData(int columns, int stretch_column);
 
 private:
-  int columns;
+  int columns, stretch_column;
   typedef QList<QVector<PropertyItem*> > Items;
   Items items;
   QVector<QMargins> padding;
   QSize min_size;
 
+  friend class MaterialProperties;
   friend class PropertyLayout;
 };
 
 class PropertyLayout : public QLayout {
 public:
   PropertyLayout(PropertyLayoutData& data);
+  ~PropertyLayout();
 
   virtual QSize minimumSize() const;
   virtual QSize sizeHint() const;
@@ -114,7 +83,7 @@ private:
   QVector<PropertyItem*>& m_row;
 };
 
-PropertyLayoutData::PropertyLayoutData(int c) : columns(c) {
+PropertyLayoutData::PropertyLayoutData(int c, int s) : columns(c), stretch_column(s) {
   padding.resize(columns);
 }
 
@@ -125,6 +94,17 @@ PropertyLayout::PropertyLayout(PropertyLayoutData& data)
   : m_data(data), m_row(insert(data.items)) {
   m_row.resize(m_data.columns);
 }
+
+PropertyLayout::~PropertyLayout() {
+  qDeleteAll(m_row);
+  for (int i = 0; i < m_data.items.size(); ++i) {
+    if (&m_data.items[i] == &m_row) {
+      m_data.items.removeAt(i);
+      break;
+    }
+  }
+}
+
 
 QSize PropertyLayout::minimumSize() const {
   return m_data.min_size;
@@ -139,24 +119,20 @@ void PropertyLayout::addItem(QLayoutItem*) {
 }
 
 QLayoutItem* PropertyLayout::itemAt(int index) const {
-  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
-    foreach (PropertyItem* item, *it) {
-      if (!item) continue;
-      if (index-- == 0) return item;
-    }
+  foreach (PropertyItem* item, m_row) {
+    if (!item) continue;
+    if (index-- == 0) return item;
   }
   return 0;
 }
 
 QLayoutItem* PropertyLayout::takeAt(int index) {
-  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
-    for (int c = 0; c < m_data.columns; ++c) {
-      PropertyItem* ret = (*it)[c];
-      if (!ret) continue;
-      if (index-- == 0) {
-        (*it)[c] = 0;
-        return ret;
-      }
+  for (int c = 0; c < m_data.columns; ++c) {
+    PropertyItem* ret = m_row[c];
+    if (!ret) continue;
+    if (index-- == 0) {
+      m_row[c] = 0;
+      return ret;
     }
   }
   return 0;
@@ -164,17 +140,15 @@ QLayoutItem* PropertyLayout::takeAt(int index) {
 
 int PropertyLayout::count() const {
   int c = 0;
-  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
-    foreach (PropertyItem* item, *it) {
-      if (item) ++c;
-    }
-  }
+  foreach (PropertyItem* item, m_row)
+    if (item) ++c;
   return c;
 }
 
 void PropertyLayout::setWidget(int column, int colspan, QWidget* widget) {
   assert(!m_row[column]);
   m_row[column] = new PropertyItem(widget, colspan);
+  addChildWidget(widget);
 }
 
 void PropertyLayout::setGeometry(const QRect& r) {
@@ -205,9 +179,8 @@ void PropertyLayout::setGeometry(const QRect& r) {
     }
   }
 
-  QVector<int> pos(m_data.columns);
-  // last item is always stretched, no need to calculate that
-  for (int c = 0; c < m_data.columns - 1; ++c) {
+  QVector<int> pos(m_data.columns + 1);
+  for (int c = 0; c < m_data.columns; ++c) {
     int & p = pos[c+1];
     p = pos[c];
     for (auto it = spans.begin(); it != spans.end(); ++it) {
@@ -217,18 +190,32 @@ void PropertyLayout::setGeometry(const QRect& r) {
   }
   m_data.min_size = QSize(pos.last(), height);
 
+  if (m_data.stretch_column < m_data.columns - 1) {
+    int tst = m_data.stretch_column + 1;
+    int w = 0;
+    for (auto it = spans.begin(); it != spans.end(); ++it)
+      if (it.key().first == tst && it.key().second == tst)
+        w = qMax(w, *it);
+    pos[tst] = pos[tst+1] - w;
+  }
+
+  int stretch_amount = qMax(0, r.width() - pos.last());
+  for (int c = m_data.stretch_column + 1; c <= m_data.columns; ++c)
+    pos[c] += stretch_amount;
+
   for (int c = 0; c < m_data.columns; ++c) {
     PropertyItem* item = m_row[c];
     if (!item) continue;
 
-    bool last = c == m_data.columns - 1;
+    int c2 = c + item->colspan() - 1;
     int x = pos[c];
-    int w = last ? r.width() - x : pos[c+1] - pos[c];
+    int w = pos[c2+1] - pos[c];
 
     QMargins& m = m_data.padding[c];
+    QMargins& m2 = m_data.padding[c2];
 
     item->setGeometry(QRect(x + m.left(), r.top() + m.top(),
-                            w - m.left() - m.right(), r.height() - m.right()));
+                            w - m.left() - m2.right(), r.height() - m.top() - m.bottom()));
   }
 }
 
@@ -275,11 +262,24 @@ void LineEdit::updateSizes() {
 
 class HeaderWidget : public QWidget {
 public:
+  HeaderWidget() : m_selected(false) {
+    setAutoFillBackground(true);
+    m_icon = QIcon(":/icons/uniforms_off.png");
+  }
+
   void setText(QString text) { m_text = text; }
   QString text() const { return m_text; }
 
-  void setIcon(const QIcon& icon) { m_icon = icon; }
+/*  void setIcon(const QIcon& icon) { m_icon = icon; }*/
   QIcon icon() const { return m_icon; }
+
+  void setSelected(bool selected) {
+    if (m_selected != selected) {
+      m_selected = selected;
+      m_icon = QIcon(selected ? ":/icons/uniforms.png": ":/icons/uniforms_off.png");
+      update();
+    }
+  }
 
 protected:
   void paintEvent(QPaintEvent* ev) {
@@ -287,9 +287,10 @@ protected:
     painter.setClipRect(ev->rect());
 
     QStyleOptionHeader opt;
-    opt.state = QStyle::State_On | QStyle::State_Raised |
-        QStyle::State_Horizontal | QStyle::State_Enabled;
+    opt.state = QStyle::State_Raised | QStyle::State_Horizontal | QStyle::State_Enabled;
     //opt.state |= QStyle::State_MouseOver;
+
+    if (m_selected) opt.state |= QStyle::State_On;
 
     opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     opt.orientation = Qt::Horizontal;
@@ -308,47 +309,64 @@ protected:
 
   QString m_text;
   QIcon m_icon;
+  bool m_selected;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-UEditor::UEditor(QTableWidget* w, int row, MaterialPtr mat_, UniformVar& var)
- : QTableWidgetItem(/*p*/),
-   mat(mat_),
-   name(var.name()) {
-  setFlags(flags() & ~Qt::ItemIsSelectable);
-  w->insertRow(row);
+UniformEditor::UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
+ : m_mat(mat), m_name(var.name()) {
+  QWidget* container = new QWidget;
+  QHBoxLayout* l = new QHBoxLayout(container);
+  l->setMargin(0);
+  m_label = new QLabel(m_name, container);
+  l->addWidget(m_label);
+  l->addSpacerItem(new QSpacerItem(10, 1));
+  m_label->setIndent(10);
+
+  prop.insertRow(row);
+  prop.setRowHeight(row, 24);
+  m_index = prop.model()->index(row, 0);
+  prop.setIndexWidget(m_index, container);
 }
 
-UniformVar* UEditor::getVar() {
-  UniformVar::List& list = mat->uniformList();
+UniformVar* UniformEditor::getVar() {
+  UniformVar::List& list = m_mat->uniformList();
   for (int i = 0; i < list.size(); ++i) {
-    if (list[i].name() == name)
+    if (list[i].name() == m_name)
       return &list[i];
   }
   return 0;
 }
 
-FloatEditor::FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
-  : UEditor(w, row, mat, var),
-    edit(new QLineEdit),
-    slider(new QSlider(Qt::Horizontal)),
-    min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min()),
-    m_reset_action(new QAction("Reset", slider)) {
-  slider->setMinimum(0);
-  slider->setMaximum(1000);
-  slider->setContextMenuPolicy(Qt::ActionsContextMenu);
-  slider->addAction(m_reset_action);
+FloatEditor::FloatEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
+  : UniformEditor(prop, row, mat, var),
+    m_min(std::numeric_limits<float>::max()),
+    m_max(std::numeric_limits<float>::min()) {
 
-  edit->setFrame(false);
+  QWidget* container = new QWidget;
+  PropertyLayout* l = new PropertyLayout(prop.layoutData());
+  container->setLayout(l);
 
-  w->setItem(row, 1, new QTableWidgetItem(var.name()));
-  w->setCellWidget(row, 2, edit);
-  w->setCellWidget(row, 3, slider);
+  m_edit = new LineEdit(container);
+  m_edit->setFrame(false);
+  l->setWidget(0, 1, m_edit);
 
-  connect(edit, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
-  connect(slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
+  m_slider = new QSlider(Qt::Horizontal, container);
+  l->setWidget(1, 2, m_slider);
+
+  prop.setCellWidget(row, 1, container);
+
+  m_reset_action = new QAction("Reset", m_slider);
+
+  m_slider->setMinimum(0);
+  m_slider->setMaximum(1000);
+  m_slider->setContextMenuPolicy(Qt::ActionsContextMenu);
+  m_slider->addAction(m_reset_action);
+
+  connect(m_edit, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
+  connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
   connect(m_reset_action, SIGNAL(triggered()), this, SLOT(reset()));
 }
 
@@ -359,35 +377,35 @@ void FloatEditor::updateUI(UniformVar& var) {
   float value = var.get();
 
   QString txt = QString::number(value);
-  if (edit->text() != txt)
-    edit->setText(txt);
+  if (m_edit->text() != txt)
+    m_edit->setText(txt);
 
-  if (slider->isSliderDown()) return;
+  if (m_slider->isSliderDown()) return;
 
-  if (var.min() < min) min = var.min();
-  if (var.max() > max) max = var.max();
-  if (value < min) min = value;
-  if (value > max) max = value;
+  if (var.min() < m_min) m_min = var.min();
+  if (var.max() > m_max) m_max = var.max();
+  if (value < m_min) m_min = value;
+  if (value > m_max) m_max = value;
 
-  float tmp = max - min;
-  value -= min;
+  float tmp = m_max - m_min;
+  value -= m_min;
   if (tmp > 0.000000001f) {
     int ivalue = value/tmp*1000;
-    if (slider->value() != ivalue)
-      slider->setValue(ivalue);
+    if (m_slider->value() != ivalue)
+      m_slider->setValue(ivalue);
    }
 }
 
 void FloatEditor::editingFinished() {
   UniformVar* var = getVar();
   if (var)
-    var->set(edit->text().toFloat());
+    var->set(m_edit->text().toFloat());
 }
 
 void FloatEditor::valueChanged(int v) {
-  float tmp = max - min;
+  float tmp = m_max - m_min;
   if (tmp > 0.000000001f) {
-    tmp = min + tmp * v / 1000.0f;
+    tmp = m_min + tmp * v / 1000.0f;
   }
 
   UniformVar* var = getVar();
@@ -398,8 +416,8 @@ void FloatEditor::valueChanged(int v) {
 void FloatEditor::reset() {
   UniformVar* var = getVar();
   if (var) {
-    min = var->min();
-    max = var->max();
+    m_min = var->min();
+    m_max = var->max();
     var->set(var->getDefault());
   }
 }
@@ -407,44 +425,53 @@ void FloatEditor::reset() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-TextureEditor::TextureEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var)
-  : UEditor(w, row, mat, var) {
+TextureEditor::TextureEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
+  : UniformEditor(prop, row, mat, var) {
 
   QWidget* container = new QWidget;
+  PropertyLayout* l = new PropertyLayout(prop.layoutData());
+  container->setLayout(l);
+
   m_texname = new QLabel(container);
+  l->setWidget(1, 1, m_texname);
 
   GLWidget* s = MainWindow::instance().glwidget();
   assert(s);
   m_icon = new TextureWidgetGL(container, s, TexturePtr());
   m_icon->setMinimumSize(24, 24);
   m_icon->setMaximumSize(24, 24);
+  l->setWidget(0, 1, m_icon);
 
-  connect(m_icon, SIGNAL(hoverBegin()), this, SLOT(hoverBegin()));
+  QPushButton* icon = new QPushButton(QIcon(":/icons/texture_browser.png"), "", container);
+  icon->setFlat(true);
+  icon->setMinimumSize(24, 24);
+  icon->setMaximumSize(24, 24);
+  l->setWidget(2, 1, icon);
 
-  w->setItem(row, 1, new QTableWidgetItem(var.name()));
-  w->setCellWidget(row, 2, m_icon);
-  w->setCellWidget(row, 3, m_texname);
+  prop.setCellWidget(row, 1, container);
+
+  connect(m_icon, SIGNAL(previewBegin()), this, SLOT(showPreview()));
 }
 
 TextureEditor::~TextureEditor() {
 }
 
 void TextureEditor::updateUI(UniformVar& var) {
-  TexturePtr tex = mat->texture(var.name());
+  TexturePtr tex = m_mat->texture(var.name());
 
   m_icon->setTexture(tex);
   QString n = tex ? tex->name() : "<i>texture not found</i>";
   m_texname->setText(n);
 }
 
-void TextureEditor::hoverBegin() {
+void TextureEditor::showPreview() {
   QPoint point = m_icon->mapToGlobal(m_icon->rect().center());
 
   QWidget* w = QApplication::widgetAt(point);
   if (w && w != m_icon) return;
 
   TextureWidgetGL* zoom = m_icon->preview(Qt::ToolTip | Qt::BypassGraphicsProxyWidget, QSize(128, 128));
-  connect(zoom, SIGNAL(hoverEnd()), zoom, SLOT(deleteLater()));
+  connect(zoom, SIGNAL(previewEnd()), zoom, SLOT(deleteLater()));
   zoom->show();
 }
 
@@ -465,8 +492,8 @@ MaterialProperties &MaterialProperties::instance() {
   return *(new FileList);
 }*/
 
-MaterialProperties::Sub::~Sub() {
-}
+/*MaterialProperties::Sub::~Sub() {
+}*/
 
 Properties::Properties(QWidget* parent)
   : QTreeWidget(parent) {
@@ -475,8 +502,11 @@ Properties::Properties(QWidget* parent)
 MaterialProperties::MaterialProperties(QWidget* parent)
   : QTableWidget(parent),
     m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
-    m_hover_row(-1), m_data(new PropertyLayoutData(2)) {
+    /*m_hover_row(-1),*/ m_data(new PropertyLayoutData(3, 1)) {
   if (!s_instance) s_instance = this;
+
+  //m_data->padding[0].setLeft(5);
+  m_data->padding[2].setRight(5);
 
   setColumnCount(2);
 
@@ -486,12 +516,20 @@ MaterialProperties::MaterialProperties(QWidget* parent)
   horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
   horizontalHeader()->setStretchLastSection(true);
 
-  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setHorizontalScrollMode(ScrollPerPixel);
+  setVerticalScrollMode(ScrollPerPixel);
+
+  setFrameShape(NoFrame);
+
+  // mouse tracking?
+
+  setDragDropMode(DragOnly);
+  setSelectionMode(SingleSelection);
+  setSelectionBehavior(SelectRows);
 
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
-  connect(this, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
-          this, SLOT(itemSelected(QTableWidgetItem*)));
+  connect(this, SIGNAL(cellDoubleClicked(int,int)),
+          this, SLOT(itemSelected(int,int)));
 }
 
 MaterialProperties::~MaterialProperties() {
@@ -527,82 +565,82 @@ void MaterialProperties::init() {
 
   m_edit->setDisabled(true);
 
-  ensurePolished();
-
   selectionChanged();
 }
 
 void MaterialProperties::update(MaterialPtr mat) {
   UniformVar::List list = mat->uniformList();
 
-  Sub& sub = m_materials[mat];
-  if (!sub.item) {
+  MaterialItem& item = m_materials[mat];
+  if (!item.material) {
+    item.material = mat;
+    item.header = new HeaderWidget;
+
     int r = rowCount();
     setRowCount(r+1);
 
-    setCellWidget(r, 0, new BranchItem);
+    item.header_index = model()->index(r, 0);
+    item.last_index = item.header_index;
+    setIndexWidget(item.header_index, item.header);
+    model()->setData(item.header_index, mat->name(), Qt::UserRole);
 
-    sub.item = new QTableWidgetItem;
-    setItem(r, 1, sub.item);
-    setSpan(r, 1, 1, 3);
-    sub.item->setFlags(sub.item->flags() | Qt::ItemIsDragEnabled);
+    setSpan(r, 0, 1, 2);
+    setRowHeight(r, 24);
+
+//    sub.item->setFlags(sub.item->flags() | Qt::ItemIsDragEnabled);
     /// @todo change icon when the type changes
     // sub.item->setIcon(0, mat->icon());
-/*    expandItem(sub.item);
-    sub.item->setFirstColumnSpanned(true);
-    sub.item->setBackgroundColor(0, palette().color(QPalette::Dark));*/
-    QFont font = sub.item->font();
-    font.setBold(true);
-    sub.item->setFont(font);
-
-    QFontMetrics m(font);
-    sub.item->setSizeHint(QSize(50, m.height()+10));
-    sub.item->setTextAlignment(Qt::AlignLeft | Qt::AlignBottom);
 
     MainWindow::instance().openMaterial(mat);
   }
+
   QString progname = mat->prog() ? mat->prog()->name() : "fixed pipeline";
-  int t = mat->textureNames().size();
-  sub.item->setText(QString(t == 1 ? "%1 - %2 - %3 texture" : "%1 - %2 - %3 textures").
-                    arg(mat->name()).arg(progname).arg(t));
-
-  horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
-  horizontalHeader()->setResizeMode(1, QHeaderView::ResizeToContents);
-  QFontMetrics m(font());
-  setColumnWidth(2, m.width("888.888"));
-
-  verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-
+  if (mat->name() == progname) {
+    item.header->setText(progname);
+  } else {
+    item.header->setText(QString("%1 (shader %2)").arg(mat->name()).arg(progname));
+  }
 
   QSet<QString> names;
   foreach (UniformVar var, list) {
     const ShaderTypeInfo& type = var.typeinfo();
     names << var.name();
 
-    UEditor* editor = sub.editors[var.name()];
+    UniformEditor* editor = item.uniform_editors[var.name()];
     if (!editor) {
-      editor = createEditor(mat, var, type, sub.item);
-      sub.editors[var.name()] = editor;
+      editor = createEditor(mat, var, type, item.last_index.row() + 1);
+      if (editor) {
+        item.last_index = editor->index();
+        model()->setData(item.last_index, mat->name(), Qt::UserRole);
+        item.uniform_editors[var.name()] = editor;
+      }
     }
 
     if (editor)
       editor->updateUI(var);
   }
 
-  foreach (QString name, sub.editors.keys().toSet() - names)
-    sub.editors.remove(name);
-}
-
-void MaterialProperties::itemSelected(QTableWidgetItem* item) {
-  MaterialPtr m = get(item);
-  if (m) MainWindow::instance().openMaterial(m);
+  foreach (QString name, item.uniform_editors.keys().toSet() - names) {
+    UniformEditor* editor = item.uniform_editors[name];
+    if (indexWidget(item.last_index) == editor->label()) {
+      item.last_index = item.last_index.sibling(item.last_index.row()-1, 0);
+    }
+    removeRow(editor->index().row());
+    editor->deleteLater();
+    item.uniform_editors.remove(name);
+  }
 }
 
 void MaterialProperties::updateMaterialList(ScenePtr scene) {
   QSet<MaterialPtr> current = m_materials.keys().toSet();
   QSet<MaterialPtr> materials = scene->materials().values().toSet();
   foreach (MaterialPtr m, current - materials) {
-    delete m_materials[m].item;
+    MaterialItem& item = m_materials[m];
+    int r1 = item.header_index.row(), r2 = item.last_index.row();
+    for (int r = r2; r >= r1; --r)
+      removeRow(r);
+    foreach (UniformEditor* e, item.uniform_editors)
+      e->deleteLater();
     m_materials.remove(m);
   }
   foreach (MaterialPtr m, materials - current)
@@ -620,11 +658,18 @@ void MaterialProperties::setActiveMaterials(QSet<MaterialPtr> materials) {
 }
 
 void MaterialProperties::selectionChanged() {
+  MaterialPtr m = getSelected();
+
+  if (m_selected != m) {
+    if (m_selected && m_materials.contains(m_selected))
+      m_materials[m_selected].header->setSelected(false);
+    if (m && m_materials.contains(m))
+      m_materials[m].header->setSelected(true);
+    m_selected = m;
+  }
+
   if (!m_create) return;
 
-  MaterialPtr m;
-  QList<QTableWidgetItem*> items = selectedItems();
-  if (items.size() == 1) m = get(items[0]);
   if (m) {
     m_duplicate->setEnabled(true);
     /// @todo implement
@@ -644,6 +689,11 @@ void MaterialProperties::selectionChanged() {
     m_edit->setText("Edit material");
     m_destroy->setText("Delete material");
   }
+}
+
+void MaterialProperties::itemSelected(int row, int column) {
+  MaterialPtr m = get(model()->index(row, column));
+  if (m) MainWindow::instance().openMaterial(m);
 }
 
 void MaterialProperties::create() {
@@ -682,8 +732,7 @@ void MaterialProperties::load() {
 }
 
 void MaterialProperties::duplicate() {
-  if (selectedItems().size() != 1) return;
-  MaterialPtr orig = get(selectedItems()[0]);
+  MaterialPtr orig = getSelected();
   if (!orig) return;
   ScenePtr s = orig->scene();
   if (!s) return;
@@ -698,27 +747,24 @@ void MaterialProperties::edit() {
 }
 
 void MaterialProperties::remove() {
-  foreach (QTableWidgetItem* item, selectedItems()) {
-    MaterialPtr m = get(item);
-    if (!m) return;
-    ScenePtr s = m->scene();
-    if (!s) return;
-    s->remove(m);
-  }
+  MaterialPtr m = getSelected();
+  if (!m) return;
+  ScenePtr s = m->scene();
+  if (!s) return;
+  s->remove(m);
 }
 
 void MaterialProperties::toggleMode() {
 
 }
 
-UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
-                                          const ShaderTypeInfo& type, QTableWidgetItem* p) {
-  int r = row(p) + 1;
+UniformEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
+                                                const ShaderTypeInfo& type, int row) {
   if (var.arraySize() == 1) {
     if (type.type == GL_FLOAT) {
-      return new FloatEditor(this, r, mat, var);
+      return new FloatEditor(*this, row, mat, var);
     } else if (type.type == GL_SAMPLER_2D) {
-      return new TextureEditor(this, r, mat, var);
+      return new TextureEditor(*this, row, mat, var);
     } else {
       /// @todo implement
     }
@@ -729,11 +775,7 @@ UEditor* MaterialProperties::createEditor(MaterialPtr mat, UniformVar& var,
 }
 
 void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
-  MaterialPtr material;
-  foreach (QTableWidgetItem* item, selectedItems()) {
-    material = get(item);
-    if (material) break;
-  }
+  MaterialPtr material = getSelected();
   if (!material) {
     Log::info("no material");
     return;
@@ -754,16 +796,15 @@ void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
 void MaterialProperties::contextMenuEvent(QContextMenuEvent* e) {
   e->accept();
   QMenu* menu = new QMenu;
-  QTableWidgetItem* item = itemAt(e->pos());
-  MaterialPtr m = get(item);
+  MaterialPtr m = get(indexAt(e->pos()));
 
-  if (m) {
+  if (m && m_materials.contains(m)) {
     menu->addAction(m_duplicate);
     menu->addSeparator();
     menu->addAction(m_edit);
     menu->addAction(m_destroy);
     menu->addSeparator();
-    setCurrentItem(item);
+    setCurrentIndex(m_materials[m].header_index);
     selectionChanged();
   }
 
@@ -774,22 +815,17 @@ void MaterialProperties::contextMenuEvent(QContextMenuEvent* e) {
   menu->exec(e->globalPos());
 }
 
-MaterialPtr MaterialProperties::get(QTableWidgetItem*& i) const {
-  if (!i) return MaterialPtr();
+MaterialPtr MaterialProperties::get(QModelIndex index) const {
+  QModelIndex idx = index.column() == 0 ? index : index.sibling(index.row(), 0);
+  return MainWindow::scene()->material(idx.data(Qt::UserRole).toString());
+}
 
-  QSet<QTableWidgetItem*> set;
-  int r = i->row();
-  for (int c = 0; c < columnCount(); ++c)
-    set << item(r, c);
-
-  for (auto it = m_materials.begin(); it != m_materials.end(); ++it) {
-    if (set.contains(it->item)) {
-      i = it->item;
-      return it.key();
-    }
-  }
+MaterialPtr MaterialProperties::getSelected() const {
+  auto lst = selectedIndexes();
+  if (lst.size() == 1) return get(lst[0]);
   return MaterialPtr();
 }
+#if 0
 
 bool MaterialProperties::viewportEvent(QEvent* event) {
   if (event->type() == QEvent::MouseMove) {
@@ -803,15 +839,16 @@ bool MaterialProperties::viewportEvent(QEvent* event) {
 
   return QTableWidget::viewportEvent(event);
 }
+#endif
 
 QItemSelectionModel::SelectionFlags MaterialProperties::selectionCommand(
     const QModelIndex& index, const QEvent* event) const {
-  QTableWidgetItem* i = item(index.row(), 1);
-  if (i && (i->flags() & Qt::ItemIsSelectable))
+  QWidget* w = indexWidget(index);
+  if (w && typeid(*w) == typeid(HeaderWidget)) {
     return QTableWidget::selectionCommand(index, event);
+  }
   return QItemSelectionModel::NoUpdate;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

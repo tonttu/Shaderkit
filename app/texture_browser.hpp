@@ -25,15 +25,16 @@ public:
 
   int heightForWidth(int w) const;
 
-  void enterEvent(QEvent* e);
+  void mouseReleaseEvent(QMouseEvent* e);
+  //void enterEvent(QEvent* e);
   void leaveEvent(QEvent* e);
   void mouseDoubleClickEvent(QMouseEvent* e);
 
   TextureWidgetGL* preview(Qt::WindowFlags f = 0, QSize size = QSize(192, 192)) const;
 
 signals:
-  void hoverBegin();
-  void hoverEnd();
+  void previewBegin();
+  void previewEnd();
 
 protected:
   void initializeGL();

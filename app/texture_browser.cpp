@@ -108,15 +108,22 @@ int TextureWidgetGL::heightForWidth(int w) const {
   return w;
 }
 
-void TextureWidgetGL::enterEvent(QEvent *e) {
+void TextureWidgetGL::mouseReleaseEvent(QMouseEvent* e) {
+  QGLWidget::mouseReleaseEvent(e);
+  if (m_tex && !windowFlags().testFlag(Qt::ToolTip))
+    emit previewBegin();
+}
+
+
+/*void TextureWidgetGL::enterEvent(QEvent *e) {
   QGLWidget::enterEvent(e);
   if (m_tex) emit hoverBegin();
-}
+}*/
 
 void TextureWidgetGL::leaveEvent(QEvent *e) {
   QGLWidget::leaveEvent(e);
   if (windowFlags().testFlag(Qt::ToolTip))
-    emit hoverEnd();
+    emit previewEnd();
 }
 
 void TextureWidgetGL::mouseDoubleClickEvent(QMouseEvent* e) {

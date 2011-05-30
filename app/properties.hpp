@@ -40,31 +40,47 @@ private slots:
   void updateSizes();
 };
 
-class UEditor : public QObject, public QTableWidgetItem {
+class HeaderWidget;
+class MaterialProperties;
+class UniformEditor;
+
+struct MaterialItem {
+  MaterialPtr material;
+  HeaderWidget* header;
+
+  QPersistentModelIndex header_index;
+  QPersistentModelIndex last_index;
+
+  QMap<QString, UniformEditor*> uniform_editors;
+};
+
+class UniformEditor : public QObject {
 public:
-  UEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
-  virtual ~UEditor() {}
+  UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
+  virtual ~UniformEditor() {}
   virtual void updateUI(UniformVar& var) = 0;
 
-  MaterialPtr mat;
-  QString name;
+  QLabel* label() const { return m_label; }
+  QPersistentModelIndex index() const { return m_index; }
 
 protected:
+  MaterialPtr m_mat;
+  QString m_name;
+
+  QLabel* m_label;
+
+  QPersistentModelIndex m_index;
   UniformVar* getVar();
 };
 
-class FloatEditor : public UEditor {
+class FloatEditor : public UniformEditor {
   Q_OBJECT
 
 public:
-  FloatEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
+  FloatEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
   virtual ~FloatEditor();
 
   void updateUI(UniformVar& var);
-
-  QLineEdit* edit;
-  QSlider* slider;
-  float min, max;
 
 private slots:
   void editingFinished();
@@ -72,20 +88,24 @@ private slots:
   void reset();
 
 private:
+  LineEdit* m_edit;
+  QSlider* m_slider;
+  float m_min, m_max;
+
   QAction* m_reset_action;
 };
 
-class TextureEditor : public UEditor {
+class TextureEditor : public UniformEditor {
   Q_OBJECT
 
 public:
-  TextureEditor(QTableWidget* w, int row, MaterialPtr mat, UniformVar& var);
+  TextureEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
   virtual ~TextureEditor();
 
   void updateUI(UniformVar& var);
 
 private slots:
-  void hoverBegin();
+  void showPreview();
 
 private:
   QLabel* m_texname;
@@ -119,12 +139,15 @@ public:
 
   void init();
 
+  PropertyLayoutData& layoutData() { return *m_data; }
+
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
   void update(MaterialPtr mat);
   void setActiveMaterials(QSet<MaterialPtr> materials);
   void updateMaterialList(ScenePtr scene);
   void selectionChanged();
+  void itemSelected(int row, int column);
 
 protected slots:
   void create();
@@ -134,31 +157,25 @@ protected slots:
   void remove();
   void toggleMode();
 
-  void itemSelected(QTableWidgetItem*);
-
 protected:
-  struct Sub {
-    Sub() : item(0) {}
-    ~Sub();
-    QTableWidgetItem* item;
-    QMap<QString, UEditor*> editors;
-  };
-  UEditor* createEditor(MaterialPtr mat, UniformVar& var,
-                        const ShaderTypeInfo& type, QTableWidgetItem* p);
+  QMap<MaterialPtr, MaterialItem> m_materials;
+  UniformEditor* createEditor(MaterialPtr mat, UniformVar& var,
+                              const ShaderTypeInfo& type, int row);
   virtual void startDrag(Qt::DropActions supportedActions);
   virtual void contextMenuEvent(QContextMenuEvent* e);
-  MaterialPtr get(QTableWidgetItem*& item) const;
 
-  bool viewportEvent(QEvent* event);
+  MaterialPtr get(QModelIndex index) const;
+  MaterialPtr getSelected() const;
+  // bool viewportEvent(QEvent* event);
+
   QItemSelectionModel::SelectionFlags selectionCommand(const QModelIndex& index,
                                                        const QEvent* event) const;
-
-  QMap<MaterialPtr, Sub> m_materials;
-
   QAction *m_only_uniforms, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
-  int m_hover_row;
+  // int m_hover_row;
 
   PropertyLayoutData* m_data;
+
+  MaterialPtr m_selected;
 
   static MaterialProperties* s_instance;
 };
