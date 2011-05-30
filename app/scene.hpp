@@ -136,6 +136,8 @@ public:
   /// Loads a scene from JSON file.
   static ScenePtr load(const QString& filename);
 
+  void renameFile(QString from, QString to);
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();

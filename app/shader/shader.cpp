@@ -96,10 +96,14 @@ Shader::CompileStatus Shader::compile(ShaderErrorList& errors) {
   }
 }
 
+void Shader::setFilename(QString filename) {
+  m_filename = filename;
+  emit ShaderManager::instance().changed(shared_from_this());
+}
+
 GLuint Shader::id() const {
   return m_shader;
 }
-
 
 QIcon Shader::icon() {
   const char* icon = ":/icons/frag.png";

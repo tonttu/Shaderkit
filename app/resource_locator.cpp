@@ -1,4 +1,5 @@
 #include "resource_locator.hpp"
+#include "log.hpp"
 
 #include <cassert>
 
@@ -38,4 +39,18 @@ QString ResourceLocator::ui(const QString& res) {
   int idx = res.lastIndexOf('/');
   if (idx == -1) return "";
   return res.mid(idx+1);
+}
+
+QString ResourceLocator::rename(const QString& src, const QString& new_base) {
+  QFileInfo fi(src), fi2(new_base);
+
+  QString file = fi.path() + "/" + fi2.fileName();
+  int i = 1;
+  while (QFile::exists(file)) {
+    file = fi.path() + "/" + fi2.baseName() + QString::number(i);
+    if (!fi2.completeSuffix().isEmpty())
+      file += "." + fi2.completeSuffix();
+  }
+
+  return file;
 }

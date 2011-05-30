@@ -42,7 +42,10 @@ signals:
   /// Shader was compiled
   void compiled(ShaderErrorList);
 
+  void changed(ShaderPtr);
+
   friend class GLProgram;
+  friend class Shader;
 };
 
 

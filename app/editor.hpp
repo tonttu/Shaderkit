@@ -177,6 +177,14 @@ private slots:
   void materialChanged();
   void ensureCursorVisible();
 
+  void itemChanged(QListWidgetItem*);
+  void shaderChanged(ShaderPtr);
+
+  void create();
+  void load();
+  void duplicate();
+  void remove();
+
 private:
   void addShader(ShaderPtr shader);
 
@@ -195,6 +203,8 @@ private:
     QLabel* icon;
     QLabel* label;
   };
+
+  QAction *m_create, *m_open, *m_duplicate, *m_destroy;
 
   /// key is a res
   QMap<QString, Section> m_sections;

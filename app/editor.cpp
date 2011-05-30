@@ -315,7 +315,6 @@ int FileListWidget::preferredWidth() {
 MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   : QFrame(parent),
     m_viewport(new QWidget(this)),
-    m_list(new FileListWidget(this)),
     m_material(material),
     m_mapper(new QSignalMapper(this)) {
   setFrameShape(QFrame::NoFrame);
@@ -330,9 +329,33 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   m_area->setWidget(m_viewport);
   m_area->setFrameShape(QFrame::NoFrame);
 
-  m_list->setFrameShape(QFrame::NoFrame);
+  QWidget* sidebar = new QWidget(this);
+  QVBoxLayout* layout = new QVBoxLayout(sidebar);
+  layout->setMargin(0);
+  layout->setSpacing(0);
 
-  m_splitter->addWidget(m_list);
+  m_list = new FileListWidget(sidebar);
+  m_list->setFrameShape(QFrame::NoFrame);
+  layout->addWidget(m_list);
+
+  QToolBar* tb = new QToolBar(sidebar);
+  tb->setFloatable(false);
+  tb->setMovable(false);
+  tb->setIconSize(QSize(16, 16));
+  layout->addWidget(tb);
+
+  m_create = tb->addAction(QIcon(":/icons/new2.png"), "New shader file",
+                           this, SLOT(create()));
+  m_open = tb->addAction(QIcon(":/icons/load_textfile.png"), "Open a shader file",
+                         this, SLOT(load()));
+  tb->addSeparator();
+  m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate shader file",
+                              this, SLOT(duplicate()));
+  tb->addSeparator();
+  m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete shader file",
+                            this, SLOT(remove()));
+
+  m_splitter->addWidget(sidebar);
   m_splitter->addWidget(m_area);
   m_splitter->setStretchFactor(0, 0);
   m_splitter->setStretchFactor(1, 1);
@@ -352,8 +375,12 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   }
   connect(m_material.get(), SIGNAL(changed(MaterialPtr)), this, SLOT(materialChanged()));
 
-  connect(m_list, SIGNAL(doubleClicked(QModelIndex)),
+  connect(m_list, SIGNAL(clicked(QModelIndex)),
           this, SLOT(scrollTo(QModelIndex)));
+  connect(m_list, SIGNAL(itemChanged(QListWidgetItem*)),
+          this, SLOT(itemChanged(QListWidgetItem*)));
+  connect(&ShaderManager::instance(), SIGNAL(changed(ShaderPtr)),
+          this, SLOT(shaderChanged(ShaderPtr)));
 }
 
 void MultiEditor::addShader(ShaderPtr shader) {
@@ -365,7 +392,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
     Section& s = m_sections[shader->res()];
 
     s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->res()));
-    s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable);
+    s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable);
     /// @todo handle hide/show
     s.item->setCheckState(Qt::Checked);
     s.item->setData(Qt::UserRole, shader->res());
@@ -409,7 +436,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
 
 void MultiEditor::relayout() {
   int w = m_list->preferredWidth();
-  m_list->setMaximumWidth(w);
+  m_list->parentWidget()->setMaximumWidth(w);
   QList<int> sizes = m_splitter->sizes();
   sizes[0] = w;
   m_splitter->setSizes(sizes);
@@ -443,6 +470,50 @@ void MultiEditor::ensureCursorVisible() {
   r.moveCenter(ed->viewport()->mapTo(m_viewport, r.center()));
   m_area->ensureVisible(r.center().x(), r.center().y(),
                         r.width(), r.height());
+}
+
+void MultiEditor::itemChanged(QListWidgetItem* item) {
+  foreach (const Section& s, m_sections) {
+    if (s.item != item) continue;
+    QString from = s.editor->shader()->res();
+    QString res = ResourceLocator::rename(from, item->text());
+    MainWindow::scene()->renameFile(from, res);
+    break;
+  }
+}
+
+void MultiEditor::shaderChanged(ShaderPtr shader) {
+  for (auto it = m_sections.begin(); it != m_sections.end(); ++it) {
+    if (it->editor->shader() == shader) {
+      Section s = *it;
+      // we remove the section temporarily, because a) we want to change the key and
+      // b) setText/setData will trigger itemChanged again, and this will be called
+      // again. if the endless recursion won't kill us, then the invalidated it will
+      // do that later
+      m_sections.erase(it);
+      s.item->setText(ResourceLocator::ui(shader->res()));
+      s.item->setData(Qt::UserRole, shader->res());
+      s.label->setText("<b>"+ResourceLocator::ui(shader->res())+"</b>");
+      m_sections[shader->res()] = s;
+      break;
+    }
+  }
+}
+
+void MultiEditor::create() {
+
+}
+
+void MultiEditor::load() {
+
+}
+
+void MultiEditor::duplicate() {
+
+}
+
+void MultiEditor::remove() {
+
 }
 
 void MultiEditor::autosize(QString res) {

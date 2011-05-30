@@ -523,6 +523,21 @@ ScenePtr Scene::load(const QString& filename) {
   return scene;
 }
 
+void Scene::renameFile(QString from, QString to) {
+  /// @todo Watcher::rename(from, to);
+  ///       -> will put the renaming to queue and update stuff on next Watcher::update
+  if (QFile::exists(from)) {
+    Log::info("Renaming %s -> %s", from.toUtf8().data(), to.toUtf8().data());
+    QFile::rename(from, to);
+  }
+
+  /// @todo handle project files, images and maybe some other assets
+  foreach (ProgramPtr p, m_programs)
+    foreach (ShaderPtr s, p->shaders())
+      if (s->res() == from)
+        s->setFilename(to);
+}
+
 bool Scene::save(const QString& filename) {
   QJson::Serializer serializer;
   QFile file(filename);

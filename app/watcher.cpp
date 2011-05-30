@@ -65,7 +65,7 @@ void Watcher::update(const QString& filename) {
 
     struct stat buf;
     if (stat(filename.toStdString().c_str(), &buf)) {
-      qDebug() << filename << "missing, starting to watch the directory";
+      Log::info(filename + " missing, starting to watch the directory");
       watchDir(filename);
       return;
     }
