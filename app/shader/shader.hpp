@@ -95,6 +95,7 @@ public:
 
   Type type() const { return m_type; }
 
+  static QIcon icon(Type type);
   QIcon icon();
 
   /// @shouldn't this be asynchronous, what if we don't have a valid context right now?

@@ -47,9 +47,23 @@ QString ResourceLocator::rename(const QString& src, const QString& new_base) {
   QString file = fi.path() + "/" + fi2.fileName();
   int i = 1;
   while (QFile::exists(file)) {
-    file = fi.path() + "/" + fi2.baseName() + QString::number(i);
+    file = fi.path() + "/" + fi2.baseName() + QString::number(i++);
     if (!fi2.completeSuffix().isEmpty())
       file += "." + fi2.completeSuffix();
+  }
+
+  return file;
+}
+
+QString ResourceLocator::unique(const QString& src) {
+  QFileInfo fi(src);
+
+  QString file = src;
+  int i = 1;
+  while (QFile::exists(file)) {
+    file = fi.path() + "/" + fi.baseName() + QString::number(i++);
+    if (!fi.completeSuffix().isEmpty())
+      file += "." + fi.completeSuffix();
   }
 
   return file;

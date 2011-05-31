@@ -371,7 +371,6 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   if (prog) {
     foreach(ShaderPtr shader, prog->shaders())
       addShader(shader);
-    connect(prog.get(), SIGNAL(changed()), this, SLOT(materialChanged()));
   }
   connect(m_material.get(), SIGNAL(changed(MaterialPtr)), this, SLOT(materialChanged()));
 
@@ -501,7 +500,30 @@ void MultiEditor::shaderChanged(ShaderPtr shader) {
 }
 
 void MultiEditor::create() {
+  QMenu menu("Create a new shader file", this);
+  menu.addAction(Shader::icon(Shader::Fragment), "New fragment shader file")->setData(Shader::Fragment);
+  menu.addAction(Shader::icon(Shader::Vertex), "New vertex shader file")->setData(Shader::Vertex);
+  menu.addAction(Shader::icon(Shader::Geometry), "New geometry shader file")->setData(Shader::Geometry);
+  QAction* a = menu.exec(QCursor::pos());
+  if (!a) return;
 
+  int t = a->data().toInt();
+  QString f;
+  if (t == Shader::Fragment) f = ".frag";
+  else if (t == Shader::Vertex) f = ".vert";
+  else if (t == Shader::Geometry) f = ".geom";
+  else return;
+
+  ProgramPtr p = m_material->prog();
+  if (!p) {
+    p.reset(new GLProgram(m_material->name()));
+    m_material->setProg(p);
+  }
+  f = ResourceLocator::unique("$scene/untitled" + f);
+  QFile file(f);
+  file.open(QIODevice::WriteOnly | QIODevice::Append);
+  file.close();
+  p->addShader(f, (Shader::Type)t);
 }
 
 void MultiEditor::load() {

@@ -105,14 +105,18 @@ GLuint Shader::id() const {
   return m_shader;
 }
 
-QIcon Shader::icon() {
+QIcon Shader::icon(Type type) {
   const char* icon = ":/icons/frag.png";
-  if (m_type == Shader::Vertex)
+  if (type == Shader::Vertex)
     icon = ":/icons/vert.png";
-  else if (m_type == Shader::Geometry)
+  else if (type == Shader::Geometry)
     icon = ":/icons/geom.png";
 
   return QIcon(icon);
+}
+
+QIcon Shader::icon() {
+  return icon(m_type);
 }
 
 bool Shader::getBuiltinMacro(QString name, float& out) {

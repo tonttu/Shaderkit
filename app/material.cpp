@@ -45,6 +45,10 @@ Material::Style::Style()
     shininess_strength(1.0f),
     refracti(1.0f) {}
 
+void Material::progChanged() {
+  emit changed(shared_from_this());
+}
+
 void Material::bind(State& state) {
   m_prog_binded = m_program ? m_program->bind(&state) : false;
 
@@ -88,6 +92,9 @@ void Material::setScene(ScenePtr scene) {
 }
 
 void Material::setProg(ProgramPtr prog) {
+  if (m_program) disconnect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+  if (prog) connect(prog.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+
   m_program = prog;
   emit changed(shared_from_this());
 }

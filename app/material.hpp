@@ -66,6 +66,9 @@ public:
 signals:
   void changed(MaterialPtr);
 
+private slots:
+  void progChanged();
+
 private:
   friend void State::pushMaterial(MaterialPtr);
   friend void State::popMaterial();
