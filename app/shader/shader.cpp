@@ -32,8 +32,11 @@ Shader::Shader(ProgramPtr prog, Shader::Type type)
 }
 
 Shader::~Shader() {
-  if (m_shader)
+  if (m_shader) {
+    ProgramPtr prog = program();
+    if (prog) prog->removeShader(shared_from_this());
     glDeleteShader(m_shader);
+  }
 }
 
 bool Shader::loadFile(const QString& filename) {
@@ -144,10 +147,30 @@ ShaderPtr Shader::clone(ProgramPtr prog) const {
   return s;
 }
 
+ProgramPtr Shader::program() const {
+  return m_prog.lock();
+}
+
+void Shader::setProgram(ProgramPtr prog) {
+  m_prog = prog;
+}
+
 void Shader::setSandboxCompile(bool v) {
   if (s_sandbox_compile && !v)
     SandboxCompiler::close();
   s_sandbox_compile = v;
+}
+
+Shader::Type Shader::guessType(const QString& filename) {
+  if (filename.endsWith(".fs") || filename.endsWith(".frag"))
+    return Fragment;
+  if (filename.endsWith(".vs") || filename.endsWith(".vert"))
+    return Vertex;
+  if (filename.endsWith(".gs") || filename.endsWith(".geom"))
+    return Geometry;
+
+  /// @todo we could parse the file and use some heuristic to determine the type by it's contents
+  return Unknown;
 }
 
 bool Shader::handleCompilerOutput(const QString& src, ShaderErrorList& errors) {

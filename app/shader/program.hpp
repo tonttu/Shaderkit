@@ -120,6 +120,8 @@ public:
   /// Creates a new Shader and adds it to this program.
   virtual ShaderPtr addShader(const QString& filename, Shader::Type type);
 
+  bool removeShader(ShaderPtr shader);
+
   /**
    * (Re)Links the program. If the program is currently linked, saves the uniform
    * variable state before relinking. After successful linking, restores the state.
@@ -155,6 +157,9 @@ protected:
 
   /// Are all shaders compiled
   bool m_compiled;
+
+  /// Force relink
+  bool m_relink;
 
   /// The last known uniform values of the shader program.
   /// This is updated every time before we relink anything, and restored after successful linking.

@@ -26,12 +26,23 @@
 #include <QPlainTextEdit>
 #include <QModelIndex>
 #include <QListWidget>
+#include <QDialog>
 
 class QSignalMapper;
 class QListWidgetItem;
 class QLabel;
 class QScrollArea;
 class QSplitter;
+class QCheckBox;
+
+class CheckBoxDialog : public QDialog {
+public:
+  CheckBoxDialog(QString text, bool show_checkbox);
+  bool checked() const;
+
+private:
+  QCheckBox* m_checkbox;
+};
 
 /**
  * The (left) margin on the text editor, that shows the line numbers.
@@ -179,6 +190,7 @@ private slots:
 
   void itemChanged(QListWidgetItem*);
   void shaderChanged(ShaderPtr);
+  void selectionChanged();
 
   void create();
   void load();
@@ -186,15 +198,6 @@ private slots:
   void remove();
 
 private:
-  void addShader(ShaderPtr shader);
-
-  QWidget* m_viewport;
-  FileListWidget* m_list;
-  QScrollArea* m_area;
-  QSplitter* m_splitter;
-
-  MaterialPtr m_material;
-
   struct Section {
     Section() : item(0), header(0), editor(0), icon(0), label(0) {}
     QListWidgetItem* item;
@@ -203,6 +206,16 @@ private:
     QLabel* icon;
     QLabel* label;
   };
+
+  void addShader(ShaderPtr shader);
+  const Section* selected() const;
+
+  QWidget* m_viewport;
+  FileListWidget* m_list;
+  QScrollArea* m_area;
+  QSplitter* m_splitter;
+
+  MaterialPtr m_material;
 
   QAction *m_create, *m_open, *m_duplicate, *m_destroy;
 

@@ -45,7 +45,7 @@ ShaderManager& ShaderManager::instance() {
 
 
 GLProgram::GLProgram(const QString& name)
-    : m_name(name), m_prog(0), m_compiled(false) {
+  : m_name(name), m_prog(0), m_compiled(false), m_relink(true) {
 }
 
 GLProgram::~GLProgram() {
@@ -54,7 +54,7 @@ GLProgram::~GLProgram() {
 
 bool GLProgram::bind(State* state) {
   if (!m_compiled) {
-    bool relink = !isLinked();
+    bool relink = m_relink || !isLinked();
     if (!m_prog) {
       glCheck("GLProgram::bind");
       m_prog = glRun2(glCreateProgram());
@@ -105,8 +105,20 @@ ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type) {
   return shader;
 }
 
+bool GLProgram::removeShader(ShaderPtr shader) {
+  if (!m_shaders.contains(shader)) return false;
+  m_shaders.remove(shader);
+  if (m_prog) glRun(glDetachShader(m_prog, shader->id()));
+  shader->setProgram(ProgramPtr());
+  m_compiled = false;
+  m_relink = true;
+  emit changed();
+  return true;
+}
+
 void GLProgram::link(State* state) {
   glCheck("GLProgram::link");
+  m_relink = false;
   GLint prog = 0;
   glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
   if (isLinked()) {

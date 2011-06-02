@@ -33,6 +33,7 @@
 #include <QSplitter>
 #include <QDebug>
 #include <QScrollBar>
+#include <QCheckBox>
 
 #include <cassert>
 
@@ -44,6 +45,34 @@ QSize EditorMargin::sizeHint() const {
 
 void EditorMargin::paintEvent(QPaintEvent* event) {
   m_editor->marginPaintEvent(event);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+CheckBoxDialog::CheckBoxDialog(QString text, bool show_checkbox)
+  : m_checkbox(0) {
+  QVBoxLayout* layout = new QVBoxLayout(this);
+
+  QLabel* label = new QLabel(text, this);
+  label->setTextInteractionFlags(Qt::TextInteractionFlags(style()->styleHint(QStyle::SH_MessageBox_TextInteractionFlags, 0, this)));
+  label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  label->setWordWrap(true);
+
+  if (show_checkbox)
+    m_checkbox = new QCheckBox("Delete the file from the file system", this);
+
+  QDialogButtonBox* box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  connect(box, SIGNAL(accepted()), this, SLOT(accept()));
+  connect(box, SIGNAL(rejected()), this, SLOT(reject()));
+
+  layout->addWidget(label);
+  if (m_checkbox) layout->addWidget(m_checkbox);
+  layout->addWidget(box);
+}
+
+bool CheckBoxDialog::checked() const {
+  return m_checkbox && m_checkbox->isChecked();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -355,6 +384,9 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete shader file",
                             this, SLOT(remove()));
 
+  m_duplicate->setEnabled(false);
+  m_destroy->setEnabled(false);
+
   m_splitter->addWidget(sidebar);
   m_splitter->addWidget(m_area);
   m_splitter->setStretchFactor(0, 0);
@@ -378,6 +410,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
           this, SLOT(scrollTo(QModelIndex)));
   connect(m_list, SIGNAL(itemChanged(QListWidgetItem*)),
           this, SLOT(itemChanged(QListWidgetItem*)));
+  connect(m_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
   connect(&ShaderManager::instance(), SIGNAL(changed(ShaderPtr)),
           this, SLOT(shaderChanged(ShaderPtr)));
 }
@@ -454,7 +487,10 @@ void MultiEditor::materialChanged() {
       current << s.editor->shader();
 
     foreach (ShaderPtr s, current - target) {
-      /// @todo remove shader
+      Section section = m_sections.take(s->res());
+      delete section.item;
+      delete section.header;
+      section.editor->deleteLater();
     }
     foreach (ShaderPtr s, target - current) {
       addShader(s);
@@ -499,6 +535,17 @@ void MultiEditor::shaderChanged(ShaderPtr shader) {
   }
 }
 
+void MultiEditor::selectionChanged() {
+  const Section* s = selected();
+  if (s) {
+    m_duplicate->setEnabled(true);
+    m_destroy->setEnabled(true);
+  } else {
+    m_duplicate->setEnabled(false);
+    m_destroy->setEnabled(false);
+  }
+}
+
 void MultiEditor::create() {
   QMenu menu("Create a new shader file", this);
   menu.addAction(Shader::icon(Shader::Fragment), "New fragment shader file")->setData(Shader::Fragment);
@@ -522,7 +569,56 @@ void MultiEditor::create() {
 }
 
 void MultiEditor::load() {
+  QMap<QString, Shader::Type> shaders;
+  foreach (ProgramPtr p, MainWindow::scene()->materialPrograms())
+    foreach (ShaderPtr s, p->shaders())
+      shaders[s->res()] = s->type();
 
+  if (m_material->prog())
+    foreach (ShaderPtr s, m_material->prog()->shaders())
+      shaders.remove(s->res());
+
+  if (!shaders.isEmpty()) {
+    QMenu menu("Load a shader file", this);
+    for (auto it = shaders.begin(); it != shaders.end(); ++it) {
+      /// @todo Handle ui-name duplicates right
+      menu.addAction(Shader::icon(*it), ResourceLocator::ui(it.key()))->setData(it.key());
+    }
+    menu.addSeparator();
+    menu.addAction(QIcon(":/icons/load_textfile.png"), "Browse...");
+    QAction* a = menu.exec(QCursor::pos());
+    if (!a) return;
+
+    QString res = a->data().toString();
+    if (shaders.contains(res)) {
+      m_material->prog(true)->addShader(res, shaders[res]);
+      return;
+    }
+  }
+
+  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QString dir = settings.value("history/last_import_dir",
+                               settings.value("history/last_dir",
+                               QVariant(QDir::currentPath()))).toString();
+  QString filter = "Shaders (*.frag *.vert *.geom *.fs *.vs *.gs);;All files (*)";
+  QString file = QFileDialog::getOpenFileName(this, "Open a shader file", dir, filter);
+  if (!file.isEmpty()) {
+    QFileInfo fi(file);
+
+    Shader::Type type = Shader::guessType(fi.absoluteFilePath());
+    if (type == Shader::Unknown) {
+      QMenu menu("Type of the shader", this);
+      menu.addAction(Shader::icon(Shader::Fragment), "Fragment shader")->setData(Shader::Fragment);
+      menu.addAction(Shader::icon(Shader::Vertex), "Vertex shader")->setData(Shader::Vertex);
+      menu.addAction(Shader::icon(Shader::Geometry), "Geometry shader")->setData(Shader::Geometry);
+      QAction* a = menu.exec(QCursor::pos());
+      if (!a) return;
+      type = (Shader::Type)a->data().toInt();
+    }
+
+    settings.setValue("history/last_import_dir", fi.absolutePath());
+    m_material->prog(true)->addShader(fi.absoluteFilePath(), type);
+  }
 }
 
 void MultiEditor::duplicate() {
@@ -530,7 +626,24 @@ void MultiEditor::duplicate() {
 }
 
 void MultiEditor::remove() {
+  const Section* s = selected();
+  if (!s) return;
 
+  QString res = s->editor->shader()->res();
+  QList<ShaderPtr> all = MainWindow::scene()->shaders(res);
+
+  ShaderPtr shader = s->editor->shader();
+  ProgramPtr prog = shader->program();
+  if (!shader || !prog) return;
+
+  CheckBoxDialog dialog(QString("Remove %1 from the project.").arg(res), all.size() == 1);
+  dialog.setMinimumWidth(550);
+  if (dialog.exec() == QDialog::Accepted) {
+    if (prog->removeShader(shader) && all.size() == 1 && dialog.checked()) {
+      Log::info("Removing file %s", res.toUtf8().data());
+      QFile::remove(res);
+    }
+  }
 }
 
 void MultiEditor::autosize(QString res) {
@@ -597,6 +710,17 @@ GLSLEditor* MultiEditor::editor(QString res) const {
     /// @todo handle other res choices too (material, shader)
     if (s.editor && s.editor->shader()->res() == res)
       return s.editor;
+  }
+  return 0;
+}
+
+const MultiEditor::Section* MultiEditor::selected() const {
+  auto lst = m_list->selectedItems();
+  if (lst.size() == 1) {
+    foreach (const Section& s, m_sections) {
+      if (s.item != lst[0]) continue;
+      return &s;
+    }
   }
   return 0;
 }

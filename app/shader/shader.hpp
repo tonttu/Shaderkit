@@ -32,6 +32,7 @@ class Shader : public std::enable_shared_from_this<Shader> {
 public:
   /// Supported shader types
   enum Type {
+    Unknown = 0,
     Fragment = GL_FRAGMENT_SHADER,
     Vertex = GL_VERTEX_SHADER,
     Geometry = GL_GEOMETRY_SHADER_EXT
@@ -103,8 +104,13 @@ public:
 
   ShaderPtr clone(ProgramPtr prog) const;
 
+  ProgramPtr program() const;
+  void setProgram(ProgramPtr prog);
+
   static void setSandboxCompile(bool v);
   static bool sandboxCompile() { return s_sandbox_compile; }
+
+  static Type guessType(const QString& filename);
 
 protected:
   /**
@@ -119,7 +125,6 @@ protected:
   GLuint m_shader;
 
   /// The shader program this shader belongs to.
-  /// @todo can there actually be many programs? We don't probably want that?
   std::weak_ptr<GLProgram> m_prog;
 
   /// After loadFile or loadSrc this is set to true
