@@ -87,16 +87,17 @@ void Material::unbind() {
   }
 }
 
-void Material::setScene(ScenePtr scene) {
-  m_scene = scene;
+ProgramPtr Material::prog(bool create_if_not_found) {
+  if (!create_if_not_found || m_program) return m_program;
+  m_program.reset(new GLProgram(m_name));
+  connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+  emit changed(shared_from_this());
+  return m_program;
 }
 
-void Material::setProg(ProgramPtr prog) {
-  if (m_program) disconnect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
-  if (prog) connect(prog.get(), SIGNAL(changed()), this, SLOT(progChanged()));
 
-  m_program = prog;
-  emit changed(shared_from_this());
+void Material::setScene(ScenePtr scene) {
+  m_scene = scene;
 }
 
 QVariantMap Material::save() const {
@@ -154,8 +155,11 @@ MaterialPtr Material::clone() const {
   MaterialPtr m(new Material(m_name));
   m->colors = colors;
   m->style = style;
-  m->m_program = m_program;
   m->m_scene = m_scene;
+
+  if (m_program)
+    m->m_program = m_program->clone();
+
   return m;
 }
 

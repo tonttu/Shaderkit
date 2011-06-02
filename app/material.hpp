@@ -47,8 +47,8 @@ public:
 
   UniformVar::List & uniformList() { return m_uniform_list; }
 
-  ProgramPtr prog() { return m_program; }
-  void setProg(ProgramPtr prog);
+  ProgramPtr prog() const { return m_program; }
+  ProgramPtr prog(bool create_if_not_found);
 
   void setScene(ScenePtr scene);
   ScenePtr scene() { return m_scene; }
@@ -75,7 +75,7 @@ private:
   void bind(State& state);
   void unbind();
 
-  /// The shader used to render this material, this could be shared between different objects
+  /// The shader used to render this material
   /// @see m_uniform_list
   ProgramPtr m_program;
   UniformVar::List m_uniform_list, m_uniform_list_prev;

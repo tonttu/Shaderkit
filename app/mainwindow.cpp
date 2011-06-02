@@ -253,7 +253,7 @@ bool MainWindow::openScene(ScenePtr scene) {
   m_scene = scene;
   ResourceLocator::setPath("scene", scene->root());
 
-  foreach (ProgramPtr prog, m_scene->programs()) {
+  foreach (ProgramPtr prog, m_scene->materialPrograms()) {
     foreach (ShaderPtr shader, prog->shaders()) {
       Watcher::instance().add(this, shader->res());
     }

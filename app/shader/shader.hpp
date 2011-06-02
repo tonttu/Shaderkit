@@ -101,6 +101,8 @@ public:
   /// @shouldn't this be asynchronous, what if we don't have a valid context right now?
   bool getBuiltinMacro(QString name, float& out);
 
+  ShaderPtr clone(ProgramPtr prog) const;
+
   static void setSandboxCompile(bool v);
   static bool sandboxCompile() { return s_sandbox_compile; }
 

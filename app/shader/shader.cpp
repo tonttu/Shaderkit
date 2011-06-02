@@ -136,6 +136,13 @@ bool Shader::getBuiltinMacro(QString name, float& out) {
   return ok;
 }
 
+ShaderPtr Shader::clone(ProgramPtr prog) const {
+  ShaderPtr s(new Shader(prog, m_type));
+  s->m_filename = m_filename;
+  s->m_src = m_src;
+  s->m_needCompile = true;
+  return s;
+}
 
 void Shader::setSandboxCompile(bool v) {
   if (s_sandbox_compile && !v)

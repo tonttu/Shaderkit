@@ -514,16 +514,11 @@ void MultiEditor::create() {
   else if (t == Shader::Geometry) f = ".geom";
   else return;
 
-  ProgramPtr p = m_material->prog();
-  if (!p) {
-    p.reset(new GLProgram(m_material->name()));
-    m_material->setProg(p);
-  }
   f = ResourceLocator::unique("$scene/untitled" + f);
   QFile file(f);
   file.open(QIODevice::WriteOnly | QIODevice::Append);
   file.close();
-  p->addShader(f, (Shader::Type)t);
+  m_material->prog(true)->addShader(f, (Shader::Type)t);
 }
 
 void MultiEditor::load() {

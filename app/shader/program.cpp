@@ -207,3 +207,12 @@ bool GLProgram::hasShader(QString res) const {
     if (s->res() == res) return true;
   return false;
 }
+
+ProgramPtr GLProgram::clone() const {
+  ProgramPtr p(new GLProgram(m_name));
+  foreach (ShaderPtr s, m_shaders)
+    p->m_shaders << s->clone(p);
+
+  p->m_uniformList = m_uniformList;
+  return p;
+}

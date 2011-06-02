@@ -142,6 +142,8 @@ public:
   Shaders shaders() const { return m_shaders; }
   bool hasShader(QString res) const;
 
+  ProgramPtr clone() const;
+
 signals:
   void changed();
 

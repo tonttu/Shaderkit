@@ -89,7 +89,7 @@ public:
   /// Ordered list of all render passes
   RenderPasses renderPasses() { return m_render_passes; }
 
-  QMap<QString, ProgramPtr> programs() { return m_programs; }
+  QList<ProgramPtr> materialPrograms() const;
 
   QVariantMap save() const;
 
@@ -161,7 +161,6 @@ protected:
   QMap<QString, ObjectPtr> m_objects;
   QMap<QString, LightPtr> m_lights;
   QMap<QString, CameraPtr> m_cameras;
-  QMap<QString, ProgramPtr> m_programs;
   QMap<QString, TexturePtr> m_textures;
   QMap<QString, MaterialPtr> m_materials;
   QMap<QString, ModelPtr> m_models;

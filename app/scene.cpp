@@ -229,10 +229,17 @@ void Scene::remove(TexturePtr t) {
 
 QList<ShaderPtr> Scene::shaders(const QString& res) {
   QList<ShaderPtr> ret;
-  foreach (ProgramPtr p, m_programs)
+  foreach (ProgramPtr p, materialPrograms())
     foreach (ShaderPtr s, p->shaders())
       if (s->res() == res) ret << s;
   return ret;
+}
+
+QList<ProgramPtr> Scene::materialPrograms() const {
+  QList<ProgramPtr> programs;
+  foreach (MaterialPtr m, m_materials)
+    if (m->prog()) programs << m->prog();
+  return programs;
 }
 
 QVariantMap Scene::save() const {
@@ -323,7 +330,6 @@ void Scene::load(QVariantMap map) {
   m_objects.clear();
   m_lights.clear();
   m_cameras.clear();
-  m_programs.clear();
   m_textures.clear();
   m_materials.clear();
   m_models.clear();
@@ -382,28 +388,19 @@ void Scene::load(QVariantMap map) {
     m->load(p.map);
     setMaterial(p.name, m);
 
-    ProgramPtr prog;
     foreach (QString filename, p.map["fragment"].toStringList()) {
-      if (!prog) prog.reset(new GLProgram(p.name));
-      prog->addShader(search(filename), Shader::Fragment);
+      m->prog(true)->addShader(search(filename), Shader::Fragment);
     }
     foreach (QString filename, p.map["vertex"].toStringList()) {
-      if (!prog) prog.reset(new GLProgram(p.name));
-      prog->addShader(search(filename), Shader::Vertex);
+      m->prog(true)->addShader(search(filename), Shader::Vertex);
     }
     foreach (QString filename, p.map["geometry"].toStringList()) {
-      if (!prog) prog.reset(new GLProgram(p.name));
-      prog->addShader(search(filename), Shader::Geometry);
+      m->prog(true)->addShader(search(filename), Shader::Geometry);
     }
 
     Log::info("Shading model: %s", m->style.shading_model.toUtf8().data());
     /// @todo add a default shader if the material has shader hint
     ///       and prog is null
-
-    if (prog) {
-      m->setProg(prog);
-      m_programs[p.name] = prog;
-    }
 
     QVariantMap tmp = p.map["textures"].toMap();
     /// @todo is the texture name always unique and correct?
@@ -532,7 +529,7 @@ void Scene::renameFile(QString from, QString to) {
   }
 
   /// @todo handle project files, images and maybe some other assets
-  foreach (ProgramPtr p, m_programs)
+  foreach (ProgramPtr p, materialPrograms())
     foreach (ShaderPtr s, p->shaders())
       if (s->res() == from)
         s->setFilename(to);

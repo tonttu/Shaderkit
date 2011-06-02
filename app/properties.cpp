@@ -602,13 +602,7 @@ void MaterialProperties::update(MaterialPtr mat) {
     MainWindow::instance().openMaterial(mat);
   }
 
-  QString progname = mat->prog() ? mat->prog()->name() : "";
-  if (mat->name() == progname) {
-    item.header->setText(progname);
-  } else {
-    item.header->setText(QString("%1 (%2)").arg(mat->name()).
-                         arg(mat->prog() ? "shader " + progname : "fixed pipeline"));
-  }
+  item.header->setText(mat->name());
 
   QSet<QString> names;
   foreach (UniformVar var, list) {
