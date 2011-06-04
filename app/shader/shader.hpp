@@ -68,6 +68,8 @@ public:
    */
   bool loadSrc(const QString& data);
 
+  const QString& src() const { return m_src; }
+
   /**
    * Compiles the shader, if m_needCompile is true. Returns the outcome of the
    * compiling and fills the ErrorList given as a reference.

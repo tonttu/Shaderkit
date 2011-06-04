@@ -91,6 +91,8 @@ public:
 
   QList<ProgramPtr> materialPrograms() const;
 
+  QSet<QString> filenames() const;
+
   QVariantMap save() const;
 
   /// Finds the render pass that owns the fbo that uses the given texture as a render buffer

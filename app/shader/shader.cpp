@@ -144,6 +144,7 @@ ShaderPtr Shader::clone(ProgramPtr prog) const {
   s->m_filename = m_filename;
   s->m_src = m_src;
   s->m_needCompile = true;
+  if (prog) prog->setIsCompiled(false);
   return s;
 }
 

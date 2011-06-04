@@ -3,6 +3,8 @@
 
 #include <cassert>
 
+#include <QSet>
+
 namespace {
   ResourceLocator* s_instance = 0;
 }
@@ -41,29 +43,33 @@ QString ResourceLocator::ui(const QString& res) {
   return res.mid(idx+1);
 }
 
-QString ResourceLocator::rename(const QString& src, const QString& new_base) {
+QString ResourceLocator::rename(const QString& src, const QString& new_base, const QSet<QString>& lst) {
   QFileInfo fi(src), fi2(new_base);
-
-  QString file = fi.path() + "/" + fi2.fileName();
-  int i = 1;
-  while (QFile::exists(file)) {
-    file = fi.path() + "/" + fi2.baseName() + QString::number(i++);
-    if (!fi2.completeSuffix().isEmpty())
-      file += "." + fi2.completeSuffix();
-  }
-
-  return file;
+  return unique(fi.path() + "/" + fi2.fileName(), lst);
 }
 
-QString ResourceLocator::unique(const QString& src) {
+QString ResourceLocator::unique(const QString& src, const QSet<QString>& lst) {
   QFileInfo fi(src);
+  QString start = fi.path() + "/" + fi.baseName();
+  QString suffix = fi.completeSuffix().isEmpty() ? "" : "." + fi.completeSuffix();
 
   QString file = src;
-  int i = 1;
-  while (QFile::exists(file)) {
-    file = fi.path() + "/" + fi.baseName() + QString::number(i++);
-    if (!fi.completeSuffix().isEmpty())
-      file += "." + fi.completeSuffix();
+  QFileInfo fi2(file);
+  int i = -1;
+  while (QFile::exists(file) || lst.contains(fi2.absoluteFilePath())) {
+    if (i == -1) {
+      QRegExp re("(\\d+)$");
+      int p = re.indexIn(start);
+      if (p >= 0) {
+        start = start.left(p);
+        i = re.cap(1).toInt() + 1;
+      } else {
+        i = 1;
+      }
+    }
+
+    file = start + QString::number(i++) + suffix;
+    fi2.setFile(file);
   }
 
   return file;

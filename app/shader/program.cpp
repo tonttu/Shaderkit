@@ -105,6 +105,14 @@ ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type) {
   return shader;
 }
 
+void GLProgram::addShader(ShaderPtr shader) {
+  if (!shader->program())
+    shader->setProgram(shared_from_this());
+  assert(shader->program() == shared_from_this());
+  m_shaders << shader;
+  emit changed();
+}
+
 bool GLProgram::removeShader(ShaderPtr shader) {
   if (!m_shaders.contains(shader)) return false;
   m_shaders.remove(shader);

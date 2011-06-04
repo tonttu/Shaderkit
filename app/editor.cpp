@@ -419,51 +419,61 @@ void MultiEditor::addShader(ShaderPtr shader) {
   QList<GLSLEditor*> editors = MainWindow::instance().findEditors(shader);
   QTextDocument* doc = editors.isEmpty() ? 0 : editors[0]->document();
 
+  QString src = shader->src();
   QFile f(shader->res());
-  if(doc || f.open(QFile::ReadOnly)) {
-    Section& s = m_sections[shader->res()];
-
-    s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->res()));
-    s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable);
-    /// @todo handle hide/show
-    s.item->setCheckState(Qt::Checked);
-    s.item->setData(Qt::UserRole, shader->res());
-    m_list->addItem(s.item);
-
-    s.header = new QWidget(m_viewport);
-    QHBoxLayout* l = new QHBoxLayout(s.header);
-
-    s.label = new QLabel("<b>"+ResourceLocator::ui(shader->res())+"</b>", s.header);
-    s.icon = new QLabel(s.header);
-    s.icon->setPixmap(shader->icon().pixmap(16));
-    l->addWidget(s.icon);
-    l->addWidget(s.label);
-    l->addStretch();
-    l->setContentsMargins(2, 2, 0, 0);
-    m_viewport->layout()->addWidget(s.header);
-
-    s.editor = new GLSLEditor(*this, m_viewport, shader, doc);
-
-    m_viewport->layout()->addWidget(s.editor);
-
-    m_mapper->setMapping(s.editor->document()->documentLayout(), shader->res());
-    connect(s.editor->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)),
-            m_mapper, SLOT(map()));
-
-    connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
-            this, SLOT(editorModified(bool)));
-    connect(s.editor, SIGNAL(cursorPositionChanged()),
-            this, SLOT(ensureCursorVisible()));
-
-    if (!doc) {
-      s.editor->setText(f.readAll());
-    } else {
-      /// @todo this is not enough, maybe using a timer?
-      /// @todo ensurePolished?
-      autosize(shader->res());
-    }
-    QTimer::singleShot(50, this, SLOT(relayout()));
+  bool open = f.open(QFile::ReadOnly);
+  bool changed = !open;
+  if (!doc && src.isEmpty() && open) {
+    src = f.readAll();
+    if (!src.isEmpty()) changed = true;
   }
+
+  Section& s = m_sections[shader->res()];
+
+  s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->res()));
+  s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable);
+  /// @todo handle hide/show
+  s.item->setCheckState(Qt::Checked);
+  s.item->setData(Qt::UserRole, shader->res());
+  m_list->addItem(s.item);
+
+  s.header = new QWidget(m_viewport);
+  QHBoxLayout* l = new QHBoxLayout(s.header);
+
+  s.label = new QLabel("<b>"+ResourceLocator::ui(shader->res())+"</b>", s.header);
+  s.icon = new QLabel(s.header);
+  s.icon->setPixmap(shader->icon().pixmap(16));
+  l->addWidget(s.icon);
+  l->addWidget(s.label);
+  l->addStretch();
+  l->setContentsMargins(2, 2, 0, 0);
+  m_viewport->layout()->addWidget(s.header);
+
+  s.editor = new GLSLEditor(*this, m_viewport, shader, doc);
+
+  m_viewport->layout()->addWidget(s.editor);
+
+  m_mapper->setMapping(s.editor->document()->documentLayout(), shader->res());
+  connect(s.editor->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)),
+          m_mapper, SLOT(map()));
+
+  connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
+          this, SLOT(editorModified(bool)));
+  connect(s.editor, SIGNAL(cursorPositionChanged()),
+          this, SLOT(ensureCursorVisible()));
+
+  if (!doc) {
+    s.editor->setText(src);
+  } else {
+    /// @todo this is not enough, maybe using a timer?
+    /// @todo ensurePolished?
+    autosize(shader->res());
+  }
+
+  if (changed)
+    s.editor->document()->setModified(true);
+
+  QTimer::singleShot(50, this, SLOT(relayout()));
 }
 
 void MultiEditor::relayout() {
@@ -511,7 +521,7 @@ void MultiEditor::itemChanged(QListWidgetItem* item) {
   foreach (const Section& s, m_sections) {
     if (s.item != item) continue;
     QString from = s.editor->shader()->res();
-    QString res = ResourceLocator::rename(from, item->text());
+    QString res = ResourceLocator::rename(from, item->text(), MainWindow::scene()->filenames());
     MainWindow::scene()->renameFile(from, res);
     break;
   }
@@ -561,7 +571,7 @@ void MultiEditor::create() {
   else if (t == Shader::Geometry) f = ".geom";
   else return;
 
-  f = ResourceLocator::unique("$scene/untitled" + f);
+  f = ResourceLocator::unique("$scene/untitled" + f, MainWindow::scene()->filenames());
   QFile file(f);
   file.open(QIODevice::WriteOnly | QIODevice::Append);
   file.close();
@@ -622,7 +632,16 @@ void MultiEditor::load() {
 }
 
 void MultiEditor::duplicate() {
+  const Section* s = selected();
+  if (!s) return;
 
+  ShaderPtr shader = s->editor->shader();
+  ProgramPtr prog = shader->program();
+  if (!shader || !prog) return;
+
+  ShaderPtr cloned = shader->clone(prog);
+  cloned->setFilename(ResourceLocator::unique(cloned->res(), MainWindow::scene()->filenames()));
+  prog->addShader(cloned);
 }
 
 void MultiEditor::remove() {

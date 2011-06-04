@@ -120,6 +120,8 @@ public:
   /// Creates a new Shader and adds it to this program.
   virtual ShaderPtr addShader(const QString& filename, Shader::Type type);
 
+  virtual void addShader(ShaderPtr shader);
+
   bool removeShader(ShaderPtr shader);
 
   /**

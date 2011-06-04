@@ -242,6 +242,20 @@ QList<ProgramPtr> Scene::materialPrograms() const {
   return programs;
 }
 
+QSet<QString> Scene::filenames() const {
+  QSet<QString> names;
+  QFileInfo fi;
+  fi.setFile(m_filename);
+  names << fi.absoluteFilePath();
+  foreach (ProgramPtr p, materialPrograms()) {
+    foreach (ShaderPtr s, p->shaders()) {
+      fi.setFile(s->res());
+      names << fi.absoluteFilePath();
+    }
+  }
+  return names;
+}
+
 QVariantMap Scene::save() const {
   QVariantMap map, tmp;
 
