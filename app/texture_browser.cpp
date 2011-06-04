@@ -374,7 +374,7 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
 
   if (m_target.first) {
     TexturePtr target = m_target.first->texture(m_target.second);
-    bool changed = w ? target != w->tex() : target;
+    bool changed = w ? target != w->tex() : (bool)target;
     m_ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(changed);
   }
 
