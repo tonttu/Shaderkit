@@ -2,7 +2,7 @@
 Open Asset Import Library (ASSIMP)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2008, ASSIMP Development Team
+Copyright (c) 2006-2010, ASSIMP Development Team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -37,32 +37,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------
 */
-#include "AssimpPCH.h"
-#include "../include/aiAssert.h"
-#ifdef _WIN32
-#ifndef __GNUC__
-#  include "crtdbg.h"
-#endif // ndef gcc
-#endif // _WIN32
 
-// Set a breakpoint using win32, else line, file and message will be returned and progam ends with 
-// errrocode = 1
-AI_WONT_RETURN void Assimp::aiAssert (const std::string &message, unsigned int uiLine, const std::string &file)
-{
-  // moved expression testing out of the function and into the macro to avoid constructing
-  // two std::string on every single ai_assert test
-//	if (!expression) 
-  {
-    // FIX (Aramis): changed std::cerr to std::cout that the message appears in VS' output window ...
-	  std::cout << "File :" << file << ", line " << uiLine << " : " << message << std::endl;
+#ifndef INCLUDED_AI_STEPFILEREADER_H
+#define INCLUDED_AI_STEPFILEREADER_H
 
-#ifdef _WIN32
-#ifndef __GNUC__
-		// Set breakpoint
-		__debugbreak();
-#endif //ndef gcc
-#else
-		exit (1);
-#endif
+#include "STEPFile.h"
+
+namespace Assimp {
+namespace STEP {
+
+	// ### Parsing a STEP file is a twofold procedure ###
+
+	// --------------------------------------------------------------------------
+	// 1) read file header and return to caller, who checks if the 
+	//    file is of a supported schema ..
+	DB* ReadFileHeader(boost::shared_ptr<IOStream> stream);
+
+	// --------------------------------------------------------------------------
+	// 2) read the actual file contents using a user-supplied set of
+	//    conversion functions to interpret the data.
+	void ReadFile(DB& db,const EXPRESS::ConversionSchema& scheme, const char* const* types_to_track, size_t len, const char* const* inverse_indices_to_track, size_t len2);
+	template <size_t N, size_t N2> inline void ReadFile(DB& db,const EXPRESS::ConversionSchema& scheme, const char* const (&arr)[N], const char* const (&arr2)[N2]) {
+		return ReadFile(db,scheme,arr,N,arr2,N2);
 	}
-}
+	
+
+} // ! STEP
+} // ! Assimp
+
+#endif

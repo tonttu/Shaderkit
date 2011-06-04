@@ -92,8 +92,8 @@ void UnrealImporter::SetupProperties(const Importer* pImp)
 	// The 
 	// AI_CONFIG_IMPORT_UNREAL_KEYFRAME option overrides the
 	// AI_CONFIG_IMPORT_GLOBAL_KEYFRAME option.
-	configFrameID = pImp->GetPropertyInteger(AI_CONFIG_IMPORT_UNREAL_KEYFRAME,0xffffffff);
-	if(0xffffffff == configFrameID)	{
+	configFrameID = pImp->GetPropertyInteger(AI_CONFIG_IMPORT_UNREAL_KEYFRAME,-1);
+	if(static_cast<unsigned int>(-1) == configFrameID)	{
 		configFrameID = pImp->GetPropertyInteger(AI_CONFIG_IMPORT_GLOBAL_KEYFRAME,0);
 	}
 
@@ -265,7 +265,7 @@ void UnrealImporter::InternReadFile( const std::string& pFile,
 						for (;!IsLineEnd(*data);++data)	{
 							if (!::ASSIMP_strincmp(data,"NUM=",4))	{
 								data += 4;
-								me.first = strtol10(data,&data);
+								me.first = strtoul10(data,&data);
 							}
 							else if (!::ASSIMP_strincmp(data,"TEXTURE=",8))	{
 								data += 8;

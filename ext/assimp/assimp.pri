@@ -11,6 +11,7 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/OgreXmlHelper.h \
     assimp/code/StandardShapes.h \
     assimp/code/MD3FileData.h \
+    assimp/code/CInterfaceIOWrapper.h \
     assimp/code/OFFLoader.h \
     assimp/code/LineSplitter.h \
     assimp/code/LWOAnimation.h \
@@ -21,6 +22,7 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/XFileImporter.h \
     assimp/code/ColladaParser.h \
     assimp/code/OptimizeGraph.h \
+    assimp/code/DXFHelper.h \
     assimp/code/pstdint.h \
     assimp/code/MDLFileData.h \
     assimp/code/RemoveVCProcess.h \
@@ -37,6 +39,7 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/ValidateDataStructure.h \
     assimp/code/XFileHelper.h \
     assimp/code/ASELoader.h \
+    assimp/code/DeboneProcess.h \
     assimp/code/HalfLifeFileData.h \
     assimp/code/MemoryIOWrapper.h \
     assimp/code/LWSLoader.h \
@@ -57,6 +60,7 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/Q3BSPFileImporter.h \
     assimp/code/PretransformVertices.h \
     assimp/code/SplitByBoneCountProcess.h \
+    assimp/code/PolyTools.h \
     assimp/code/OgreImporter.h \
     assimp/code/ColladaLoader.h \
     assimp/code/ImproveCacheLocality.h \
@@ -73,9 +77,11 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/BlenderIntermediate.h \
     assimp/code/IRRLoader.h \
     assimp/code/GenericProperty.h \
+    assimp/code/BlobIOSystem.h \
     assimp/code/RemoveComments.h \
     assimp/code/HMPLoader.h \
     assimp/code/SortByPTypeProcess.h \
+    assimp/code/LogAux.h \
     assimp/code/GenFaceNormalsProcess.h \
     assimp/code/BaseImporter.h \
     assimp/code/ColladaExporter.h \
@@ -105,6 +111,8 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/OptimizeMeshes.h \
     assimp/code/Q3BSPFileData.h \
     assimp/code/res/resource.h \
+    assimp/code/STEPFileReader.h \
+    assimp/code/IFCReaderGen.h \
     assimp/code/COBScene.h \
     assimp/code/DXFLoader.h \
     assimp/code/BlenderModifier.h \
@@ -125,16 +133,19 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/LWOLoader.h \
     assimp/code/MD5Parser.h \
     assimp/code/3DSHelper.h \
+    assimp/code/STEPFile.h \
     assimp/code/XFileParser.h \
     assimp/code/fast_atof.h \
     assimp/code/FileSystemFilter.h \
     assimp/code/ObjFileData.h \
     assimp/code/assbin_chunks.h \
     assimp/code/Win32DebugLogStream.h \
+    assimp/code/IFCLoader.h \
     assimp/code/TriangulateProcess.h \
     assimp/code/COBLoader.h \
     assimp/code/FixNormalsStep.h \
     assimp/code/qnan.h \
+    assimp/revision.h \
     assimp/include/aiLight.h \
     assimp/include/aiVector2D.h \
     assimp/include/NullLogger.h \
@@ -199,6 +210,7 @@ HEADERS += assimp/code/NFFLoader.h \
     assimp/code/BoostWorkaround/boost/tuple/tuple.hpp \
     assimp/code/BoostWorkaround/boost/noncopyable.hpp \
     assimp/code/BoostWorkaround/boost/shared_ptr.hpp \
+    assimp/code/BoostWorkaround/boost/make_shared.hpp \
     assimp/code/BoostWorkaround/boost/foreach.hpp \
     assimp/include/export.hpp \
     assimp/include/assimp.hpp
@@ -215,6 +227,7 @@ SOURCES += assimp/contrib/unzip/ioapi.c \
     assimp/contrib/zlib/zutil.c \
     assimp/contrib/zlib/inftrees.c \
     assimp/contrib/ConvertUTF/ConvertUTF.c \
+    assimp/code/ColladaExporter.cpp \
     assimp/code/BVHLoader.cpp \
     assimp/code/COBLoader.cpp \
     assimp/code/ACLoader.cpp \
@@ -246,8 +259,9 @@ SOURCES += assimp/contrib/unzip/ioapi.c \
     assimp/code/XFileParser.cpp \
     assimp/code/TextureTransform.cpp \
     assimp/code/MS3DLoader.cpp \
+    assimp/code/AssimpCExport.cpp \
+    assimp/code/DeboneProcess.cpp \
     assimp/code/BlenderModifier.cpp \
-    assimp/code/aiAssert.cpp \
     assimp/code/GenVertexNormalsProcess.cpp \
     assimp/code/ValidateDataStructure.cpp \
     assimp/code/ObjFileMtlImporter.cpp \
@@ -255,6 +269,7 @@ SOURCES += assimp/contrib/unzip/ioapi.c \
     assimp/code/AssimpPCH.cpp \
     assimp/code/SortByPTypeProcess.cpp \
     assimp/code/IRRLoader.cpp \
+    assimp/code/IFCLoader.cpp \
     assimp/code/ConvertToLHProcess.cpp \
     assimp/code/MDCLoader.cpp \
     assimp/code/TargetAnimation.cpp \
@@ -288,6 +303,7 @@ SOURCES += assimp/contrib/unzip/ioapi.c \
     assimp/code/StandardShapes.cpp \
     assimp/code/MDLLoader.cpp \
     assimp/code/SceneCombiner.cpp \
+    assimp/code/ProcessHelper.cpp \
     assimp/code/MD5Loader.cpp \
     assimp/code/DXFLoader.cpp \
     assimp/code/FindInvalidDataProcess.cpp \
@@ -305,7 +321,9 @@ SOURCES += assimp/contrib/unzip/ioapi.c \
     assimp/code/ComputeUVMappingProcess.cpp \
     assimp/code/OptimizeMeshes.cpp \
     assimp/code/B3DImporter.cpp \
+    assimp/code/STEPFileReader.cpp \
     assimp/code/LimitBoneWeightsProcess.cpp \
+    assimp/code/IFCReaderGen.cpp \
     assimp/code/LWSLoader.cpp \
     assimp/code/ColladaLoader.cpp \
     assimp/code/Q3BSPFileParser.cpp \
@@ -316,7 +334,7 @@ SOURCES += assimp/contrib/unzip/ioapi.c \
     assimp/code/FixNormalsStep.cpp \
     assimp/contrib/irrXML/irrXML.cpp
 
-INCLUDEPATH += assimp/assimp assimp/code/BoostWorkaround
+INCLUDEPATH += assimp/assimp assimp/code/BoostWorkaround assimp/contrib/unzip
 DEFINES += ASSIMP_BUILD_NO_EXPORT
 DEFINES += ASSIMP_BUILD_BOOST_WORKAROUND
 

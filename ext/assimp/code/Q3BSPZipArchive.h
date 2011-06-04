@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_Q3BSP_ZIPARCHIVE_H_INC
 #define AI_Q3BSP_ZIPARCHIVE_H_INC
 
-#include "../contrib/unzip/unzip.h"
+#include "unzip.h"
 #include "../include/IOStream.h"
 #include "../include/IOSystem.h"
 #include <string>
@@ -94,11 +94,11 @@ public:
 			// another character
 			unzOpenCurrentFile( m_zipFile );
 			bytes_read = unzReadCurrentFile( m_zipFile, pvBuffer, fileInfo.uncompressed_size);
-			if ( bytes_read < 0 || bytes_read != static_cast<size_t>( fileInfo.uncompressed_size ) )
+			size_t filesize = fileInfo.uncompressed_size;
+			if ( bytes_read < 0 || bytes_read != filesize )
 			{
 				return 0;
 			}
-			size_t filesize = fileInfo.uncompressed_size;
 			unzCloseCurrentFile( m_zipFile );
 		}
 		return bytes_read;

@@ -66,7 +66,7 @@ ObjFileParser::ObjFileParser(std::vector<char> &Data,const std::string &strModel
 	m_uiLine(0),
 	m_pIO( io )
 {
-	memset(m_buffer, BUFFERSIZE, 0);
+	std::fill_n(m_buffer,BUFFERSIZE,0);
 
 	// Create the model instance to store all the data
 	m_pModel = new ObjFile::Model();
@@ -388,6 +388,7 @@ void ObjFileParser::getMaterialDesc()
 	{
 		// Not found, use default material
 		m_pModel->m_pCurrentMaterial = m_pModel->m_pDefaultMaterial;
+		DefaultLogger::get()->error("OBJ: failed to locate material " + strName + ", skipping");
 	}
 	else
 	{
@@ -642,7 +643,7 @@ bool ObjFileParser::needsNewMesh( const std::string &rMaterialName )
 	bool newMat = false;
 	int matIdx = getMaterialIndex( rMaterialName );
 	int curMatIdx = m_pModel->m_pCurrentMesh->m_uiMaterialIndex;
-	if ( curMatIdx != ObjFile::Mesh::NoMaterial || curMatIdx != matIdx )
+	if ( curMatIdx != int(ObjFile::Mesh::NoMaterial) || curMatIdx != matIdx )
 	{
 		// New material -> only one material per mesh, so we need to create a new 
 		// material

@@ -1373,6 +1373,7 @@ void Discreet3DSImporter::ParseColorChunk(aiColor3D* out,
 		// Skip unknown chunks, hope this won't cause any problems.
 		return ParseColorChunk(out,acceptPercent);
 	};
+	(void)bGamma;
 }
 
 #endif // !! ASSIMP_BUILD_NO_3DS_IMPORTER

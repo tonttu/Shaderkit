@@ -1064,7 +1064,7 @@ std::string XFileParser::GetNextToken()
 				// name token
 				if( End - P < 4) return s;
 				len = ReadBinDWord();
-				if( End - P < len) return s;
+				if( End - P < int(len)) return s;
 				s = std::string(P, len);
 				P += len;
 				return s;
@@ -1072,7 +1072,7 @@ std::string XFileParser::GetNextToken()
 				// string token
 				if( End - P < 4) return s;
 				len = ReadBinDWord();
-				if( End - P < len) return s;
+				if( End - P < int(len)) return s;
 				s = std::string(P, len);
 				P += (len + 2);
 				return s;
@@ -1286,7 +1286,7 @@ unsigned int XFileParser::ReadInt()
 	{
 		FindNextNoneWhiteSpace();
 
-		// TODO: consider using strtol10s instead???
+		// TODO: consider using strtol10 instead???
 
 		// check preceeding minus sign
 		bool isNegative = false;

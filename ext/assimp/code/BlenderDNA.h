@@ -701,9 +701,9 @@ public:
 
 
 	FileDatabase()
-		: next_cache_idx()
-		, _cacheArrays(*this)
+		: _cacheArrays(*this)
 		, _cache(*this)
+		, next_cache_idx()
 	{} 
 
 public:

@@ -3,7 +3,7 @@ puts "HEADERS += #{export Dir['assimp/**/*.h{,pp}']}"
 puts
 puts "SOURCES += #{export Dir['assimp/**/*.c{,pp}']}"
 puts "
-INCLUDEPATH += assimp/assimp assimp/code/BoostWorkaround
+INCLUDEPATH += assimp/assimp assimp/code/BoostWorkaround assimp/contrib/unzip
 DEFINES += ASSIMP_BUILD_NO_EXPORT
 DEFINES += ASSIMP_BUILD_BOOST_WORKAROUND
 

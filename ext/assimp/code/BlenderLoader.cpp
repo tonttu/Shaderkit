@@ -52,7 +52,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BlenderModifier.h"
 
 #include "StreamReader.h"
-#include "TinyFormatter.h"
 #include "MemoryIOWrapper.h"
 
 // zlib is needed for compressed blend files 
@@ -68,7 +67,7 @@ using namespace Assimp;
 using namespace Assimp::Blender;
 using namespace Assimp::Formatter;
 
-
+template<> const std::string LogFunctions<BlenderImporter>::log_prefix = "BLEND: ";
 static const aiLoaderDesc blenderDesc = {
 	"Blender 3D Importer \nhttp://www.blender3d.org",
 	"Assimp Team",
@@ -401,7 +400,7 @@ void BlenderImporter::ConvertBlendFile(aiScene* out, const Scene& in,const FileD
 // ------------------------------------------------------------------------------------------------
 void BlenderImporter::ResolveImage(MaterialHelper* out, const Material* mat, const MTex* tex, const Image* img, ConversionData& conv_data)
 {
-	mat; tex; conv_data;
+	(void)mat; (void)tex; (void)conv_data;
 	aiString name;
 
 	// check if the file contents are bundled with the BLEND file
@@ -446,7 +445,7 @@ void BlenderImporter::ResolveImage(MaterialHelper* out, const Material* mat, con
 // ------------------------------------------------------------------------------------------------
 void BlenderImporter::AddSentinelTexture(MaterialHelper* out, const Material* mat, const MTex* tex, ConversionData& conv_data)
 {
-	mat; tex; conv_data;
+	(void)mat; (void)tex; (void)conv_data;
 
 	aiString name;
 	name.length = sprintf(name.data, "Procedural,num=%i,type=%s",conv_data.sentinel_cnt++,
@@ -790,7 +789,7 @@ void BlenderImporter::ConvertMesh(const Scene& in, const Object* obj, const Mesh
 
 	// collect texture coordinates, old-style (marked as deprecated in current blender sources)
 	if (mesh->tface) {
-		if (mesh->totface > static_cast<int> ( mesh->mtface.size())) {
+		if (mesh->totface > static_cast<int> ( mesh->tface.size())) {
 			ThrowException("Number of faces is larger than the corresponding UV face array (#2)");
 		}
 		for (std::vector<aiMesh*>::iterator it = temp->begin()+old; it != temp->end(); ++it) {
@@ -976,30 +975,5 @@ aiNode* BlenderImporter::ConvertNode(const Scene& in, const Object* obj, Convers
 	return node.dismiss();
 }
 
-// ------------------------------------------------------------------------------------------------
-/*static*/ void BlenderImporter::ThrowException(const std::string& msg)
-{
-	throw DeadlyImportError("BLEND: "+msg);
-}
-
-// ------------------------------------------------------------------------------------------------
-/*static*/ void BlenderImporter::LogWarn(const Formatter::format& message)	{
-	DefaultLogger::get()->warn(std::string("BLEND: ")+=message);
-}
-
-// ------------------------------------------------------------------------------------------------
-/*static*/ void BlenderImporter::LogError(const Formatter::format& message)	{
-	DefaultLogger::get()->error(std::string("BLEND: ")+=message);
-}
-
-// ------------------------------------------------------------------------------------------------
-/*static*/ void BlenderImporter::LogInfo(const Formatter::format& message)	{
-	DefaultLogger::get()->info(std::string("BLEND: ")+=message);
-}
-
-// ------------------------------------------------------------------------------------------------
-/*static*/ void BlenderImporter::LogDebug(const Formatter::format& message)	{
-	DefaultLogger::get()->debug(std::string("BLEND: ")+=message);
-}
 
 #endif
