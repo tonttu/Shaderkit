@@ -2,4 +2,4 @@ TEMPLATE = lib
 
 CONFIG += staticlib
 
-include(lab.pri)
+include(shaderkit.pri)

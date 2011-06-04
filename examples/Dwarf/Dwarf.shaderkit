@@ -1,5 +1,5 @@
 {
-  "lab" : {
+  "shaderkit" : {
     "name" : "Dwarf",
     "description" : "Phong + Texturing + Dwarf model",
     "category" : "example",

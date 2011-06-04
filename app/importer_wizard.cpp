@@ -1,3 +1,20 @@
+/**
+ * Copyright 2010,2011 Riku Palomäki.
+ * This file is part of Shaderkit, http://www.shaderkit.org/.
+ *
+ * Shaderkit is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License Version 3 as
+ * published by the Free Software Foundation.
+ *
+ * Shaderkit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "importer_wizard.hpp"
 #include "ui_importer_wizard.h"
 #include "scene.hpp"
@@ -52,7 +69,7 @@ void ImporterWizard::setVisible(bool visible) {
 }
 
 void ImporterWizard::browse() {
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   QString dir = settings.value("history/last_import_dir",
                                settings.value("history/last_dir",
                                QVariant(QDir::currentPath()))).toString();

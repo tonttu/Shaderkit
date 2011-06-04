@@ -1,3 +1,20 @@
+/**
+ * Copyright 2010,2011 Riku Palomäki.
+ * This file is part of Shaderkit, http://www.shaderkit.org/.
+ *
+ * Shaderkit is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License Version 3 as
+ * published by the Free Software Foundation.
+ *
+ * Shaderkit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "glwidget.hpp"
 #include "texture_browser.hpp"
 #include "ui_texture_browser.h"
@@ -145,7 +162,7 @@ TextureWidgetGL* TextureWidgetGL::preview(Qt::WindowFlags f, QSize size) const {
   if (f) ret->setWindowFlags(f);
   ret->setAttribute(Qt::WA_DeleteOnClose);
   if (tex())
-    ret->setWindowTitle(QString("%1 - GLSL Lab").arg(tex()->name()));
+    ret->setWindowTitle(QString("%1 - Shaderkit").arg(tex()->name()));
 
   QPoint c = mapToGlobal(rect().center());
   ret->setGeometry(QRect(c - QPoint(size.width() / 2, size.height() / 2), size));
@@ -742,7 +759,7 @@ QString TextureBrowser::selectFile(QString tip) {
   foreach(QByteArray a, QImageReader::supportedImageFormats())
     lst << QString("*.%1").arg(QString::fromUtf8(a));
 
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   QString dir = settings.value("history/last_import_dir",
                                settings.value("history/last_dir",
                                QVariant(QDir::currentPath()))).toString();

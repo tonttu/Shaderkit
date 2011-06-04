@@ -1,12 +1,12 @@
 {
-  "lab" : {
-    "lab version" : "0.0.1-alpha",
+  "shaderkit" : {
+    "shaderkit version" : "0.0.1-alpha",
     "name" : "Phong Shader (OpenGL 1)",
     "description" : "Phong shader with OpenGL 1",
     "id" : "unique string",
     "revision" : 24,
     "release" : "stable",
-    "server" : "glsl-lab.com",
+    "server" : "shaderkit.org",
     "category" : "example",
     "renderer" : "OpenGL 1.4",
     "dependencies" : {

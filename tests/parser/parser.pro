@@ -1,4 +1,4 @@
-include(../../lab.pri)
+include(../../shaderkit.pri)
 
 QMAKE_CXXFLAGS += -std=c++0x
 

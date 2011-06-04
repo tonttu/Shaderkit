@@ -21,7 +21,7 @@ OTHER_FILES += \
     std/150.frag \
     std/150.geom \
     std/150.vert \
-    examples/phong-teapot.lab
+    examples/phong-teapot.shaderkit
 
 QMAKE_EXTRA_TARGETS += license
 license.commands = ./update_license.rb -a

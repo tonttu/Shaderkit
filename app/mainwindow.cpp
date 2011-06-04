@@ -1,18 +1,18 @@
 /**
  * Copyright 2010,2011 Riku Palomäki.
- * This file is part of GLSL Lab.
+ * This file is part of Shaderkit, http://www.shaderkit.org/.
  *
- * GLSL Lab is free software: you can redistribute it and/or modify
+ * Shaderkit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 3 as
  * published by the Free Software Foundation.
  *
- * GLSL Lab is distributed in the hope that it will be useful,
+ * Shaderkit is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "mainwindow.hpp"
@@ -104,7 +104,7 @@ MainWindow::MainWindow(QWidget* parent)
   connect(&ShaderManager::instance(), SIGNAL(compiled(ShaderErrorList)),
           this, SLOT(updateErrors(ShaderErrorList)));
 
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
 
   {
@@ -298,9 +298,9 @@ void MainWindow::setSceneChanged(bool status) {
   m_sceneChanged = status;
   m_ui->action_savescene->setEnabled(status);
   if (status) {
-    setWindowTitle(m_scene->metainfo().name + " (unsaved) - GLSL Lab");
+    setWindowTitle(m_scene->metainfo().name + " (unsaved) - Shaderkit");
   } else {
-    setWindowTitle(m_scene->metainfo().name + " - GLSL Lab");
+    setWindowTitle(m_scene->metainfo().name + " - Shaderkit");
   }
 }
 
@@ -418,10 +418,10 @@ void MainWindow::saveScene() {
 }
 
 bool MainWindow::load() {
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   QString dir = settings.value("history/last_dir", QVariant(QDir::currentPath())).toString();
   QString file = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
-                                              tr("GLSL Lab projects (*.lab *.zip)"));
+                                              tr("Shaderkit projects (*.shaderkit *.zip)"));
   if (!file.isEmpty()) {
     QFileInfo fi(file);
     settings.setValue("history/last_dir", fi.absolutePath());
@@ -461,7 +461,7 @@ void MainWindow::closeEditor(int index) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
   /// @todo some of these should be project-specific
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   if (m_ui->action_autosave_layout->isChecked()) {
     settings.setValue("gui/geometry", saveGeometry());
     settings.setValue("gui/windowState", saveState());
@@ -478,7 +478,7 @@ void MainWindow::changed(RenderPassPtr) {
 
 void MainWindow::setSandboxCompiler(bool v) {
   Shader::setSandboxCompile(v);
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   settings.setValue("core/use_sandbox_compiler", v);
 }
 
@@ -502,7 +502,7 @@ void MainWindow::openTextureBrowser() {
 }
 
 void MainWindow::restore() {
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   m_ui->action_autosave_layout->setChecked(settings.value("gui/autosave_layout", true).toBool());
   restoreGeometry(settings.value("gui/geometry").toByteArray());
   restoreState(settings.value("gui/windowState").toByteArray());
@@ -524,13 +524,13 @@ void MainWindow::changeEvent(QEvent* e) {
 }
 
 About::About(QWidget* parent) : QDialog(parent) {
-  setWindowTitle(tr("About GLSL Lab"));
+  setWindowTitle(tr("About Shaderkit"));
 
   QHBoxLayout* layout1 = new QHBoxLayout(this);
   QWidget* container = new QWidget;
   QVBoxLayout* layout2 = new QVBoxLayout(container);
 
-  QLabel* text = new QLabel(tr("<h1>GLSL Lab</h1>"));
+  QLabel* text = new QLabel(tr("<h1>Shaderkit</h1>"));
   text->setWordWrap(true);
 
   QDialogButtonBox* bbox = new QDialogButtonBox(QDialogButtonBox::Close);

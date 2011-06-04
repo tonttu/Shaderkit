@@ -1,6 +1,6 @@
 {
-  "lab" : {
-    "lab version" : "0.0.1-alpha",
+  "shaderkit" : {
+    "shaderkit version" : "0.0.1-alpha",
     "name" : "Default shader project",
     "description" : "Hello world vertex/fragment shaders",
     "release" : "stable",

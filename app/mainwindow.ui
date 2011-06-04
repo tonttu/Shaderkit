@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLSL Lab</string>
+   <string>Shaderkit</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../gfx/gfx.qrc">
@@ -271,8 +271,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="MaterialProperties" name="material_properties">
-      </widget>
+      <widget class="MaterialProperties" name="material_properties"/>
      </item>
      <item>
       <widget class="QToolBar" name="m_prop_menu">

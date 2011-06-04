@@ -15,10 +15,10 @@ docs
 glsl.output
 glsl.tab.cpp
 glsl.tab.hpp
-lab
-lab.sdf
-lab.sln
-lab.suo
+shaderkit
+shaderkit.sdf
+shaderkit.sln
+shaderkit.suo
 lex.yy.c
 lib*.a
 lib*.so

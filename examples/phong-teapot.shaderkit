@@ -1,5 +1,5 @@
 {
-  "lab" : {
+  "shaderkit" : {
     "name" : "Phong Shader",
     "description" : "Simple Phong shaded teapot",
     "category" : "example",

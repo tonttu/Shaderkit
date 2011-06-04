@@ -1,18 +1,18 @@
 /**
  * Copyright 2010,2011 Riku Palomäki.
- * This file is part of GLSL Lab.
+ * This file is part of Shaderkit, http://www.shaderkit.org/.
  *
- * GLSL Lab is free software: you can redistribute it and/or modify
+ * Shaderkit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 3 as
  * published by the Free Software Foundation.
  *
- * GLSL Lab is distributed in the hope that it will be useful,
+ * Shaderkit is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "shaderdb.hpp"
@@ -74,7 +74,7 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   dir.setPath(path);
   path = dir.canonicalPath();
 
-  QString target = makeUniqPath(path, name + ".lab");
+  QString target = makeUniqPath(path, name + ".shaderkit");
 
   ScenePtr scene = Scene::load(srcfile);
   if (!scene) return scene;
@@ -84,7 +84,7 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
 
   /// @todo use the real version. And shouldn't we use this version to parse
   ///       and interpret everything correctly?
-  info.lab_version = "0.0.1";
+  info.shaderkit_version = "0.0.1";
   info.description = "Based on " + info.name;
   info.name = name;
   info.id = "";
@@ -133,7 +133,7 @@ QSet<QString> ShaderDB::scanDir(QString path, bool subdirs) {
   QSet<QString> ret;
 
   QStringList search;
-  search << "*.lab" << "*.zip";
+  search << "*.shaderkit" << "*.zip";
 
   QDir::Filters filters = QDir::NoDotAndDotDot | QDir::Files;
   if (subdirs)

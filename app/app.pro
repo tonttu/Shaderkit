@@ -1,8 +1,8 @@
-include(../lab.pri)
+include(../shaderkit.pri)
 
 QMAKE_CXXFLAGS += -std=c++0x
 
-TARGET = lab
+TARGET = shaderkit
 
 unix {
 QMAKE_LEX = flex

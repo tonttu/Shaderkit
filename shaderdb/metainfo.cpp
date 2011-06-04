@@ -1,18 +1,18 @@
 /**
  * Copyright 2010,2011 Riku Palomäki.
- * This file is part of GLSL Lab.
+ * This file is part of Shaderkit, http://www.shaderkit.org/.
  *
- * GLSL Lab is free software: you can redistribute it and/or modify
+ * Shaderkit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 3 as
  * published by the Free Software Foundation.
  *
- * GLSL Lab is distributed in the hope that it will be useful,
+ * Shaderkit is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "metainfo.hpp"
@@ -46,8 +46,8 @@ MetaInfo::MetaInfo() {
 QVariantMap MetaInfo::save() const {
   QVariantMap map;
 
-  /// @todo replace lab_version with real version!
-  //if (!lab_version.isEmpty()) map["lab version"] = lab_version;
+  /// @todo replace shaderkit_version with real version!
+  //if (!shaderkit_version.isEmpty()) map["shaderkit version"] = shaderkit_version;
   if (!name.isEmpty()) map["name"] = name;
   if (!description.isEmpty()) map["description"] = description;
   //if (!id.isEmpty()) map["id"] = id;
@@ -77,7 +77,7 @@ QVariantMap MetaInfo::save() const {
 }
 
 void MetaInfo::load(QVariantMap map) {
-  lab_version = map["lab version"].toString();
+  shaderkit_version = map["shaderkit version"].toString();
   name = map["name"].toString();
   description = map["description"].toString();
   id = map["id"].toString();
@@ -108,7 +108,7 @@ MetaInfo MetaInfo::ping(QString filename) {
   QFile file(filename);
   QVariant data = parser.parse(&file, &ok);
   if (ok) {
-    info.load(data.toMap()["lab"].toMap());
+    info.load(data.toMap()["shaderkit"].toMap());
   }
   return info;
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>592</width>
+    <width>594</width>
     <height>358</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>GLSL Lab</string>
+   <string>Shaderkit</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../gfx/gfx.qrc">
@@ -279,7 +279,7 @@
             </font>
            </property>
            <property name="text">
-            <string>GLSL Lab 0.0.1a &lt;a href=&quot;http://google.com/&quot;&gt;www.example.org&lt;/a&gt;</string>
+            <string>Shaderkit &lt;a href=&quot;http://www.shaderkit.org/&quot;&gt;www.shaderkit.org&lt;/a&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>

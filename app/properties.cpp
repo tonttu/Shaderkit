@@ -1,18 +1,18 @@
 /**
  * Copyright 2010,2011 Riku Palomäki.
- * This file is part of GLSL Lab.
+ * This file is part of Shaderkit, http://www.shaderkit.org/.
  *
- * GLSL Lab is free software: you can redistribute it and/or modify
+ * Shaderkit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 3 as
  * published by the Free Software Foundation.
  *
- * GLSL Lab is distributed in the hope that it will be useful,
+ * Shaderkit is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GLSL Lab.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "properties.hpp"
@@ -718,7 +718,7 @@ void MaterialProperties::load() {
   foreach(QByteArray a, QImageReader::supportedImageFormats())
     lst << QString("*.%1").arg(QString::fromUtf8(a));
 
-  QSettings settings("GLSL-Lab", "GLSL-Lab");
+  QSettings settings("Shaderkit", "Shaderkit");
   QString dir = settings.value("history/last_import_dir",
                                settings.value("history/last_dir",
                                QVariant(QDir::currentPath()))).toString();
@@ -793,7 +793,7 @@ void MaterialProperties::startDrag(Qt::DropActions supportedActions) {
   //qApp->setOverrideCursor(QCursor(QPixmap(":/icons/shader.png")));
 
   QMimeData* data = new QMimeData;
-  data->setData("text/x-glsl-lab-material", material->name().toUtf8());
+  data->setData("text/x-shaderkit-material", material->name().toUtf8());
 
   QDrag* drag = new QDrag(this);
   drag->setMimeData(data);
