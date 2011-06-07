@@ -139,7 +139,9 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 Scene::Scene(QString filename)
   : m_width(-1), m_height(-1),
     m_filename(filename), m_node(new Node), m_picking(-1, -1),
-    m_renderPassesChanged(false) {
+    m_renderPassesChanged(false),
+    m_automaticSaving(false),
+    m_history(*this, filename) {
   /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
@@ -549,6 +551,10 @@ void Scene::renameFile(QString from, QString to) {
         s->setFilename(to);
 }
 
+void Scene::changed() {
+  m_history.changed();
+}
+
 bool Scene::save(const QString& filename) {
   QJson::Serializer serializer;
   QFile file(filename);
@@ -563,6 +569,17 @@ bool Scene::save(const QString& filename) {
   return false;
 }
 
+bool Scene::save(const QVariantMap& map) {
+  QJson::Serializer serializer;
+  QFile file(m_filename);
+  const QByteArray str = serializer.serialize(map);
+  if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
+    file.write(str);
+    return true;
+  }
+  return false;
+}
+
 QString Scene::search(QString filename) const {
   if (m_root.isEmpty())
     return QDir(filename).canonicalPath();
@@ -571,6 +588,11 @@ QString Scene::search(QString filename) const {
   QString ret = QDir(filename).canonicalPath();
   QDir::setCurrent(cwd);
   return ret;
+}
+
+void Scene::setFilename(QString filename) {
+  m_filename = filename;
+  m_history.setSceneFilename(filename);
 }
 
 CameraPtr Scene::camera() {

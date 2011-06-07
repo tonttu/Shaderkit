@@ -79,6 +79,8 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
 
+  connect(m_ui->action_autosave_scene, SIGNAL(triggered(bool)), this, SLOT(setAutosaveScene(bool)));
+
   connect(m_ui->action_import, SIGNAL(triggered()), this, SLOT(import()));
 
   connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
@@ -105,6 +107,7 @@ MainWindow::MainWindow(QWidget* parent)
           this, SLOT(updateErrors(ShaderErrorList)));
 
   QSettings settings("Shaderkit", "Shaderkit");
+  m_ui->action_autosave_scene->setChecked(settings.value("gui/autosave_scene", true).toBool());
   m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
 
   {
@@ -268,6 +271,8 @@ bool MainWindow::openScene(ScenePtr scene) {
   resize(sizeHint());
 
   setSceneChanged(false);
+
+  m_scene->setAutomaticSaving(m_ui->action_autosave_scene->isChecked());
 
   m_ui->statusbar->showMessage("Opened scene " + scene->filename(), 5000);
   show();
@@ -499,6 +504,12 @@ void MainWindow::compileAll() {
 
 void MainWindow::openTextureBrowser() {
   TextureBrowser::instance().show();
+}
+
+void MainWindow::setAutosaveScene(bool v) {
+  QSettings settings("Shaderkit", "Shaderkit");
+  settings.setValue("gui/autosave_scene", v);
+  m_scene->setAutomaticSaving(v);
 }
 
 void MainWindow::restore() {

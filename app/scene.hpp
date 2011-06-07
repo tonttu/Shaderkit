@@ -21,6 +21,7 @@
 #include "forward.hpp"
 #include "shaderdb/metainfo.hpp"
 #include "obj_importer.hpp"
+#include "history.hpp"
 
 #include <QString>
 #include <QVariantMap>
@@ -104,6 +105,7 @@ public:
   /// Saves the scene to JSON file.
   /// @returns true if saving succeeds
   bool save(const QString& filename);
+  bool save(const QVariantMap& map);
 
   /// Returns the metainfo loaded from the project file
   MetaInfo & metainfo() { return m_metainfo; }
@@ -119,7 +121,7 @@ public:
   /// Returns absolute file path for filename, or empty string if not found
   QString search(QString filename) const;
 
-  void setFilename(QString filename) { m_filename = filename; }
+  void setFilename(QString filename);
   QString filename() const { return m_filename; }
 
   CameraPtr camera();
@@ -140,6 +142,9 @@ public:
 
   void renameFile(QString from, QString to);
 
+  void setAutomaticSaving(bool state) { m_automaticSaving = state; }
+  bool automaticSaving() const { return m_automaticSaving; }
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -148,6 +153,9 @@ signals:
   void textureListUpdated();
   void materialListUpdated(ScenePtr);
   void renderPassesListUpdated();
+
+protected slots:
+  void changed();
 
 protected:
   QMap<QString, Import> m_imports;
@@ -184,6 +192,9 @@ protected:
   PickFunc m_pickFunc;
 
   bool m_renderPassesChanged;
+
+  bool m_automaticSaving;
+  History m_history;
 };
 
 /// Convert array of three doubles to vector

@@ -58,7 +58,8 @@ HEADERS += \
     shader/query_shader.hpp \
     importer_wizard.hpp \
     resource_locator.hpp \
-    texture_browser.hpp
+    texture_browser.hpp \
+    history.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -101,7 +102,8 @@ SOURCES += \
     shader/query_shader.cpp \
     importer_wizard.cpp \
     resource_locator.cpp \
-    texture_browser.cpp
+    texture_browser.cpp \
+    history.cpp
 
 FORMS += \
     mainwindow.ui \

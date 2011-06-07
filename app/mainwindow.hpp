@@ -127,6 +127,8 @@ protected slots:
 
   void openTextureBrowser();
 
+  void setAutosaveScene(bool);
+
 private:
   /// Main layout generated from the .ui -file.
   std::auto_ptr<Ui::MainWindow> m_ui;
