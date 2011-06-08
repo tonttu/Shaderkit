@@ -141,7 +141,8 @@ Scene::Scene(QString filename)
     m_filename(filename), m_node(new Node), m_picking(-1, -1),
     m_renderPassesChanged(false),
     m_automaticSaving(false),
-    m_history(*this, filename) {
+    m_history(*this, filename),
+    m_changed(false) {
   /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
@@ -551,8 +552,14 @@ void Scene::renameFile(QString from, QString to) {
         s->setFilename(to);
 }
 
-void Scene::changed() {
+void Scene::syncHistory() {
+  m_history.sync();
+}
+
+void Scene::changedSlot() {
+  m_changed = true;
   m_history.changed();
+  emit changed();
 }
 
 bool Scene::save(const QString& filename) {
@@ -564,6 +571,8 @@ bool Scene::save(const QString& filename) {
   if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
     file.write(str);
     m_filename = filename;
+    m_changed = false;
+    emit saved();
     return true;
   }
   return false;
@@ -575,6 +584,8 @@ bool Scene::save(const QVariantMap& map) {
   const QByteArray str = serializer.serialize(map);
   if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
     file.write(str);
+    m_changed = false;
+    emit saved();
     return true;
   }
   return false;

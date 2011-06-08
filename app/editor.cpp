@@ -216,6 +216,21 @@ void GLSLEditor::save() {
   }
 }
 
+bool GLSLEditor::checkClose() {
+  if (document()->isModified()) {
+    int ret = QMessageBox::question(this, "Unsaved changes", QString(
+                                    "The shader %1 has some unsaved changes, what to do?").
+                                    arg(shader()->res()),
+                                    QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
+    if (ret == QMessageBox::Save) {
+      save();
+    } else if (ret != QMessageBox::Close) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void GLSLEditor::updateExtraSelections() {
   QList<QTextEdit::ExtraSelection> extraSelections;
 
@@ -709,6 +724,13 @@ QList<GLSLEditor*> MultiEditor::editors() const {
     if (s.editor) ret << s.editor;
   }
   return ret;
+}
+
+bool MultiEditor::checkClose() {
+  foreach (GLSLEditor* editor, editors()) {
+    if (!editor->checkClose()) return false;
+  }
+  return true;
 }
 
 void MultiEditor::showEvent(QShowEvent* event) {

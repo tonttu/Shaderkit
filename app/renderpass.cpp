@@ -36,9 +36,7 @@ RenderPass::RenderPass(QString name, ScenePtr scene)
   connect(this, SIGNAL(changed(RenderPassPtr)),
           &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
   connect(this, SIGNAL(changed(RenderPassPtr)),
-          &MainWindow::instance(), SLOT(changed(RenderPassPtr)));
-  connect(this, SIGNAL(changed(RenderPassPtr)),
-          scene.get(), SLOT(changed()));
+          scene.get(), SLOT(changedSlot()));
 }
 
 int RenderPass::width() const {

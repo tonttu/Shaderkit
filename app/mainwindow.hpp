@@ -108,6 +108,7 @@ protected:
   void keyPressEvent(QKeyEvent* event);
   void changeEvent(QEvent* e);
   void restore();
+  bool closeScene();
 
 protected slots:
   /// Focus the correct tab and line for selected error.
@@ -119,7 +120,7 @@ protected slots:
   void closeEditor(int index);
 
   void closeEvent(QCloseEvent* event);
-  void changed(RenderPassPtr);
+  void changed();
   void setSandboxCompiler(bool);
 
   void import();
@@ -128,6 +129,7 @@ protected slots:
   void openTextureBrowser();
 
   void setAutosaveScene(bool);
+  void saved();
 
 private:
   /// Main layout generated from the .ui -file.

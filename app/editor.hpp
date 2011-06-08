@@ -101,6 +101,8 @@ public:
 
   void save();
 
+  bool checkClose();
+
 protected:
   /// Capture the resize event to set the margin geometry correctly.
   void resizeEvent(QResizeEvent* event);
@@ -173,6 +175,8 @@ public:
   void focusOnError(ShaderError error);
 
   QList<GLSLEditor*> editors() const;
+
+  bool checkClose();
 
 protected:
   virtual void showEvent(QShowEvent* event);

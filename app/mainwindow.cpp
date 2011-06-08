@@ -164,21 +164,6 @@ GLWidget* MainWindow::glwidget() {
   return m_ui->gl_widget;
 }
 
-/// @todo add something like this
-/*
-void Project::shaderCompiled(ShaderPtr shader, ShaderErrorList errors) {
-  Editor* editor = findEditor(shader);
-
-  if (editor) {
-    editor->clearErrors();
-    for (int i = 0; i < errors.size(); ++i) {
-      editor->compileError(errors[i]);
-    }
-  }
-
-  m_main_window.shaderCompiled(shader, errors);
-}*/
-
 void MainWindow::updateErrors(ShaderErrorList errors) {
   QList<GLSLEditor*> editors = findEditors(errors.shader);
   bool changed = false;
@@ -248,10 +233,17 @@ bool MainWindow::openScene(ScenePtr scene) {
   bool should_restore_settings = !m_scene;
 
   if (m_scene) {
+    if (!closeScene()) return false;
     foreach (RenderPassPtr p, m_scene->renderPasses()) {
       RenderPassProperties::instance().remove(p);
     }
+
+    disconnect(m_scene.get(), SIGNAL(changed()), this, SLOT(changed()));
+    disconnect(m_scene.get(), SIGNAL(saved()), this, SLOT(saved()));
   }
+
+  connect(scene.get(), SIGNAL(changed()), this, SLOT(changed()));
+  connect(scene.get(), SIGNAL(saved()), this, SLOT(saved()));
 
   m_scene = scene;
   ResourceLocator::setPath("scene", scene->root());
@@ -446,17 +438,7 @@ void MainWindow::closeEditor(int index) {
 
   if (widget) {
     MultiEditor* editor = m_editors.key(widget);
-    /// @todo
-    /*
-    if (editor->document()->isModified()) {
-      int ret = QMessageBox::question(this, "Unsaved changes", "The file has some unsaved changes, what to do?",
-                                      QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
-      if (ret == QMessageBox::Save) {
-        save(index);
-      } else if (ret != QMessageBox::Close) {
-        return;
-      }
-    }*/
+    if (!editor->checkClose()) return;
 
     m_editors.remove(editor);
     m_ui->editor_tabs->removeTab(index);
@@ -464,8 +446,44 @@ void MainWindow::closeEditor(int index) {
   }
 }
 
+bool MainWindow::closeScene() {
+  /// @todo replace all of these with a single checkable list of changed files
+  QMap<QTextDocument*, GLSLEditor*> editors;
+  foreach (MultiEditor* meditor, m_editors.keys())
+    foreach (GLSLEditor* editor, meditor->editors())
+      editors[editor->document()] = editor;
+
+  foreach (GLSLEditor* editor, editors)
+    if (!editor->checkClose())
+      return false;
+
+  if (m_scene->isChanged()) {
+    if (m_scene->automaticSaving()) {
+      m_scene->syncHistory();
+    } else {
+      int ret = QMessageBox::question(this, "Unsaved changes", "The project has some unsaved changes, what to do?",
+                                      QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
+      if (ret == QMessageBox::Save) {
+        if (!m_scene->save(m_scene->filename())) {
+          /// @todo inform user?
+          return false;
+        }
+      } else if (ret != QMessageBox::Close) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 void MainWindow::closeEvent(QCloseEvent* event) {
-  /// @todo some of these should be project-specific
+  if (!closeScene()) {
+    event->ignore();
+    return;
+  }
+
+  /// @todo some of these should be project-specific - should they?
   QSettings settings("Shaderkit", "Shaderkit");
   if (m_ui->action_autosave_layout->isChecked()) {
     settings.setValue("gui/geometry", saveGeometry());
@@ -476,7 +494,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   QMainWindow::closeEvent(event);
 }
 
-void MainWindow::changed(RenderPassPtr) {
+void MainWindow::changed() {
   if (!m_sceneChanged)
     setSceneChanged(true);
 }
@@ -510,6 +528,10 @@ void MainWindow::setAutosaveScene(bool v) {
   QSettings settings("Shaderkit", "Shaderkit");
   settings.setValue("gui/autosave_scene", v);
   m_scene->setAutomaticSaving(v);
+}
+
+void MainWindow::saved() {
+  setSceneChanged(false);
 }
 
 void MainWindow::restore() {

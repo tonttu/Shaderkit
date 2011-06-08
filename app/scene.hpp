@@ -145,6 +145,9 @@ public:
   void setAutomaticSaving(bool state) { m_automaticSaving = state; }
   bool automaticSaving() const { return m_automaticSaving; }
 
+  bool isChanged() const { return m_changed; }
+  void syncHistory();
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -154,8 +157,11 @@ signals:
   void materialListUpdated(ScenePtr);
   void renderPassesListUpdated();
 
-protected slots:
   void changed();
+  void saved();
+
+protected slots:
+  void changedSlot();
 
 protected:
   QMap<QString, Import> m_imports;
@@ -195,6 +201,8 @@ protected:
 
   bool m_automaticSaving;
   History m_history;
+
+  bool m_changed;
 };
 
 /// Convert array of three doubles to vector

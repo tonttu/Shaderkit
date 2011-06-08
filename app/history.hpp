@@ -17,6 +17,8 @@ public:
   void changed();
   void setSceneFilename(const QString& filename);
 
+  void sync();
+
 private slots:
   void save();
   void commit();

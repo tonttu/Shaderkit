@@ -33,6 +33,32 @@ void History::changed() {
   m_timer->start(5000);
 }
 
+void History::sync() {
+  /// @todo this and save should be combined
+
+  bool automatic = m_scene.automaticSaving();
+
+  if (!automatic && !m_historyEnabled) return;
+
+  QVariantMap scene = m_scene.save();
+
+  if (automatic) {
+    m_scene.save(scene);
+  }
+
+  if (!m_historyEnabled) {
+    QVariantMap state;
+    state["scene"] = scene;
+    state["time"] = QDateTime::currentDateTimeUtc();
+
+    {
+      QMutexLocker lock(&m_queueMutex);
+      m_queue << state;
+    }
+    commit();
+  }
+}
+
 void History::save() {
   bool automatic = m_scene.automaticSaving();
 
@@ -59,29 +85,31 @@ void History::save() {
 void History::commit() {
   /// things read from the queue have to be written in order, that's why the lock
   QMutexLocker writerLock(&m_writerMutex);
-  QVariantMap state;
-  {
-    QMutexLocker lock(&m_queueMutex);
-    if (!m_queue.isEmpty())
+  for (;;) {
+    QVariantMap state;
+    {
+      QMutexLocker lock(&m_queueMutex);
+      if (m_queue.isEmpty()) return;
       state = m_queue.takeFirst();
-  }
+    }
 
-  if (!state.isEmpty()) {
-    QByteArray buffer_array;
-    QBuffer buffer(&buffer_array);
-    buffer.open(QIODevice::WriteOnly);
+    if (!state.isEmpty()) {
+      QByteArray buffer_array;
+      QBuffer buffer(&buffer_array);
+      buffer.open(QIODevice::WriteOnly);
 
-    QDataStream out(&buffer);
-    out << state;
+      QDataStream out(&buffer);
+      out << state;
 
-    const QByteArray data = qCompress(buffer_array);
+      const QByteArray data = qCompress(buffer_array);
 
-    QFile file(m_filename);
-    if (file.open(QFile::WriteOnly | QFile::Append)) {
-      qint32 len = qToBigEndian(data.length());
-      file.write(s_magic, sizeof(s_magic));
-      file.write((const char*)&len, sizeof(len));
-      file.write(data);
+      QFile file(m_filename);
+      if (file.open(QFile::WriteOnly | QFile::Append)) {
+        qint32 len = qToBigEndian(data.length());
+        file.write(s_magic, sizeof(s_magic));
+        file.write((const char*)&len, sizeof(len));
+        file.write(data);
+      }
     }
   }
 }
