@@ -107,6 +107,11 @@ protected:
   /// Capture the resize event to set the margin geometry correctly.
   void resizeEvent(QResizeEvent* event);
 
+  /// We need to handle page up/down events manually because of the weird scroll layout
+  void keyPressEvent(QKeyEvent* event);
+
+  void scrollPage(bool up, bool moveAnchor);
+
 public slots:
   /// Adds a new error to list and sets the error text styles to correct place.
   void compileError(const ShaderError& e);
@@ -178,6 +183,10 @@ public:
 
   bool checkClose();
 
+  QScrollArea* area() const { return m_area; }
+
+  void jump(bool up, GLSLEditor* editor);
+
 protected:
   virtual void showEvent(QShowEvent* event);
 
@@ -190,7 +199,7 @@ private slots:
   void relayout();
   void editorModified(bool);
   void materialChanged();
-  void ensureCursorVisible();
+  void ensureCursorVisible(GLSLEditor* ed = 0);
 
   void itemChanged(QListWidgetItem*);
   void shaderChanged(ShaderPtr);

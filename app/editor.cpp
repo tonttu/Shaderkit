@@ -133,6 +133,50 @@ void GLSLEditor::resizeEvent(QResizeEvent* e) {
   m_margin->setGeometry(QRect(cr.left(), cr.top(), marginWidth(), cr.height()));
 }
 
+void GLSLEditor::keyPressEvent(QKeyEvent* e) {
+  if (e == QKeySequence::MoveToPreviousPage) {
+    scrollPage(true, true);
+  } else if (e == QKeySequence::MoveToNextPage) {
+    scrollPage(false, true);
+  } else if (e == QKeySequence::SelectPreviousPage) {
+    scrollPage(true, false);
+  } else if (e == QKeySequence::SelectNextPage) {
+    scrollPage(false, false);
+  } else {
+    QTextEdit::keyPressEvent(e);
+  }
+}
+
+void GLSLEditor::scrollPage(bool up, bool moveAnchor) {
+  QTextCursor c = textCursor();
+  bool moved = false;
+  qreal lastY = cursorRect(c).top();
+  qreal distance = 0;
+  // move using movePosition to keep the cursor's x
+  do {
+    qreal y = cursorRect(c).top();
+    distance += qAbs(y - lastY);
+    lastY = y;
+    moved = c.movePosition(up ? QTextCursor::Up : QTextCursor::Down,
+                           moveAnchor ? QTextCursor::MoveAnchor : QTextCursor::KeepAnchor);
+  } while (moved && distance < m_multiEditor.area()->height());
+
+  if (moved) {
+    if (up) {
+      c.movePosition(QTextCursor::Down, moveAnchor ? QTextCursor::MoveAnchor : QTextCursor::KeepAnchor);
+      verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+    } else {
+      c.movePosition(QTextCursor::Up, moveAnchor ? QTextCursor::MoveAnchor : QTextCursor::KeepAnchor);
+      verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
+    }
+  }
+  if (c == textCursor()) {
+    m_multiEditor.jump(up, this);
+  } else {
+    setTextCursor(c);
+  }
+}
+
 void GLSLEditor::clearErrors() {
   if (m_errors.isEmpty()) return;
 
@@ -523,8 +567,8 @@ void MultiEditor::materialChanged() {
   }
 }
 
-void MultiEditor::ensureCursorVisible() {
-  GLSLEditor* ed = qobject_cast<GLSLEditor*>(sender());
+void MultiEditor::ensureCursorVisible(GLSLEditor* ed) {
+  if (!ed) ed = qobject_cast<GLSLEditor*>(sender());
   assert(ed);
   QRect r = ed->cursorRect().adjusted(-40, -10, 40, 10);
   r.moveCenter(ed->viewport()->mapTo(m_viewport, r.center()));
@@ -731,6 +775,40 @@ bool MultiEditor::checkClose() {
     if (!editor->checkClose()) return false;
   }
   return true;
+}
+
+void MultiEditor::jump(bool up, GLSLEditor* editor) {
+  QLayout* l = m_viewport->layout();
+  GLSLEditor* prev = 0;
+  bool next = false;
+  for (int i = 0, m = l->count(); i < m; ++i) {
+    QWidgetItem* wi = dynamic_cast<QWidgetItem*>(l->itemAt(i));
+    if (!wi) continue;
+    GLSLEditor* tmp = dynamic_cast<GLSLEditor*>(wi->widget());
+    if (!tmp) continue;
+
+    if (next) {
+      tmp->setFocus();
+      QTextCursor c = tmp->textCursor();
+      c.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor);
+      tmp->setTextCursor(c);
+      ensureCursorVisible(tmp);
+      break;
+    } else if (editor == tmp) {
+      if (up) {
+        if (prev) {
+          prev->setFocus();
+          QTextCursor c = prev->textCursor();
+          c.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+          prev->setTextCursor(c);
+          ensureCursorVisible(prev);
+        }
+        break;
+      } else next = true;
+    } else {
+      prev = tmp;
+    }
+  }
 }
 
 void MultiEditor::showEvent(QShowEvent* event) {
