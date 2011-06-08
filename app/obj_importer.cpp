@@ -71,14 +71,14 @@ public:
   LogStream(Log::Level level) : m_level(level) {}
   void write(const char* message) {
     Log::log(m_level, "assimp: %s", message);
-  };
+  }
 private:
   Log::Level m_level;
 };
 
 
 ObjImporter::ObjImporter() : m_analyzed(false) {
-  Assimp::Logger* l = Assimp::DefaultLogger::get();
+  Assimp::Logger* l = Assimp::DefaultLogger::create(0, Assimp::Logger::VERBOSE, 0);
   assert(l);
   l->attachStream(new LogStream(Log::LOG_ERROR), Assimp::Logger::Err);
   l->attachStream(new LogStream(Log::LOG_WARNING), Assimp::Logger::Warn);

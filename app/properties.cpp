@@ -64,7 +64,7 @@ private:
 
 class PropertyLayout : public QLayout {
 public:
-  PropertyLayout(PropertyLayoutData& data);
+  PropertyLayout(std::shared_ptr<PropertyLayoutData> data);
   ~PropertyLayout();
 
   virtual QSize minimumSize() const;
@@ -79,7 +79,7 @@ public:
   void setGeometry(const QRect& r);
 
 private:
-  PropertyLayoutData& m_data;
+  std::shared_ptr<PropertyLayoutData> m_data;
   QVector<PropertyItem*>& m_row;
 };
 
@@ -90,16 +90,16 @@ PropertyLayoutData::PropertyLayoutData(int c, int s) : columns(c), stretch_colum
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertyLayout::PropertyLayout(PropertyLayoutData& data)
-  : m_data(data), m_row(insert(data.items)) {
-  m_row.resize(m_data.columns);
+PropertyLayout::PropertyLayout(std::shared_ptr<PropertyLayoutData> data)
+  : m_data(data), m_row(insert(data->items)) {
+  m_row.resize(m_data->columns);
 }
 
 PropertyLayout::~PropertyLayout() {
   qDeleteAll(m_row);
-  for (int i = 0; i < m_data.items.size(); ++i) {
-    if (&m_data.items[i] == &m_row) {
-      m_data.items.removeAt(i);
+  for (int i = 0; i < m_data->items.size(); ++i) {
+    if (&m_data->items[i] == &m_row) {
+      m_data->items.removeAt(i);
       break;
     }
   }
@@ -107,11 +107,11 @@ PropertyLayout::~PropertyLayout() {
 
 
 QSize PropertyLayout::minimumSize() const {
-  return m_data.min_size;
+  return m_data->min_size;
 }
 
 QSize PropertyLayout::sizeHint() const {
-  return m_data.min_size;
+  return m_data->min_size;
 }
 
 void PropertyLayout::addItem(QLayoutItem*) {
@@ -127,7 +127,7 @@ QLayoutItem* PropertyLayout::itemAt(int index) const {
 }
 
 QLayoutItem* PropertyLayout::takeAt(int index) {
-  for (int c = 0; c < m_data.columns; ++c) {
+  for (int c = 0; c < m_data->columns; ++c) {
     PropertyItem* ret = m_row[c];
     if (!ret) continue;
     if (index-- == 0) {
@@ -152,12 +152,13 @@ void PropertyLayout::setWidget(int column, int colspan, QWidget* widget) {
 }
 
 void PropertyLayout::setGeometry(const QRect& r) {
+  PropertyLayoutData& data = *m_data;
   /// (start column (inclusive), end column (inclusive)) => min width
   QMap<QPair<int, int>, int> spans;
 
   int height = 0;
-  for (auto it = m_data.items.begin(); it != m_data.items.end(); ++it) {
-    for (int c = 0; c < m_data.columns; ++c) {
+  for (auto it = data.items.begin(); it != data.items.end(); ++it) {
+    for (int c = 0; c < data.columns; ++c) {
       PropertyItem* item = (*it)[c];
       if (!item) continue;
 
@@ -166,12 +167,12 @@ void PropertyLayout::setGeometry(const QRect& r) {
 
       int & w = spans[qMakePair(c, c2)];
       w = qMax(w, size.width() +
-               m_data.padding[c].left() + m_data.padding[c2].right());
+               data.padding[c].left() + data.padding[c2].right());
 
       if (&m_row == &*it) {
         int padding_height = 0;
         for (int i = c; i <= c2; ++i) {
-          int tmp = m_data.padding[i].top() + m_data.padding[i].bottom();
+          int tmp = data.padding[i].top() + data.padding[i].bottom();
           padding_height = qMax(padding_height, tmp);
         }
         height = qMax(height, size.height() + padding_height);
@@ -179,8 +180,8 @@ void PropertyLayout::setGeometry(const QRect& r) {
     }
   }
 
-  QVector<int> pos(m_data.columns + 1);
-  for (int c = 0; c < m_data.columns; ++c) {
+  QVector<int> pos(data.columns + 1);
+  for (int c = 0; c < data.columns; ++c) {
     int & p = pos[c+1];
     p = pos[c];
     for (auto it = spans.begin(); it != spans.end(); ++it) {
@@ -188,10 +189,10 @@ void PropertyLayout::setGeometry(const QRect& r) {
         p = qMax(p, pos[it.key().first] + *it);
     }
   }
-  m_data.min_size = QSize(pos.last(), height);
+  data.min_size = QSize(pos.last(), height);
 
-  if (m_data.stretch_column < m_data.columns - 1) {
-    int tst = m_data.stretch_column + 1;
+  if (data.stretch_column < data.columns - 1) {
+    int tst = data.stretch_column + 1;
     int w = 0;
     for (auto it = spans.begin(); it != spans.end(); ++it)
       if (it.key().first == tst && it.key().second == tst)
@@ -200,10 +201,10 @@ void PropertyLayout::setGeometry(const QRect& r) {
   }
 
   int stretch_amount = qMax(0, r.width() - pos.last());
-  for (int c = m_data.stretch_column + 1; c <= m_data.columns; ++c)
+  for (int c = data.stretch_column + 1; c <= data.columns; ++c)
     pos[c] += stretch_amount;
 
-  for (int c = 0; c < m_data.columns; ++c) {
+  for (int c = 0; c < data.columns; ++c) {
     PropertyItem* item = m_row[c];
     if (!item) continue;
 
@@ -211,8 +212,8 @@ void PropertyLayout::setGeometry(const QRect& r) {
     int x = pos[c];
     int w = pos[c2+1] - pos[c];
 
-    QMargins& m = m_data.padding[c];
-    QMargins& m2 = m_data.padding[c2];
+    QMargins& m = data.padding[c];
+    QMargins& m2 = data.padding[c2];
 
     item->setGeometry(QRect(x + m.left(), r.top() + m.top(),
                             w - m.left() - m2.right(), r.height() - m.top() - m.bottom()));
@@ -539,7 +540,6 @@ MaterialProperties::MaterialProperties(QWidget* parent)
 
 MaterialProperties::~MaterialProperties() {
   if (s_instance == this) s_instance = 0;
-  delete m_data;
 }
 
 void MaterialProperties::init() {

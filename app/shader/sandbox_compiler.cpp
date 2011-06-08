@@ -169,7 +169,7 @@ void SandboxCompiler::close() {
 }
 
 bool SandboxCompiler::doCheck(ShaderPtr shader, QByteArray src, ShaderErrorList& errors) {
-  Header header;
+  Header header = {};
   header.length = src.length();
   header.type = shader->type();
 

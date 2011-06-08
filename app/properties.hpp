@@ -140,7 +140,7 @@ public:
 
   void init();
 
-  PropertyLayoutData& layoutData() { return *m_data; }
+  std::shared_ptr<PropertyLayoutData> layoutData() { return m_data; }
 
 public slots:
   /// This shader program in given render pass has changed (usually just relinked)
@@ -176,7 +176,7 @@ protected:
   QAction *m_only_uniforms, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
   // int m_hover_row;
 
-  PropertyLayoutData* m_data;
+  std::shared_ptr<PropertyLayoutData> m_data;
 
   MaterialPtr m_selected;
 

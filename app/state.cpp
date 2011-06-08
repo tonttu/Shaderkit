@@ -19,7 +19,7 @@
 #include "state.hpp"
 #include "material.hpp"
 
-State::State(float time) : m_time(time) {
+State::State(float time) : m_time(time), m_picking(false) {
   m_data.push_back(Data());
 }
 
