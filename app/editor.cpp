@@ -142,9 +142,24 @@ void GLSLEditor::keyPressEvent(QKeyEvent* e) {
     scrollPage(true, false);
   } else if (e == QKeySequence::SelectNextPage) {
     scrollPage(false, false);
+  } else if (e == QKeySequence::MoveToNextLine || e == QKeySequence::MoveToPreviousLine) {
+    QTextCursor c = textCursor();
+    QTextEdit::keyPressEvent(e);
+    if (c == textCursor())
+      m_multiEditor.jump(e == QKeySequence::MoveToPreviousLine, this);
   } else {
     QTextEdit::keyPressEvent(e);
   }
+}
+
+void GLSLEditor::focusInEvent(QFocusEvent* event) {
+  updateExtraSelections();
+  QTextEdit::focusInEvent(event);
+}
+
+void GLSLEditor::focusOutEvent(QFocusEvent* event) {
+  updateExtraSelections();
+  QTextEdit::focusOutEvent(event);
 }
 
 void GLSLEditor::scrollPage(bool up, bool moveAnchor) {
@@ -278,7 +293,8 @@ bool GLSLEditor::checkClose() {
 void GLSLEditor::updateExtraSelections() {
   QList<QTextEdit::ExtraSelection> extraSelections;
 
-  extraSelections.append(m_currentLineSelection);
+  if (hasFocus())
+    extraSelections.append(m_currentLineSelection);
   extraSelections.append(m_warningSelections);
   extraSelections.append(m_errorSelections);
 

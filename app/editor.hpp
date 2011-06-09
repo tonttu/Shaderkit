@@ -110,6 +110,9 @@ protected:
   /// We need to handle page up/down events manually because of the weird scroll layout
   void keyPressEvent(QKeyEvent* event);
 
+  void focusInEvent(QFocusEvent* event);
+  void focusOutEvent(QFocusEvent* event);
+
   void scrollPage(bool up, bool moveAnchor);
 
 public slots:
