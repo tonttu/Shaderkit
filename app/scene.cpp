@@ -167,6 +167,7 @@ void Scene::render() {
   foreach (RenderPassPtr p, m_render_passes) {
     if (!p->viewport()) continue;
 
+    /// @todo how stupid name is "Normal" for render pass. Extremely stupid. Fix it.
     opts.ui = !ui && p->type() == RenderPass::Normal;
 
     bool pick = false;
@@ -457,11 +458,11 @@ void Scene::load(QVariantMap map) {
     pass->load(map);
     m_render_passes << pass;
   }
-
 }
 
 void Scene::merge(const ObjImporter::Scene& s) {
   m_node->children << s.node;
+
   if (!s.objects.isEmpty()) {
     m_objects.unite(s.objects);
     emit objectListUpdated();
@@ -487,6 +488,65 @@ void Scene::merge(const ObjImporter::Scene& s) {
   m_models.unite(s.models);
   /// @todo animations
   /// @todo add a default shader if the material has shader hint
+
+  RenderPassPtr pass;
+  foreach (RenderPassPtr p, m_render_passes)
+    if (p->viewport() && p->type() == RenderPass::Normal)
+      pass = p;
+
+  if (!m_objects.isEmpty()) {
+    if (!pass) {
+      pass.reset(new RenderPass("Default", shared_from_this()));
+      add(pass);
+    }
+
+    if (!pass->viewport() && s.cameras.isEmpty()) {
+      CameraPtr camera(new Camera("Default"));
+      add(camera);
+      pass->setViewport(camera);
+    }
+
+    if (pass->lights().isEmpty() && s.lights.isEmpty()) {
+      LightPtr light(new Light("back"));
+      light->setAmbient(QColor::fromRgbF(0, 0, 0));
+      light->setDiffuse(QColor::fromRgbF(0.8f, 0.8f, 1.0f));
+      light->setSpecular(QColor::fromRgbF(0.8f, 0.8f, 1.0f));
+      light->setDirection(QVector3D(0, 0.5f, 1.0f));
+
+      LightPtr light1(new Light("light 1"));
+      light1->setAmbient(QColor::fromRgbF(0.2f, 0.2f, 0.2f));
+      light1->setDiffuse(QColor::fromRgbF(1.0f, 0.8f, 1.0f));
+      light1->setSpecular(QColor::fromRgbF(1.0f, 0.8f, 1.0f));
+      light1->setDirection(QVector3D(0.3f, 0.4f, -1.0f));
+
+      LightPtr light2(new Light("light 2"));
+      light2->setAmbient(QColor::fromRgbF(0, 0, 0));
+      light2->setDiffuse(QColor::fromRgbF(1.0f, 1.0f, 0.8f));
+      light2->setSpecular(QColor::fromRgbF(1.0f, 1.0f, 0.8f));
+      light2->setDirection(QVector3D(-0.2f, 0.2f, -1.0f));
+
+      add(light);
+      add(light1);
+      add(light2);
+
+      pass->add(light);
+      pass->add(light1);
+      pass->add(light2);
+    }
+  }
+
+  if (pass) {
+    if (!s.cameras.isEmpty())
+      pass->setViewport(s.cameras.values().first());
+
+    foreach (LightPtr light, s.lights)
+      pass->add(light);
+
+    foreach (ObjectPtr obj, s.objects)
+      pass->add(obj);
+  }
+
+  /// @todo add all stuff to default render pass
 }
 
 void Scene::remove(MaterialPtr m) {
@@ -563,6 +623,43 @@ void Scene::remove(RenderPassPtr pass) {
 void Scene::setRenderPasses(RenderPasses passes) {
   m_render_passes = passes;
   emit renderPassesListUpdated(m_render_passes);
+}
+
+void Scene::add(CameraPtr camera) {
+  camera->setName(Utils::uniqueName(camera->name(), m_cameras.keys(), "Untitled"));
+  m_cameras[camera->name()] = camera;
+  emit cameraListUpdated();
+}
+
+void Scene::remove(CameraPtr camera) {
+  foreach (const QString& name, m_cameras.keys(camera))
+    m_cameras.remove(name);
+
+  foreach (RenderPassPtr rp, m_render_passes)
+    if (rp->viewport() == camera)
+      rp->setViewport(CameraPtr());
+
+  emit cameraListUpdated();
+}
+
+void Scene::add(LightPtr light) {
+  light->setName(Utils::uniqueName(light->name(), m_lights.keys(), "Untitled"));
+  m_lights[light->name()] = light;
+
+  emit lightListUpdated();
+}
+
+void Scene::remove(LightPtr light) {
+  foreach (const QString& name, m_lights.keys(light))
+    m_lights.remove(name);
+
+  foreach (RenderPassPtr rp, m_render_passes) {
+    RenderPass::Lights lights = rp->lights();
+    if (!lights.contains(light)) continue;
+    lights.remove(light);
+    rp->setLights(lights);
+  }
+  emit lightListUpdated();
 }
 
 void Scene::changedSlot() {

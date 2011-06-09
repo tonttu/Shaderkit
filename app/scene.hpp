@@ -150,6 +150,12 @@ public:
   void remove(RenderPassPtr pass);
   void setRenderPasses(RenderPasses passes);
 
+  void add(CameraPtr camera);
+  void remove(CameraPtr camera);
+
+  void add(LightPtr light);
+  void remove(LightPtr light);
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -166,6 +172,8 @@ protected slots:
   void changedSlot();
 
 protected:
+  void createDefaults();
+
   QMap<QString, Import> m_imports;
 
   /**

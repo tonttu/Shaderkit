@@ -47,6 +47,11 @@ public:
 
   LightPtr clone() const;
 
+  void setAmbient(const QColor& color);
+  void setDiffuse(const QColor& color);
+  void setSpecular(const QColor& color);
+  void setDirection(const QVector3D& dir);
+
 protected:
   Type m_type;
 

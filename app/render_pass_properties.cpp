@@ -962,7 +962,7 @@ void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
 
   while (takeTopLevelItem(0)) {}
 
-  foreach (RenderPassPatr pass, passes) {
+  foreach (RenderPassPtr pass, passes) {
     Sub& sub = m_renderpasses[pass];
 
     // Ensure the existence of the Sub instance of this render pass

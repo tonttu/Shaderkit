@@ -99,9 +99,11 @@ public:
 
   Objects objects() { return m_objects; }
   void setObjects(Objects objs);
+  void add(ObjectPtr obj);
 
   Lights lights() { return m_lights; }
   void setLights(Lights lights);
+  void add(LightPtr light);
 
   CameraPtr viewport() { return m_viewport; }
   void setViewport(CameraPtr camera);

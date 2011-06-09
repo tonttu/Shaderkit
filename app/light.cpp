@@ -112,3 +112,20 @@ void Light::load(QVariantMap map) {
 LightPtr Light::clone() const {
   return LightPtr(new Light(*this));
 }
+
+void Light::setAmbient(const QColor& color) {
+  m_ambient = color;
+}
+
+void Light::setDiffuse(const QColor& color) {
+  m_diffuse = color;
+}
+
+void Light::setSpecular(const QColor& color) {
+  m_specular = color;
+}
+
+void Light::setDirection(const QVector3D& dir) {
+  m_direction = dir;
+  m_type = Direction;
+}

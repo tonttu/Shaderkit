@@ -29,7 +29,8 @@
 #include "state.hpp"
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
-  : m_type(Disabled), m_name(name), m_scene(scene), m_clear(0),
+  : m_type(Disabled), m_name(name), m_scene(scene),
+    m_clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT),
     m_width(0), m_height(0), m_autosize(true),
     m_fbo(new FrameBufferObject) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
@@ -116,6 +117,12 @@ void RenderPass::setObjects(Objects objs) {
   }
 }
 
+void RenderPass::add(ObjectPtr obj) {
+  if (m_objects.contains(obj)) return;
+  m_objects << obj;
+  emit changed(shared_from_this());
+}
+
 void RenderPass::setLights(Lights lights) {
   if (lights != m_lights) {
     m_lights = lights;
@@ -123,9 +130,20 @@ void RenderPass::setLights(Lights lights) {
   }
 }
 
+void RenderPass::add(LightPtr light) {
+  if (m_lights.contains(light)) return;
+  m_lights << light;
+  emit changed(shared_from_this());
+}
+
 void RenderPass::setViewport(CameraPtr camera) {
   if (m_viewport != camera) {
     m_viewport = camera;
+    if (camera) {
+      m_type = camera->type() == Camera::Perspective ? Normal : PostProc;
+    } else {
+      m_type = Disabled;
+    }
     emit changed(shared_from_this());
   }
 }

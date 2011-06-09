@@ -650,6 +650,7 @@ void TextureBrowser::renderPassesChanged() {
   if (!s) return;
 
   /// @todo "None", change this to use different view/model
+  /// @todo what happens to the current active selection?
   m_ui->renderpass->addItem("");
   foreach (RenderPassPtr rp, s->renderPasses())
     m_ui->renderpass->addItem(rp->icon(), rp->name(), rp->name());
