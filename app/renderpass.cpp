@@ -32,9 +32,6 @@ RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Disabled), m_name(name), m_scene(scene), m_clear(0),
     m_width(0), m_height(0), m_autosize(true),
     m_fbo(new FrameBufferObject) {
-  /// @todo remove these, non-gui class shouldn't call gui stuff
-  connect(this, SIGNAL(changed(RenderPassPtr)),
-          &RenderPassProperties::instance(), SLOT(update(RenderPassPtr)));
   connect(this, SIGNAL(changed(RenderPassPtr)),
           scene.get(), SLOT(changedSlot()));
 }

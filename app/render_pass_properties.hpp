@@ -233,12 +233,7 @@ public:
   QList<RenderPassPtr> list();
 
 public slots:
-  /// This render pass has been changed / created
-  void update(RenderPassPtr pass);
-  /// Removes the render pass
-  void remove(RenderPassPtr pass);
-  /// User changed property value (to variant)
-  //void valueChanged(QtProperty* property, const QVariant& variant);
+  void listUpdated(QList<RenderPassPtr> passes);
   void selectionChanged();
   void recalcLayout();
   void create();
@@ -257,6 +252,7 @@ protected:
   RenderPassPtr get(QTreeWidgetItem*& item) const;
 
   void init(Sub& sub, RenderPassPtr pass);
+  QList<RenderPassPtr> selectedPasses() const;
 
   /// Every render pass has one group property whose children are the actual passes
   QMap<RenderPassPtr, Sub> m_renderpasses;

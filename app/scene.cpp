@@ -139,7 +139,6 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 Scene::Scene(QString filename)
   : m_width(-1), m_height(-1),
     m_filename(filename), m_node(new Node), m_picking(-1, -1),
-    m_renderPassesChanged(false),
     m_automaticSaving(false),
     m_history(*this, filename),
     m_changed(false) {
@@ -163,12 +162,6 @@ void Scene::render() {
   opts.ui = false;
 
   CameraPtr defcam = camera();
-
-  if (m_renderPassesChanged) {
-    m_render_passes = RenderPassProperties::instance().list();
-    m_renderPassesChanged = false;
-    emit renderPassesListUpdated();
-  }
 
   bool ui = false;
   foreach (RenderPassPtr p, m_render_passes) {
@@ -496,10 +489,6 @@ void Scene::merge(const ObjImporter::Scene& s) {
   /// @todo add a default shader if the material has shader hint
 }
 
-void Scene::renderPassesChanged() {
-  m_renderPassesChanged = true;
-}
-
 void Scene::remove(MaterialPtr m) {
   for (auto it = m_materials.begin(); it != m_materials.end();) {
     if (*it == m) it = m_materials.erase(it);
@@ -554,6 +543,26 @@ void Scene::renameFile(QString from, QString to) {
 
 void Scene::syncHistory() {
   m_history.sync();
+}
+
+void Scene::add(RenderPassPtr pass) {
+  QList<QString> names;
+  foreach (RenderPassPtr rp, m_render_passes) names << rp->name();
+
+  pass->setName(Utils::uniqueName(pass->name(), names, "Untitled"));
+
+  m_render_passes << pass;
+  emit renderPassesListUpdated(m_render_passes);
+}
+
+void Scene::remove(RenderPassPtr pass) {
+  m_render_passes.removeAll(pass);
+  emit renderPassesListUpdated(m_render_passes);
+}
+
+void Scene::setRenderPasses(RenderPasses passes) {
+  m_render_passes = passes;
+  emit renderPassesListUpdated(m_render_passes);
 }
 
 void Scene::changedSlot() {

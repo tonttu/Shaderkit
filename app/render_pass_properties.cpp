@@ -840,13 +840,7 @@ void RenderPassProperties::dropEvent(QDropEvent* event) {
   Properties::dropEvent(event);
 
   if (event->isAccepted()) {
-    QSet<ScenePtr> scenes;
-    foreach (RenderPassPtr rp, m_renderpasses.keys())
-      scenes << rp->scene();
-
-    foreach (ScenePtr scene, scenes)
-      scene->renderPassesChanged();
-
+    MainWindow::scene()->setRenderPasses(list());
     recalcLayout();
   }
 }
@@ -962,12 +956,31 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   /// @todo group and hide/show items by render pass type
 }
 
-void RenderPassProperties::update(RenderPassPtr pass) {
-  Sub& sub = m_renderpasses[pass];
+void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
+  QList<RenderPassPtr> lst = list();
+  if(lst == passes) return;
 
-  // Ensure the existence of the Sub instance of this render pass
-  if (!sub.item)
-    init(sub, pass);
+  while (takeTopLevelItem(0)) {}
+
+  foreach (RenderPassPatr pass, passes) {
+    Sub& sub = m_renderpasses[pass];
+
+    // Ensure the existence of the Sub instance of this render pass
+    if (sub.item) {
+      addTopLevelItem(sub.item);
+      expandItem(sub.item);
+    } else {
+      init(sub, pass);
+    }
+  }
+
+  foreach (RenderPassPtr pass, m_renderpasses.keys().toSet() - passes.toSet()) {
+    Sub& sub = m_renderpasses[pass];
+    delete sub.item;
+
+    m_renderpasses.remove(pass);
+  }
+
 /*
   sub.obj->setPropertyName(pass->name());
 
@@ -1026,16 +1039,6 @@ void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& va
   it->set(variant);*/
 //}
 
-void RenderPassProperties::remove(RenderPassPtr pass) {
-  if (!m_renderpasses.contains(pass))
-    return;
-
-  Sub& sub = m_renderpasses[pass];
-  delete sub.item;
-
-  m_renderpasses.remove(pass);
-}
-
 void RenderPassProperties::selectionChanged() {
   if (!m_create) return;
 
@@ -1070,43 +1073,32 @@ void RenderPassProperties::create() {
   if (!s) {
     Log::error("No active scene");
   } else {
-    QList<QString> names;
-    foreach (RenderPassPtr rp, s->renderPasses()) names << rp->name();
-    RenderPassPtr rp(new RenderPass(Utils::uniqueName("Untitled", names), s));
-    update(rp);
-    s->renderPassesChanged();
+    s->add(RenderPassPtr(new RenderPass("Untitled", s)));
   }
 }
 
 void RenderPassProperties::duplicate() {
-  if (selectedItems().size() != 1) return;
-  QTreeWidgetItem* item = selectedItems()[0];
+  QList<RenderPassPtr> sel = selectedPasses();
+  if (sel.size() != 1) return;
 
-  for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
-    if (it->item == item) {
-      RenderPassPtr orig = it.key();
-      ScenePtr s = orig->scene();
-
-      QList<QString> names;
-      foreach (RenderPassPtr rp, s->renderPasses()) names << rp->name();
-
-      RenderPassPtr cloned = orig->clone();
-      cloned->setName(Utils::uniqueName(cloned->name(), names));
-
-      update(cloned);
-      s->renderPassesChanged();
-      return;
-    }
-  }
+  sel[0]->scene()->add(sel[0]->clone());
 }
 
 void RenderPassProperties::remove() {
-  foreach (QTreeWidgetItem* item, selectedItems()) {
-    for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it) {
-      if (it->item == item) {
-        remove(it.key());
-        break;
-      }
-    }
-  }
+  foreach (RenderPassPtr rp, selectedPasses())
+    rp->scene()->remove(rp);
+}
+
+QList<RenderPassPtr> RenderPassProperties::selectedPasses() const {
+  QSet<QTreeWidgetItem*> selected;
+  foreach (QTreeWidgetItem* item, selectedItems())
+    selected << item;
+
+  QList<RenderPassPtr> ret;
+
+  for (auto it = m_renderpasses.begin(); it != m_renderpasses.end(); ++it)
+    if (selected.contains(it->item))
+      ret << it.key();
+
+  return ret;
 }

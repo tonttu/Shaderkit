@@ -133,8 +133,6 @@ public:
 
   void merge(const ObjImporter::Scene& s);
 
-  void renderPassesChanged();
-
   void remove(MaterialPtr m);
 
   /// Loads a scene from JSON file.
@@ -148,6 +146,10 @@ public:
   bool isChanged() const { return m_changed; }
   void syncHistory();
 
+  void add(RenderPassPtr pass);
+  void remove(RenderPassPtr pass);
+  void setRenderPasses(RenderPasses passes);
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -155,7 +157,7 @@ signals:
   void cameraListUpdated();
   void textureListUpdated();
   void materialListUpdated(ScenePtr);
-  void renderPassesListUpdated();
+  void renderPassesListUpdated(QList<RenderPassPtr>);
 
   void changed();
   void saved();
@@ -196,8 +198,6 @@ protected:
   QPointF m_picking;
   bool m_pickOnce;
   PickFunc m_pickFunc;
-
-  bool m_renderPassesChanged;
 
   bool m_automaticSaving;
   History m_history;

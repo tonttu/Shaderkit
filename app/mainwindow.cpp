@@ -234,25 +234,26 @@ bool MainWindow::openScene(ScenePtr scene) {
 
   if (m_scene) {
     if (!closeScene()) return false;
-    foreach (RenderPassPtr p, m_scene->renderPasses()) {
-      RenderPassProperties::instance().remove(p);
-    }
 
     disconnect(m_scene.get(), SIGNAL(changed()), this, SLOT(changed()));
     disconnect(m_scene.get(), SIGNAL(saved()), this, SLOT(saved()));
+
+    disconnect(m_scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
+               &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr> passes)));
   }
 
   connect(scene.get(), SIGNAL(changed()), this, SLOT(changed()));
   connect(scene.get(), SIGNAL(saved()), this, SLOT(saved()));
 
+  connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
+          &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr>)));
+
   m_scene = scene;
   ResourceLocator::setPath("scene", scene->root());
 
-  foreach (ProgramPtr prog, m_scene->materialPrograms()) {
-    foreach (ShaderPtr shader, prog->shaders()) {
+  foreach (ProgramPtr prog, m_scene->materialPrograms())
+    foreach (ShaderPtr shader, prog->shaders())
       Watcher::instance().add(this, shader->res());
-    }
-  }
 
   if (should_restore_settings)
     restore();
@@ -263,6 +264,7 @@ bool MainWindow::openScene(ScenePtr scene) {
   resize(sizeHint());
 
   setSceneChanged(false);
+  RenderPassProperties::instance().listUpdated(m_scene->renderPasses());
 
   m_scene->setAutomaticSaving(m_ui->action_autosave_scene->isChecked());
 
