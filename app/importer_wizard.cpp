@@ -84,14 +84,14 @@ void ImporterWizard::browse() {
 
 void ImporterWizard::changed(int page) {
   if (page == 1) {
-    ObjImporter::Options opts;
-    opts["optimize cache locality"] = m_ui->cache_locality->isChecked();
-    opts["merge materials"] = m_ui->merge_materials->isChecked();
-    opts["find degenerates"] = m_ui->find_degenerates->isChecked();
-    opts["fix normals"] = m_ui->fix_normals->isChecked();
-    opts["optimize"] = m_ui->optimize->isChecked();
-    if (m_importer.readFile(m_ui->filename->text(), opts)) {
-      ObjImporter::SceneInfo si = m_importer.analyze(m_scene);
+    m_import.options["optimize cache locality"] = m_ui->cache_locality->isChecked();
+    m_import.options["merge materials"] = m_ui->merge_materials->isChecked();
+    m_import.options["find degenerates"] = m_ui->find_degenerates->isChecked();
+    m_import.options["fix normals"] = m_ui->fix_normals->isChecked();
+    m_import.options["optimize"] = m_ui->optimize->isChecked();
+    m_import.file = m_ui->filename->text();
+    if (m_importer.readFile(m_ui->filename->text(), m_import.options)) {
+      ObjImporter::SceneInfo si = m_importer.analyze();
       load(si);
     } else {
 
@@ -167,14 +167,15 @@ void ImporterWizard::done(int result) {
 
   if (!result) return;
 
-  ObjImporter::Filter filter;
   QList<QTreeWidgetItem*> items;
   QList<QSet<QString>*> filters;
 
   items << m_objects << m_models << m_animations << m_cameras << m_lights
         << m_materials << m_textures;
-  filters << &filter.objects << &filter.models << &filter.animations << &filter.cameras
-          << &filter.lights << &filter.materials << &filter.textures;
+  filters << &m_import.filter.objects << &m_import.filter.models
+          << &m_import.filter.animations << &m_import.filter.cameras
+          << &m_import.filter.lights << &m_import.filter.materials
+          << &m_import.filter.textures;
 
   for (int i = 0; i < items.size(); ++i) {
     int c = items[i]->childCount();
@@ -186,5 +187,5 @@ void ImporterWizard::done(int result) {
     }
   }
 
-  m_scene->merge(m_importer.load(filter));
+  m_scene->merge(m_import, m_importer.load(m_import.filter));
 }

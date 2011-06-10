@@ -131,7 +131,7 @@ public:
   void setMaterial(QString name, MaterialPtr material);
   void addTexture(TexturePtr t);
 
-  void merge(const ObjImporter::Scene& s);
+  void merge(const Import& import, const ObjImporter::Scene& s);
 
   void remove(MaterialPtr m);
 

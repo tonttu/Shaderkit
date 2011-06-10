@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 #include "obj_importer.hpp"
+#include "scene.hpp"
 
 #include <QWizard>
 
@@ -50,6 +51,7 @@ private:
   ObjImporter m_importer;
   Ui::ImporterWizard* m_ui;
   ScenePtr m_scene;
+  Scene::Import m_import;
 
   QTreeWidgetItem* m_objects;
   QTreeWidgetItem* m_models;

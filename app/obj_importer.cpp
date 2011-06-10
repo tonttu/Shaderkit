@@ -36,6 +36,8 @@ namespace {
     return QString::fromUtf8(aistr.data, aistr.length);
   }
 
+  /// Reads color from material src to target.
+  /// Example: getColor(target, material, AI_MATKEY_COLOR_DIFFUSE);
   void getColor(QVector3D& target, aiMaterial& src, const char * pKey,
                 unsigned int type, unsigned int idx) {
     aiColor3D color;
@@ -131,24 +133,15 @@ bool ObjImporter::readFile(QString file, QMap<QString, bool> options) {
   return true;
 }
 
-ObjImporter::SceneInfo ObjImporter::analyze(ScenePtr sc) {
+ObjImporter::SceneInfo ObjImporter::analyze() {
   SceneInfo out;
 
   if (!m_importer->GetScene()) return out;
   const aiScene& s = *m_importer->GetScene();
 
-  if (sc) {
-    foreach (QString n, sc->materials().keys()) m_names.materials[n] = -1;
-    foreach (QString n, sc->objects().keys()) m_names.objects[n] = -1;
-    foreach (QString n, sc->lights().keys()) m_names.lights[n] = -1;
-    foreach (QString n, sc->cameras().keys()) m_names.cameras[n] = -1;
-    foreach (QString n, sc->textures().keys()) m_names.textures[n] = -1;
-    foreach (QString n, sc->objects().keys()) m_names.meshes << n;
-    /// @todo animations
-  }
-
   if (s.mRootNode) {
-    QString name = str(s.mRootNode->mName);
+    /// even if we have only one object, use uniquename just to make sure that the name isn't empty
+    QString name = Utils::uniqueName(str(s.mRootNode->mName), out.objects.keys(), "Object");
     m_names.objects[name] = 0;
     out.objects[name] = QString("%1 meshes").arg(s.mNumMeshes);
     Log::debug("Object: %s", name.toUtf8().data());
@@ -165,7 +158,7 @@ ObjImporter::SceneInfo ObjImporter::analyze(ScenePtr sc) {
   for (unsigned int i = 0; i < s.mNumCameras; ++i) {
     aiCamera& c = *s.mCameras[i];
     QString name = Utils::uniqueName(str(c.mName), out.cameras.keys(), "Camera");
-    m_names.animations[name] = i;
+    m_names.cameras[name] = i;
     out.cameras[name] = "";
     Log::debug("Camera: %s", name.toUtf8().data());
   }
@@ -239,70 +232,39 @@ ObjImporter::Scene ObjImporter::load(Filter filter) {
 
   Scene scene;
 
-  foreach (QString name, filter.objects) {
-    if (m_names.objects.isEmpty()) continue;
-    if (name.isEmpty() && scene.objects.isEmpty())
-      name = m_names.objects.begin().key();
-    if (m_names.objects.contains(name)) {
-      ObjectPtr o = load(*m_aiscene->mRootNode);
-      scene.objects[name] = o;
+  foreach (QString name, filter.objects & m_names.objects.keys().toSet()) {
+    ObjectPtr o = loadObject(name);
+    scene.objects[name] = o;
+    scene.node = o->model()->node();
+  }
+
+  foreach (QString name, filter.models & m_names.objects.keys().toSet()) {
+    ObjectPtr o = scene.objects.value(name);
+    if (!o) o = loadObject(name);
+    scene.models[name] = o->model();
+    if (!scene.node)
       scene.node = o->model()->node();
-    }
   }
 
-  foreach (QString name, filter.models) {
-    if (m_names.objects.isEmpty()) continue;
-    if (name.isEmpty() && scene.models.isEmpty())
-      name = m_names.objects.begin().key();
-    if (m_names.objects.contains(name)) {
-      ObjectPtr o;
-      if (scene.objects.contains(name)) o = scene.objects[name];
-      if (!o) o = load(*m_aiscene->mRootNode);
-      scene.models[name] = o->model();
-      scene.node = o->model()->node();
-    }
+  foreach (QString name, filter.animations & m_names.animations.keys().toSet()) {
+    scene.animations[name] = loadAnim(name);
   }
 
-  foreach (QString name, filter.animations) {
-    if (m_names.animations.isEmpty()) continue;
-    if (name.isEmpty() && scene.animations.isEmpty())
-      name = m_names.animations.begin().key();
-    if (m_names.animations.contains(name))
-      scene.animations[name] = load(*m_aiscene->mAnimations[m_names.animations[name]]);
+  foreach (QString name, filter.cameras & m_names.cameras.keys().toSet()) {
+    scene.cameras[name] = loadCamera(name);
   }
 
-  foreach (QString name, filter.cameras) {
-    if (m_names.cameras.isEmpty()) continue;
-    if (name.isEmpty() && scene.cameras.isEmpty())
-      name = m_names.cameras.begin().key();
-    if (m_names.cameras.contains(name))
-      scene.cameras[name] = load(*m_aiscene->mCameras[m_names.cameras[name]]);
+  foreach (QString name, filter.lights & m_names.lights.keys().toSet()) {
+    scene.lights[name] = loadLight(name);
   }
 
-  foreach (QString name, filter.lights) {
-    if (m_names.lights.isEmpty()) continue;
-    if (name.isEmpty() && scene.lights.isEmpty())
-      name = m_names.lights.begin().key();
-    if (m_names.lights.contains(name) || (name.isEmpty() && scene.lights.isEmpty()))
-      scene.lights[name] = load(*m_aiscene->mLights[m_names.lights[name]]);
-  }
-
-  foreach (QString name, filter.materials) {
-    if (m_names.materials.isEmpty()) continue;
-    if (name.isEmpty() && scene.materials.isEmpty())
-      name = m_names.materials.begin().key();
-    if (m_names.materials.contains(name) || (name.isEmpty() && scene.materials.isEmpty()))
-      scene.materials[name] = loadMaterial(m_names.materials[name]);
+  foreach (QString name, filter.materials & m_names.materials.keys().toSet()) {
+    scene.materials[name] = loadMaterial(m_names.materials[name]);
   }
 
   foreach (QString name, m_names.materials.keys()) {
-    int matid = m_names.materials[name];
-    if (matid < 0) continue;
-    Log::debug("Iterating material: %s", name.toUtf8().data());
-    MaterialPtr m = loadMaterial(matid);
+    MaterialPtr m = loadMaterial(m_names.materials[name]);
     foreach (QString texname, m->textureNames()) {
-      Log::debug("Iterating texture: %s", texname.toUtf8().data());
-      Log::debug("Filter has: %s", QStringList(filter.textures.toList()).join(", ").toUtf8().data());
       if (filter.textures.contains(texname))
         scene.textures[texname] = m->texture(texname);
     }
@@ -318,11 +280,9 @@ ObjImporter::Scene ObjImporter::load(Filter filter) {
 }
 
 QString ObjImporter::extensionList() const {
-  aiString str;
-  m_importer->GetExtensionList(str);
-  QString out = QString::fromAscii(str.data, str.length);
-  out.replace(';', ' ');
-  return out;
+  aiString lst;
+  m_importer->GetExtensionList(lst);
+  return str(lst).replace(';', ' ');
 }
 
 MaterialPtr ObjImporter::loadMaterial(int idx) {
@@ -332,7 +292,7 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
   aiMaterial& src = *m_aiscene->mMaterials[idx];
   QMap<aiTextureType, QString> roles = textureRoles();
 
-  MaterialPtr m(new Material(getName(m_names.materials, idx)));
+  MaterialPtr m(new Material(m_names.materials.key(idx)));
 
   getColor(m->colors.diffuse, src, AI_MATKEY_COLOR_DIFFUSE);
   getColor(m->colors.specular, src, AI_MATKEY_COLOR_SPECULAR);
@@ -395,7 +355,7 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
   foreach (aiTextureType type, roles.keys()) {
     unsigned int count = src.GetTextureCount(type);
     for (unsigned int i = 0; i < count; ++i) {
-      QString name = getName(m_names.textures, num++);
+      QString name = m_names.textures.key(num++);
       QString role = roles[type];
       TextureFile* t = new TextureFile(name);
       t->setRole(role);
@@ -439,13 +399,6 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
   }
 
   return m;
-}
-
-QString ObjImporter::getName(QMap<QString, int>& map, int index) const {
-  for (auto it = map.begin(); it != map.end(); ++it) {
-    if (it.value() == index) return it.key();
-  }
-  return "";
 }
 
 MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
@@ -547,7 +500,7 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
 
   mesh->name = Utils::uniqueName(str(src.mName), m_names.meshes, "Mesh");
   m_names.meshes << mesh->name;
-  QString matname = getName(m_names.materials, src.mMaterialIndex);
+  QString matname = m_names.materials.key(src.mMaterialIndex);
   Log::debug("Mesh - Material: %s, %s", mesh->name.toUtf8().data(), matname.toUtf8().data());
   if (m_filter.materials.contains(matname)) {
     obj->setMaterial(matname, loadMaterial(src.mMaterialIndex));
@@ -556,7 +509,8 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
   return MeshPtr(mesh);
 }
 
-void ObjImporter::load(ObjectPtr obj, NodePtr dest, const aiNode& src) {
+void ObjImporter::loadNode(ObjectPtr obj, NodePtr dest, const aiNode& src) {
+  // This doesn't have to be unique, really
   dest->name = str(src.mName);
   m_nodeIndex[dest->name] << dest;
   {
@@ -575,31 +529,33 @@ void ObjImporter::load(ObjectPtr obj, NodePtr dest, const aiNode& src) {
 
   for (unsigned int i = 0; i < src.mNumChildren; ++i) {
     dest->children << NodePtr(new Node);
-    load(obj, dest->children[i], *src.mChildren[i]);
+    loadNode(obj, dest->children[i], *src.mChildren[i]);
   }
 
   /// @todo check for cameras and lights
 }
 
-ObjectPtr ObjImporter::load(const aiNode& node) {
-  ModelPtr model(new Model(str(node.mName)));
-  /// @todo unique name
-  ObjectPtr obj(new Object3D(str(node.mName), model));
-  load(obj, model->node(), node);
+ObjectPtr ObjImporter::loadObject(const QString& name) {
+  ModelPtr model(new Model(name));
+  ObjectPtr obj(new Object3D(name, model));
+  loadNode(obj, model->node(), *m_aiscene->mRootNode);
   return obj;
 }
 
-AnimationPtr ObjImporter::load(const aiAnimation& anim) {
+AnimationPtr ObjImporter::loadAnim(const QString& name) {
+  // const aiAnimation& anim = *m_aiscene->mAnimations[m_names.animations[name]];
   /// @todo implement
   return AnimationPtr();
 }
 
-CameraPtr ObjImporter::load(const aiCamera& cam) {
+CameraPtr ObjImporter::loadCamera(const QString& name) {
+  // const aiCamera& cam = *m_aiscene->mCameras[m_names.cameras[name]];
   /// @todo implement
   return CameraPtr();
 }
 
-LightPtr ObjImporter::load(const aiLight& light) {
+LightPtr ObjImporter::loadLight(const QString& name) {
+  //const aiLight& light = *m_aiscene->mLights[m_names.lights[name]];
   /// @todo implement
   return LightPtr();
 }

@@ -13,7 +13,7 @@
   },
   "models" : {
     "dwarf" : {
-      "ref" : ["dwarf"]
+      "ref" : ["dwarf", "ROOT"]
     }
   },
   "objects" : {

@@ -460,8 +460,16 @@ void Scene::load(QVariantMap map) {
   }
 }
 
-void Scene::merge(const ObjImporter::Scene& s) {
+void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
+  QFileInfo fi(import.file);
+  QString name = Utils::uniqueName(fi.baseName(), m_imports.keys(), "import");
+
+  m_imports[name] = import;
+
   m_node->children << s.node;
+
+  /// @todo name conflicts?
+  /// set the ref thingy
 
   if (!s.objects.isEmpty()) {
     m_objects.unite(s.objects);
