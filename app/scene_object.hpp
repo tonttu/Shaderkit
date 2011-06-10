@@ -33,8 +33,7 @@ public:
   virtual QVariantMap save() const;
   virtual void load(QVariantMap map);
 
-  //void setRef(QString import, QStringList iname);
-  void setRefName(const QString& refname);
+  void setRef(QString import, QString refname);
   QString ref();
   QStringList refName();
 

@@ -471,29 +471,18 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
   /// @todo name conflicts?
   /// set the ref thingy
 
-  if (!s.objects.isEmpty()) {
-    m_objects.unite(s.objects);
-    emit objectListUpdated();
-  }
-  if (!s.lights.isEmpty()) {
-    m_lights.unite(s.lights);
-    emit lightListUpdated();
-  }
-  if (!s.cameras.isEmpty()) {
-    m_cameras.unite(s.cameras);
-    emit cameraListUpdated();
-  }
-  if (!s.textures.isEmpty()) {
-    m_textures.unite(s.textures);
-    emit textureListUpdated();
-  }
-  if (!s.materials.isEmpty()) {
-    foreach (MaterialPtr m, s.materials)
-      m->setScene(shared_from_this());
-    m_materials.unite(s.materials);
-    emit materialListUpdated(shared_from_this());
-  }
-  m_models.unite(s.models);
+  foreach (auto o, s.objects) o->setRef(name, o->name()), add(o);
+
+  foreach (auto l, s.lights) l->setRef(name, l->name()), add(l);
+
+  foreach (auto c, s.cameras) c->setRef(name, c->name()), add(c);
+
+  foreach (auto t, s.textures) t->setRef(name, t->name()), add(t);
+
+  foreach (auto m, s.materials) m->setRef(name, m->name()), add(m);
+
+  foreach (auto m, s.models) m->setRef(name, m->name()), add(m);
+
   /// @todo animations
   /// @todo add a default shader if the material has shader hint
 
@@ -634,7 +623,7 @@ void Scene::setRenderPasses(RenderPasses passes) {
 }
 
 void Scene::add(CameraPtr camera) {
-  camera->setName(Utils::uniqueName(camera->name(), m_cameras.keys(), "Untitled"));
+  camera->setName(Utils::uniqueName(camera->name(), m_cameras.keys(), "Camera"));
   m_cameras[camera->name()] = camera;
   emit cameraListUpdated();
 }
@@ -651,7 +640,7 @@ void Scene::remove(CameraPtr camera) {
 }
 
 void Scene::add(LightPtr light) {
-  light->setName(Utils::uniqueName(light->name(), m_lights.keys(), "Untitled"));
+  light->setName(Utils::uniqueName(light->name(), m_lights.keys(), "Light"));
   m_lights[light->name()] = light;
 
   emit lightListUpdated();
@@ -668,6 +657,26 @@ void Scene::remove(LightPtr light) {
     rp->setLights(lights);
   }
   emit lightListUpdated();
+}
+
+void Scene::add(MaterialPtr mat) {
+  mat->setName(Utils::uniqueName(mat->name(), m_materials.keys(), "Material"));
+  m_materials[mat->name()] = mat;
+  mat->setScene(shared_from_this());
+
+  emit materialListUpdated(shared_from_this());
+}
+
+void Scene::add(ObjectPtr obj) {
+  obj->setName(Utils::uniqueName(obj->name(), m_objects.keys(), "Object"));
+  m_objects[obj->name()] = obj;
+
+  emit objectListUpdated();
+}
+
+void Scene::add(ModelPtr model) {
+  model->setName(Utils::uniqueName(model->name(), m_models.keys(), "Model"));
+  m_models[model->name()] = model;
 }
 
 void Scene::changedSlot() {
@@ -738,9 +747,8 @@ void Scene::setMaterial(QString name, MaterialPtr material) {
   emit materialListUpdated(shared_from_this());
 }
 
-void Scene::addTexture(TexturePtr t) {
-  QString name = Utils::uniqueName(t->name(), m_textures.keys());
-  t->setName(name);
-  m_textures[name] = t;
+void Scene::add(TexturePtr t) {
+  t->setName(Utils::uniqueName(t->name(), m_textures.keys(), "Texture"));
+  m_textures[t->name()] = t;
   emit textureListUpdated();
 }

@@ -43,12 +43,8 @@ void SceneObject::load(QVariantMap map) {
   }
 }
 
-/*void SceneObject::setRef(QString import, QStringList iname) {
+void SceneObject::setRef(QString import, QString refname) {
   m_ref = import;
-  m_ref_name = iname;
-}*/
-
-void SceneObject::setRefName(const QString& refname) {
   m_ref_name = QStringList(refname);
 }
 

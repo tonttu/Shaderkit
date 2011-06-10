@@ -129,7 +129,7 @@ public:
   void pick(float x, float y, bool once = true, PickFunc func = PickFunc());
 
   void setMaterial(QString name, MaterialPtr material);
-  void addTexture(TexturePtr t);
+  void add(TexturePtr t);
 
   void merge(const Import& import, const ObjImporter::Scene& s);
 
@@ -155,6 +155,12 @@ public:
 
   void add(LightPtr light);
   void remove(LightPtr light);
+
+  void add(MaterialPtr mat);
+
+  void add(ObjectPtr obj);
+
+  void add(ModelPtr model);
 
 signals:
   void shaderListUpdated();

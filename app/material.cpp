@@ -185,7 +185,7 @@ MaterialPtr Material::clone(bool clone_textures) const {
   if (clone_textures) {
     for (auto it = m_textures.begin(); it != m_textures.end(); ++it) {
       TexturePtr t = it.value()->clone();
-      if (m_scene) m_scene->addTexture(t);
+      if (m_scene) m_scene->add(t);
       m->m_textures[it.key()] = t;
     }
   }

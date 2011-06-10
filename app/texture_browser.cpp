@@ -659,7 +659,7 @@ void TextureBrowser::renderPassesChanged() {
 void TextureBrowser::create() {
   TexturePtr tex(new Texture("Untitled"));
   m_select = tex;
-  MainWindow::scene()->addTexture(tex);
+  MainWindow::scene()->add(tex);
 }
 
 void TextureBrowser::duplicate() {
@@ -667,7 +667,7 @@ void TextureBrowser::duplicate() {
   if (!s || !m_selected || !m_selected->tex()) return;
 
   m_select = m_selected->tex()->clone();
-  s->addTexture(m_select);
+  s->add(m_select);
 }
 
 void TextureBrowser::remove() {
@@ -685,7 +685,7 @@ void TextureBrowser::load() {
     tex->setFile(file);
     TexturePtr texp(tex);
     m_select = texp;
-    MainWindow::scene()->addTexture(texp);
+    MainWindow::scene()->add(texp);
   }
 }
 
