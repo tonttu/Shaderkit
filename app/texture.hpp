@@ -23,6 +23,8 @@
 
 #include <QVariantMap>
 
+#include <functional>
+
 class QTimer;
 
 /// Signals when OpenGL texture was changed, so for example this isn't emitted

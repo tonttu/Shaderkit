@@ -19,7 +19,9 @@
 #include "shader/program.hpp"
 #include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
+#ifndef _WIN32
 #include "shader/sandbox_compiler.hpp"
+#endif
 #include "shader/query_shader.hpp"
 #include "app/opengl.hpp"
 
@@ -75,9 +77,11 @@ Shader::CompileStatus Shader::compile(ShaderErrorList& errors) {
 
     QByteArray src_ = m_src.toAscii();
 
+#ifndef _WIN32
     if (s_sandbox_compile && !SandboxCompiler::check(shared_from_this(), src_, errors)) {
       return ERRORS;
     }
+#endif
 
     const char* src = src_.data();
     GLint len = src_.length();
@@ -157,8 +161,10 @@ void Shader::setProgram(ProgramPtr prog) {
 }
 
 void Shader::setSandboxCompile(bool v) {
+#ifndef _WIN32
   if (s_sandbox_compile && !v)
     SandboxCompiler::close();
+#endif
   s_sandbox_compile = v;
 }
 

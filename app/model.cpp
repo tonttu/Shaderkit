@@ -22,7 +22,7 @@
 
 #include "ext/glut_teapot.hpp"
 
-#include <GL/glut.h>
+// #include <GL/glut.h>
 
 namespace {
   /// Renders a rectangular box.
@@ -146,7 +146,7 @@ void Box::renderObj(State&) {
 }
 
 void Sphere::renderObj(State&) {
-  glutSolidSphere(5.0f, 32, 32);
+//   glutSolidSphere(5.0f, 32, 32);
 }
 
 void TriMesh::renderObj(State& state) {

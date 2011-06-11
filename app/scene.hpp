@@ -28,6 +28,8 @@
 #include <QTime>
 #include <QPoint>
 
+#include <functional>
+
 /**
  * Scene is a data structure that stores all objects by name, and controls
  * the rendering. Scene also knows the actual viewport size and handles

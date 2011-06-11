@@ -45,7 +45,6 @@ HEADERS += \
     wrap_glext.h \
     new_wizard.hpp \
     log.hpp \
-    shader/sandbox_compiler.hpp \
     material.hpp \
     model.hpp \
     animation.hpp \
@@ -89,7 +88,6 @@ SOURCES += \
     wrap_glext.c \
     new_wizard.cpp \
     log.cpp \
-    shader/sandbox_compiler.cpp \
     material.cpp \
     model.cpp \
     animation.cpp \
@@ -104,6 +102,11 @@ SOURCES += \
     resource_locator.cpp \
     texture_browser.cpp \
     history.cpp
+
+unix {
+  HEADERS += shader/sandbox_compiler.hpp
+  SOURCES += shader/sandbox_compiler.cpp
+}
 
 FORMS += \
     mainwindow.ui \
@@ -121,7 +124,7 @@ win32 {
 }
 PRE_TARGETDEPS += $$LIBS
 
-LIBS += -lglut
+# LIBS += -lglut
 
 RESOURCES += \
     ../gfx/gfx.qrc

@@ -24,6 +24,11 @@
 #include <QVector3D>
 #include <QVariant>
 
+#ifdef _WIN32
+#undef near
+#undef far
+#endif
+
 /**
  * OpenGL Camera class, handles perspective and ortho projections.
  */

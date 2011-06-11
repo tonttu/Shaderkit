@@ -19,13 +19,15 @@
 #include "welcome.hpp"
 #include "resource_locator.hpp"
 #include "shaderdb/shaderdb.hpp"
+#ifndef _WIN32
 #include "shader/sandbox_compiler.hpp"
+#endif
 #include "shader/program.hpp"
 
 #include <QApplication>
 #include <QDir>
 
-#include <GL/glut.h>
+// #include <GL/glut.h>
 
 /*#include <X11/Xlib.h>
 
@@ -45,14 +47,16 @@ public:
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
   //App app(argc, argv);
-  glutInit(&argc, argv);
+  // glutInit(&argc, argv);
   Log log;
 
+#ifndef _WIN32
   if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {
     return SandboxCompiler::run(QString(argv[2]).toInt(), QString(argv[3]).toInt());
   }
 
   SandboxCompiler init(argv[0]);
+#endif
 
   ShaderDB db;
   {
