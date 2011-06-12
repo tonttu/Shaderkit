@@ -94,10 +94,10 @@ void RenderPass::setName(const QString& name) {
 void RenderPass::setType(Type type) {
   if (type == m_type) return;
   if (type == PostProc) {
-    m_viewport.reset(new Camera("post"));
-    m_viewport->setRect();
+    m_view.reset(new Camera("post"));
+    m_view->setRect();
   } else if (type == Disabled) {
-    m_viewport.reset();
+    m_view.reset();
   }
   m_type = type;
   emit changed(shared_from_this());
@@ -136,9 +136,9 @@ void RenderPass::add(LightPtr light) {
   emit changed(shared_from_this());
 }
 
-void RenderPass::setViewport(CameraPtr camera) {
-  if (m_viewport != camera) {
-    m_viewport = camera;
+void RenderPass::setView(CameraPtr camera) {
+  if (m_view != camera) {
+    m_view = camera;
     if (camera) {
       m_type = camera->type() == Camera::Perspective ? Normal : PostProc;
     } else {
@@ -166,7 +166,7 @@ RenderPassPtr RenderPass::clone() const {
   r->m_objects = m_objects;
   r->m_lights = m_lights;
   r->m_defaultMaterial = m_defaultMaterial;
-  r->m_viewport = m_viewport;
+  r->m_view = m_view;
   r->m_clear = m_clear;
   r->m_width = m_width;
   r->m_height = m_height;
@@ -179,8 +179,8 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
   beginFBO();
 
   resize(width(), height());
-  state.setCamera(m_viewport);
-  m_viewport->prepare(width(), height());
+  state.setCamera(m_view);
+  m_view->prepare(width(), height());
 
   glClearColor(0.2f, 0.2f, 0.2f, 1);
   if (m_clear) glClear(m_clear);
@@ -331,10 +331,10 @@ QVariantMap RenderPass::save() const {
 
   if (m_type == Normal) {
     tmp.clear();
-    tmp << "camera" << m_viewport->name();
-    map["viewport"] = tmp;
+    tmp << "camera" << m_view->name();
+    map["view"] = tmp;
   } else if (m_type == PostProc) {
-    map["viewport"] = "post";
+    map["view"] = "post";
   }
 
   QVariantMap in, out;
@@ -387,9 +387,9 @@ void RenderPass::load(QVariantMap map) {
     if (l) m_lights.insert(l);
   }
 
-  QStringList tmp = map["viewport"].toStringList();
+  QStringList tmp = map["view"].toStringList();
   if (tmp.size() == 2 && tmp[0] == "camera") {
-    m_viewport = m_scene->camera(tmp[1]);
+    m_view = m_scene->camera(tmp[1]);
     m_type = Normal;
   }
   if (tmp.size() == 1 && tmp[0] == "post") {

@@ -216,7 +216,7 @@ TextureBrowser::TextureBrowser(QWidget *parent)
     m_selected(0),
     m_attachment(0) {
   m_ui->setupUi(this);
-  m_ui->viewport->setLayout(new FlowLayout(m_ui->viewport));
+  m_ui->canvas->setLayout(new FlowLayout(m_ui->canvas));
 
   m_ui->color->addItem("Depth buffer", GL_DEPTH_ATTACHMENT);
   for (int i = 0; i < 16; ++i)
@@ -298,9 +298,9 @@ void TextureBrowser::updateContent(ScenePtr scene) {
   }
 
   foreach (QString name, textures.keys().toSet() - m_textures.keys().toSet()) {
-    TextureWidget* widget = new TextureWidget(m_ui->viewport, textures[name]);
+    TextureWidget* widget = new TextureWidget(m_ui->canvas, textures[name]);
     connect(widget, SIGNAL(select(TextureWidget*)), this, SLOT(selected(TextureWidget*)));
-    m_ui->viewport->layout()->addWidget(widget);
+    m_ui->canvas->layout()->addWidget(widget);
     m_textures[name] = widget;
     if (m_select && widget->tex() == m_select) {
       selected(widget);
@@ -317,8 +317,8 @@ void TextureBrowser::updateContent(ScenePtr scene) {
     }
   }
 
-  QMargins m = m_ui->viewport->contentsMargins();
-  QSize s = m_ui->viewport->layout()->minimumSize();
+  QMargins m = m_ui->canvas->contentsMargins();
+  QSize s = m_ui->canvas->layout()->minimumSize();
   s.setWidth(s.width() + m.left() + m.right() +
              m_ui->scrollArea->verticalScrollBar()->width() +
              m_ui->scrollArea->frameWidth()*2);

@@ -502,7 +502,7 @@ void CameraEditor::updateList() {
   while (m_list->count() > 3)
     m_list->removeItem(3);
 
-  CameraPtr selected = m_pass->viewport();
+  CameraPtr selected = m_pass->view();
   bool found = false;
 
   QMap<QString, CameraPtr> lst = m_pass->scene()->cameras();
@@ -531,7 +531,7 @@ void CameraEditor::listActivated(int index) {
     m_pass->setType(RenderPass::PostProc);
   } else {
     m_pass->setType(RenderPass::Normal);
-    m_pass->setViewport(m_pass->scene()->camera(m_list->itemData(index).toString()));
+    m_pass->setView(m_pass->scene()->camera(m_list->itemData(index).toString()));
   }
 }
 
@@ -925,8 +925,8 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
 
   item = new QTreeWidgetItem(sub.item);
   item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
-  item->setIcon(0, QIcon(":/icons/viewport.png"));
-  item->setText(0, "Viewport");
+  item->setIcon(0, QIcon(":/icons/view.png"));
+  item->setText(0, "View");
   font = item->font(0);
   font.setBold(true);
   item->setFont(0, font);
@@ -949,7 +949,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
 //  item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);
 
 /*  QFontMetrics m(font);
-  int w = m.width("Viewport");
+  int w = m.width("View");
   setColumnWidth(0, w+16+10+35);*/
   recalcLayout();
 

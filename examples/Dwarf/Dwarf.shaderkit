@@ -103,7 +103,7 @@
       "name" : "render",
       "clear" : ["color", "depth"],
       "objects" : ["dwarf"],
-      "viewport" : ["camera", "camera1"],
+      "view" : ["camera", "camera1"],
       "lights" : ["light1", "light2", "back"]
     }
   ]

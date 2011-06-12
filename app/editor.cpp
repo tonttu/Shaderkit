@@ -418,7 +418,7 @@ int FileListWidget::preferredWidth() {
 
 MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
   : QFrame(parent),
-    m_viewport(new QWidget(this)),
+    m_canvas(new QWidget(this)),
     m_material(material),
     m_mapper(new QSignalMapper(this)) {
   setFrameShape(QFrame::NoFrame);
@@ -430,7 +430,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
 
   m_area = new QScrollArea(m_splitter);
   m_area->setWidgetResizable(true);
-  m_area->setWidget(m_viewport);
+  m_area->setWidget(m_canvas);
   m_area->setFrameShape(QFrame::NoFrame);
 
   QWidget* sidebar = new QWidget(this);
@@ -470,7 +470,7 @@ MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
 
   main_layout->addWidget(m_splitter);
 
-  new QVBoxLayout(m_viewport);
+  new QVBoxLayout(m_canvas);
 
   connect(m_mapper, SIGNAL(mapped(QString)), this, SLOT(autosize(QString)));
 
@@ -512,7 +512,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
   s.item->setData(Qt::UserRole, shader->res());
   m_list->addItem(s.item);
 
-  s.header = new QWidget(m_viewport);
+  s.header = new QWidget(m_canvas);
   QHBoxLayout* l = new QHBoxLayout(s.header);
 
   s.label = new QLabel("<b>"+ResourceLocator::ui(shader->res())+"</b>", s.header);
@@ -522,11 +522,11 @@ void MultiEditor::addShader(ShaderPtr shader) {
   l->addWidget(s.label);
   l->addStretch();
   l->setContentsMargins(2, 2, 0, 0);
-  m_viewport->layout()->addWidget(s.header);
+  m_canvas->layout()->addWidget(s.header);
 
-  s.editor = new GLSLEditor(*this, m_viewport, shader, doc);
+  s.editor = new GLSLEditor(*this, m_canvas, shader, doc);
 
-  m_viewport->layout()->addWidget(s.editor);
+  m_canvas->layout()->addWidget(s.editor);
 
   m_mapper->setMapping(s.editor->document()->documentLayout(), shader->res());
   connect(s.editor->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)),
@@ -587,7 +587,7 @@ void MultiEditor::ensureCursorVisible(GLSLEditor* ed) {
   if (!ed) ed = qobject_cast<GLSLEditor*>(sender());
   assert(ed);
   QRect r = ed->cursorRect().adjusted(-40, -10, 40, 10);
-  r.moveCenter(ed->viewport()->mapTo(m_viewport, r.center()));
+  r.moveCenter(ed->viewport()->mapTo(m_canvas, r.center()));
   m_area->ensureVisible(r.center().x(), r.center().y(),
                         r.width(), r.height());
 }
@@ -794,7 +794,7 @@ bool MultiEditor::checkClose() {
 }
 
 void MultiEditor::jump(bool up, GLSLEditor* editor) {
-  QLayout* l = m_viewport->layout();
+  QLayout* l = m_canvas->layout();
   GLSLEditor* prev = 0;
   bool next = false;
   for (int i = 0, m = l->count(); i < m; ++i) {

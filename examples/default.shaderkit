@@ -45,7 +45,7 @@
       "clear" : ["color", "depth"],
       "shader" : "default",
       "objects" : ["teapot"],
-      "viewport" : ["camera", "camera1"],
+      "view" : ["camera", "camera1"],
       "lights" : ["light1"]
     }
   ]

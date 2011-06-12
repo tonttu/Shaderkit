@@ -40,7 +40,7 @@ struct RenderOptions {
  * with Frame Buffer Object.
  *
  * Currently one render pass can have exactly one shader program and one Camera
- * (or more generally "viewport"). It also has list of objects, lights and
+ * (or more generally "view"). It also has list of objects, lights and
  * in/out textures.
  *
  * Render passes are controlled by Scene, the Pass itself doesn't know of any
@@ -105,8 +105,8 @@ public:
   void setLights(Lights lights);
   void add(LightPtr light);
 
-  CameraPtr viewport() { return m_viewport; }
-  void setViewport(CameraPtr camera);
+  CameraPtr view() { return m_view; }
+  void setView(CameraPtr camera);
 
   QIcon icon();
 
@@ -132,7 +132,7 @@ protected:
   /// All enabled lights
   Lights m_lights;
   MaterialPtr m_defaultMaterial;
-  CameraPtr m_viewport;
+  CameraPtr m_view;
 
   ScenePtr m_scene;
 

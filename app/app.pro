@@ -58,7 +58,8 @@ HEADERS += \
     importer_wizard.hpp \
     resource_locator.hpp \
     texture_browser.hpp \
-    history.hpp
+    history.hpp \
+    viewport.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -101,7 +102,8 @@ SOURCES += \
     importer_wizard.cpp \
     resource_locator.cpp \
     texture_browser.cpp \
-    history.cpp
+    history.cpp \
+    viewport.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp

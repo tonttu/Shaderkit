@@ -71,7 +71,7 @@
              <property name="widgetResizable">
               <bool>true</bool>
              </property>
-             <widget class="QWidget" name="viewport">
+             <widget class="QWidget" name="canvas">
               <property name="geometry">
                <rect>
                 <x>0</x>

@@ -165,13 +165,13 @@ void Scene::render() {
 
   bool ui = false;
   foreach (RenderPassPtr p, m_render_passes) {
-    if (!p->viewport()) continue;
+    if (!p->view()) continue;
 
     /// @todo how stupid name is "Normal" for render pass. Extremely stupid. Fix it.
     opts.ui = !ui && p->type() == RenderPass::Normal;
 
     bool pick = false;
-    if (m_picking.x() >= 0 && p->viewport() == defcam) {
+    if (m_picking.x() >= 0 && p->view() == defcam) {
       pick = true;
       state.setPicking(QPoint(m_picking.x()*p->width(), m_picking.y()*p->height()));
     }
@@ -488,7 +488,7 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
 
   RenderPassPtr pass;
   foreach (RenderPassPtr p, m_render_passes)
-    if (p->viewport() && p->type() == RenderPass::Normal)
+    if (p->view() && p->type() == RenderPass::Normal)
       pass = p;
 
   if (!m_objects.isEmpty()) {
@@ -497,7 +497,7 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
       add(pass);
     }
 
-    if (!pass->viewport() && s.cameras.isEmpty()) {
+    if (!pass->view() && s.cameras.isEmpty()) {
       CameraPtr camera(new Camera("Default"));
 
       /// @todo use bounding box to calculate optimal location for the camera
@@ -505,7 +505,7 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
       camera->setPosition(QVector3D(60, 45, -60));
 
       add(camera);
-      pass->setViewport(camera);
+      pass->setView(camera);
     }
 
     if (pass->lights().isEmpty() && s.lights.isEmpty()) {
@@ -539,7 +539,7 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
 
   if (pass) {
     if (!s.cameras.isEmpty())
-      pass->setViewport(s.cameras.values().first());
+      pass->setView(s.cameras.values().first());
 
     foreach (LightPtr light, s.lights)
       pass->add(light);
@@ -638,8 +638,8 @@ void Scene::remove(CameraPtr camera) {
     m_cameras.remove(name);
 
   foreach (RenderPassPtr rp, m_render_passes)
-    if (rp->viewport() == camera)
-      rp->setViewport(CameraPtr());
+    if (rp->view() == camera)
+      rp->setView(CameraPtr());
 
   emit cameraListUpdated();
 }

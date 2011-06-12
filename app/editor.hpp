@@ -226,7 +226,7 @@ private:
   void addShader(ShaderPtr shader);
   const Section* selected() const;
 
-  QWidget* m_viewport;
+  QWidget* m_canvas;
   FileListWidget* m_list;
   QScrollArea* m_area;
   QSplitter* m_splitter;

@@ -69,7 +69,7 @@
       "clear" : ["color", "depth"],
       "shader" : "phong",
       "objects" : ["teapot", "box"],
-      "viewport" : ["camera", "camera1"],
+      "view" : ["camera", "camera1"],
       "lights" : ["light1"],
       "out" : {
         "depth" : ["renderbuffer"],
@@ -79,7 +79,7 @@
     {
       "name" : "gx",
       "shader" : "gaussian-y",
-      "viewport" : ["post"],
+      "view" : ["post"],
       "in" : {
         "image" : ["texture", "image"]
       },
@@ -90,7 +90,7 @@
     {
       "name" : "gy",
       "shader" : "gaussian-x",
-      "viewport" : ["post"],
+      "view" : ["post"],
       "in" : {
         "image" : ["texture", "image2"]
       }

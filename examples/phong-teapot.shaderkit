@@ -70,7 +70,7 @@
       "name" : "render",
       "clear" : ["color", "depth"],
       "objects" : ["teapot", "box"],
-      "viewport" : ["camera", "camera1"],
+      "view" : ["camera", "camera1"],
       "lights" : ["light1"],
       "render" : {
         "depth" : ["renderbuffer"],
@@ -80,7 +80,7 @@
     {
       "name" : "gx",
       "material" : "gaussian-x",
-      "viewport" : ["post"],
+      "view" : ["post"],
       "render" : {
         "color0" : ["texture", "image2"]
       }
@@ -88,7 +88,7 @@
     {
       "name" : "gy",
       "material" : "gaussian-y",
-      "viewport" : ["post"]
+      "view" : ["post"]
     }
   ]
 }
