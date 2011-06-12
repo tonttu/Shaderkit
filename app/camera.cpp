@@ -100,12 +100,7 @@ void Camera::load(QVariantMap map) {
   m_near = map["near"].toFloat();
   m_far = map["far"].toFloat();
 
-  QVector3D to = m_target - toVector(map["position"]);
-  m_dist = to.length();
-  m_dx = atan2f(to.z(), -to.x());
-  m_dy = asinf(-to.y() / m_dist);
-
-  updateVectors();
+  setPosition(toVector(map["position"]));
 }
 
 void Camera::updateVectors() {
@@ -139,4 +134,17 @@ void Camera::translate(QPointF diff) {
 
 void Camera::zoom(float diff) {
   m_dist += diff*m_dist*0.01f;
+}
+
+void Camera::setTarget(const QVector3D& target) {
+  m_target = target;
+}
+
+void Camera::setPosition(const QVector3D& position) {
+  QVector3D to = m_target - position;
+  m_dist = to.length();
+  m_dx = atan2f(to.z(), -to.x());
+  m_dy = asinf(-to.y() / m_dist);
+
+  updateVectors();
 }

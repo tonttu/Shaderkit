@@ -27,6 +27,8 @@
   int yyparse(void);
   void yyerror(const char* str);
 
+  namespace Parser {
+
   struct Node {
     Node() : prev(0), next(0) {}
     virtual void print(int i = 0) = 0;
@@ -236,6 +238,7 @@
   }
   static Node* tree;
   typedef std::set<int> Set;
+  }
 %}
 
 %defines
@@ -245,12 +248,12 @@
   int integer;
   float f;
   char* string;
-  struct Node* node;
-  struct Function* func;
-  struct Parameter* param;
-  struct Type* type;
-  struct Qualifier* qualifier;
-  struct Layout* layout;
+  Parser::Node* node;
+  Parser::Function* func;
+  Parser::Parameter* param;
+  Parser::Type* type;
+  Parser::Qualifier* qualifier;
+  Parser::Layout* layout;
 }
 %token <integer> ATTRIBUTE CONST BOOL FLOAT INT UINT
 %token <integer> BREAK CONTINUE DO ELSE FOR IF DISCARD RETURN SWITCH CASE DEFAULT
@@ -319,27 +322,27 @@
 
 // ??
 variable_identifier
-  : IDENTIFIER { /*$$ = new Variable($1);*/ }
+  : IDENTIFIER { /*$$ = new Parser::Variable($1);*/ }
   ;
 
 primary_expression
   : variable_identifier
-  | INTCONSTANT { $$ = new IntConstant(INTCONSTANT, $1); }
-  | UINTCONSTANT { $$ = new IntConstant(UINTCONSTANT, $1); }
-  | FLOATCONSTANT { $$ = new FloatConstant($1); }
-  | TRUECONSTANT { $$ = new IntConstant(BOOLCONSTANT, 1); }
-  | FALSECONSTANT { $$ = new IntConstant(BOOLCONSTANT, 0); }
+  | INTCONSTANT { $$ = new Parser::IntConstant(INTCONSTANT, $1); }
+  | UINTCONSTANT { $$ = new Parser::IntConstant(UINTCONSTANT, $1); }
+  | FLOATCONSTANT { $$ = new Parser::FloatConstant($1); }
+  | TRUECONSTANT { $$ = new Parser::IntConstant(BOOLCONSTANT, 1); }
+  | FALSECONSTANT { $$ = new Parser::IntConstant(BOOLCONSTANT, 0); }
   | '(' expression ')' { $$ = $2; }
   ;
 
 // ??
 postfix_expression
   : primary_expression
-  | postfix_expression '[' integer_expression ']' { $$ = new ArrayField($1, $3); }
+  | postfix_expression '[' integer_expression ']' { $$ = new Parser::ArrayField($1, $3); }
   | function_call { $$ = 0; }
-  | postfix_expression '.' IDENTIFIER { $$ = new Field($1, $3); } // FIELD_SELECTION
-  | postfix_expression INC_OP { $$ = new Operator($2, $1); }
-  | postfix_expression DEC_OP { $$ = new Operator($2, $1); }
+  | postfix_expression '.' IDENTIFIER { $$ = new Parser::Field($1, $3); } // FIELD_SELECTION
+  | postfix_expression INC_OP { $$ = new Parser::Operator($2, $1); }
+  | postfix_expression DEC_OP { $$ = new Parser::Operator($2, $1); }
   ;
 
 integer_expression
@@ -377,8 +380,8 @@ function_call_header_with_parameters
 
 function_call_header
 //  : function_identifier '('
-  : type_specifier '(' { $$ = new Constructor($1); }
-  | IDENTIFIER '(' { $$ = new Call( /*$1 */); }
+  : type_specifier '(' { $$ = new Parser::Constructor($1); }
+  | IDENTIFIER '(' { $$ = new Parser::Call( /*$1 */); }
   ;
 
 // Grammar Note: Constructors look like functions, but lexical analysis recognized most of them as
@@ -394,9 +397,9 @@ function_identifier
 
 unary_expression
   : postfix_expression
-  | INC_OP unary_expression { $$ = new Operator($1, $2); }
-  | DEC_OP unary_expression { $$ = new Operator($1, $2); }
-  | unary_operator unary_expression { $$ = new Operator($1, $2); }
+  | INC_OP unary_expression { $$ = new Parser::Operator($1, $2); }
+  | DEC_OP unary_expression { $$ = new Parser::Operator($1, $2); }
+  | unary_operator unary_expression { $$ = new Parser::Operator($1, $2); }
   ;
 
 // Grammar Note: No traditional style type casts.
@@ -412,75 +415,75 @@ unary_operator
 
 multiplicative_expression
   : unary_expression
-  | multiplicative_expression '*' unary_expression { $$ = new Operator('*', $1, $3); }
-  | multiplicative_expression '/' unary_expression { $$ = new Operator('/', $1, $3); }
-  | multiplicative_expression '%' unary_expression { $$ = new Operator('%', $1, $3); }
+  | multiplicative_expression '*' unary_expression { $$ = new Parser::Operator('*', $1, $3); }
+  | multiplicative_expression '/' unary_expression { $$ = new Parser::Operator('/', $1, $3); }
+  | multiplicative_expression '%' unary_expression { $$ = new Parser::Operator('%', $1, $3); }
   ;
 
 additive_expression
   : multiplicative_expression
-  | additive_expression '+' multiplicative_expression { $$ = new Operator('+', $1, $3); }
-  | additive_expression '-' multiplicative_expression { $$ = new Operator('-', $1, $3); }
+  | additive_expression '+' multiplicative_expression { $$ = new Parser::Operator('+', $1, $3); }
+  | additive_expression '-' multiplicative_expression { $$ = new Parser::Operator('-', $1, $3); }
   ;
 
 shift_expression
   : additive_expression
-  | shift_expression LEFT_OP additive_expression { $$ = new Operator($2, $1, $3); }
-  | shift_expression RIGHT_OP additive_expression { $$ = new Operator($2, $1, $3); }
+  | shift_expression LEFT_OP additive_expression { $$ = new Parser::Operator($2, $1, $3); }
+  | shift_expression RIGHT_OP additive_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 relational_expression
   : shift_expression
-  | relational_expression '<' shift_expression { $$ = new Operator('<', $1, $3); }
-  | relational_expression '>' shift_expression { $$ = new Operator('>', $1, $3); }
-  | relational_expression LE_OP shift_expression { $$ = new Operator($2, $1, $3); }
-  | relational_expression GE_OP shift_expression { $$ = new Operator($2, $1, $3); }
+  | relational_expression '<' shift_expression { $$ = new Parser::Operator('<', $1, $3); }
+  | relational_expression '>' shift_expression { $$ = new Parser::Operator('>', $1, $3); }
+  | relational_expression LE_OP shift_expression { $$ = new Parser::Operator($2, $1, $3); }
+  | relational_expression GE_OP shift_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 equality_expression
   : relational_expression
-  | equality_expression EQ_OP relational_expression { $$ = new Operator($2, $1, $3); }
-  | equality_expression NE_OP relational_expression { $$ = new Operator($2, $1, $3); }
+  | equality_expression EQ_OP relational_expression { $$ = new Parser::Operator($2, $1, $3); }
+  | equality_expression NE_OP relational_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 and_expression
   : equality_expression
-  | and_expression '&' equality_expression { $$ = new Operator('&', $1, $3); }
+  | and_expression '&' equality_expression { $$ = new Parser::Operator('&', $1, $3); }
   ;
 
 exclusive_or_expression
   : and_expression
-  | exclusive_or_expression '^' and_expression { $$ = new Operator('^', $1, $3); }
+  | exclusive_or_expression '^' and_expression { $$ = new Parser::Operator('^', $1, $3); }
   ;
 
 inclusive_or_expression
   : exclusive_or_expression
-  | inclusive_or_expression '|' exclusive_or_expression { $$ = new Operator('|', $1, $3); }
+  | inclusive_or_expression '|' exclusive_or_expression { $$ = new Parser::Operator('|', $1, $3); }
   ;
 
 logical_and_expression
   : inclusive_or_expression
-  | logical_and_expression AND_OP inclusive_or_expression { $$ = new Operator($2, $1, $3); }
+  | logical_and_expression AND_OP inclusive_or_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 logical_xor_expression
   : logical_and_expression
-  | logical_xor_expression XOR_OP logical_and_expression { $$ = new Operator($2, $1, $3); }
+  | logical_xor_expression XOR_OP logical_and_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 logical_or_expression
   : logical_xor_expression
-  | logical_or_expression OR_OP logical_xor_expression { $$ = new Operator($2, $1, $3); }
+  | logical_or_expression OR_OP logical_xor_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 conditional_expression
   : logical_or_expression
-  | logical_or_expression '?' expression ':' assignment_expression { $$ = new Conditional($1, $3, $5); }
+  | logical_or_expression '?' expression ':' assignment_expression { $$ = new Parser::Conditional($1, $3, $5); }
   ;
 
 assignment_expression
   : conditional_expression
-  | unary_expression assignment_operator assignment_expression { $$ = new Operator($2, $1, $3); }
+  | unary_expression assignment_operator assignment_expression { $$ = new Parser::Operator($2, $1, $3); }
   ;
 
 assignment_operator
@@ -499,7 +502,7 @@ assignment_operator
 
 expression
   : assignment_expression
-  | expression ',' assignment_expression { $$ = link($1, $3); }
+  | expression ',' assignment_expression { $$ = Parser::link($1, $3); }
   ;
 
 constant_expression
@@ -534,19 +537,19 @@ function_header_with_parameters
   ;
 
 function_header
-  : fully_specified_type IDENTIFIER '(' { $$ = new Function($1, $2); }
+  : fully_specified_type IDENTIFIER '(' { $$ = new Parser::Function($1, $2); }
   ;
 
 parameter_declarator
-  : type_specifier IDENTIFIER { $$ = new Parameter($1, $2); }
-  | type_specifier IDENTIFIER '[' constant_expression ']' { $$ = new Parameter($1, $2, $4); }
+  : type_specifier IDENTIFIER { $$ = new Parser::Parameter($1, $2); }
+  | type_specifier IDENTIFIER '[' constant_expression ']' { $$ = new Parser::Parameter($1, $2, $4); }
   ;
 
 parameter_declaration
   : parameter_type_qualifier parameter_qualifier parameter_declarator { $$ = $3; $$->setTypeQualifier($1); $$->setQualifier($2); }
   | parameter_qualifier parameter_declarator { $$ = $2; $$->setQualifier($1); }
-  | parameter_type_qualifier parameter_qualifier parameter_type_specifier { $$ = new Parameter($3); $$->setTypeQualifier($1); $$->setQualifier($2); }
-  | parameter_qualifier parameter_type_specifier { $$ = new Parameter($2); $$->setQualifier($1); }
+  | parameter_type_qualifier parameter_qualifier parameter_type_specifier { $$ = new Parser::Parameter($3); $$->setTypeQualifier($1); $$->setQualifier($2); }
+  | parameter_qualifier parameter_type_specifier { $$ = new Parser::Parameter($2); $$->setQualifier($1); }
   ;
 
 parameter_qualifier
@@ -562,12 +565,12 @@ parameter_type_specifier
 
 init_declarator_list
   : single_declaration
-  | init_declarator_list ',' IDENTIFIER { $$ = link($1, new Type(*$1)); $$->setName($3); }
-  | init_declarator_list ',' IDENTIFIER '[' ']' { $$ = link($1, new Type(*$1)); $$->setName($3); $$->setIsArray(); }
-  | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' { $$ = link($1, new Type(*$1)); $$->setName($3); $$->setArray($5); }
-  | init_declarator_list ',' IDENTIFIER '[' ']' '=' initializer { $$ = link($1, new Type(*$1)); $$->setName($3); $$->setInitializer($7); }
-  | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' '=' initializer { $$ = link($1, new Type(*$1)); $$->setName($3); $$->setArray($5); $$->setInitializer($8); }
-  | init_declarator_list ',' IDENTIFIER '=' initializer { $$ = link($1, new Type(*$1)); $$->setName($3); $$->setInitializer($5); }
+  | init_declarator_list ',' IDENTIFIER { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); }
+  | init_declarator_list ',' IDENTIFIER '[' ']' { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); $$->setIsArray(); }
+  | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); $$->setArray($5); }
+  | init_declarator_list ',' IDENTIFIER '[' ']' '=' initializer { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); $$->setInitializer($7); }
+  | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' '=' initializer { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setArray($5); $$->setInitializer($8); }
+  | init_declarator_list ',' IDENTIFIER '=' initializer { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setInitializer($5); }
   ;
 
 single_declaration
@@ -603,12 +606,12 @@ layout_qualifier
 
 layout_qualifier_id_list
   : layout_qualifier_id
-  | layout_qualifier_id_list ',' layout_qualifier_id { $$ = link($1, $3); }
+  | layout_qualifier_id_list ',' layout_qualifier_id { $$ = Parser::link($1, $3); }
   ;
 
 layout_qualifier_id
         : IDENTIFIER { /*$$ = new Layout($1);*/ }
-        | IDENTIFIER '=' INTCONSTANT { /*$$ = new Layout($1, $3);*/ }
+        | IDENTIFIER '=' INTCONSTANT { /*$$ = new Parser::Layout($1, $3);*/ }
   ;
 
 parameter_type_qualifier
@@ -616,26 +619,26 @@ parameter_type_qualifier
   ;
 
 type_qualifier
-        : storage_qualifier { /* $$ = new Qualifier(); $$->add($1); */ }
-        | layout_qualifier { /* $$ = new Qualifier(); $$->setLayout($1); */ }
-        | layout_qualifier storage_qualifier { /* $$ = new Qualifier(); $$->add($2); $$->setLayout($1); */ }
-        | interpolation_qualifier storage_qualifier { /* $$ = new Qualifier(); $2->insert($1); $$->add($2); */ }
-        | interpolation_qualifier { /* $$ = new Qualifier(); $$->add(makeSet($1)); */ }
-        | invariant_qualifier storage_qualifier { /* $$ = new Qualifier(); $2->insert($1); $$->add($2); */ }
-        | invariant_qualifier interpolation_qualifier storage_qualifier { /* $$ = new Qualifier(); $3->insert($1); $3->insert($2); $$->add($3); */ }
-        | invariant_qualifier { /* $$ = new Qualifier(); $$->add(makeSet($1)); */ }
+        : storage_qualifier { /* $$ = new Parser::Qualifier(); $$->add($1); */ }
+        | layout_qualifier { /* $$ = new Parser::Qualifier(); $$->setLayout($1); */ }
+        | layout_qualifier storage_qualifier { /* $$ = new Parser::Qualifier(); $$->add($2); $$->setLayout($1); */ }
+        | interpolation_qualifier storage_qualifier { /* $$ = new Parser::Qualifier(); $2->insert($1); $$->add($2); */ }
+        | interpolation_qualifier { /* $$ = new Parser::Qualifier(); $$->add(makeSet($1)); */ }
+        | invariant_qualifier storage_qualifier { /* $$ = new Parser::Qualifier(); $2->insert($1); $$->add($2); */ }
+        | invariant_qualifier interpolation_qualifier storage_qualifier { /* $$ = new Parser::Qualifier(); $3->insert($1); $3->insert($2); $$->add($3); */ }
+        | invariant_qualifier { /* $$ = new Parser::Qualifier(); $$->add(makeSet($1)); */ }
   ;
 
 storage_qualifier
-  : CONST { $$ = makeSet(CONST); }
-  | ATTRIBUTE { $$ = makeSet(ATTRIBUTE); } // Vertex only.
-  | VARYING { $$ = makeSet(VARYING); }
-  | CENTROID VARYING { $$ = makeSet(CENTROID, VARYING); }
-  | IN { $$ = makeSet(IN); }
-  | OUT { $$ = makeSet(OUT); }
-  | CENTROID IN { $$ = makeSet(CENTROID, IN); }
-  | CENTROID OUT { $$ = makeSet(CENTROID, OUT); }
-  | UNIFORM { $$ = makeSet(UNIFORM); }
+  : CONST { $$ = Parser::makeSet(CONST); }
+  | ATTRIBUTE { $$ = Parser::makeSet(ATTRIBUTE); } // Vertex only.
+  | VARYING { $$ = Parser::makeSet(VARYING); }
+  | CENTROID VARYING { $$ = Parser::makeSet(CENTROID, VARYING); }
+  | IN { $$ = Parser::makeSet(IN); }
+  | OUT { $$ = Parser::makeSet(OUT); }
+  | CENTROID IN { $$ = Parser::makeSet(CENTROID, IN); }
+  | CENTROID OUT { $$ = Parser::makeSet(CENTROID, OUT); }
+  | UNIFORM { $$ = Parser::makeSet(UNIFORM); }
   ;
 
 type_specifier
@@ -650,7 +653,7 @@ type_specifier_no_prec
   ;
 
 type_specifier_nonarray
-  : type_specifier_nonarray_simple { /* $$ = new Type($1); */ }
+  : type_specifier_nonarray_simple { /* $$ = new Parser::Type($1); */ }
   | struct_specifier
 //  | TYPE_NAME
   ;
@@ -730,13 +733,13 @@ precision_qualifier
   ;
 
 struct_specifier
-  : STRUCT IDENTIFIER '{' struct_declaration_list '}' { /* $$ = new Struct($4, $2); */ }
-  | STRUCT '{' struct_declaration_list '}' { /* $$ = new Struct($3); */ }
+  : STRUCT IDENTIFIER '{' struct_declaration_list '}' { /* $$ = new Parser::Struct($4, $2); */ }
+  | STRUCT '{' struct_declaration_list '}' { /* $$ = new Parser::Struct($3); */ }
   ;
 
 struct_declaration_list
   : struct_declaration
-  | struct_declaration_list struct_declaration { $$ = link($1, $2); }
+  | struct_declaration_list struct_declaration { $$ = Parser::link($1, $2); }
   ;
 
 struct_declaration
@@ -746,13 +749,13 @@ struct_declaration
 
 struct_declarator_list
   : struct_declarator
-  | struct_declarator_list ',' struct_declarator { $$ = link($1, $3); }
+  | struct_declarator_list ',' struct_declarator { $$ = Parser::link($1, $3); }
   ;
 
 struct_declarator
-  : IDENTIFIER { $$ = new Type(); $$->setName($1); }
-  | IDENTIFIER '[' ']' { $$ = new Type(); $$->setName($1); $$->setIsArray(); }
-  | IDENTIFIER '[' constant_expression ']' { $$ = new Type(); $$->setName($1); $$->setArray($3); }
+  : IDENTIFIER { $$ = new Parser::Type(); $$->setName($1); }
+  | IDENTIFIER '[' ']' { $$ = new Parser::Type(); $$->setName($1); $$->setIsArray(); }
+  | IDENTIFIER '[' constant_expression ']' { $$ = new Parser::Type(); $$->setName($1); $$->setArray($3); }
   ;
 
 initializer
@@ -796,7 +799,7 @@ compound_statement_no_new_scope
 
 statement_list
   : statement
-  | statement_list statement { $$ = link($1, $2); }
+  | statement_list statement { $$ = Parser::link($1, $2); }
   ;
 
 expression_statement
@@ -809,8 +812,8 @@ selection_statement
   ;
 
 selection_rest_statement
-  : statement ELSE statement { $$ = new If($<node>-1, $1, $3); }
-  | statement { $$ = new If($<node>-1, $1); }
+  : statement ELSE statement { $$ = new Parser::If($<node>-1, $1, $3); }
+  | statement { $$ = new Parser::If($<node>-1, $1); }
   ;
 
 condition
@@ -819,7 +822,7 @@ condition
   ;
 
 switch_statement
-  : SWITCH '(' expression ')' '{' switch_statement_list '}' { /* $$ = new Switch($3, $6); */ }
+  : SWITCH '(' expression ')' '{' switch_statement_list '}' { /* $$ = new Parser::Switch($3, $6); */ }
   ;
 
 switch_statement_list
@@ -828,15 +831,15 @@ switch_statement_list
   ;
 
 case_label
-  : CASE expression ':' { /* $$ = new Label($2); */ }
-  | DEFAULT ':' { /* $$ = new Label(); */ }
+  : CASE expression ':' { /* $$ = new Parser::Label($2); */ }
+  | DEFAULT ':' { /* $$ = new Parser::Label(); */ }
   ;
 
 iteration_statement
-  : WHILE '(' condition ')' statement_no_new_scope { /* $$ = new While($3, $5); */ }
-  | DO statement WHILE '(' expression ')' ';' { /* $$ = new DoWhile($2, $5); */ }
+  : WHILE '(' condition ')' statement_no_new_scope { /* $$ = new Parser::While($3, $5); */ }
+  | DO statement WHILE '(' expression ')' ';' { /* $$ = new Parser::DoWhile($2, $5); */ }
 //  | FOR '(' for_init_statement for_rest_statement ')' statement_no_new_scope
-  | FOR '(' for_init_statement conditionopt ';' expressionopt ')' statement_no_new_scope { /* $$ = new For($3, $4, $6, $8); */ }
+  | FOR '(' for_init_statement conditionopt ';' expressionopt ')' statement_no_new_scope { /* $$ = new Parser::For($3, $4, $6, $8); */ }
   ;
 
 for_init_statement
@@ -861,17 +864,17 @@ for_rest_statement
   ;
 */
 jump_statement
-  : CONTINUE ';' { $$ = new Jump($1); }
-  | BREAK ';' { $$ = new Jump($1); }
-  | RETURN ';' { $$ = new Jump($1); }
-  | RETURN expression ';' { $$ = new Jump($1, $2); }
-  | DISCARD ';' { $$ = new Jump($1); } // Fragment shader only.
+  : CONTINUE ';' { $$ = new Parser::Jump($1); }
+  | BREAK ';' { $$ = new Parser::Jump($1); }
+  | RETURN ';' { $$ = new Parser::Jump($1); }
+  | RETURN expression ';' { $$ = new Parser::Jump($1, $2); }
+  | DISCARD ';' { $$ = new Parser::Jump($1); } // Fragment shader only.
   ;
 // Grammar Note: No 'goto'. Gotos are not supported.
 
 translation_unit
-  : external_declaration { $$ = $1; if (!tree) { tree = $1; while (tree && tree->prev) tree = tree->prev; } }
-  | translation_unit external_declaration { $$ = link($1, $2); }
+  : external_declaration { $$ = $1; if (!Parser::tree) { Parser::tree = $1; while (Parser::tree && Parser::tree->prev) Parser::tree = Parser::tree->prev; } }
+  | translation_unit external_declaration { $$ = Parser::link($1, $2); }
   ;
 
 external_declaration

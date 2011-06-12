@@ -16,7 +16,7 @@
  */
 
 %{
-#include "glsl_yacc.h"
+#include "shader/lexer.hpp"
 static int s_column, s_line, s_pos;
 
 #ifdef _MSC_VER

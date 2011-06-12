@@ -18,6 +18,19 @@
 #ifndef LEXER_HPP
 #define LEXER_HPP
 
+namespace Parser {
+  class Jump;
+  class Node;
+  class If;
+  class Conditional;
+  class Struct;
+  class Function;
+  class Parameter;
+  class Type;
+  class Qualifier;
+  class Layout;
+}
+
 #include "glsl_yacc.h"
 
 void glslset_scan_string(const char *str, int len, int state = 0);

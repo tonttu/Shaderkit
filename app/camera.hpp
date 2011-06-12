@@ -53,6 +53,9 @@ public:
   void translate(QPointF diff);
   void zoom(float diff);
 
+  void setTarget(const QVector3D& target);
+  void setPosition(const QVector3D& position);
+
   Type type() const { return m_type; }
 
   void setPickDisplay(float x, float y);

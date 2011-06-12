@@ -431,7 +431,7 @@ void Scene::load(QVariantMap map) {
     for (auto it = tmp.begin(); it != tmp.end(); ++it) {
       QString n = it.value().toString();
       if (m_materials.contains(n))
-        o->setMaterial(it.key(), m_materials[n]);
+        o->setMaterialForMesh(it.key(), m_materials[n]);
     }
 
     if (p.map.contains("material"))
@@ -499,6 +499,11 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
 
     if (!pass->viewport() && s.cameras.isEmpty()) {
       CameraPtr camera(new Camera("Default"));
+
+      /// @todo use bounding box to calculate optimal location for the camera
+      camera->setTarget(QVector3D(0, 30, 0));
+      camera->setPosition(QVector3D(60, 45, -60));
+
       add(camera);
       pass->setViewport(camera);
     }

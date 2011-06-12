@@ -36,13 +36,13 @@ bool Object3D::builtin() const {
   return m_model->builtin();
 }
 
-MaterialPtr Object3D::material(QString name) {
-  if (m_materials.contains(name)) return m_materials[name];
+MaterialPtr Object3D::materialForMesh(QString meshname) {
+  if (m_materials.contains(meshname)) return m_materials[meshname];
   return m_default_material;
 }
 
-void Object3D::setMaterial(QString name, MaterialPtr mat) {
-  m_materials[name] = mat;
+void Object3D::setMaterialForMesh(QString meshname, MaterialPtr mat) {
+  m_materials[meshname] = mat;
 }
 
 void Object3D::setDefaultMaterial(MaterialPtr mat) {

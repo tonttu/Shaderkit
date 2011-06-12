@@ -503,14 +503,14 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
   QString matname = m_names.materials.key(src.mMaterialIndex);
   Log::debug("Mesh - Material: %s, %s", mesh->name.toUtf8().data(), matname.toUtf8().data());
   if (m_filter.materials.contains(matname)) {
-    obj->setMaterial(matname, loadMaterial(src.mMaterialIndex));
+    obj->setMaterialForMesh(mesh->name, loadMaterial(src.mMaterialIndex));
   }
 
   return MeshPtr(mesh);
 }
 
 void ObjImporter::loadNode(ObjectPtr obj, NodePtr dest, const aiNode& src) {
-  // This doesn't have to be unique, really
+  /// This probably should be unique, since we use m_nodeIndex
   dest->name = str(src.mName);
   m_nodeIndex[dest->name] << dest;
   {

@@ -152,7 +152,7 @@ void GLWidget::dropEvent(QDropEvent* event) {
     /* m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
                   [=](ObjectPtr obj, MeshPtr mesh){ obj->setMaterial(mesh->name, material); }); */
     struct hate_too_old_gcc { static void func(MaterialPtr material, ObjectPtr obj, MeshPtr mesh) {
-        obj->setMaterial(mesh->name, material);
+        obj->setMaterialForMesh(mesh->name, material);
     }};
     using namespace std::placeholders;
     m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,

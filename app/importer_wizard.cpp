@@ -94,7 +94,7 @@ void ImporterWizard::changed(int page) {
       ObjImporter::SceneInfo si = m_importer.analyze();
       load(si);
     } else {
-
+      /// @todo show error message somewhere
     }
   }
 }
@@ -165,7 +165,7 @@ void ImporterWizard::load(ObjImporter::SceneInfo& si) {
 void ImporterWizard::done(int result) {
   QWizard::done(result);
 
-  if (!result) return;
+  if (!result || !m_objects) return;
 
   QList<QTreeWidgetItem*> items;
   QList<QSet<QString>*> filters;

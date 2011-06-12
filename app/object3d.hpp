@@ -45,8 +45,8 @@ public:
 
   virtual bool builtin() const;
 
-  MaterialPtr material(QString name);
-  void setMaterial(QString name, MaterialPtr mat);
+  MaterialPtr materialForMesh(QString meshname);
+  void setMaterialForMesh(QString meshname, MaterialPtr mat);
   void setDefaultMaterial(MaterialPtr mat);
   void remove(MaterialPtr mat);
 

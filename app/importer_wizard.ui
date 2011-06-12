@@ -36,12 +36,18 @@
       <property name="text">
        <string>Optimize meshes/graph</string>
       </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item row="2" column="0">
      <widget class="QCheckBox" name="merge_materials">
       <property name="text">
        <string>Merge duplicate materials</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -50,6 +56,9 @@
       <property name="text">
        <string>Fix infacing normals</string>
       </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item row="4" column="0">
@@ -57,12 +66,18 @@
       <property name="text">
        <string>Find degenerates</string>
       </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item row="5" column="0">
      <widget class="QCheckBox" name="cache_locality">
       <property name="text">
        <string>Improve cache locality</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </item>

@@ -58,7 +58,7 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
   glMultMatrixf(node.matrix);
 
   foreach (MeshPtr m, node.meshes) {
-    MaterialPtr material = o->material(m->name);
+    MaterialPtr material = o->materialForMesh(m->name);
     if (material) state.pushMaterial(material);
 
     if (state.picking()) {
