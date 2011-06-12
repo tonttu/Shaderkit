@@ -784,7 +784,7 @@ char *glsltext;
  * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 #line 19 "shader/glsl.l"
-#include "glsl_yacc.h"
+#include "shader/lexer.hpp"
 static int s_column, s_line, s_pos;
 
 #ifdef _MSC_VER

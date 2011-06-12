@@ -200,18 +200,18 @@ typedef union YYSTYPE
 {
 
 /* Line 1685 of yacc.c  */
-#line 243 "shader/glsl.y"
+#line 246 "shader/glsl.y"
 
   void* sset;
   int integer;
   float f;
   char* string;
-  struct Node* node;
-  struct Function* func;
-  struct Parameter* param;
-  struct Type* type;
-  struct Qualifier* qualifier;
-  struct Layout* layout;
+  Parser::Node* node;
+  Parser::Function* func;
+  Parser::Parameter* param;
+  Parser::Type* type;
+  Parser::Qualifier* qualifier;
+  Parser::Layout* layout;
 
 
 
