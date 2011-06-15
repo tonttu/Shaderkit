@@ -436,9 +436,7 @@ TextureEditor::TextureEditor(MaterialProperties& prop, int row, MaterialPtr mat,
   m_texname = new QLabel(container);
   l->setWidget(1, 1, m_texname);
 
-  GLWidget* s = MainWindow::instance().glwidget();
-  assert(s);
-  m_icon = new TextureWidgetGL(container, s, TexturePtr());
+  m_icon = MainWindow::instance().createGL<TextureWidgetGL>(container);
   m_icon->setMinimumSize(24, 24);
   m_icon->setMaximumSize(24, 24);
   l->setWidget(0, 1, m_icon);

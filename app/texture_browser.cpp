@@ -34,11 +34,20 @@ namespace {
   TextureBrowser* s_browser = 0;
 }
 
-TextureWidgetGL::TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex)
-  : QGLWidget(parent, shared), m_tex(tex) {
+TextureWidgetGL::TextureWidgetGL(const QGLFormat& format, QWidget* parent, const QGLWidget* shared)
+  : QGLWidget(format, parent, shared) {
   m_vertices.setCache(false);
   m_uv0.setCache(false);
-  if (tex) TextureChangeManager::listen(tex, this, std::bind(&TextureWidgetGL::updateGL, this));
+}
+
+TextureWidgetGL::TextureWidgetGL(QGLContext * context, QWidget* parent)
+  : QGLWidget(context, parent) {
+  m_vertices.setCache(false);
+  m_uv0.setCache(false);
+}
+
+TextureWidgetGL::~TextureWidgetGL() {
+  MainWindow::instance().destroyedGL(this);
 }
 
 void TextureWidgetGL::setTexture(TexturePtr tex) {
@@ -158,7 +167,8 @@ void TextureWidgetGL::mouseDoubleClickEvent(QMouseEvent* e) {
 }
 
 TextureWidgetGL* TextureWidgetGL::preview(Qt::WindowFlags f, QSize size) const {
-  TextureWidgetGL* ret = new TextureWidgetGL(0, this, tex());
+  TextureWidgetGL* ret = MainWindow::instance().createGL<TextureWidgetGL>(0);
+  ret->setTexture(tex());
   if (f) ret->setWindowFlags(f);
   ret->setAttribute(Qt::WA_DeleteOnClose);
   if (tex())
@@ -198,9 +208,8 @@ void TextureWidget::paintEvent(QPaintEvent* ev) {
   QWidget::paintEvent(ev);
   if (!m_gl) {
     // create the qglwidget lazily, sharing the same context as the main gl preview has
-    GLWidget* s = MainWindow::instance().glwidget();
-    if (!s) return;
-    m_gl = new TextureWidgetGL(m_frame, s, m_tex);
+    m_gl = MainWindow::instance().createGL<TextureWidgetGL>(m_frame);
+    m_gl->setTexture(m_tex);
     m_frame->layout()->addWidget(m_gl);
   }
 }

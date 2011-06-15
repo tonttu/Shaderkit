@@ -33,13 +33,12 @@ class GLWidget : public QGLWidget {
   Q_OBJECT
 
 public:
-  GLWidget(QWidget* parent = 0);
+  GLWidget(const QGLFormat& format, QWidget* parent = 0, const QGLWidget* shareWidget = 0);
+  GLWidget(QGLContext* context, QWidget* parent = 0);
   ~GLWidget();
 
   QSize minimumSizeHint() const;
   QSize sizeHint() const;
-
-  static QGLFormat defaultFormat();
 
 public slots:
   void sceneChange(ScenePtr);

@@ -25,11 +25,14 @@
 #include "resource_locator.hpp"
 #include "shader/program.hpp"
 #include "texture_browser.hpp"
+#include "glwidget.hpp"
+#include "viewport.hpp"
 
 #include <QKeyEvent>
 #include <QFile>
 #include <QFileInfo>
 #include <QLabel>
+#include <QVBoxLayout>
 
 #include <cassert>
 
@@ -51,7 +54,8 @@ void IconBtn::paintEvent(QPaintEvent*) {
 MainWindow * MainWindow::s_instance = 0;
 
 MainWindow::MainWindow(QWidget* parent)
-  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_sync(0), m_sceneChanged(false) {
+  : QMainWindow(parent), m_ui(new Ui::MainWindow), m_context(0), m_sync(0),
+    m_sceneChanged(false) {
   if (!s_instance)
     s_instance = this;
 
@@ -59,6 +63,8 @@ MainWindow::MainWindow(QWidget* parent)
   //m_ui->filelist->init();
   m_ui->renderpass_properties->init();
   m_ui->material_properties->init();
+
+  createViewport();
 
   /*  QDockWidget *dw = new QDockWidget;
   dw->setObjectName("Foo");
@@ -85,13 +91,14 @@ MainWindow::MainWindow(QWidget* parent)
 
   connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
 
-  QAction* actions[] = {m_ui->action_glwidget, m_ui->action_material_properties,
+  /// @todo
+  /*QAction* actions[] = {m_ui->action_glwidget, m_ui->action_material_properties,
       m_ui->action_render_properties, m_ui->action_error_log};
   QDockWidget* widgets[] = {m_ui->gldock, m_ui->shaderdock, m_ui->renderdock, m_ui->errordock};
   for (size_t i = 0; i < sizeof(actions)/sizeof(*actions); ++i) {
     connect(actions[i], SIGNAL(triggered(bool)), widgets[i], SLOT(setVisible(bool)));
     connect(widgets[i], SIGNAL(visibilityChanged(bool)), actions[i], SLOT(setChecked(bool)));
-  }
+  }*/
 
   connect(m_ui->action_about, SIGNAL(triggered()),
           this, SLOT(about()));
@@ -160,10 +167,6 @@ ScenePtr MainWindow::scene() {
   return instance().m_scene;
 }
 
-GLWidget* MainWindow::glwidget() {
-  return m_ui->gl_widget;
-}
-
 void MainWindow::updateErrors(ShaderErrorList errors) {
   QList<GLSLEditor*> editors = findEditors(errors.shader);
   bool changed = false;
@@ -220,6 +223,25 @@ void MainWindow::updateErrors(ShaderErrorList errors) {
   }
 }
 
+void MainWindow::destroyedGL(QGLWidget* widget) {
+  assert(!m_context);
+  assert(m_glwidgets.contains(widget));
+  m_glwidgets.removeAll(widget);
+
+  if (m_glwidgets.isEmpty()) {
+    m_context = new QGLContext(widget->format());
+    m_context->create(widget->context());
+  }
+}
+
+QGLFormat MainWindow::formatGL() const {
+  QGLFormat format(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba |
+                   QGL::AlphaChannel | QGL::DirectRendering | QGL::SampleBuffers);
+  //format.setVersion(3, 2);
+  //format.setProfile(QGLFormat::CompatibilityProfile);
+  return format;
+}
+
 void MainWindow::about() {
   About about(this);
   about.exec();
@@ -258,7 +280,11 @@ bool MainWindow::openScene(ScenePtr scene) {
   if (should_restore_settings)
     restore();
 
-  m_ui->gl_widget->sceneChange(m_scene);
+  foreach (QGLWidget* w, m_glwidgets) {
+    GLWidget* gl = dynamic_cast<GLWidget*>(w);
+    if (gl) gl->sceneChange(m_scene);
+  }
+
   emit newScene(m_scene);
 
   resize(sizeHint());
@@ -536,9 +562,30 @@ void MainWindow::saved() {
   setSceneChanged(false);
 }
 
+void MainWindow::createViewport() {
+  QSet<int> used;
+  QRegExp match("^Viewport(\\s\\d+)?$");
+  foreach (QDockWidget* d, findChildren<QDockWidget*>(match))
+    if (match.exactMatch(d->objectName()))
+      used << match.cap(1).toInt();
+
+  int id = 0;
+  while (used.contains(id)) ++id;
+
+  QDockWidget* gldock = new QDockWidget(this);
+  if (id == 0) gldock->setObjectName("Viewport");
+  else gldock->setObjectName(QString("Viewport %1").arg(id));
+  gldock->setWindowTitle(gldock->objectName());
+
+  gldock->setWidget(new Viewport);
+
+  addDockWidget(Qt::TopDockWidgetArea, gldock);
+}
+
 void MainWindow::restore() {
   QSettings settings("Shaderkit", "Shaderkit");
   m_ui->action_autosave_layout->setChecked(settings.value("gui/autosave_layout", true).toBool());
+  /// @todo create all gl widgets
   restoreGeometry(settings.value("gui/geometry").toByteArray());
   restoreState(settings.value("gui/windowState").toByteArray());
 }

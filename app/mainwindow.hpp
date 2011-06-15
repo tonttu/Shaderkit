@@ -21,12 +21,16 @@
 #include "forward.hpp"
 #include "shader/error.hpp"
 #include "watcher.hpp"
+#include "opengl.hpp"
 
 #include <QMainWindow>
 #include <QTableWidgetItem>
 #include <QPushButton>
 
 #include <QtGui/QDialog>
+#include <QGLWidget>
+
+class QGLContext;
 
 /// Clickable custom button used in the editor status bar inside the tab widget.
 /// @todo this is used in render_pass_properties, move to somewhere else
@@ -69,7 +73,31 @@ public:
   static MainWindow& instance();
   static ScenePtr scene();
 
-  GLWidget* glwidget();
+  template <typename T>
+  T* createGL(QWidget* parent) {
+    T* t = 0;
+    if (m_context)
+      t = new T(m_context, parent);
+
+    if (!t)
+      foreach (QGLWidget* w, m_glwidgets)
+        if (w->isValid())
+          t = new T(formatGL(), parent, w);
+
+    if (!t && !m_glwidgets.isEmpty())
+      t = new T(formatGL(), parent, m_glwidgets.first());
+
+    if (!t)
+      t = new T(formatGL(), parent);
+
+    m_glwidgets << t;
+    m_context = 0;
+    return t;
+  }
+
+  void destroyedGL(QGLWidget* widget);
+
+  QGLFormat formatGL() const;
 
 public slots:
   /// Updates the error list
@@ -110,6 +138,8 @@ protected:
   void restore();
   bool closeScene();
 
+  void createViewport();
+
 protected slots:
   /// Focus the correct tab and line for selected error.
   void errorItemActivated(QTableWidgetItem*);
@@ -143,6 +173,9 @@ private:
 
   /// Maps one item in the error_list (column 0) to correct error
   QMap<QTableWidgetItem*, ShaderError> m_error_list_items;
+
+  QList<QGLWidget*> m_glwidgets;
+  QGLContext* m_context;
 
   QAction* m_sync;
 

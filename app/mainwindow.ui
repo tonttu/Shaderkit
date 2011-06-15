@@ -65,7 +65,7 @@
      <x>0</x>
      <y>0</y>
      <width>799</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -214,28 +214,6 @@
       </widget>
      </item>
     </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="gldock">
-   <property name="minimumSize">
-    <size>
-     <width>79</width>
-     <height>41</height>
-    </size>
-   </property>
-   <property name="windowTitle">
-    <string>OpenGL render</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>4</number>
-   </attribute>
-   <widget class="GLWidget" name="gl_widget">
-    <property name="minimumSize">
-     <size>
-      <width>16</width>
-      <height>16</height>
-     </size>
-    </property>
    </widget>
   </widget>
   <widget class="QDockWidget" name="shaderdock">
@@ -630,11 +608,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>GLWidget</class>
-   <extends>QWidget</extends>
-   <header>glwidget.hpp</header>
-  </customwidget>
   <customwidget>
    <class>MaterialProperties</class>
    <extends>QTableWidget</extends>

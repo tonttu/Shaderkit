@@ -21,26 +21,30 @@
 #include "camera.hpp"
 #include "object3d.hpp"
 #include "model.hpp"
+#include "mainwindow.hpp"
 
 /// @todo include something less massive
 #include <QtGui>
 
-GLWidget::GLWidget(QWidget *parent)
-  : QGLWidget(defaultFormat(), parent),
+GLWidget::GLWidget(const QGLFormat& format, QWidget* parent, const QGLWidget* shareWidget)
+  : QGLWidget(format, parent, shareWidget),
     m_timer(new QTimer(this)), m_initialized(false) {
   setAcceptDrops(true);
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
 }
 
-GLWidget::~GLWidget() {}
+GLWidget::GLWidget(QGLContext* context, QWidget* parent)
+  : QGLWidget(context, parent),
+    m_timer(new QTimer(this)), m_initialized(false) {
+  setAcceptDrops(true);
+  connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
+  m_timer->setInterval(10);
+}
 
-QGLFormat GLWidget::defaultFormat() {
-  QGLFormat format(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba |
-                   QGL::AlphaChannel | QGL::DirectRendering | QGL::SampleBuffers);
-  //format.setVersion(3, 2);
-  //format.setProfile(QGLFormat::CompatibilityProfile);
-  return format;
+
+GLWidget::~GLWidget() {
+  MainWindow::instance().destroyedGL(this);
 }
 
 QSize GLWidget::minimumSizeHint() const {

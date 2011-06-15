@@ -36,7 +36,10 @@ class TextureWidgetGL : public QGLWidget {
   Q_OBJECT
 
 public:
-  TextureWidgetGL(QWidget* parent, const QGLWidget* shared, TexturePtr tex);
+  TextureWidgetGL(const QGLFormat& format, QWidget* parent, const QGLWidget* shared = 0);
+  TextureWidgetGL(QGLContext * context, QWidget* parent);
+  ~TextureWidgetGL();
+
   void setTexture(TexturePtr tex);
   TexturePtr tex() const { return m_tex; }
 

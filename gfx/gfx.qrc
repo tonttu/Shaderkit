@@ -34,6 +34,23 @@
         <file>uniforms.png</file>
         <file>renderbuffer.png</file>
         <file>texture_browser.png</file>
+        <file>translate.png</file>
+        <file>rotate.png</file>
+        <file>scale.png</file>
+        <file>light_on.png</file>
+        <file>blueprint.png</file>
+        <file>frame.png</file>
+        <file>frame_all.png</file>
+        <file>spotlight.png</file>
+        <file>import.png</file>
+        <file>cube.png</file>
+        <file>sphere.png</file>
+        <file>tube.png</file>
+        <file>torus.png</file>
+        <file>cone.png</file>
+        <file>plane.png</file>
+        <file>new_object.png</file>
+        <file>new_light.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>
