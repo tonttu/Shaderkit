@@ -58,6 +58,8 @@ protected:
 
   void mouseMoveEvent(QMouseEvent* event);
   void mousePressEvent(QMouseEvent* event);
+  void mouseReleaseEvent(QMouseEvent* event);
+
   void wheelEvent(QWheelEvent* event);
 
   void dragEnterEvent(QDragEnterEvent* event);
@@ -68,6 +70,10 @@ protected:
   ScenePtr m_scene;
   QTimer* m_timer;
   QPointF m_lastpos;
+
+  QMap<Qt::MouseButton, QPointF> m_button_down;
+
+  Viewport* m_view;
 
   RenderOptions m_render_options;
   bool m_initialized;

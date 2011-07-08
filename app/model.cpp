@@ -136,20 +136,46 @@ void Mesh::render(State& state) {
 }
 
 void Teapot::renderObj(State&) {
+  if (m_bbox.isNull()) {
+    m_bbox.m_low = QVector3D(-3.7f, -3.7f, -3.7f);
+    m_bbox.m_high = QVector3D(3.7f, 3.7f, 3.7f);
+  }
   teapot(10, 3.7f, GL_FILL);
 }
 
 void Box::renderObj(State&) {
+  if (m_bbox.isNull()) {
+    m_bbox.m_low = QVector3D(-3.5f, -0.4f-3.1f, -3.5f);
+    m_bbox.m_high = QVector3D(3.5f, 0.4f-3.1f, 3.5f);
+  }
   /// @todo remove translatef
   glTranslatef(0, -3.1f, 0);
   drawBox(3.5f, 0.4f, 3.5f);
 }
 
 void Sphere::renderObj(State&) {
+  if (m_bbox.isNull()) {
+    m_bbox.m_low = QVector3D(-5, -5, -5);
+    m_bbox.m_high = QVector3D(5, 5, 5);
+  }
 //   glutSolidSphere(5.0f, 32, 32);
 }
 
 void TriMesh::renderObj(State& state) {
+  if (m_bbox.isNull()) {
+    float lo[3], hi[3];
+    lo[0] = lo[1] = lo[2] = std::numeric_limits<float>::infinity();
+    hi[0] = hi[1] = hi[2] = -std::numeric_limits<float>::infinity();
+    for (int i = 0, m = vertices.size(); i < m;) {
+      for (int j = 0; j < 3; ++j) {
+        lo[j] = std::min(lo[j], vertices[i]);
+        hi[j] = std::max(hi[j], vertices[i++]);
+      }
+    }
+    m_bbox.m_low = QVector3D(lo[0], lo[1], lo[2]);
+    m_bbox.m_high = QVector3D(hi[0], hi[1], hi[2]);
+  }
+
   state.push();
 
   if (!vertices.empty())

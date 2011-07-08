@@ -336,6 +336,7 @@ void Scene::load(QVariantMap map) {
   QMap<QString, ObjImporter::Scene> imported;
 
   /// @todo some kind of incremental loading would be cool
+  m_selection.clear();
   m_render_passes.clear();
   m_objects.clear();
   m_lights.clear();
@@ -559,8 +560,10 @@ void Scene::remove(MaterialPtr m) {
   foreach (RenderPassPtr rp, m_render_passes)
     if (rp->defaultMaterial() == m) rp->setDefaultMaterial(MaterialPtr());
 
-  foreach (ObjectPtr o, m_objects)
+  foreach (ObjectPtr o, m_objects) {
     o->remove(m);
+    m_selection.removeAll(o);
+  }
 
   emit materialListUpdated(shared_from_this());
 }

@@ -91,6 +91,7 @@ class MainWindow;
 class IconBtn;
 class GLWidget;
 class TextureWidgetGL;
+class Viewport;
 
 class QColor;
 class QVector3D;

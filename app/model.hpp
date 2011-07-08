@@ -34,6 +34,15 @@ struct Node {
   QList<MeshPtr> meshes;
 };
 
+/// Qt 4.8 has QBox3D..
+struct AABB {
+  bool isNull() const {
+    return m_low.isNull() || m_high.isNull();
+  }
+  QVector3D m_low, m_high;
+};
+
+
 class Model : public SceneObject {
 public:
   Model(QString name);
@@ -64,7 +73,9 @@ public:
   /// @todo accessors and make protected
   QString name;
 protected:
+  AABB m_bbox;
   virtual void renderObj(State& state) = 0;
+
 };
 
 class BuiltIn : public Mesh {

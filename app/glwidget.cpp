@@ -23,13 +23,15 @@
 #include "model.hpp"
 #include "mainwindow.hpp"
 #include "gizmos.hpp"
+#include "viewport.hpp"
 
 /// @todo include something less massive
 #include <QtGui>
 
 GLWidget::GLWidget(const QGLFormat& format, QWidget* parent, const QGLWidget* shareWidget)
   : QGLWidget(format, parent, shareWidget),
-    m_timer(new QTimer(this)), m_initialized(false) {
+    m_timer(new QTimer(this)), m_view(0), m_initialized(false) {
+  m_view = dynamic_cast<Viewport*>(parent);
   setAcceptDrops(true);
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
@@ -135,12 +137,34 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void GLWidget::mousePressEvent(QMouseEvent* event) {
-  if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
+  /// @todo re-enable rotating stuff
+/*  if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
     m_lastpos = event->posF();
     event->accept();
     return;
-  }
+  }*/
+
+  m_button_down[event->button()] = event->posF();
   QGLWidget::mousePressEvent(event);
+}
+
+void GLWidget::mouseReleaseEvent(QMouseEvent* event) {
+  /// @todo multi-selection
+  // select objects
+  if (event->modifiers() == 0 && event->button() == Qt::LeftButton) {
+    event->accept();
+    QPointF diff = event->posF() - m_button_down[event->button()];
+    if (diff.x()*diff.x() + diff.y()*diff.y() < 3*3) {
+      struct hate_too_old_gcc { static void func(ScenePtr scene, ObjectPtr obj, MeshPtr /*mesh*/) {
+          QList<ObjectPtr> objects;
+          objects << obj;
+          scene->setSelection(objects);
+      }};
+      using namespace std::placeholders;
+      m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
+                    std::bind(&hate_too_old_gcc::func, m_scene, _1, _2));
+    }
+  }
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event) {

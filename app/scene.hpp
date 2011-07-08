@@ -165,6 +165,9 @@ public:
 
   void add(ModelPtr model);
 
+  void setSelection(QList<ObjectPtr> objects) { m_selection = objects; }
+  QList<ObjectPtr> selection() const { return m_selection; }
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -218,6 +221,8 @@ protected:
 
   bool m_automaticSaving;
   History m_history;
+
+  QList<ObjectPtr> m_selection;
 
   bool m_changed;
 };
