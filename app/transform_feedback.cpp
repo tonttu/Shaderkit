@@ -33,7 +33,8 @@ TransformFeedback::~TransformFeedback() {
   }
 }
 
-bool TransformFeedback::begin() {
+bool TransformFeedback::begin(int primitive, int size) {
+  assert(primitive == GL_POINTS || primitive == GL_LINES || primitive == GL_TRIANGLES);
   if (glewIsSupported("GL_ARB_transform_feedback2")) {
     if (!m_id) {
       assert(glGenTransformFeedbacks);
@@ -48,13 +49,30 @@ bool TransformFeedback::begin() {
     glRun(glGenQueries(1, &m_query));
   }
 
-  m_buffer.bind(GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_READ, 1000);
+  m_buffer.bind(GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_READ, size);
   glRun(glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, m_query));
-  glRun(glBeginTransformFeedback(GL_POINTS));
+  glRun(glBeginTransformFeedback(primitive));
   return true;
 }
 
-bool TransformFeedback::end(float& out) {
+const float* TransformFeedback::map(int& size) {
+  glRun(glEndTransformFeedback());
+  glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
+  unsigned int res = 0;
+  glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
+
+  size = res;
+  return m_buffer.map();
+}
+
+void TransformFeedback::unmap() {
+  m_buffer.unmap();
+  m_buffer.unbind();
+  if (glewIsSupported("GL_ARB_transform_feedback2"))
+    glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0));
+}
+
+bool TransformFeedback::end(float* out, int size) {
   bool ok = false;
   glRun(glEndTransformFeedback());
   glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
@@ -62,8 +80,8 @@ bool TransformFeedback::end(float& out) {
   glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
 
   const float* data = m_buffer.map();
-  if (res == 1 && data) {
-    out = data[0];
+  if ((int)res == size && data) {
+    std::copy(data, data + size, out);
     ok = true;
   }
   m_buffer.unmap();

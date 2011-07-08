@@ -27,8 +27,10 @@ public:
   TransformFeedback();
   ~TransformFeedback();
 
-  bool begin();
-  bool end(float& out);
+  bool begin(int primitive, int size);
+  const float* map(int& size);
+  void unmap();
+  bool end(float* out, int size);
 
 //  float readMacro(QString name);
 

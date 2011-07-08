@@ -37,7 +37,7 @@ bool QueryShader::compile(Shader::Type type, QString src) {
     /// @todo handle different sets of shaders depending on the type
     m_shader = glRun2(glCreateShader(type));
     if (!m_shader) {
-      Log::error("QueryShader: could not create shade objectr");
+      Log::error("QueryShader: could not create shader object");
       return false;
     }
   }
@@ -92,12 +92,12 @@ bool QueryShader::bind(const char* name) {
   }
 
   glRun(glUseProgram(m_prog));
-  m_feedback.begin();
+  m_feedback.begin(GL_POINTS, 1);
   return true;
 }
 
 bool QueryShader::unbind(float& out) {
-  bool ok = m_feedback.end(out);
+  bool ok = m_feedback.end(&out, 1);
   glRun(glUseProgram(0));
   return ok;
 }

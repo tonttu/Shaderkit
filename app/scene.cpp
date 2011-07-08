@@ -155,9 +155,8 @@ void Scene::resize(int width, int height) {
   m_height = height;
 }
 
-void Scene::render() {
+void Scene::render(RenderOptions opts) {
   State state(m_time.elapsed()/1000.0f);
-  RenderOptions opts;
   opts.grid = true;
   opts.ui = false;
 

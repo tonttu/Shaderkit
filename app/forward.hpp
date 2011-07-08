@@ -48,6 +48,7 @@ typedef std::shared_ptr<Scene> ScenePtr;
 class RenderPass;
 typedef std::shared_ptr<RenderPass> RenderPassPtr;
 class SceneObject;
+class RenderOptions;
 
 class State;
 class FBOImage;
@@ -79,6 +80,9 @@ class GLSLEditor;
 class MultiEditor;
 class EditorMargin;
 class Highlighter;
+
+class Gizmo;
+typedef std::shared_ptr<Gizmo> GizmoPtr;
 
 namespace Ui {
   class MainWindow;

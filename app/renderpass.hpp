@@ -24,8 +24,19 @@
 #include "buffer_object.hpp"
 
 struct RenderOptions {
+  RenderOptions() : grid(false), ui(false), blueprint(false), gizmo_type(NONE) {}
   bool grid;
   bool ui;
+  bool blueprint;
+  // QSize size; /// @todo
+  enum {
+    NONE,
+    TRANSLATE,
+    ROTATE,
+    SCALE
+  } gizmo_type;
+  GizmoPtr gizmo;
+  ObjectPtr selected;
 };
 
 /**

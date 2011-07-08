@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 #include "opengl.hpp"
+#include "renderpass.hpp"
 
 #include <QGLWidget>
 
@@ -39,6 +40,8 @@ public:
 
   QSize minimumSizeHint() const;
   QSize sizeHint() const;
+
+  RenderOptions & renderOptions() { return m_render_options; }
 
 public slots:
   void sceneChange(ScenePtr);
@@ -66,6 +69,7 @@ protected:
   QTimer* m_timer;
   QPointF m_lastpos;
 
+  RenderOptions m_render_options;
   bool m_initialized;
 };
 

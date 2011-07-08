@@ -22,6 +22,7 @@
 #include "shaderdb/metainfo.hpp"
 #include "obj_importer.hpp"
 #include "history.hpp"
+#include "renderpass.hpp"
 
 #include <QString>
 #include <QVariantMap>
@@ -54,7 +55,7 @@ public:
   void resize(int width, int height);
 
   /// Renders everything in this scene
-  void render();
+  void render(RenderOptions opts);
 
   /// Current viewport width
   /// @todo QRect?

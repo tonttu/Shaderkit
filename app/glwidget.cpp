@@ -22,6 +22,7 @@
 #include "object3d.hpp"
 #include "model.hpp"
 #include "mainwindow.hpp"
+#include "gizmos.hpp"
 
 /// @todo include something less massive
 #include <QtGui>
@@ -82,7 +83,28 @@ void GLWidget::initializeGL() {
 }
 
 void GLWidget::paintGL() {
-  if (m_scene && m_initialized) m_scene->render();
+  if (m_scene && m_initialized) {
+    if (!m_render_options.selected) {
+      if (m_render_options.gizmo) m_render_options.gizmo.reset();
+    } else {
+      if (m_render_options.gizmo_type == RenderOptions::NONE
+          && m_render_options.gizmo)
+        m_render_options.gizmo.reset();
+      else if (m_render_options.gizmo_type == RenderOptions::TRANSLATE
+               && !dynamic_cast<TranslateGizmo*>(m_render_options.gizmo.get()))
+        m_render_options.gizmo.reset(new TranslateGizmo);
+      else if (m_render_options.gizmo_type == RenderOptions::ROTATE
+               && !dynamic_cast<RotateGizmo*>(m_render_options.gizmo.get()))
+        m_render_options.gizmo.reset(new RotateGizmo);
+      else if (m_render_options.gizmo_type == RenderOptions::SCALE
+               && !dynamic_cast<ScaleGizmo*>(m_render_options.gizmo.get()))
+        m_render_options.gizmo.reset(new ScaleGizmo);
+
+      if (m_render_options.gizmo)
+        m_render_options.gizmo->setObject(m_render_options.selected);
+    }
+    m_scene->render(m_render_options);
+  }
 }
 
 void GLWidget::resizeGL(int width, int height) {
