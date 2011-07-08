@@ -2,7 +2,9 @@ INCLUDEPATH += \
     $$PWD \
     $$PWD/ext/qjson/src \
     $$PWD/ext/glew/include \
-    $$PWD/ext/assimp/include
+    $$PWD/ext/assimp/include \
+    $$PWD/ext/eigen \
+    $$PWD/ext/eigen/unsupported
 
 QT += opengl
 
