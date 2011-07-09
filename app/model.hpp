@@ -26,22 +26,17 @@
 #include <QVector>
 #include <QVariantMap>
 
+#include "Eigen/Geometry"
+
 struct Node {
   Node();
   QString name;
-  float matrix[16];
+  Eigen::Affine3f transform;
   QList<NodePtr> children;
   QList<MeshPtr> meshes;
-};
 
-/// Qt 4.8 has QBox3D..
-struct AABB {
-  bool isNull() const {
-    return m_low.isNull() || m_high.isNull();
-  }
-  QVector3D m_low, m_high;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
 
 class Model : public SceneObject {
 public:
@@ -58,9 +53,17 @@ public:
   void load(QVariantMap map);
   ModelPtr clone();
 
+  const Eigen::AlignedBox<float, 3>& bbox();
+
   static ModelPtr createBuiltin(const QString& name, const QString& model);
 
 private:
+  void calcBbox(const Eigen::Affine3f& transform, const Node& node);
+
+  // bounding box in local coordinates
+  Eigen::AlignedBox<float, 3> m_bbox;
+  bool m_dirty;
+
   NodePtr m_node;
   bool m_builtin;
 };
@@ -70,10 +73,11 @@ public:
   virtual ~Mesh() {}
   virtual void render(State& state);
 
+  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const = 0;
+
   /// @todo accessors and make protected
   QString name;
 protected:
-  AABB m_bbox;
   virtual void renderObj(State& state) = 0;
 
 };
@@ -87,6 +91,7 @@ public:
 class Teapot : public BuiltIn {
 public:
   virtual ~Teapot() {}
+  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
 protected:
   void renderObj(State& state);
@@ -96,6 +101,7 @@ protected:
 class Box : public BuiltIn {
 public:
   virtual ~Box() {}
+  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
 protected:
   void renderObj(State& state);
@@ -104,6 +110,7 @@ protected:
 class Sphere : public BuiltIn {
 public:
   virtual ~Sphere() {}
+  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
 protected:
   void renderObj(State& state);
@@ -112,6 +119,7 @@ protected:
 class TriMesh : public Mesh {
 public:
   virtual ~TriMesh() {}
+  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
   std::vector<float> vertices;
   std::vector<float> normals;

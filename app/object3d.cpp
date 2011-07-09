@@ -22,12 +22,15 @@
 
 Object3D::Object3D(QString name, ModelPtr model)
   : SceneObject(name),
+    m_transform(Eigen::Affine3f::Identity()),
     m_model(model) {}
 Object3D::~Object3D() {}
 
 void Object3D::render(State& state) {
   if (m_model) {
+    state.pushTransform(m_transform);
     m_model->render(shared_from_this(), state);
+    state.popTransform();
   }
 }
 

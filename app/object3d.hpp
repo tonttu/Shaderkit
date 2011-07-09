@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "scene_object.hpp"
 
+#include "Eigen/Geometry"
+
 #include <QVariantMap>
 
 /**
@@ -58,7 +60,10 @@ public:
   void setModel(ModelPtr model);
   ModelPtr model() { return m_model; }
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 private:
+  Eigen::Affine3f m_transform;
   ModelPtr m_model;
   QMap<QString, MaterialPtr> m_materials;
   MaterialPtr m_default_material;

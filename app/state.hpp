@@ -20,6 +20,8 @@
 
 #include "opengl.hpp"
 
+#include "Eigen/Geometry"
+
 #include <QSet>
 
 /**
@@ -62,6 +64,10 @@ public:
   void pushMaterial(MaterialPtr);
   void popMaterial();
 
+  void pushTransform(const Eigen::Affine3f& transform);
+  void popTransform();
+  const Eigen::Affine3f& transform() const;
+
   MaterialPtr material() const;
   QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
@@ -94,6 +100,8 @@ protected:
   QPoint m_picking_point;
   bool m_picking;
   QPair<ObjectPtr, MeshPtr> m_picked;
+
+  QList<Eigen::Affine3f> m_transforms;
 
   int nextFree(const QSet<int>& lst, int id = 0) const;
 };

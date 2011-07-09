@@ -22,6 +22,8 @@
 
 #include "ext/glut_teapot.hpp"
 
+#include "Eigen/OpenGLSupport"
+
 // #include <GL/glut.h>
 
 namespace {
@@ -44,18 +46,18 @@ namespace {
   }
 }
 
-Node::Node() : matrix() {
-  matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1.0f;
+Node::Node() : transform(Eigen::Affine3f::Identity()) {
 }
 
-Model::Model(QString name) : SceneObject(name), m_node(new Node), m_builtin(false) {
+Model::Model(QString name) : SceneObject(name), m_dirty(true), m_node(new Node), m_builtin(false) {
   m_node->name = name;
 }
 
 void Model::render(ObjectPtr o, State& state, const Node& node) {
   /// @todo forget pushmatrix etc, use state
+  state.pushTransform(node.transform);
   glPushMatrix();
-  glMultMatrixf(node.matrix);
+  glMultMatrix(state.transform());
 
   foreach (MeshPtr m, node.meshes) {
     MaterialPtr material = o->materialForMesh(m->name);
@@ -81,10 +83,12 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
     if (material) state.popMaterial();
   }
 
+  glPopMatrix();
+
   for (int i = 0; i < node.children.size(); ++i)
     render(o, state, *node.children[i]);
 
-  glPopMatrix();
+  state.popTransform();
 }
 
 QVariantMap Model::save() const {
@@ -101,6 +105,26 @@ void Model::load(QVariantMap map) {
 
 ModelPtr Model::clone() {
   return ModelPtr(new Model(*this));
+}
+
+const Eigen::AlignedBox<float, 3>& Model::bbox() {
+  if (m_dirty) {
+    m_dirty = false;
+    m_bbox.setEmpty();
+
+    calcBbox(Eigen::Affine3f::Identity(), *m_node);
+  }
+  return m_bbox;
+}
+
+void Model::calcBbox(const Eigen::Affine3f& transform, const Node& node) {
+  const Eigen::Affine3f& t = node.transform * transform;
+
+  foreach (MeshPtr m, node.meshes)
+    m->calcBbox(t, m_bbox);
+
+  for (int i = 0; i < node.children.size(); ++i)
+    calcBbox(t, *node.children[i]);
 }
 
 ModelPtr Model::createBuiltin(const QString& name, const QString& model_name) {
@@ -135,47 +159,41 @@ void Mesh::render(State& state) {
   glPopMatrix();
 }
 
+void Teapot::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
+  for (int i = 0; i < 8; ++i)
+    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*7.4-3.7f, ((i>>1)&1)*7.4-3.7f, (i&1)*7.4-3.7f));
+}
+
 void Teapot::renderObj(State&) {
-  if (m_bbox.isNull()) {
-    m_bbox.m_low = QVector3D(-3.7f, -3.7f, -3.7f);
-    m_bbox.m_high = QVector3D(3.7f, 3.7f, 3.7f);
-  }
   teapot(10, 3.7f, GL_FILL);
 }
 
+void Box::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
+  for (int i = 0; i < 8; ++i)
+    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*7-3.5f, ((i>>1)&1)*0.8f-0.4f-3.1f, (i&1)*7-3.5f));
+}
+
 void Box::renderObj(State&) {
-  if (m_bbox.isNull()) {
-    m_bbox.m_low = QVector3D(-3.5f, -0.4f-3.1f, -3.5f);
-    m_bbox.m_high = QVector3D(3.5f, 0.4f-3.1f, 3.5f);
-  }
   /// @todo remove translatef
   glTranslatef(0, -3.1f, 0);
   drawBox(3.5f, 0.4f, 3.5f);
 }
 
+void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
+  for (int i = 0; i < 8; ++i)
+    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*10-5, ((i>>1)&1)*10-5, (i&1)*10-5));
+}
+
 void Sphere::renderObj(State&) {
-  if (m_bbox.isNull()) {
-    m_bbox.m_low = QVector3D(-5, -5, -5);
-    m_bbox.m_high = QVector3D(5, 5, 5);
-  }
 //   glutSolidSphere(5.0f, 32, 32);
 }
 
-void TriMesh::renderObj(State& state) {
-  if (m_bbox.isNull()) {
-    float lo[3], hi[3];
-    lo[0] = lo[1] = lo[2] = std::numeric_limits<float>::infinity();
-    hi[0] = hi[1] = hi[2] = -std::numeric_limits<float>::infinity();
-    for (int i = 0, m = vertices.size(); i < m;) {
-      for (int j = 0; j < 3; ++j) {
-        lo[j] = std::min(lo[j], vertices[i]);
-        hi[j] = std::max(hi[j], vertices[i++]);
-      }
-    }
-    m_bbox.m_low = QVector3D(lo[0], lo[1], lo[2]);
-    m_bbox.m_high = QVector3D(hi[0], hi[1], hi[2]);
-  }
+void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
+  for (int i = 0, m = vertices.size(); i < m; i += 3)
+    bbox.extend(transform * Eigen::Vector3f(vertices[i], vertices[i+1], vertices[i+2]));
+}
 
+void TriMesh::renderObj(State& state) {
   state.push();
 
   if (!vertices.empty())

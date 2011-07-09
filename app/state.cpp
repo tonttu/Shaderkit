@@ -21,6 +21,7 @@
 
 State::State(float time) : m_time(time), m_picking(false) {
   m_data.push_back(Data());
+  m_transforms << Eigen::Affine3f::Identity();
 }
 
 int State::nextFreeLight() const {
@@ -93,6 +94,22 @@ void State::popMaterial() {
     pop();
     if (!m_materials.isEmpty() && m_materials.back()) m_materials.back()->bind(*this);
   }
+}
+
+void State::pushTransform(const Eigen::Affine3f& transform) {
+  m_transforms << (transform * m_transforms.back());
+}
+
+void State::popTransform() {
+  if (m_transforms.size() <= 1) {
+    Log::error("State transform push/pop mismatch");
+  } else {
+    m_transforms.pop_back();
+  }
+}
+
+const Eigen::Affine3f& State::transform() const {
+  return m_transforms.back();
 }
 
 void State::setCamera(CameraPtr camera) {
