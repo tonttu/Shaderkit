@@ -103,6 +103,12 @@ const float* BufferObject::map() {
   return reinterpret_cast<const float*>(glRun2(glMapBuffer(m_target, GL_READ_ONLY)));
 }
 
+float* BufferObject::mapRW() {
+  State state(0);
+  bind(state, m_target);
+  return reinterpret_cast<float*>(glRun2(glMapBuffer(m_target, GL_READ_WRITE)));
+}
+
 void BufferObject::unmap() {
   glUnmapBuffer(m_target);
 }

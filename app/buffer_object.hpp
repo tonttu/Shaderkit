@@ -98,6 +98,7 @@ public:
   size_t size() const { return m_cache_size; }
 
   const float* map();
+  float* mapRW();
   void unmap();
 
 private:
