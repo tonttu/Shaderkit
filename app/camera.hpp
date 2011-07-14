@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "scene_object.hpp"
 
+#include "Eigen/Geometry"
+
 #include <QVector3D>
 #include <QVariant>
 
@@ -65,6 +67,10 @@ public:
 
   void setPickDisplay(float x, float y);
 
+  const Eigen::Matrix4f& projection() const { return m_projectionMatrix; }
+  const Eigen::Matrix4f& view() const { return m_viewMatrix; }
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 protected:
   void updateVectors();
 
@@ -81,6 +87,8 @@ protected:
   QVector3D m_front;
 
   float m_dx, m_dy, m_dist;
+
+  Eigen::Matrix4f m_projectionMatrix, m_viewMatrix;
 
   /// Field of view, in degrees, in the y direction (Perspective)
   float m_fov;

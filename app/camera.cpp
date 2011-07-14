@@ -19,12 +19,16 @@
 #include "scene.hpp"
 #include "opengl.hpp"
 
+#include "Eigen/OpenGLSupport"
+
 #include <cassert>
 
 Camera::Camera(const QString &name)
   : SceneObject(name), m_type(Perspective),
     m_target(0, 0, 0), m_up(0, 1, 0),
     m_dx(0), m_dy(0),
+    m_projectionMatrix(Eigen::Matrix4f::Identity()),
+    m_viewMatrix(Eigen::Matrix4f::Identity()),
     m_fov(45), m_near(0.1f), m_far(1000.0f) {}
 
 void Camera::prepare(int width, int height) {
@@ -32,35 +36,42 @@ void Camera::prepare(int width, int height) {
   glViewport(0, 0, width, height);
   if (m_type == Perspective) {
     float f = 1.0f / tanf(m_fov*0.5f);
-    float p[] = { f*height/width, 0.0f, 0.0f, 0.0f,
-                  0.0f, f, 0.0f, 0.0f,
-                  0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far*m_near/(m_near-m_far),
-                  0.0f, 0.0f, -1.0f, 0.0f };
+    m_projectionMatrix <<
+        f*height/width, 0.0f, 0.0f, 0.0f,
+        0.0f, f, 0.0f, 0.0f,
+        0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far*m_near/(m_near-m_far),
+        0.0f, 0.0f, -1.0f, 0.0f;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadTransposeMatrixf(p);
-
-    float m[] = { float(m_right.x()),  float(m_right.y()),  float(m_right.z()), 0.0f,
-                     float(m_up.x()),     float(m_up.y()),     float(m_up.z()), 0.0f,
-                 float(-m_front.x()), float(-m_front.y()), float(-m_front.z()), 0.0f,
-                                0.0f,                0.0f,                0.0f, 1.0f };
-    glMatrixMode(GL_MODELVIEW);
-    glLoadTransposeMatrixf(m);
+    m_viewMatrix <<
+        float(m_right.x()),  float(m_right.y()),  float(m_right.z()), 0.0f,
+        float(m_up.x()),     float(m_up.y()),     float(m_up.z()), 0.0f,
+        float(-m_front.x()), float(-m_front.y()), float(-m_front.z()), 0.0f,
+        0.0f,                0.0f,                0.0f, 1.0f;
 
     QVector3D eye = m_target - m_front*m_dist;
-    glTranslatef(-eye.x(), -eye.y(), -eye.z());
+    m_viewMatrix = (Eigen::Affine3f(m_viewMatrix) *
+                    Eigen::Translation3f(-eye.x(), -eye.y(), -eye.z())).matrix();
   } else if (m_type == Rect) {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, width, 0, height, m_near, m_far);
+    float tz = -(m_far+m_near)/(m_far-m_near);
+    m_projectionMatrix <<
+        2.0f/width,           0,                    0, -1.0f,
+                 0, 2.0f/height,                    0, -1.0f,
+                 0,           0, -2.0f/(m_far-m_near),    tz,
+                 0,           0,                    0,     1;
 
-    glMatrixMode(GL_MODELVIEW);
-
-    glLoadIdentity();
+    m_viewMatrix = Eigen::Matrix4f::Identity();
   } else {
     /// @todo implement ortho camera
+    m_projectionMatrix = Eigen::Matrix4f::Identity();
+    m_viewMatrix = Eigen::Matrix4f::Identity();
     assert(false && "Ortho Camera not implemented");
   }
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadMatrix(m_projectionMatrix);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadMatrix(m_viewMatrix);
 }
 
 void Camera::setRect(float near_, float far_) {
