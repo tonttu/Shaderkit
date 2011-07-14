@@ -21,7 +21,7 @@
 
 State::State(float time) : m_time(time), m_picking(false) {
   m_data.push_back(Data());
-  m_transforms << Eigen::Affine3f::Identity();
+  m_transforms.push_back(Eigen::Affine3f::Identity());
 }
 
 int State::nextFreeLight() const {
@@ -109,7 +109,7 @@ void State::popMaterial() {
 }
 
 void State::pushTransform(const Eigen::Affine3f& transform) {
-  m_transforms << (transform * m_transforms.back());
+  m_transforms.push_back(transform * m_transforms.back());
 }
 
 void State::popTransform() {

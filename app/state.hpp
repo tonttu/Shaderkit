@@ -66,6 +66,8 @@ public:
 
   void pushTransform(const Eigen::Affine3f& transform);
   void popTransform();
+
+  /// Return model matrix
   const Eigen::Affine3f& transform() const;
 
   void setSelection(QList<ObjectPtr> objects);
@@ -105,7 +107,7 @@ protected:
   bool m_picking;
   QPair<ObjectPtr, MeshPtr> m_picked;
 
-  QList<Eigen::Affine3f> m_transforms;
+  std::vector<Eigen::Affine3f, Eigen::aligned_allocator<Eigen::Affine3f>> m_transforms;
 
   int nextFree(const QSet<int>& lst, int id = 0) const;
 };
