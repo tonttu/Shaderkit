@@ -38,3 +38,6 @@ SOURCES += glew/src/glew.c
 
 # assimp
 include(assimp/assimp.pri)
+
+#eigen -type f '!' -name CMakeLists.txt|sed "s/.*/    \0 \\\\/"
+include(eigen.pri)

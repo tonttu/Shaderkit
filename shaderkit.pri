@@ -8,7 +8,7 @@ INCLUDEPATH += \
 
 QT += opengl
 
-DEFINES += GLEW_STATIC QJSON_EXPORT=
+DEFINES += GLEW_STATIC QJSON_EXPORT= EIGEN_QT_SUPPORT
 
 unix {
   CONFIG(debug, debug|release) {
