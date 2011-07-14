@@ -36,7 +36,6 @@ struct RenderOptions {
     SCALE
   } gizmo_type;
   GizmoPtr gizmo;
-  ObjectPtr selected;
 };
 
 /**

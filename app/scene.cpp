@@ -157,6 +157,7 @@ void Scene::resize(int width, int height) {
 
 void Scene::render(RenderOptions opts) {
   State state(m_time.elapsed()/1000.0f);
+  state.setSelection(m_selection);
   opts.grid = true;
   opts.ui = false;
 

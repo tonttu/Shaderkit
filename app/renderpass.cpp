@@ -225,8 +225,8 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
       glPushMatrix();
       glPushAttrib(GL_ALL_ATTRIB_BITS);
       obj->render(state);
-      glPopAttrib();
-      glPopMatrix();
+      glRun(glPopAttrib());
+      glRun(glPopMatrix());
     }
 
     foreach (LightPtr light, m_lights)

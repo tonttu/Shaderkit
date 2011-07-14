@@ -61,10 +61,14 @@ int State::reserveTexUnit(void* keyptr, QString keyname) {
 }
 
 void State::push() {
+  glPushAttrib(GL_ALL_ATTRIB_BITS);
+  glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
   m_data.push_back(m_data.back());
 }
 
 void State::pop() {
+  glRun(glPopClientAttrib());
+  glRun(glPopAttrib());
   if (m_data.size() <= 1) {
     Log::error("State push/pop mismatch");
   } else {
@@ -78,6 +82,14 @@ void State::pushMaterial(MaterialPtr m) {
   m_usedMaterials << m;
   push();
   if (m) m->bind(*this);
+}
+
+void State::setSelection(QList<ObjectPtr> objects) {
+  m_selection = objects;
+}
+
+QList<ObjectPtr> State::selection() const {
+  return m_selection;
 }
 
 MaterialPtr State::material() const {

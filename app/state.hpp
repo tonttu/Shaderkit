@@ -68,6 +68,9 @@ public:
   void popTransform();
   const Eigen::Affine3f& transform() const;
 
+  void setSelection(QList<ObjectPtr> objects);
+  QList<ObjectPtr> selection() const;
+
   MaterialPtr material() const;
   QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
@@ -95,6 +98,7 @@ protected:
   QList<Data> m_data;
   QList<MaterialPtr> m_materials;
   QSet<MaterialPtr> m_usedMaterials;
+  QList<ObjectPtr> m_selection;
   float m_time;
 
   QPoint m_picking_point;

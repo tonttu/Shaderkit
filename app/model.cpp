@@ -88,6 +88,43 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
   for (int i = 0; i < node.children.size(); ++i)
     render(o, state, *node.children[i]);
 
+  if (&node == m_node.get() && state.selection().contains(o)) {
+    state.push();
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(1.37f);
+    glColor4f(1, 1, 1, 1);
+
+    glPushMatrix();
+    glMultMatrix(state.transform());
+
+    std::vector<float> vertices(8*3*2*3);
+    float* v = &vertices[0];
+    Eigen::Vector3f mm[2] = {bbox().min(), bbox().max()};
+    for (int i = 0; i < 8; ++i) {
+      float a[3] = { mm[i&1][0], mm[(i>>1)&1][1], mm[(i>>2)&1][2] };
+      float b[3] = { mm[1-(i&1)][0], mm[1-((i>>1)&1)][1], mm[1-((i>>2)&1)][2] };
+      for (int j = 0; j < 3; ++j) {
+        *v++ = a[0]; *v++ = a[1]; *v++ = a[2];
+
+        *v++ = j == 0 ? a[0] * 0.8f + b[0] * 0.2f : a[0];
+        *v++ = j == 1 ? a[1] * 0.8f + b[1] * 0.2f : a[1];
+        *v++ = j == 2 ? a[2] * 0.8f + b[2] * 0.2f : a[2];
+      }
+    }
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, &vertices[0]);
+    glDrawArrays(GL_LINES, 0, vertices.size()/3);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    glRun(glPopMatrix());
+    state.pop();
+  }
   state.popTransform();
 }
 
@@ -156,7 +193,7 @@ ModelPtr Model::createBuiltin(const QString& name, const QString& model_name) {
 void Mesh::render(State& state) {
   glPushMatrix();
   renderObj(state);
-  glPopMatrix();
+  glRun(glPopMatrix());
 }
 
 void Teapot::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {

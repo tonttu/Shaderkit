@@ -86,7 +86,7 @@ void GLWidget::initializeGL() {
 
 void GLWidget::paintGL() {
   if (m_scene && m_initialized) {
-    if (!m_render_options.selected) {
+    if (m_scene->selection().size() != 1) {
       if (m_render_options.gizmo) m_render_options.gizmo.reset();
     } else {
       if (m_render_options.gizmo_type == RenderOptions::NONE
@@ -103,7 +103,7 @@ void GLWidget::paintGL() {
         m_render_options.gizmo.reset(new ScaleGizmo);
 
       if (m_render_options.gizmo)
-        m_render_options.gizmo->setObject(m_render_options.selected);
+        m_render_options.gizmo->setObject(m_scene->selection().first());
     }
     m_scene->render(m_render_options);
   }
@@ -137,14 +137,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void GLWidget::mousePressEvent(QMouseEvent* event) {
-  /// @todo re-enable rotating stuff
-/*  if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
+  m_button_down[event->button()] = event->posF();
+
+  if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
     m_lastpos = event->posF();
     event->accept();
     return;
-  }*/
+  }
 
-  m_button_down[event->button()] = event->posF();
   QGLWidget::mousePressEvent(event);
 }
 
