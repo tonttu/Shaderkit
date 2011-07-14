@@ -120,6 +120,8 @@ public:
   /// Creates a new Shader and adds it to this program.
   virtual ShaderPtr addShader(const QString& filename, Shader::Type type);
 
+  virtual ShaderPtr addShaderSrc(const QString& data, Shader::Type type);
+
   virtual void addShader(ShaderPtr shader);
 
   bool removeShader(ShaderPtr shader);
@@ -148,6 +150,8 @@ public:
 
   ProgramPtr clone() const;
 
+  void setTransformFeedbackVaryings(QStringList lst);
+
 signals:
   void changed();
 
@@ -166,6 +170,8 @@ protected:
   /// The last known uniform values of the shader program.
   /// This is updated every time before we relink anything, and restored after successful linking.
   UniformVar::List m_uniformList;
+
+  QList<QByteArray> m_transformFeedback;
 };
 
 #endif

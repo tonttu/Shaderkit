@@ -105,6 +105,15 @@ ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type) {
   return shader;
 }
 
+ShaderPtr GLProgram::addShaderSrc(const QString& txt, Shader::Type type) {
+  ShaderPtr shader(new Shader(shared_from_this(), type));
+  shader->loadSrc(txt);
+  m_shaders << shader;
+  emit changed();
+
+  return shader;
+}
+
 void GLProgram::addShader(ShaderPtr shader) {
   if (!shader->program())
     shader->setProgram(shared_from_this());
@@ -135,6 +144,15 @@ void GLProgram::link(State* state) {
   }
 
   ShaderErrorList errors(state ? state->material() : MaterialPtr(), name());
+
+  if (!m_transformFeedback.isEmpty()) {
+    const char* names[10];
+    int m = std::min(m_transformFeedback.size(), 10);
+    for (int i = 0; i < m; ++i) {
+      names[i] = m_transformFeedback[i].data();
+    }
+    glRun(glTransformFeedbackVaryings(m_prog, m, names, GL_SEPARATE_ATTRIBS));
+  }
 
   glRun(glLinkProgram(m_prog));
   GLint ok = 0;
@@ -235,4 +253,11 @@ ProgramPtr GLProgram::clone() const {
 
   p->m_uniformList = m_uniformList;
   return p;
+}
+
+void GLProgram::setTransformFeedbackVaryings(QStringList lst) {
+  m_relink = true;
+  m_transformFeedback.clear();
+  foreach (const QString& str, lst)
+    m_transformFeedback << str.toUtf8();
 }

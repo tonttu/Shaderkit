@@ -49,7 +49,7 @@ bool TransformFeedback::begin(int primitive, int size) {
     glRun(glGenQueries(1, &m_query));
   }
 
-  m_buffer.bind(GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_READ, size);
+  m_buffer.bind(GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_READ, size*sizeof(float));
   glRun(glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, m_query));
   glRun(glBeginTransformFeedback(primitive));
   return true;
@@ -78,6 +78,7 @@ bool TransformFeedback::end(float* out, int size) {
   glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
   unsigned int res = 0;
   glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
+  Log::info("feedback written: %d", res);
 
   const float* data = m_buffer.map();
   if ((int)res == size && data) {
