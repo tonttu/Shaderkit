@@ -54,6 +54,7 @@ void Viewport::newLight() {
 }
 
 void Viewport::translateGizmo() {
+  m_gl_widget->renderOptions().gizmo_type = RenderOptions::TRANSLATE;
 }
 
 void Viewport::rotateGizmo() {

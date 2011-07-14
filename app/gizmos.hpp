@@ -3,10 +3,31 @@
 
 #include "forward.hpp"
 
+#include "buffer_object.hpp"
+#include "transform_feedback.hpp"
+
+#include "Eigen/Geometry"
+
 #include <QSize>
-#include <QPointF>
 #include <QVector>
 #include <QRectF>
+
+class LineSegment {
+public:
+  LineSegment(const Eigen::Vector2f& a = Eigen::Vector2f(0, 0),
+              const Eigen::Vector2f& b = Eigen::Vector2f(0, 0));
+
+  float hit(const Eigen::Vector2f& p, float threshold2) const;
+
+  const Eigen::Vector2f& point() const { return m_point; }
+  const Eigen::Vector2f& point2() const { return m_point2; }
+
+private:
+  Eigen::Vector2f m_point, m_point2;
+
+  Eigen::Vector2f m_unit;
+  float m_length;
+};
 
 class Gizmo {
 public:
@@ -17,23 +38,23 @@ public:
 
   virtual void render(QSize size, State& state, const RenderOptions& render_opts) = 0;
 
-  void hover(QPointF point);
-  bool buttonDown(QPointF point);
-  void input(QPointF diff);
+  void hover(const Eigen::Vector2f& point);
+  bool buttonDown(const Eigen::Vector2f& point);
+  void input(const Eigen::Vector2f& diff);
   void buttonUp();
 
-  void setScale(float scale);
   float size() const;
 
   enum Constraint {
-    NONE,
-    X,
+    X = 0,
     Y,
     Z,
     XY,
     XZ,
     YZ,
-    VIEW
+    VIEW,
+
+    NONE
   };
 
 protected:
@@ -42,30 +63,38 @@ protected:
 
   ObjectPtr m_object;
 
-  float m_scale;
-
   bool m_active;
 
   struct HitShape {
-    HitShape(const QVector<QPointF>& polyline_ = QVector<QPointF>(),
-             const QRectF& bbox_ = QRectF(),
-             float distance2_ = 0, Constraint group_ = NONE)
-      : polyline(polyline_), bbox(bbox_), distance2(distance2_), group(group_) {}
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    QVector<QPointF> polyline;
-    QRectF bbox;
-    float distance2;
+    HitShape(const QVector<Eigen::Vector3f>& points_ = QVector<Eigen::Vector3f>(),
+             Constraint group_ = NONE)
+      : points(points_), group(group_) {}
+
+    void transform(const Eigen::Projective3f& projection, QSize size);
+
+    QVector<Eigen::Vector3f> points;
+    QVector<LineSegment> transformed;
+    Eigen::AlignedBox<float, 2> bbox;
     Constraint group;
   };
 
-  QList<HitShape> m_hit_shapes;
+  std::vector<HitShape, Eigen::aligned_allocator<HitShape>> m_hit_shapes;
 
-  const HitShape* pick(QPointF point) const;
+  ProgramPtr m_prog;
+
+  float m_scale;
+
+  const HitShape* pick(const Eigen::Vector2f& point) const;
 };
 
 class TranslateGizmo : public Gizmo {
 public:
   virtual void render(QSize size, State& state, const RenderOptions& render_opts);
+
+private:
+  BufferObject m_verts, m_colors;
 };
 
 class RotateGizmo : public Gizmo {

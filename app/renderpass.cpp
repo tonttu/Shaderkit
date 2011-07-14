@@ -27,6 +27,7 @@
 #include "render_pass_properties.hpp"
 #include "mainwindow.hpp"
 #include "state.hpp"
+#include "gizmos.hpp"
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Disabled), m_name(name), m_scene(scene),
@@ -301,7 +302,10 @@ void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
     }
     glRun(glDrawArrays(GL_LINES, 0, m_gridVertices.size()/sizeof(float)/3));
   }
+
   state.pop();
+  if (render_opts.gizmo)
+    render_opts.gizmo->render(QSize(width(), height()), state, render_opts);
 }
 
 QVariantMap RenderPass::save() const {

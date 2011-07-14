@@ -35,6 +35,8 @@ GLWidget::GLWidget(const QGLFormat& format, QWidget* parent, const QGLWidget* sh
   setAcceptDrops(true);
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
+
+  setMouseTracking(true);
 }
 
 GLWidget::GLWidget(QGLContext* context, QWidget* parent)
@@ -43,6 +45,8 @@ GLWidget::GLWidget(QGLContext* context, QWidget* parent)
   setAcceptDrops(true);
   connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
   m_timer->setInterval(10);
+
+  setMouseTracking(true);
 }
 
 
@@ -116,11 +120,19 @@ void GLWidget::resizeGL(int width, int height) {
 void GLWidget::mouseMoveEvent(QMouseEvent* event) {
   QPointF diff = event->posF() - m_lastpos;
   m_lastpos = event->posF();
+
+  if (event->buttons() == Qt::NoButton && m_render_options.gizmo) {
+    m_render_options.gizmo->hover(
+          Eigen::Vector2f(m_lastpos.x(),
+                          height() - m_lastpos.y()));
+  }
+
   float d = width();
   if (height() < d) d = height();
   diff.setX(diff.x() / d);
   diff.setY(diff.y() / d);
   CameraPtr cam;
+
   if (m_scene && (cam = m_scene->camera())) {
     if (event->buttons() & Qt::LeftButton) {
       cam->rotate(diff);
