@@ -47,6 +47,29 @@ Eigen::Vector2f project2(const Eigen::Projective3f& projection,
   return Eigen::Vector2f(tmp[0]/tmp[3], tmp[1]/tmp[3]);
 }
 
+Eigen::Vector3f project3(const Eigen::Projective3f& projection,
+                         const Eigen::Vector3f& vector) {
+  Eigen::Vector4f tmp = projection * Eigen::Vector4f(vector[0], vector[1], vector[2], 1.0f);
+  return Eigen::Vector3f(tmp[0]/tmp[3], tmp[1]/tmp[3], tmp[2]/tmp[3]);
+}
+
+/// p.origin() + p.direction() * closestLineParam(p, q) == closest point of line q on line p
+/// @see http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm#Distance%20between%20Lines
+float closestLineParam(const Eigen::ParametrizedLine<float, 3>& p,
+                       const Eigen::ParametrizedLine<float, 3>& q) {
+  const Eigen::Vector3f w0 = p.origin() - q.origin();
+  float a = p.direction().dot(p.direction());
+  float b = p.direction().dot(q.direction());
+  float c = q.direction().dot(q.direction());
+  float d = p.direction().dot(w0);
+  float e = q.direction().dot(w0);
+  float denom = a*c - b*b; // always nonnegative
+
+  if (denom < 1.0e-6f) return 0;
+  return (b*e - c*d) / denom; // s
+  // t = ((a*e - b*d) / denom);
+}
+
 const char* vertex_shader =
     "#version 150 compatibility\n"
     "\n"
@@ -97,7 +120,11 @@ float LineSegment::hit(const Eigen::Vector2f& p, float threshold2) const {
 }
 
 
-Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false), m_scale(-1.0f) {
+Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false),
+    m_window_projection(Eigen::Projective3f::Identity()), m_scale(-1.0f),
+    m_start_cursor(0, 0), m_current_cursor(0, 0),
+    m_update_ray_projection(false),
+    m_ray_projection(Eigen::Projective3f::Identity()) {
   m_prog.reset(new GLProgram("gizmo"));
   m_prog->addShaderSrc(vertex_shader, Shader::Vertex);
   m_prog->addShaderSrc(fragment_shader, Shader::Fragment);
@@ -105,7 +132,8 @@ Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false), m_scale(-1.0f
 Gizmo::~Gizmo() {}
 
 void Gizmo::setObject(ObjectPtr obj) {
-  if(m_active)
+  if (m_object == obj) return;
+  if (m_active)
     buttonUp();
   m_object = obj;
 }
@@ -116,16 +144,12 @@ void Gizmo::hover(const Eigen::Vector2f& point) {
 }
 
 bool Gizmo::buttonDown(const Eigen::Vector2f& point) {
+  m_start_cursor = m_current_cursor = point;
   const HitShape* hit = pick(point);
-  if (hit) {
-    m_selected = hit->group;
-    m_active = true;
-  }
-  return hit != 0;
+  return hit && makeActive(hit->group);
 }
 
 void Gizmo::input(const Eigen::Vector2f& diff) {
-  /// @todo do something
 }
 
 void Gizmo::buttonUp() {
@@ -153,6 +177,17 @@ const Gizmo::HitShape* Gizmo::pick(const Eigen::Vector2f& point) const {
   return hit;
 }
 
+bool Gizmo::makeActive(Constraint type) {
+  m_selected = type;
+  m_active = true;
+  m_update_ray_projection = true;
+  m_object_orig_transform = m_object->transform();
+
+  return true;
+}
+
+TranslateGizmo::TranslateGizmo() : m_update_line(false) {}
+
 void TranslateGizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
   state.push();
 
@@ -163,14 +198,15 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
   glDisable(GL_CULL_FACE);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_LINE_SMOOTH);
+  glDepthMask(GL_FALSE);
   glLineWidth(1.7f);
 
   Eigen::Vector3f center = m_object->model()->bbox().center();
-  auto model = Eigen::Affine3f(Eigen::Translation3f(center))
-      * m_object->transform();
+  auto center_transform = Eigen::Affine3f(Eigen::Translation3f(center));
+  auto model = center_transform * m_object->transform();
 
-  auto all = state.camera()->projection() * state.camera()->view() * model;
-  if(m_scale < 0.0f || m_active) {
+  if(m_scale < 0.0f || !m_active) {
+    Eigen::Projective3f all = state.camera()->projection() * state.camera()->view() * model;
     auto inv = all.inverse(Eigen::Projective);
 
     Eigen::Vector4f qwe = all * Eigen::Vector4f(0, 0, 0, 1);
@@ -183,10 +219,26 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
     m_scale = 0.05/diff;
   }
 
-  all = all * Eigen::Scaling(m_scale);
   state.pushTransform(model * Eigen::Scaling(m_scale));
   glPushMatrix();
   glLoadMatrix(state.camera()->view() * state.transform());
+
+  {
+    auto tmp = state.camera()->projection() * state.camera()->view();
+    /// @todo why this fails without parentheses?
+    m_window_projection =
+        Eigen::AlignedScaling3f(size.width() * 0.5f, size.height() * 0.5f, 1.0f) *
+        (Eigen::Translation3f(1, 1, 0) * (tmp * state.transform()));
+
+    if (m_update_ray_projection) {
+      auto ray =
+          Eigen::AlignedScaling3f(size.width() * 0.5f, size.height() * 0.5f, 1.0f) *
+          (Eigen::Translation3f(1, 1, 0) * (tmp * center_transform));
+      m_ray_projection = ray.inverse(Eigen::Projective);
+
+      m_update_ray_projection = false;
+    }
+  }
 
   const int segments = 8;
 
@@ -240,45 +292,45 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
     m_colors.enableArray(state, GL_COLOR_ARRAY, 4);
   }
 
-  float* c = m_colors.mapRW();
+  {
+    float* c = m_colors.mapRW();
 
-  for (int i = 0; i < 9; ++i) {
-    Constraint color = translate_gizmo_colors[i];
-    for (int p = 0; p < 2; ++p) {
-      if (translate_gizmo_groups[i] == m_hover) {
-        *c++ = 1.0f; *c++ = 1.0f; *c++ = 0.0f;
-      } else {
-        *c++ = color == X ? 1.0f : 0.0f;
-        *c++ = color == Y ? 1.0f : 0.0f;
-        *c++ = color == Z ? 1.0f : 0.0f;
-      }
-      *c++ = 1.0f;
-    }
-  }
-
-  for (int i = X; i <= Z; ++i) {
-    for (int j = 0; j < segments; ++j) {
-      if (i == m_hover) {
+    for (int i = 0; i < 9; ++i) {
+      Constraint color = translate_gizmo_colors[i];
+      for (int p = 0; p < 2; ++p) {
+        if (translate_gizmo_groups[i] == m_hover) {
+          *c++ = 1.0f; *c++ = 1.0f; *c++ = 0.0f;
+        } else {
+          *c++ = color == X ? 1.0f : 0.0f;
+          *c++ = color == Y ? 1.0f : 0.0f;
+          *c++ = color == Z ? 1.0f : 0.0f;
+        }
         *c++ = 1.0f;
-        *c++ = 1.0f;
-        *c++ = 0.0f;
-      } else {
-        *c++ = i == 0 ? 1.0f : 0.0f;
-        *c++ = i == 1 ? 1.0f : 0.0f;
-        *c++ = i == 2 ? 1.0f : 0.0f;
       }
-      *c++ = 1.0f;
     }
-  }
 
-  m_colors.unmap();
-  c = 0;
+    for (int i = X; i <= Z; ++i) {
+      for (int j = 0; j < segments; ++j) {
+        if (i == m_hover) {
+          *c++ = 1.0f;
+          *c++ = 1.0f;
+          *c++ = 0.0f;
+        } else {
+         *c++ = i == 0 ? 1.0f : 0.0f;
+          *c++ = i == 1 ? 1.0f : 0.0f;
+          *c++ = i == 2 ? 1.0f : 0.0f;
+        }
+        *c++ = 1.0f;
+      }
+    }
+
+    m_colors.unmap();
+  }
 
   for (auto it = m_hit_shapes.begin(); it != m_hit_shapes.end(); ++it)
-    it->transform(all, size);
+    it->transform(m_window_projection);
 
   m_prog->bind(&state);
-  glDepthMask(GL_FALSE);
 
   for (int i = 0; i < 2; ++i) {
     glDepthFunc(i == 0 ? GL_GEQUAL : GL_LESS);
@@ -289,6 +341,7 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
     glRun(glDrawArrays(GL_TRIANGLE_FAN, 3*2*3+2*segments, segments));
   }
 
+  // render "planes"
   if (m_hover >= XY && m_hover <= YZ) {
     glDisable(GL_DEPTH_TEST);
     m_prog->setUniform(&state, "grayness", 0.0f);
@@ -301,6 +354,53 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
   state.pop();
 }
 
+void TranslateGizmo::input(const Eigen::Vector2f& diff) {
+  m_current_cursor += diff;
+  if (m_update_ray_projection) return;
+  bool plane = m_selected == XY || m_selected == XZ || m_selected == YZ;
+
+  if (m_update_line) {
+    Eigen::Vector3f p = project3(m_ray_projection, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 1.0f));
+    Eigen::Vector3f p2 = project3(m_ray_projection, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 0.0f));
+
+    Eigen::ParametrizedLine<float, 3> ray = Eigen::ParametrizedLine<float, 3>::Through(p, p2);
+    Eigen::Vector3f center = m_object_orig_transform * Eigen::Vector3f(0, 0, 0);
+
+    if (plane) {
+      Eigen::Vector3f normal(m_selected == YZ ? 1.0f : 0.0f,
+                             m_selected == XZ ? 1.0f : 0.0f,
+                             m_selected == XY ? 1.0f : 0.0f);
+
+      m_plane = Eigen::Hyperplane<float, 3>(normal, center);
+      m_line = Eigen::ParametrizedLine<float, 3>(ray.origin() + ray.direction() * ray.intersection(m_plane), normal);
+    } else {
+      Eigen::Vector3f dir(m_selected == X ? 1.0f : 0.0f,
+                          m_selected == Y ? 1.0f : 0.0f,
+                          m_selected == Z ? 1.0f : 0.0f);
+      m_line = Eigen::ParametrizedLine<float, 3>(center, dir);
+      m_line.origin() = center + dir * closestLineParam(m_line, ray);
+    }
+  }
+
+  Eigen::Vector3f p1 = project3(m_ray_projection, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 1.0f));
+  Eigen::Vector3f p2 = project3(m_ray_projection, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 0.0f));
+
+  Eigen::ParametrizedLine<float, 3> ray =
+      Eigen::ParametrizedLine<float, 3>::Through(p1, p2);
+
+  if (plane) {
+    Eigen::Vector3f point = ray.origin() + ray.direction() * ray.intersection(m_plane);
+    m_object->transform() = Eigen::Translation3f(point - m_line.origin()) * m_object_orig_transform;
+  } else {
+    m_object->transform() = Eigen::Translation3f(m_line.direction() * closestLineParam(m_line, ray)) * m_object_orig_transform;
+  }
+}
+
+bool TranslateGizmo::makeActive(Constraint type) {
+  m_update_line = true;
+  return Gizmo::makeActive(type);
+}
+
 void RotateGizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
 
 }
@@ -309,14 +409,8 @@ void ScaleGizmo::render(QSize size, State& state, const RenderOptions& render_op
 
 }
 
-void Gizmo::HitShape::transform(const Eigen::Projective3f& projection, QSize size) {
+void Gizmo::HitShape::transform(const Eigen::Projective3f& window_projection) {
   bbox.setEmpty();
-
-  /// @todo why this fails without parentheses?
-  Eigen::Projective3f window_projection =
-      Eigen::AlignedScaling3f(size.width() * 0.5f, size.height() * 0.5f, 1.0f) *
-      (Eigen::Translation3f(1, 1, 0) *
-      projection);
 
   transformed.resize(points.size() / 2);
   for (int i = 0, s = points.size(); i < s; i += 2) {

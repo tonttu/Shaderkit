@@ -125,9 +125,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
     m_render_options.gizmo->hover(
           Eigen::Vector2f(m_lastpos.x(),
                           height() - m_lastpos.y()));
+  } else if(event->buttons() == Qt::LeftButton && m_render_options.gizmo && m_render_options.gizmo->active()) {
+    Eigen::Vector2f diff2(diff.x(), -diff.y());
+    m_render_options.gizmo->input(diff2);
   }
 
-  float d = width();
+  /*float d = width();
   if (height() < d) d = height();
   diff.setX(diff.x() / d);
   diff.setY(diff.y() / d);
@@ -145,22 +148,33 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
     event->accept();
     return;
   }
-  QGLWidget::mouseMoveEvent(event);
+  QGLWidget::mouseMoveEvent(event);*/
 }
 
 void GLWidget::mousePressEvent(QMouseEvent* event) {
   m_button_down[event->button()] = event->posF();
 
+  if (event->buttons() == Qt::LeftButton && m_render_options.gizmo) {
+    m_render_options.gizmo->buttonDown(Eigen::Vector2f(event->posF().x(),
+                                       height() - event->posF().y()));
+  }
+
+  /*
+  /// @todo re-enable rotating stuff
   if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
     m_lastpos = event->posF();
     event->accept();
     return;
-  }
+  }*/
 
   QGLWidget::mousePressEvent(event);
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent* event) {
+  if(m_render_options.gizmo && m_render_options.gizmo->active()) {
+    m_render_options.gizmo->buttonUp();
+  }
+
   /// @todo multi-selection
   // select objects
   if (event->modifiers() == 0 && event->button() == Qt::LeftButton) {

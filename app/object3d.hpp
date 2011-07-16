@@ -61,6 +61,7 @@ public:
   ModelPtr model() { return m_model; }
 
   const Eigen::Affine3f& transform() const { return m_transform; }
+  Eigen::Affine3f& transform() { return m_transform; }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
