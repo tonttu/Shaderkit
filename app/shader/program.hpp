@@ -24,6 +24,8 @@
 #include "shader/error.hpp"
 #include "app/opengl.hpp"
 
+#include "Eigen/Geometry"
+
 #include <QObject>
 
 #include <set>
@@ -86,7 +88,7 @@ public:
   /// Sets a uniform variable, binds the object if needed,
   /// and restores the active program before returning.
   template <typename T>
-  void setUniform(State* state, QString name, T t, bool restore = false) {
+  void setUniform(State* state, QString name, const T& t, bool restore = false) {
     glCheck("setUniform");
     GLint prog = 0;
     glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
@@ -113,6 +115,11 @@ public:
   void setUniform(GLint loc, GLint v0, GLint v1) { glRun(glUniform2i(loc, v0, v1)); }
   void setUniform(GLint loc, GLint v0, GLint v1, GLint v2) { glRun(glUniform3i(loc, v0, v1, v2)); }
   void setUniform(GLint loc, GLint v0, GLint v1, GLint v2, GLint v3) { glRun(glUniform4i(loc, v0, v1, v2, v3)); }
+
+  void setUniform(GLint loc, const Eigen::Vector2f& v) { glRun(glUniform2fv(loc, 1, v.data())); }
+  void setUniform(GLint loc, const Eigen::Vector3f& v) { glRun(glUniform3fv(loc, 1, v.data())); }
+  void setUniform(GLint loc, const Eigen::Vector4f& v) { glRun(glUniform4fv(loc, 1, v.data())); }
+
 
   /// Restore the uniform state stored in list.
   void setUniform(UniformVar::List list, bool relocate = true);

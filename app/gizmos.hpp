@@ -14,16 +14,18 @@
 
 class LineSegment {
 public:
-  LineSegment(const Eigen::Vector2f& a = Eigen::Vector2f(0, 0),
-              const Eigen::Vector2f& b = Eigen::Vector2f(0, 0));
+  LineSegment(const Eigen::Vector3f& a = Eigen::Vector3f(0, 0, 0),
+              const Eigen::Vector3f& b = Eigen::Vector3f(0, 0, 0));
 
   float hit(const Eigen::Vector2f& p, float threshold2) const;
+  bool hit(const Eigen::Vector2f& p, float threshold2, float& depth) const;
 
   const Eigen::Vector2f& point() const { return m_point; }
   const Eigen::Vector2f& point2() const { return m_point2; }
 
 private:
   Eigen::Vector2f m_point, m_point2;
+  float m_depth, m_depth2;
 
   Eigen::Vector2f m_unit;
   float m_length;
@@ -36,7 +38,7 @@ public:
 
   void setObject(ObjectPtr obj);
 
-  virtual void render(QSize size, State& state, const RenderOptions& render_opts) = 0;
+  void render(QSize size, State& state, const RenderOptions& render_opts);
 
   void hover(const Eigen::Vector2f& point);
   bool buttonDown(const Eigen::Vector2f& point);
@@ -67,6 +69,11 @@ protected:
 
   bool m_active;
 
+  enum HitMode {
+    FRONT,
+    NEAREST
+  } m_hit_mode;
+
   struct HitShape {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -94,35 +101,39 @@ protected:
   bool m_update_ray_projection;
   Eigen::Projective3f m_ray_projection;
 
+  BufferObject m_verts, m_colors;
+
   const HitShape* pick(const Eigen::Vector2f& point) const;
   virtual bool makeActive(Constraint type);
+  virtual void renderImpl(State& state) = 0;
 };
 
 class TranslateGizmo : public Gizmo {
 public:
   TranslateGizmo();
-  virtual void render(QSize size, State& state, const RenderOptions& render_opts);
   virtual void input(const Eigen::Vector2f& diff);
 
 private:
+  virtual void renderImpl(State& state);
   virtual bool makeActive(Constraint type);
 
   Eigen::ParametrizedLine<float, 3> m_line;
   Eigen::Hyperplane<float, 3> m_plane;
 
   bool m_update_line;
-
-  BufferObject m_verts, m_colors;
 };
 
 class RotateGizmo : public Gizmo {
 public:
-  virtual void render(QSize size, State& state, const RenderOptions& render_opts);
+  RotateGizmo();
+protected:
+  virtual void renderImpl(State& state);
 };
 
 class ScaleGizmo : public Gizmo {
 public:
-  virtual void render(QSize size, State& state, const RenderOptions& render_opts);
+protected:
+  virtual void renderImpl(State& state);
 };
 
 #endif // GIZMOS_HPP

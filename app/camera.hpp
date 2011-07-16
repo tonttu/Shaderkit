@@ -63,6 +63,8 @@ public:
   void setTarget(const QVector3D& target);
   void setPosition(const QVector3D& position);
 
+  const Eigen::Vector3f location() const;
+
   Type type() const { return m_type; }
 
   void setPickDisplay(float x, float y);

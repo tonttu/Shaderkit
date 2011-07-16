@@ -23,8 +23,14 @@ Viewport::Viewport(QWidget* parent) : QWidget(parent) {
   m_new_light = tb->addAction(QIcon(":/icons/new_light.png"), "New light", this, SLOT(newLight()));
   tb->addSeparator();
   m_translate = tb->addAction(QIcon(":/icons/translate.png"), "Translate (W)", this, SLOT(translateGizmo()));
+  m_translate->setCheckable(true);
+  m_translate->setChecked(true);
   m_rotate = tb->addAction(QIcon(":/icons/rotate.png"), "Rotate (E)", this, SLOT(rotateGizmo()));
+  m_rotate->setCheckable(true);
+  m_rotate->setChecked(false);
   m_scale = tb->addAction(QIcon(":/icons/scale.png"), "Scale (R)", this, SLOT(scaleGizmo()));
+  m_scale->setCheckable(true);
+  m_scale->setChecked(false);
   tb->addSeparator();
   m_frame_selection = tb->addAction(QIcon(":/icons/frame.png"), "Frame selection (F)", this, SLOT(frameSelection()));
   m_frame_all = tb->addAction(QIcon(":/icons/frame_all.png"), "Frame all (A)", this, SLOT(frameAll()));
@@ -34,6 +40,8 @@ Viewport::Viewport(QWidget* parent) : QWidget(parent) {
   m_render_mode = tb->addAction(QIcon(":/icons/shader.png"), "Render mode (G)", this, SLOT(renderMode()));
   tb->addSeparator();
   m_delete_object = tb->addAction(QIcon(":/icons/delete.png"), "Delete object", this, SLOT(deleteObject()));
+
+  translateGizmo();
 }
 
 void Viewport::newObject() {
@@ -54,13 +62,33 @@ void Viewport::newLight() {
 }
 
 void Viewport::translateGizmo() {
-  m_gl_widget->renderOptions().gizmo_type = RenderOptions::TRANSLATE;
+  bool c = m_translate->isChecked();
+  m_gl_widget->renderOptions().gizmo_type = c ?
+        RenderOptions::TRANSLATE : RenderOptions::NONE;
+  if (c) {
+    m_rotate->setChecked(false);
+    m_scale->setChecked(false);
+  }
 }
 
 void Viewport::rotateGizmo() {
+  bool c = m_rotate->isChecked();
+  m_gl_widget->renderOptions().gizmo_type = c ?
+        RenderOptions::ROTATE : RenderOptions::NONE;
+  if (c) {
+    m_translate->setChecked(false);
+    m_scale->setChecked(false);
+  }
 }
 
 void Viewport::scaleGizmo() {
+  bool c = m_scale->isChecked();
+  m_gl_widget->renderOptions().gizmo_type = c ?
+        RenderOptions::SCALE : RenderOptions::NONE;
+  if (c) {
+    m_translate->setChecked(false);
+    m_rotate->setChecked(false);
+  }
 }
 
 void Viewport::frameSelection() {

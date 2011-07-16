@@ -159,3 +159,8 @@ void Camera::setPosition(const QVector3D& position) {
 
   updateVectors();
 }
+
+const Eigen::Vector3f Camera::location() const {
+  QVector3D tmp = m_target - m_front*m_dist;
+  return Eigen::Vector3f(tmp.x(), tmp.y(), tmp.z());
+}

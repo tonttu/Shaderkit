@@ -70,33 +70,65 @@ float closestLineParam(const Eigen::ParametrizedLine<float, 3>& p,
   // t = ((a*e - b*d) / denom);
 }
 
-const char* vertex_shader =
+const char* vertex_shader_translate =
     "#version 150 compatibility\n"
     "\n"
     "precision highp float;\n"
-    "\n"
-    "/*out vec2 point;*/\n"
     "\n"
     "uniform float grayness;\n"
     "\n"
     "void main() {\n"
     "  gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;\n"
     "  gl_FrontColor = mix(gl_Color, vec4(1.0, 1.0, 1.0, 1.0), grayness);\n"
-    "  /*point = -gl_Position.xy / gl_Position.w;*/\n"
     "}\n";
 
-const char* fragment_shader =
+const char* fragment_shader_translate =
     "#version 150 compatibility\n"
     "\n"
     "precision highp float;\n"
     "\n"
     "void main() {\n"
-    "  gl_FragColor = gl_Color;"
+    "  gl_FragColor = gl_Color;\n"
     "}\n";
 
-LineSegment::LineSegment(const Eigen::Vector2f& a, const Eigen::Vector2f& b)
-  : m_point(a),
-    m_point2(b) {
+const char* vertex_shader_rotate =
+    "#version 150 compatibility\n"
+    "\n"
+    "precision highp float;\n"
+    "\n"
+    "out vec3 point;\n"
+    "\n"
+    "uniform float grayness;\n"
+    "\n"
+    "void main() {\n"
+    "  vec4 p = gl_ModelViewMatrix * gl_Vertex;"
+    "  gl_Position = gl_ProjectionMatrix * p;\n"
+    "  point = p.xyz / p.w;\n"
+    "  gl_FrontColor = mix(gl_Color, vec4(1.0, 1.0, 1.0, 1.0), grayness);\n"
+    "}\n";
+
+const char* fragment_shader_rotate =
+    "#version 150 compatibility\n"
+    "\n"
+    "precision highp float;\n"
+    "\n"
+    "in vec3 point;\n"
+    "\n"
+    "uniform vec3 center;\n"
+    "uniform vec3 dir;\n"
+    "uniform float mix_amount;\n"
+    "\n"
+    "void main() {\n"
+    "  if (dot(dir, center - point) > 0.0) {\n"
+    "    gl_FragColor = gl_Color;\n"
+    "  } else {\n"
+    "    gl_FragColor = mix(gl_Color, vec4(0.5, 0.5, 0.5, 0.125), mix_amount);\n"
+    "  }\n"
+    "}\n";
+
+LineSegment::LineSegment(const Eigen::Vector3f& a, const Eigen::Vector3f& b)
+  : m_point(a[0], a[1]), m_point2(b[0], b[1]),
+    m_depth(a[2]), m_depth2(b[2]) {
   Eigen::Vector2f tmp = m_point2 - m_point;
   m_length = tmp.norm();
   m_unit = tmp / m_length;
@@ -119,15 +151,36 @@ float LineSegment::hit(const Eigen::Vector2f& p, float threshold2) const {
   }
 }
 
+bool LineSegment::hit(const Eigen::Vector2f& p, float threshold2, float& depth) const {
+  float project = m_unit.dot(p - m_point);
+  if (project < 0.0f) {
+    if (depth < m_depth || project * project > threshold2) return false;
+    float tmp = (p - m_point).squaredNorm();
+    if (tmp > threshold2) return false;
+    depth = m_depth;
+  } else if(project > m_length) {
+    if (depth < m_depth2 || (project - m_length) * (project - m_length) > threshold2) return false;
+    float tmp = (p - m_point2).squaredNorm();
+    if (tmp > threshold2) return false;
+    depth = m_depth2;
+  } else {
+    float tmp = Eigen::Vector2f(m_unit[1], -m_unit[0]).dot(p - m_point);
+    tmp *= tmp;
+    if (tmp > threshold2) return false;
+    float factor = project / m_length;
+    tmp = m_depth * (1.0f - factor) + m_depth2 * factor;
+    if (depth < tmp) return false;
+    depth = tmp;
+  }
+  return true;
+}
 
-Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false),
+Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false), m_hit_mode(NEAREST),
     m_window_projection(Eigen::Projective3f::Identity()), m_scale(-1.0f),
     m_start_cursor(0, 0), m_current_cursor(0, 0),
     m_update_ray_projection(false),
     m_ray_projection(Eigen::Projective3f::Identity()) {
   m_prog.reset(new GLProgram("gizmo"));
-  m_prog->addShaderSrc(vertex_shader, Shader::Vertex);
-  m_prog->addShaderSrc(fragment_shader, Shader::Fragment);
 }
 Gizmo::~Gizmo() {}
 
@@ -138,62 +191,11 @@ void Gizmo::setObject(ObjectPtr obj) {
   m_object = obj;
 }
 
-void Gizmo::hover(const Eigen::Vector2f& point) {
-  const HitShape* hit = pick(point);
-  m_hover = hit ? hit->group : m_selected;
-}
-
-bool Gizmo::buttonDown(const Eigen::Vector2f& point) {
-  m_start_cursor = m_current_cursor = point;
-  const HitShape* hit = pick(point);
-  return hit && makeActive(hit->group);
-}
-
-void Gizmo::input(const Eigen::Vector2f& diff) {
-}
-
-void Gizmo::buttonUp() {
-  m_active = false;
-}
-
-float Gizmo::size() const {
-  return 100.0f;
-}
-
-const Gizmo::HitShape* Gizmo::pick(const Eigen::Vector2f& point) const {
-  const HitShape* hit = 0;
-  float hit_dist2 = 9.0f * 9.0f;
-  foreach (const HitShape& shape, m_hit_shapes) {
-    if (!shape.bbox.contains(point)) continue;
-    foreach (const LineSegment& s, shape.transformed) {
-      float test2 = s.hit(point, hit_dist2);
-      if (test2 >= 0.0f) {
-        hit_dist2 = test2;
-        hit = &shape;
-      }
-    }
-  }
-
-  return hit;
-}
-
-bool Gizmo::makeActive(Constraint type) {
-  m_selected = type;
-  m_active = true;
-  m_update_ray_projection = true;
-  m_object_orig_transform = m_object->transform();
-
-  return true;
-}
-
-TranslateGizmo::TranslateGizmo() : m_update_line(false) {}
-
-void TranslateGizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
+void Gizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
   state.push();
 
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_LIGHTING);
-  glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glDisable(GL_CULL_FACE);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -240,6 +242,78 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
     }
   }
 
+  m_prog->bind(&state);
+  renderImpl(state);
+  m_prog->unbind();
+
+  glRun(glPopMatrix());
+  state.popTransform();
+  state.pop();
+}
+
+void Gizmo::hover(const Eigen::Vector2f& point) {
+  const HitShape* hit = pick(point);
+  m_hover = hit ? hit->group : m_selected;
+}
+
+bool Gizmo::buttonDown(const Eigen::Vector2f& point) {
+  m_start_cursor = m_current_cursor = point;
+  const HitShape* hit = pick(point);
+  return hit && makeActive(hit->group);
+}
+
+void Gizmo::input(const Eigen::Vector2f& diff) {
+}
+
+void Gizmo::buttonUp() {
+  m_active = false;
+}
+
+float Gizmo::size() const {
+  return 100.0f;
+}
+
+const Gizmo::HitShape* Gizmo::pick(const Eigen::Vector2f& point) const {
+  int hit = -1;
+  float hit_dist2 = 9.0f * 9.0f;
+  float depth = 10.0f;
+  for (int i = 0, m = m_hit_shapes.size(); i < m; ++i) {
+    if (!m_hit_shapes[i].bbox.contains(point)) continue;
+    foreach (const LineSegment& s, m_hit_shapes[i].transformed) {
+      if (m_hit_mode == FRONT) {
+        if (s.hit(point, hit_dist2, depth)) {
+          hit = i;
+        }
+
+      } else {
+        float test2 = s.hit(point, hit_dist2);
+        if (test2 >= 0.0f) {
+          hit_dist2 = test2;
+          hit = i;
+        }
+      }
+    }
+  }
+
+  return hit >= 0 ? &m_hit_shapes[hit] : 0;
+}
+
+bool Gizmo::makeActive(Constraint type) {
+  m_selected = type;
+  m_active = true;
+  m_update_ray_projection = true;
+  m_object_orig_transform = m_object->transform();
+
+  return true;
+}
+
+TranslateGizmo::TranslateGizmo() : m_update_line(false) {
+  m_prog->addShaderSrc(vertex_shader_translate, Shader::Vertex);
+  m_prog->addShaderSrc(fragment_shader_translate, Shader::Fragment);
+}
+
+
+void TranslateGizmo::renderImpl(State& state) {
   const int segments = 8;
 
   if (m_verts.size() == 0) {
@@ -330,7 +404,7 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
   for (auto it = m_hit_shapes.begin(); it != m_hit_shapes.end(); ++it)
     it->transform(m_window_projection);
 
-  m_prog->bind(&state);
+  glEnable(GL_DEPTH_TEST);
 
   for (int i = 0; i < 2; ++i) {
     glDepthFunc(i == 0 ? GL_GEQUAL : GL_LESS);
@@ -347,11 +421,6 @@ void TranslateGizmo::render(QSize size, State& state, const RenderOptions& rende
     m_prog->setUniform(&state, "grayness", 0.0f);
     glRun(glDrawArrays(GL_QUADS, 3*2*3+3*segments + (m_hover-XY)*4, 4));
   }
-
-  m_prog->unbind();
-  glRun(glPopMatrix());
-  state.popTransform();
-  state.pop();
 }
 
 void TranslateGizmo::input(const Eigen::Vector2f& diff) {
@@ -401,11 +470,117 @@ bool TranslateGizmo::makeActive(Constraint type) {
   return Gizmo::makeActive(type);
 }
 
-void RotateGizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
-
+RotateGizmo::RotateGizmo() {
+  m_prog->addShaderSrc(vertex_shader_rotate, Shader::Vertex);
+  m_prog->addShaderSrc(fragment_shader_rotate, Shader::Fragment);
+  m_hit_mode = FRONT;
 }
 
-void ScaleGizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
+void RotateGizmo::renderImpl(State& state) {
+  const int segments = 48;
+
+  if (m_verts.size() == 0) {
+    std::vector<float> vv(3*4*(segments+1)), cv(4*4*(segments+1));
+    float* v = &vv[0];
+    float* c = &cv[0];
+
+    m_hit_shapes.clear();
+    QVector<Eigen::Vector3f> points[7];
+
+    // X/Y/Z
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j <= segments; ++j) {
+        float a = M_PI*2.0f / segments * j;
+        float s = std::sin(a), c = std::cos(a);
+        *v++ = i == 0 ? 0 : s;
+        *v++ = i == 1 ? 0 : (i == 2 ? c : s);
+        *v++ = i == 2 ? 0 : c;
+
+        if (j > 0 && j < segments) points[i] << Eigen::Vector3f(v[-3], v[-2], v[-1]);
+        points[i] << Eigen::Vector3f(v[-3], v[-2], v[-1]);
+      }
+    }
+
+    c += 4*3*(segments+1);
+    for (int j = 0; j <= segments; ++j) {
+      *c++ = 0.8f; *c++ = 0.8f; *c++ = 0.8f; *c++ = 1.0f;
+    }
+
+    m_verts.enableArray(state, GL_VERTEX_ARRAY, 3, vv);
+    m_colors.enableArray(state, GL_COLOR_ARRAY, 4, cv);
+
+    for (int c = X; c <= Z; ++c)
+      m_hit_shapes.push_back(HitShape(points[c], Constraint(c)));
+  } else {
+    m_verts.enableArray(state, GL_VERTEX_ARRAY, 3);
+    m_colors.enableArray(state, GL_COLOR_ARRAY, 4);
+  }
+
+  {
+    float* c = m_colors.mapRW();
+
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j <= segments; ++j) {
+        if (i == m_hover) {
+          *c++ = 1.0f; *c++ = 1.0f; *c++ = 0.0f;
+        } else {
+          *c++ = i == X ? 1.0f : 0.0f;
+          *c++ = i == Y ? 1.0f : 0.0f;
+          *c++ = i == Z ? 1.0f : 0.0f;
+        }
+        *c++ = 1.0f;
+      }
+    }
+
+    m_colors.unmap();
+  }
+
+  Eigen::Vector3f gizmo_center = project3(
+        state.camera()->view() * state.transform(), Eigen::Vector3f(0, 0, 0));
+
+  {
+    Eigen::Vector3f dir = state.transform().translation() - state.camera()->location();
+    dir.normalize();
+    Eigen::Vector3f x = dir.unitOrthogonal();
+    Eigen::Vector3f y = dir.cross(x);
+
+    float* v = m_verts.mapRW();
+    v += 3*3*(segments+1);
+
+    for (int j = 0; j <= segments; ++j) {
+      float a = M_PI*2.0f / segments * j;
+      float s = std::sin(a), c = std::cos(a);
+      Eigen::Vector3f tmp = s*x + c*y;
+      *v++ = tmp[0]; *v++ = tmp[1]; *v++ = tmp[2];
+    }
+
+    m_verts.unmap();
+  }
+
+  for (auto it = m_hit_shapes.begin(); it != m_hit_shapes.end(); ++it)
+    it->transform(m_window_projection);
+
+  m_prog->setUniform(&state, "mix_amount", 0.0f);
+  m_prog->setUniform(&state, "center", gizmo_center);
+  m_prog->setUniform(&state, "dir", gizmo_center.normalized());
+  m_prog->setUniform(&state, "grayness", 0.0f);
+
+  glDisable(GL_DEPTH_TEST);
+  glRun(glDrawArrays(GL_LINE_STRIP, 3*(segments+1), segments+1));
+
+  m_prog->setUniform(&state, "mix_amount", 0.8f);
+
+  glEnable(GL_DEPTH_TEST);
+  for (int i = 0; i < 2; ++i) {
+    glDepthFunc(i == 0 ? GL_GEQUAL : GL_LESS);
+    m_prog->setUniform(&state, "grayness", 0.5f - i*0.5f);
+    glRun(glDrawArrays(GL_LINE_STRIP, 0, segments+1));
+    glRun(glDrawArrays(GL_LINE_STRIP, segments+1, segments+1));
+    glRun(glDrawArrays(GL_LINE_STRIP, 2*(segments+1), segments+1));
+  }
+}
+
+void ScaleGizmo::renderImpl(State& state) {
 
 }
 
@@ -414,9 +589,9 @@ void Gizmo::HitShape::transform(const Eigen::Projective3f& window_projection) {
 
   transformed.resize(points.size() / 2);
   for (int i = 0, s = points.size(); i < s; i += 2) {
-    // project 3D coordinates to 2D window coordinates
-    transformed[i/2] = LineSegment(project2(window_projection, points[i]),
-                                   project2(window_projection, points[i+1]));
+    // project 3D coordinates to 3D window coordinates
+    transformed[i/2] = LineSegment(project3(window_projection, points[i]),
+                                   project3(window_projection, points[i+1]));
 
     bbox.extend(transformed[i/2].point());
     bbox.extend(transformed[i/2].point2());
