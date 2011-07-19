@@ -62,8 +62,8 @@ protected:
   /// Light colors
   QColor m_ambient, m_diffuse, m_specular;
 
-  /// if m_type == Spot, we control the light with position and the target vectors
-  QVector3D m_position, m_target;
+  /// if m_type == Spot, we control the light with location and the target vectors
+  QVector3D m_location, m_target;
 
   /// With direction lights (m_type == Direction) there is only direction vector
   QVector3D m_direction;

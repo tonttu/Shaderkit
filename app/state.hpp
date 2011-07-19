@@ -64,6 +64,7 @@ public:
   void pushMaterial(MaterialPtr);
   void popMaterial();
 
+  /// Multiplies the current matrix from right
   void pushTransform(const Eigen::Affine3f& transform);
   void popTransform();
 

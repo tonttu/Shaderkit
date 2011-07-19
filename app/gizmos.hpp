@@ -98,8 +98,11 @@ protected:
   Eigen::Vector2f m_start_cursor, m_current_cursor;
   Eigen::Affine3f m_object_orig_transform;
 
-  bool m_update_ray_projection;
-  Eigen::Projective3f m_ray_projection;
+  // Transform from gizmo to object coordinates
+  Eigen::Affine3f m_gizmo_to_obj;
+
+  bool m_update_inv_projection;
+  Eigen::Projective3f m_window_to_gizmo;
 
   BufferObject m_verts, m_colors;
 
@@ -126,8 +129,15 @@ private:
 class RotateGizmo : public Gizmo {
 public:
   RotateGizmo();
+  virtual void input(const Eigen::Vector2f& diff);
+
 protected:
   virtual void renderImpl(State& state);
+  virtual bool makeActive(Constraint type);
+
+  bool m_update_center;
+  float m_angle, m_start_angle;
+  Eigen::Vector2f m_center;
 };
 
 class ScaleGizmo : public Gizmo {

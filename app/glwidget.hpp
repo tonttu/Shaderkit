@@ -22,6 +22,8 @@
 #include "opengl.hpp"
 #include "renderpass.hpp"
 
+#include "Eigen/Geometry"
+
 #include <QGLWidget>
 
 /**
@@ -74,9 +76,13 @@ protected:
   QMap<Qt::MouseButton, QPointF> m_button_down;
 
   Viewport* m_view;
+  CameraPtr m_debug_camera;
 
   RenderOptions m_render_options;
   bool m_initialized;
 };
+
+extern QVector<Eigen::Vector2f> g_debug_qt;
+extern QVector<Eigen::Vector2f> g_debug_2d;
 
 #endif // GLWIDGET_HPP

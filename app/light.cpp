@@ -50,11 +50,11 @@ void Light::activate(State& state) {
   glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, tmp));
 
   if (m_type == Spot) {
-    tmp[0] = m_position.x(); tmp[1] = m_position.y(); tmp[2] = m_position.z();
+    tmp[0] = m_location.x(); tmp[1] = m_location.y(); tmp[2] = m_location.z();
     tmp[3] = 1.0f;
     glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
 
-    QVector3D n = m_target - m_position;
+    QVector3D n = m_target - m_location;
     n.normalize();
 
     tmp[0] = n.x(); tmp[1] = n.y(); tmp[2] = n.z();
@@ -77,7 +77,7 @@ QVariantMap Light::save() const {
   QVariantMap map = SceneObject::save();
   if (m_type == Spot) {
     map["type"] = "spot";
-    map["position"] = toList(m_position);
+    map["location"] = toList(m_location);
     map["target"] = toList(m_target);
     map["spot cutoff"] = m_spot_cutoff;
   } else if (m_type == Direction) {
@@ -103,7 +103,7 @@ void Light::load(QVariantMap map) {
   m_ambient = toColor(map["ambient"]);
   m_diffuse = toColor(map["diffuse"]);
   m_specular = toColor(map["specular"]);
-  m_position = toVector(map["position"]);
+  m_location = toVector(map["location"]);
   m_target = toVector(map["target"]);
   m_direction = toVector(map["direction"]);
   m_spot_cutoff = map["spot cutoff"].toFloat();

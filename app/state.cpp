@@ -109,7 +109,7 @@ void State::popMaterial() {
 }
 
 void State::pushTransform(const Eigen::Affine3f& transform) {
-  m_transforms.push_back(transform * m_transforms.back());
+  m_transforms.push_back(m_transforms.back() * transform);
 }
 
 void State::popTransform() {

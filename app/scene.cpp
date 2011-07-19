@@ -48,6 +48,14 @@ QVector3D toVector(QVariant in) {
   return QVector3D();
 }
 
+Eigen::Vector3f toVector3(QVariant in) {
+  QVariantList lst = in.toList();
+  if (lst.size() == 3) {
+    return Eigen::Vector3f(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
+  }
+  return Eigen::Vector3f(0, 0, 0);
+}
+
 QColor toColor(QVariant in) {
   QVariantList lst = in.toList();
   if (lst.size() == 4) {
@@ -59,6 +67,12 @@ QColor toColor(QVariant in) {
 QVariantList toList(QVector3D in) {
   QVariantList ret;
   ret << in.x() << in.y() << in.z();
+  return ret;
+}
+
+QVariantList toList(Eigen::Vector3f in) {
+  QVariantList ret;
+  ret << in[0] << in[1] << in[2];
   return ret;
 }
 
@@ -502,8 +516,8 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
       CameraPtr camera(new Camera("Default"));
 
       /// @todo use bounding box to calculate optimal location for the camera
-      camera->setTarget(QVector3D(0, 30, 0));
-      camera->setPosition(QVector3D(60, 45, -60));
+      camera->setTarget(Eigen::Vector3f(0, 30, 0));
+      camera->setLocation(Eigen::Vector3f(60, 45, -60));
 
       add(camera);
       pass->setView(camera);

@@ -27,8 +27,8 @@ Camera::Camera(const QString &name)
   : SceneObject(name), m_type(Perspective),
     m_target(0, 0, 0), m_up(0, 1, 0),
     m_dx(0), m_dy(0),
-    m_projectionMatrix(Eigen::Matrix4f::Identity()),
-    m_viewMatrix(Eigen::Matrix4f::Identity()),
+    m_projection(Eigen::Projective3f::Identity()),
+    m_view(Eigen::Affine3f::Identity()),
     m_fov(45), m_near(0.1f), m_far(1000.0f) {}
 
 void Camera::prepare(int width, int height) {
@@ -36,42 +36,41 @@ void Camera::prepare(int width, int height) {
   glViewport(0, 0, width, height);
   if (m_type == Perspective) {
     float f = 1.0f / tanf(m_fov*0.5f);
-    m_projectionMatrix <<
+    m_projection.matrix() <<
         f*height/width, 0.0f, 0.0f, 0.0f,
         0.0f, f, 0.0f, 0.0f,
         0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far*m_near/(m_near-m_far),
         0.0f, 0.0f, -1.0f, 0.0f;
 
-    m_viewMatrix <<
-        float(m_right.x()),  float(m_right.y()),  float(m_right.z()), 0.0f,
-        float(m_up.x()),     float(m_up.y()),     float(m_up.z()), 0.0f,
-        float(-m_front.x()), float(-m_front.y()), float(-m_front.z()), 0.0f,
-        0.0f,                0.0f,                0.0f, 1.0f;
+    m_view.matrix() <<
+         float(m_right[0]),  float(m_right[1]),  float(m_right[2]), 0.0f,
+            float(m_up[0]),     float(m_up[1]),     float(m_up[2]), 0.0f,
+        float(-m_front[0]), float(-m_front[1]), float(-m_front[2]), 0.0f,
+                      0.0f,               0.0f,               0.0f, 1.0f;
 
-    QVector3D eye = m_target - m_front*m_dist;
-    m_viewMatrix = (Eigen::Affine3f(m_viewMatrix) *
-                    Eigen::Translation3f(-eye.x(), -eye.y(), -eye.z())).matrix();
+    Eigen::Vector3f eye = m_target - m_front*m_dist;
+    m_view = m_view * Eigen::Translation3f(-eye);
   } else if (m_type == Rect) {
     float tz = -(m_far+m_near)/(m_far-m_near);
-    m_projectionMatrix <<
+    m_projection.matrix() <<
         2.0f/width,           0,                    0, -1.0f,
                  0, 2.0f/height,                    0, -1.0f,
                  0,           0, -2.0f/(m_far-m_near),    tz,
                  0,           0,                    0,     1;
 
-    m_viewMatrix = Eigen::Matrix4f::Identity();
+    m_view = Eigen::Affine3f::Identity();
   } else {
     /// @todo implement ortho camera
-    m_projectionMatrix = Eigen::Matrix4f::Identity();
-    m_viewMatrix = Eigen::Matrix4f::Identity();
+    m_projection = Eigen::Projective3f::Identity();
+    m_view = Eigen::Affine3f::Identity();
     assert(false && "Ortho Camera not implemented");
   }
 
   glMatrixMode(GL_PROJECTION);
-  glLoadMatrix(m_projectionMatrix);
+  glLoadMatrix(m_projection);
 
   glMatrixMode(GL_MODELVIEW);
-  glLoadMatrix(m_viewMatrix);
+  glLoadMatrix(m_view);
 }
 
 void Camera::setRect(float near_, float far_) {
@@ -89,8 +88,8 @@ QVariantMap Camera::save() const {
   else if (m_type == Rect)
     map["type"] = "rect";
 
-  QVector3D eye = m_target - m_front*m_dist;
-  map["position"] = toList(eye);
+  Eigen::Vector3f eye = m_target - m_front*m_dist;
+  map["location"] = toList(eye);
   map["target"] = toList(m_target);
   map["fov"] = m_fov;
   map["near"] = m_near;
@@ -105,24 +104,23 @@ void Camera::load(QVariantMap map) {
   if (map["type"] == "perspective") m_type = Perspective;
   if (map["type"] == "ortho") m_type = Ortho;
 
-  /// At least Qt 4.7 doesn't convert anything to QVector3D
-  m_target = toVector(map["target"]);
+  m_target = toVector3(map["target"]);
   m_fov = map["fov"].toFloat();
   m_near = map["near"].toFloat();
   m_far = map["far"].toFloat();
 
-  setPosition(toVector(map["position"]));
+  setLocation(toVector3(map["location"]));
 }
 
 void Camera::updateVectors() {
   float x = cosf(m_dx), z = -sinf(m_dx);
   float c = cosf(m_dy);
-  m_front.setX(-c*x);
-  m_front.setY(-sin(m_dy));
-  m_front.setZ(-c*z);
+  m_front[0] =-c*x;
+  m_front[1] = -sin(m_dy);
+  m_front[2] = -c*z;
   m_front.normalize();
-  m_right = QVector3D::crossProduct(m_front, QVector3D(0, 1, 0)).normalized();
-  m_up = QVector3D::crossProduct(m_right, m_front);
+  m_right = m_front.cross(Eigen::Vector3f(0, 1, 0)).normalized();
+  m_up = m_right.cross(m_front).normalized();
 }
 
 CameraPtr Camera::clone() const {
@@ -147,20 +145,19 @@ void Camera::zoom(float diff) {
   m_dist += diff*m_dist*0.01f;
 }
 
-void Camera::setTarget(const QVector3D& target) {
+void Camera::setTarget(const Eigen::Vector3f& target) {
   m_target = target;
 }
 
-void Camera::setPosition(const QVector3D& position) {
-  QVector3D to = m_target - position;
-  m_dist = to.length();
-  m_dx = atan2f(to.z(), -to.x());
-  m_dy = asinf(-to.y() / m_dist);
+void Camera::setLocation(const Eigen::Vector3f& location) {
+  Eigen::Vector3f to = m_target - location;
+  m_dist = to.norm();
+  m_dx = atan2f(to[2], -to[0]);
+  m_dy = asinf(-to[1] / m_dist);
 
   updateVectors();
 }
 
 const Eigen::Vector3f Camera::location() const {
-  QVector3D tmp = m_target - m_front*m_dist;
-  return Eigen::Vector3f(tmp.x(), tmp.y(), tmp.z());
+  return m_target - m_front*m_dist;
 }

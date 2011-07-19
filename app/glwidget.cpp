@@ -28,6 +28,9 @@
 /// @todo include something less massive
 #include <QtGui>
 
+QVector<Eigen::Vector2f> g_debug_qt;
+QVector<Eigen::Vector2f> g_debug_2d;
+
 GLWidget::GLWidget(const QGLFormat& format, QWidget* parent, const QGLWidget* shareWidget)
   : QGLWidget(format, parent, shareWidget),
     m_timer(new QTimer(this)), m_view(0), m_initialized(false) {
@@ -37,6 +40,9 @@ GLWidget::GLWidget(const QGLFormat& format, QWidget* parent, const QGLWidget* sh
   m_timer->setInterval(10);
 
   setMouseTracking(true);
+
+  m_debug_camera.reset(new Camera("debug"));
+  m_debug_camera->setRect();
 }
 
 GLWidget::GLWidget(QGLContext* context, QWidget* parent)
@@ -110,6 +116,33 @@ void GLWidget::paintGL() {
         m_render_options.gizmo->setObject(m_scene->selection().first());
     }
     m_scene->render(m_render_options);
+    {
+      glPushAttrib(GL_ALL_ATTRIB_BITS);
+      m_debug_camera->prepare(width(), height());
+
+      glDisable(GL_TEXTURE_2D);
+      glDisable(GL_LIGHTING);
+      glEnable(GL_BLEND);
+      glDisable(GL_CULL_FACE);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_LINE_SMOOTH);
+      glDepthMask(GL_FALSE);
+      glDisable(GL_DEPTH_TEST);
+      glPointSize(5.0f);
+      glLineWidth(1.7f);
+
+      glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
+      float h = height();
+      glBegin(GL_POINTS);
+      foreach (const Eigen::Vector2f& p, g_debug_qt)
+        glVertex2f(p[0], h - p[1]);
+      foreach (const Eigen::Vector2f& p, g_debug_2d)
+        glVertex2fv(p.data());
+      glEnd();
+      g_debug_qt.clear();
+      g_debug_2d.clear();
+      glRun(glPopAttrib());
+    }
   }
 }
 
@@ -128,9 +161,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
   } else if(event->buttons() == Qt::LeftButton && m_render_options.gizmo && m_render_options.gizmo->active()) {
     Eigen::Vector2f diff2(diff.x(), -diff.y());
     m_render_options.gizmo->input(diff2);
+    event->accept();
+    return;
   }
 
-  /*float d = width();
+  float d = width();
   if (height() < d) d = height();
   diff.setX(diff.x() / d);
   diff.setY(diff.y() / d);
@@ -148,7 +183,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
     event->accept();
     return;
   }
-  QGLWidget::mouseMoveEvent(event);*/
+  QGLWidget::mouseMoveEvent(event);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent* event) {
@@ -159,13 +194,12 @@ void GLWidget::mousePressEvent(QMouseEvent* event) {
                                        height() - event->posF().y()));
   }
 
-  /*
   /// @todo re-enable rotating stuff
   if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
     m_lastpos = event->posF();
     event->accept();
     return;
-  }*/
+  }
 
   QGLWidget::mousePressEvent(event);
 }

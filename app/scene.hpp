@@ -24,6 +24,8 @@
 #include "history.hpp"
 #include "renderpass.hpp"
 
+#include "Eigen/Geometry"
+
 #include <QString>
 #include <QVariantMap>
 #include <QTime>
@@ -229,9 +231,11 @@ protected:
 
 /// Convert array of three doubles to vector
 QVector3D toVector(QVariant in);
+Eigen::Vector3f toVector3(QVariant in);
 /// Convert array of four doubles to color
 QColor toColor(QVariant in);
 QVariantList toList(QVector3D in);
+QVariantList toList(Eigen::Vector3f in);
 QVariantList toList(QColor in);
 
 #endif // SCENE_HPP

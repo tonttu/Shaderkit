@@ -4,6 +4,7 @@
 #include "model.hpp"
 #include "camera.hpp"
 #include "shader/program.hpp"
+#include "glwidget.hpp"
 
 #include "Eigen/OpenGLSupport"
 
@@ -178,8 +179,9 @@ bool LineSegment::hit(const Eigen::Vector2f& p, float threshold2, float& depth) 
 Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false), m_hit_mode(NEAREST),
     m_window_projection(Eigen::Projective3f::Identity()), m_scale(-1.0f),
     m_start_cursor(0, 0), m_current_cursor(0, 0),
-    m_update_ray_projection(false),
-    m_ray_projection(Eigen::Projective3f::Identity()) {
+    m_update_inv_projection(false),
+    m_gizmo_to_obj(Eigen::Affine3f::Identity()),
+    m_window_to_gizmo(Eigen::Projective3f::Identity()) {
   m_prog.reset(new GLProgram("gizmo"));
 }
 Gizmo::~Gizmo() {}
@@ -204,11 +206,11 @@ void Gizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
   glLineWidth(1.7f);
 
   Eigen::Vector3f center = m_object->model()->bbox().center();
-  auto center_transform = Eigen::Affine3f(Eigen::Translation3f(center));
-  auto model = center_transform * m_object->transform();
+  m_gizmo_to_obj = Eigen::Affine3f(Eigen::Translation3f(center));
+  auto model = m_object->transform();
 
   if(m_scale < 0.0f || !m_active) {
-    Eigen::Projective3f all = state.camera()->projection() * state.camera()->view() * model;
+    Eigen::Projective3f all = state.camera()->projection() * state.camera()->view() * model * m_gizmo_to_obj;
     auto inv = all.inverse(Eigen::Projective);
 
     Eigen::Vector4f qwe = all * Eigen::Vector4f(0, 0, 0, 1);
@@ -218,35 +220,47 @@ void Gizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
     Eigen::Vector3f bb(b[0]/b[3], b[1]/b[3], b[2]/b[3]);
     float diff = (aa - bb).norm();
 
-    m_scale = 0.05/diff;
+    m_scale = 0.1/diff;
   }
 
-  state.pushTransform(model * Eigen::Scaling(m_scale));
-  glPushMatrix();
-  glLoadMatrix(state.camera()->view() * state.transform());
+  m_gizmo_to_obj = m_gizmo_to_obj * Eigen::Scaling(m_scale);
+  state.pushTransform(model);
 
   {
-    auto tmp = state.camera()->projection() * state.camera()->view();
-    /// @todo why this fails without parentheses?
-    m_window_projection =
-        Eigen::AlignedScaling3f(size.width() * 0.5f, size.height() * 0.5f, 1.0f) *
-        (Eigen::Translation3f(1, 1, 0) * (tmp * state.transform()));
+    // projection x view x model. Transforms model coordinates to normalized frustum
+    auto transform = state.camera()->projection() * state.camera()->view() *
+        state.transform();
 
-    if (m_update_ray_projection) {
-      auto ray =
-          Eigen::AlignedScaling3f(size.width() * 0.5f, size.height() * 0.5f, 1.0f) *
-          (Eigen::Translation3f(1, 1, 0) * (tmp * center_transform));
-      m_ray_projection = ray.inverse(Eigen::Projective);
+    Eigen::Projective3f s;
+    s.matrix() << size.width() * 0.5f,                    0, 0, 0,
+                                    0, size.height() * 0.5f, 0, 0,
+                                    0,                    0, 1, 0,
+                                    0,                    0, 0, 1;
 
-      m_update_ray_projection = false;
+    // -1..1 to window coordinates
+    Eigen::Projective3f normalized_to_window = s * Eigen::Translation3f(1, 1, 0);
+
+    // Gizmo coordinates to window coordinates
+    m_window_projection = normalized_to_window * transform * m_gizmo_to_obj;
+
+
+    if (m_update_inv_projection) {
+      // window to gizmo coordinates
+      m_window_to_gizmo = m_window_projection.inverse(Eigen::Projective);
+
+      m_update_inv_projection = false;
     }
   }
+  state.pushTransform(m_gizmo_to_obj);
+  glPushMatrix();
+  glLoadMatrix(state.camera()->view() * state.transform());
 
   m_prog->bind(&state);
   renderImpl(state);
   m_prog->unbind();
 
   glRun(glPopMatrix());
+  state.popTransform();
   state.popTransform();
   state.pop();
 }
@@ -301,7 +315,7 @@ const Gizmo::HitShape* Gizmo::pick(const Eigen::Vector2f& point) const {
 bool Gizmo::makeActive(Constraint type) {
   m_selected = type;
   m_active = true;
-  m_update_ray_projection = true;
+  m_update_inv_projection = true;
   m_object_orig_transform = m_object->transform();
 
   return true;
@@ -425,43 +439,56 @@ void TranslateGizmo::renderImpl(State& state) {
 
 void TranslateGizmo::input(const Eigen::Vector2f& diff) {
   m_current_cursor += diff;
-  if (m_update_ray_projection) return;
+  if (m_update_inv_projection) return;
   bool plane = m_selected == XY || m_selected == XZ || m_selected == YZ;
 
   if (m_update_line) {
-    Eigen::Vector3f p = project3(m_ray_projection, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 1.0f));
-    Eigen::Vector3f p2 = project3(m_ray_projection, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 0.0f));
+    Eigen::Vector3f p = project3(m_window_to_gizmo, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 1.0f));
+    Eigen::Vector3f p2 = project3(m_window_to_gizmo, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 0.0f));
 
+    // in gizmo coordinates
     Eigen::ParametrizedLine<float, 3> ray = Eigen::ParametrizedLine<float, 3>::Through(p, p2);
-    Eigen::Vector3f center = m_object_orig_transform * Eigen::Vector3f(0, 0, 0);
 
     if (plane) {
       Eigen::Vector3f normal(m_selected == YZ ? 1.0f : 0.0f,
                              m_selected == XZ ? 1.0f : 0.0f,
                              m_selected == XY ? 1.0f : 0.0f);
 
-      m_plane = Eigen::Hyperplane<float, 3>(normal, center);
-      m_line = Eigen::ParametrizedLine<float, 3>(ray.origin() + ray.direction() * ray.intersection(m_plane), normal);
+      m_plane = Eigen::Hyperplane<float, 3>(normal, Eigen::Vector3f(0, 0, 0));
+      m_line = Eigen::ParametrizedLine<float, 3>(ray.origin() + ray.direction() * ray.intersection(m_plane),
+                                                 m_plane.normal());
     } else {
       Eigen::Vector3f dir(m_selected == X ? 1.0f : 0.0f,
                           m_selected == Y ? 1.0f : 0.0f,
                           m_selected == Z ? 1.0f : 0.0f);
-      m_line = Eigen::ParametrizedLine<float, 3>(center, dir);
-      m_line.origin() = center + dir * closestLineParam(m_line, ray);
+      // in gizmo coordinates
+      m_line = Eigen::ParametrizedLine<float, 3>(Eigen::Vector3f(0, 0, 0), dir);
+      m_line.origin() = dir * closestLineParam(m_line, ray);
     }
+    m_update_line = false;
   }
 
-  Eigen::Vector3f p1 = project3(m_ray_projection, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 1.0f));
-  Eigen::Vector3f p2 = project3(m_ray_projection, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 0.0f));
+  auto tmp = m_window_to_gizmo;
 
+  Eigen::Vector3f p1 = project3(tmp, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 1.0f));
+  Eigen::Vector3f p2 = project3(tmp, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 0.0f));
+
+  // in gizmo coordinates
   Eigen::ParametrizedLine<float, 3> ray =
       Eigen::ParametrizedLine<float, 3>::Through(p1, p2);
 
   if (plane) {
+    // the point we have moved to, in gizmo coordinates
     Eigen::Vector3f point = ray.origin() + ray.direction() * ray.intersection(m_plane);
-    m_object->transform() = Eigen::Translation3f(point - m_line.origin()) * m_object_orig_transform;
+
+    // rotate/scale that vector to object coordinates and move the object
+    m_object->transform() = m_object_orig_transform * Eigen::Translation3f(m_gizmo_to_obj.linear() * (point - m_line.origin()));
   } else {
-    m_object->transform() = Eigen::Translation3f(m_line.direction() * closestLineParam(m_line, ray)) * m_object_orig_transform;
+    // how much we have moved in gizmo coordinates
+    Eigen::Vector3f diff_gizmo = m_line.direction() * closestLineParam(m_line, ray);
+
+    // rotate/scale that vector to object coordinates and move the object
+    m_object->transform() = m_object_orig_transform * Eigen::Translation3f(m_gizmo_to_obj.linear() * diff_gizmo);
   }
 }
 
@@ -470,7 +497,7 @@ bool TranslateGizmo::makeActive(Constraint type) {
   return Gizmo::makeActive(type);
 }
 
-RotateGizmo::RotateGizmo() {
+RotateGizmo::RotateGizmo() : m_update_center(false), m_angle(0), m_start_angle(0) {
   m_prog->addShaderSrc(vertex_shader_rotate, Shader::Vertex);
   m_prog->addShaderSrc(fragment_shader_rotate, Shader::Fragment);
   m_hit_mode = FRONT;
@@ -578,6 +605,46 @@ void RotateGizmo::renderImpl(State& state) {
     glRun(glDrawArrays(GL_LINE_STRIP, segments+1, segments+1));
     glRun(glDrawArrays(GL_LINE_STRIP, 2*(segments+1), segments+1));
   }
+}
+
+void RotateGizmo::input(const Eigen::Vector2f& diff) {
+  m_current_cursor += diff;
+  if (m_update_inv_projection) return;
+  if (m_selected < X || m_selected > Z) return;
+
+  if (m_update_center) {
+    m_center = project2(m_window_projection, Eigen::Vector3f(0, 0, 0));
+    Eigen::Vector2f dir = m_current_cursor - m_center;
+    m_start_angle = std::atan2(dir[1], dir[0]);
+    m_update_center = false;
+  }
+
+  Eigen::Vector2f dir = m_current_cursor - m_center;
+  float angle = std::atan2(dir[1], dir[0]);
+
+  Eigen::Vector3f normal(m_selected == X ? 1.0f : 0.0f,
+                         m_selected == Y ? 1.0f : 0.0f,
+                         m_selected == Z ? 1.0f : 0.0f);
+
+  m_object->transform() = Eigen::AngleAxis<float>(angle - m_start_angle, normal) * m_object_orig_transform;
+
+  /*  Eigen::Vector3f p1 = project3(m_ray_projection, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 1.0f));
+  Eigen::Vector3f p2 = project3(m_ray_projection, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 0.0f));
+
+  Eigen::ParametrizedLine<float, 3> ray =
+      Eigen::ParametrizedLine<float, 3>::Through(p1, p2);
+
+  if (plane) {
+    Eigen::Vector3f point = ray.origin() + ray.direction() * ray.intersection(m_plane);
+    m_object->transform() = Eigen::Translation3f(point - m_line.origin()) * m_object_orig_transform;
+  } else {
+    m_object->transform() = Eigen::Translation3f(m_line.direction() * closestLineParam(m_line, ray)) * m_object_orig_transform;
+  }*/
+}
+
+bool RotateGizmo::makeActive(Constraint type) {
+  m_update_center = true;
+  return Gizmo::makeActive(type);
 }
 
 void ScaleGizmo::renderImpl(State& state) {

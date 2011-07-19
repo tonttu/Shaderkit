@@ -23,7 +23,6 @@
 
 #include "Eigen/Geometry"
 
-#include <QVector3D>
 #include <QVariant>
 
 #ifdef _WIN32
@@ -60,8 +59,8 @@ public:
   void translate(QPointF diff);
   void zoom(float diff);
 
-  void setTarget(const QVector3D& target);
-  void setPosition(const QVector3D& position);
+  void setTarget(const Eigen::Vector3f& target);
+  void setLocation(const Eigen::Vector3f& location);
 
   const Eigen::Vector3f location() const;
 
@@ -69,8 +68,8 @@ public:
 
   void setPickDisplay(float x, float y);
 
-  const Eigen::Matrix4f& projection() const { return m_projectionMatrix; }
-  const Eigen::Matrix4f& view() const { return m_viewMatrix; }
+  const Eigen::Projective3f& projection() const { return m_projection; }
+  const Eigen::Affine3f& view() const { return m_view; }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 protected:
@@ -78,19 +77,18 @@ protected:
 
   Type m_type;
 
-  /// Camera position
-  //QVector3D m_position;
   /// The point the camera is looking at (Perspective)
-  QVector3D m_target;
+  Eigen::Vector3f m_target;
   /// Camera up vector (Perspective)
 
-  QVector3D m_up;
-  QVector3D m_right;
-  QVector3D m_front;
+  Eigen::Vector3f m_up;
+  Eigen::Vector3f m_right;
+  Eigen::Vector3f m_front;
 
   float m_dx, m_dy, m_dist;
 
-  Eigen::Matrix4f m_projectionMatrix, m_viewMatrix;
+  Eigen::Projective3f m_projection;
+  Eigen::Affine3f m_view;
 
   /// Field of view, in degrees, in the y direction (Perspective)
   float m_fov;
