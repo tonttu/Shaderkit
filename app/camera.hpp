@@ -55,6 +55,8 @@ public:
   float near() const { return m_near; }
   float far() const { return m_far; }
 
+  float fov() const { return m_fov; }
+
   void rotate(QPointF diff);
   void translate(QPointF diff);
   void zoom(float diff);

@@ -97,7 +97,7 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_LINE_SMOOTH);
     glLineWidth(1.37f);
-    glColor4f(1, 1, 1, 1);
+    glColor4f(1, 1, 1, 0.5f);
 
     glPushMatrix();
     glMultMatrix(state.transform());

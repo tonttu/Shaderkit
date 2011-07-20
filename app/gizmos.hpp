@@ -93,8 +93,9 @@ protected:
 
   ProgramPtr m_prog;
 
+  // gizmo to window
   Eigen::Projective3f m_window_projection;
-  float m_scale;
+  float m_scale, m_scale_factor;
   Eigen::Vector2f m_start_cursor, m_current_cursor;
   Eigen::Affine3f m_object_orig_transform;
 
@@ -102,6 +103,7 @@ protected:
   Eigen::Affine3f m_gizmo_to_obj;
 
   bool m_update_inv_projection;
+  // inverse of m_window_projection, only updated when starting interaction
   Eigen::Projective3f m_window_to_gizmo;
 
   BufferObject m_verts, m_colors;
@@ -136,6 +138,7 @@ protected:
   virtual bool makeActive(Constraint type);
 
   bool m_update_center;
+  bool m_reversed;
   float m_angle, m_start_angle;
   Eigen::Vector2f m_center;
 };
