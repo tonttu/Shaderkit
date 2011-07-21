@@ -28,6 +28,8 @@
 
 namespace {
   void writelog(Log::Level l, FILE* target, const char* fmt, va_list ap) {
+    static QByteArray last;
+    static int count = 0;
     static const char* prefixes[] = {"          ",
                                      " Fatal    ",
                                      " Error    ",
@@ -35,10 +37,26 @@ namespace {
                                      " Info     ",
                                      " Debug    "};
     QByteArray ts = QTime::currentTime().toString("HH:mm:ss.zzz").toAscii();
-    fwrite(ts.data(), ts.length(), 1, target);
-    fwrite(prefixes[l], 10, 1, target);
-    vfprintf(target, fmt, ap);
-    fputc('\n', target);
+
+    QByteArray str(prefixes[l]);
+    int p = str.size();
+    str.resize(p + 513);
+    p += vsnprintf(str.data() + p, 512, fmt, ap);
+
+    str.resize(p);
+    while (p > 0 && (str[p-1] == '\n' || str[p-1] == '\r'))
+      str.resize(--p);
+
+    if (str == last) {
+      ++count;
+    } else {
+      if (count > 0) {
+        fprintf(target, "                      (message repeated %d times)\n", count);
+        count = 0;
+      }
+      fprintf(target, "%s%s\n", ts.data(), str.data());
+      last = str;
+    }
   }
 }
 
