@@ -24,10 +24,11 @@
 #include "buffer_object.hpp"
 
 struct RenderOptions {
-  RenderOptions() : grid(false), ui(false), blueprint(false), gizmo_type(NONE) {}
+  RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE) {}
   bool grid;
   bool ui;
   bool blueprint;
+  float grid_animation;
   // QSize size; /// @todo
   enum {
     NONE,
@@ -36,6 +37,8 @@ struct RenderOptions {
     SCALE
   } gizmo_type;
   GizmoPtr gizmo;
+  FocusGrabberPtr focus_grabber;
+  QPointF hover;
 };
 
 /**
@@ -107,7 +110,7 @@ public:
   MaterialPtr defaultMaterial() { return m_defaultMaterial; }
   void setDefaultMaterial(MaterialPtr defaultMaterial);
 
-  Objects objects() { return m_objects; }
+  Objects objects() const { return m_objects; }
   void setObjects(Objects objs);
   void add(ObjectPtr obj);
 
@@ -155,6 +158,7 @@ protected:
   FBOPtr m_fbo;
 
   BufferObject m_gridVertices, m_gridColors;
+  ProgramPtr m_gridProg;
 };
 
 #endif // RENDERPASS_HPP

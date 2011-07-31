@@ -55,7 +55,8 @@ public:
 
   const Eigen::AlignedBox<float, 3>& bbox();
 
-  static ModelPtr createBuiltin(const QString& name, const QString& model);
+  static ModelPtr createBuiltin(const QString& name, const QString& model,
+                                const Eigen::Vector3f size = Eigen::Vector3f(1, 1, 1));
 
 private:
   void calcBbox(const Eigen::Affine3f& transform, const Node& node);
@@ -100,11 +101,14 @@ protected:
 /// Built-in dummy Box object
 class Box : public BuiltIn {
 public:
+  Box(const Eigen::Vector3f size) : m_size(size) {}
   virtual ~Box() {}
   virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
 protected:
   void renderObj(State& state);
+
+  const Eigen::Vector3f m_size;
 };
 
 class Sphere : public BuiltIn {

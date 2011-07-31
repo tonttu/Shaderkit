@@ -45,6 +45,8 @@ public:
 
   RenderOptions & renderOptions() { return m_render_options; }
 
+  ScenePtr scene() const { return m_scene; }
+
 public slots:
   void sceneChange(ScenePtr);
 
@@ -71,7 +73,6 @@ protected:
 
   ScenePtr m_scene;
   QTimer* m_timer;
-  QPointF m_lastpos;
 
   QMap<Qt::MouseButton, QPointF> m_button_down;
 

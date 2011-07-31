@@ -29,10 +29,13 @@ Camera::Camera(const QString &name)
     m_dx(0), m_dy(0),
     m_projection(Eigen::Projective3f::Identity()),
     m_view(Eigen::Affine3f::Identity()),
+    m_width(-1), m_height(-1),
     m_fov(45), m_near(0.1f), m_far(1000.0f) {}
 
 void Camera::prepare(int width, int height) {
   glCheck("Camera::prepare");
+  m_width = width;
+  m_height = height;
   glViewport(0, 0, width, height);
   if (m_type == Perspective) {
     float f = 1.0f / tanf(m_fov*0.5f);
@@ -160,4 +163,21 @@ void Camera::setLocation(const Eigen::Vector3f& location) {
 
 const Eigen::Vector3f Camera::location() const {
   return m_target - m_front*m_dist;
+}
+
+Eigen::Projective3f Camera::normToWindow(bool swap_y) const {
+  float f = swap_y ? -1.0f : 1.0f;
+
+  Eigen::Projective3f window_scale;
+  window_scale.matrix() << m_width * 0.5f,                   0, 0, 0,
+                                        0, m_height * 0.5f * f, 0, 0,
+                                        0,                   0, 1, 0,
+                                        0,                   0, 0, 1;
+
+  // -1..1 to window coordinates
+  return window_scale * Eigen::Translation3f(1, f, 0);
+}
+
+Eigen::Projective3f Camera::transform(bool swap_y) const {
+  return normToWindow(swap_y) * projection() * view();
 }

@@ -24,6 +24,7 @@
 #include "mainwindow.hpp"
 #include "gizmos.hpp"
 #include "viewport.hpp"
+#include "object_creator.hpp"
 
 /// @todo include something less massive
 #include <QtGui>
@@ -115,6 +116,7 @@ void GLWidget::paintGL() {
       if (m_render_options.gizmo)
         m_render_options.gizmo->setObject(m_scene->selection().first());
     }
+
     m_scene->render(m_render_options);
     {
       glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -151,13 +153,20 @@ void GLWidget::resizeGL(int width, int height) {
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent* event) {
-  QPointF diff = event->posF() - m_lastpos;
-  m_lastpos = event->posF();
+  QPointF diff = event->posF() - m_render_options.hover;
+  m_render_options.hover = event->posF();
+
+  if (m_render_options.focus_grabber) {
+    if (m_render_options.focus_grabber->move(event)) {
+      event->accept();
+      return;
+    }
+  }
 
   if (event->buttons() == Qt::NoButton && m_render_options.gizmo) {
     m_render_options.gizmo->hover(
-          Eigen::Vector2f(m_lastpos.x(),
-                          height() - m_lastpos.y()));
+          Eigen::Vector2f(m_render_options.hover.x(),
+                          height() - m_render_options.hover.y()));
   } else if(event->buttons() == Qt::LeftButton && m_render_options.gizmo && m_render_options.gizmo->active()) {
     Eigen::Vector2f diff2(diff.x(), -diff.y());
     m_render_options.gizmo->input(diff2);
@@ -189,6 +198,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event) {
 void GLWidget::mousePressEvent(QMouseEvent* event) {
   m_button_down[event->button()] = event->posF();
 
+  if (m_render_options.focus_grabber) {
+    if (m_render_options.focus_grabber->btn(event)) {
+      event->accept();
+      return;
+    }
+  }
+
   if (event->buttons() == Qt::LeftButton && m_render_options.gizmo) {
     m_render_options.gizmo->buttonDown(Eigen::Vector2f(event->posF().x(),
                                        height() - event->posF().y()));
@@ -196,7 +212,7 @@ void GLWidget::mousePressEvent(QMouseEvent* event) {
 
   /// @todo re-enable rotating stuff
   if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
-    m_lastpos = event->posF();
+    m_render_options.hover = event->posF();
     event->accept();
     return;
   }
@@ -207,6 +223,13 @@ void GLWidget::mousePressEvent(QMouseEvent* event) {
 void GLWidget::mouseReleaseEvent(QMouseEvent* event) {
   if(m_render_options.gizmo && m_render_options.gizmo->active()) {
     m_render_options.gizmo->buttonUp();
+  }
+
+  if (m_render_options.focus_grabber) {
+    if (m_render_options.focus_grabber->btn(event)) {
+      event->accept();
+      return;
+    }
   }
 
   /// @todo multi-selection

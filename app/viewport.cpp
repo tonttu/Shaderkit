@@ -1,6 +1,7 @@
 #include "viewport.hpp"
 #include "mainwindow.hpp"
 #include "glwidget.hpp"
+#include "object_creator.hpp"
 
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -46,7 +47,7 @@ Viewport::Viewport(QWidget* parent) : QWidget(parent) {
 
 void Viewport::newObject() {
   QMenu menu("New object", this);
-  menu.addAction(QIcon(":/icons/cube.png"), "Cube")->setData("cube");
+  menu.addAction(QIcon(":/icons/cube.png"), "Box")->setData("box");
   menu.addAction(QIcon(":/icons/sphere.png"), "Sphere")->setData("sphere");
   menu.addAction(QIcon(":/icons/tube.png"), "Tube")->setData("tube");
   menu.addAction(QIcon(":/icons/torus.png"), "Torus")->setData("torus");
@@ -56,12 +57,18 @@ void Viewport::newObject() {
   menu.addAction(QIcon(":/icons/import.png"), "Import...")->setData("import");
   QAction* a = menu.exec(QCursor::pos());
   if (!a) return;
+
+  m_gl_widget->renderOptions().gizmo_type = RenderOptions::NONE;
+  m_gl_widget->renderOptions().grid_animation = 0.0f;
+  m_gl_widget->renderOptions().focus_grabber.reset(
+        new ObjectCreator(m_gl_widget->scene(), a->data().toString()));
 }
 
 void Viewport::newLight() {
 }
 
 void Viewport::translateGizmo() {
+  m_gl_widget->renderOptions().focus_grabber.reset();
   bool c = m_translate->isChecked();
   m_gl_widget->renderOptions().gizmo_type = c ?
         RenderOptions::TRANSLATE : RenderOptions::NONE;
@@ -72,6 +79,7 @@ void Viewport::translateGizmo() {
 }
 
 void Viewport::rotateGizmo() {
+  m_gl_widget->renderOptions().focus_grabber.reset();
   bool c = m_rotate->isChecked();
   m_gl_widget->renderOptions().gizmo_type = c ?
         RenderOptions::ROTATE : RenderOptions::NONE;
@@ -82,6 +90,7 @@ void Viewport::rotateGizmo() {
 }
 
 void Viewport::scaleGizmo() {
+  m_gl_widget->renderOptions().focus_grabber.reset();
   bool c = m_scale->isChecked();
   m_gl_widget->renderOptions().gizmo_type = c ?
         RenderOptions::SCALE : RenderOptions::NONE;

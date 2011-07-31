@@ -57,7 +57,7 @@ public:
   void resize(int width, int height);
 
   /// Renders everything in this scene
-  void render(RenderOptions opts);
+  void render(RenderOptions& opts);
 
   /// Current viewport width
   /// @todo QRect?
@@ -170,6 +170,8 @@ public:
   void setSelection(QList<ObjectPtr> objects) { m_selection = objects; }
   QList<ObjectPtr> selection() const { return m_selection; }
 
+  RenderPassPtr selectedRenderPass(RenderPass::Type filter) const;
+
 signals:
   void shaderListUpdated();
   void objectListUpdated();
@@ -227,6 +229,8 @@ protected:
   QList<ObjectPtr> m_selection;
 
   bool m_changed;
+
+  float m_lastTime;
 };
 
 /// Convert array of three doubles to vector

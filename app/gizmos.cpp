@@ -209,24 +209,18 @@ void Gizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
   Eigen::Vector3f center = m_object->model()->bbox().center();
   m_gizmo_to_obj = Eigen::Affine3f(Eigen::Translation3f(center));
 
-  Eigen::Projective3f window_scale;
-  window_scale.matrix() << size.width() * 0.5f,                    0, 0, 0,
-                                             0, size.height() * 0.5f, 0, 0,
-                                             0,                    0, 1, 0,
-                                             0,                    0, 0, 1;
-
   // -1..1 to window coordinates
-  Eigen::Projective3f normalized_to_window = window_scale * Eigen::Translation3f(1, 1, 0);
+  Eigen::Projective3f normalized_to_window = state.camera()->normToWindow();
 
-  state.pushTransform(m_object->transform());
+  state.pushModel(m_object->transform());
 
   // projection x view x model. Transforms model coordinates to normalized frustum
   auto transform = state.camera()->projection() * state.camera()->view() *
-      state.transform();
+      state.model();
 
   if(m_scale < 0.0f || !m_active) {
     // gizmo center in global coordinates
-    const Eigen::Vector3f gizmo_center = project3(state.transform() * m_gizmo_to_obj,
+    const Eigen::Vector3f gizmo_center = project3(state.model() * m_gizmo_to_obj,
                                                   Eigen::Vector3f(0, 0, 0));
 
     // gizmo distance from camera
@@ -249,17 +243,17 @@ void Gizmo::render(QSize size, State& state, const RenderOptions& render_opts) {
     m_update_inv_projection = false;
   }
 
-  state.pushTransform(m_gizmo_to_obj);
+  state.pushModel(m_gizmo_to_obj);
   glPushMatrix();
-  glLoadMatrix(state.camera()->view() * state.transform());
+  glLoadMatrix(state.camera()->view() * state.model());
 
   m_prog->bind(&state);
   renderImpl(state);
   m_prog->unbind();
 
   glRun(glPopMatrix());
-  state.popTransform();
-  state.popTransform();
+  state.popModel();
+  state.popModel();
   state.pop();
 }
 
@@ -569,7 +563,7 @@ void RotateGizmo::renderImpl(State& state) {
 
   // gizmo center in camera coordinates
   const Eigen::Vector3f gizmo_center = project3(
-        state.camera()->view() * state.transform(), Eigen::Vector3f(0, 0, 0));
+        state.camera()->view() * state.model(), Eigen::Vector3f(0, 0, 0));
 
   {
     Eigen::Vector2f window_loc = project2(m_window_projection, Eigen::Vector3f(0, 0, 0));
@@ -581,7 +575,7 @@ void RotateGizmo::renderImpl(State& state) {
     Eigen::Vector3f y = dir.cross(x);
 
     Eigen::Vector3f camera_loc_in_gizmo_coords = project3(
-          state.transform().inverse(), state.camera()->location());
+          state.model().inverse(), state.camera()->location());
     float d = camera_loc_in_gizmo_coords.norm();
 
     Eigen::Vector3f front = camera_loc_in_gizmo_coords;

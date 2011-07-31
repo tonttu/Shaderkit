@@ -155,7 +155,7 @@ Scene::Scene(QString filename)
     m_filename(filename), m_node(new Node), m_picking(-1, -1),
     m_automaticSaving(false),
     m_history(*this, filename),
-    m_changed(false) {
+    m_changed(false), m_lastTime(0) {
   /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
@@ -169,20 +169,26 @@ void Scene::resize(int width, int height) {
   m_height = height;
 }
 
-void Scene::render(RenderOptions opts) {
-  State state(m_time.elapsed()/1000.0f);
+void Scene::render(RenderOptions& opts_in) {
+  float t = m_time.elapsed()/1000.0f;
+  float dt = t - m_lastTime;
+  State state(t, dt);
   state.setSelection(m_selection);
+  RenderOptions opts = opts_in;
+  opts_in.grid_animation += dt * 1.0f;
+
   opts.grid = true;
-  opts.ui = false;
 
   CameraPtr defcam = camera();
+
+  /// @todo how stupid name is "Normal" for render pass. Extremely stupid. Fix it.
+  RenderPassPtr ui_pass = selectedRenderPass(RenderPass::Normal);
 
   bool ui = false;
   foreach (RenderPassPtr p, m_render_passes) {
     if (!p->view()) continue;
 
-    /// @todo how stupid name is "Normal" for render pass. Extremely stupid. Fix it.
-    opts.ui = !ui && p->type() == RenderPass::Normal;
+    opts.ui = ui_pass == p;
 
     bool pick = false;
     if (m_picking.x() >= 0 && p->view() == defcam) {
@@ -196,8 +202,6 @@ void Scene::render(RenderOptions opts) {
       m_picked = state.picked();
       state.disablePicking();
     }
-
-    ui = opts.ui || ui;
   }
 
   if (m_pickFunc) {
@@ -215,6 +219,7 @@ void Scene::render(RenderOptions opts) {
   }
 
   MaterialProperties::instance().setActiveMaterials(state.usedMaterials());
+  m_lastTime = t;
 }
 
 TexturePtr Scene::genTexture(const QString& name) {
@@ -699,6 +704,16 @@ void Scene::add(ObjectPtr obj) {
 void Scene::add(ModelPtr model) {
   model->setName(Utils::uniqueName(model->name(), m_models.keys(), "Model"));
   m_models[model->name()] = model;
+}
+
+RenderPassPtr Scene::selectedRenderPass(RenderPass::Type filter) const {
+  /// @todo implement render pass selection
+  foreach (RenderPassPtr p, m_render_passes) {
+    if (!p->view() || p->type() != filter) continue;
+
+    return p;
+  }
+  return RenderPassPtr();
 }
 
 void Scene::changedSlot() {

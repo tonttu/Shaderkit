@@ -23,14 +23,17 @@
 Object3D::Object3D(QString name, ModelPtr model)
   : SceneObject(name),
     m_transform(Eigen::Affine3f::Identity()),
-    m_model(model) {}
+    m_model(model) {
+  m_transform = Eigen::Translation3f(20, 0, 0) *
+      Eigen::AngleAxis<float>(M_PI * 0.25f, Eigen::Vector3f(0, 1, 0));
+}
 Object3D::~Object3D() {}
 
 void Object3D::render(State& state) {
   if (m_model) {
-    state.pushTransform(m_transform);
+    state.pushModel(m_transform);
     m_model->render(shared_from_this(), state);
-    state.popTransform();
+    state.popModel();
   }
 }
 

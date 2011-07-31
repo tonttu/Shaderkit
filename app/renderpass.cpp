@@ -28,14 +28,57 @@
 #include "mainwindow.hpp"
 #include "state.hpp"
 #include "gizmos.hpp"
+#include "object_creator.hpp"
+
+#define SHADER(x) #x
+
+const char* vertex_shader =
+  "#version 150 compatibility\n"
+  SHADER(
+    precision highp float;
+
+    out vec2 v;
+
+    void main() {
+      v = gl_Vertex.xz;
+      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
+      gl_FrontColor = gl_Color;
+    }
+  );
+
+const char* fragment_shader =
+  "#version 150 compatibility\n"
+  SHADER(
+    precision highp float;
+
+    uniform float anim;
+    uniform float active;
+    uniform float time;
+    in vec2 v;
+
+    void main() {
+      vec2 d = vec2(0.70710678, 0.70710678);
+      float dist = abs(dot(d, v) - anim);
+      float m = clamp(-2.0 / (10*5) * dist + 1.0, 0.0, 1.0);
+      m *= m;
+      gl_FragColor = mix(gl_Color, vec4(1, 1, 0, 1), mix(m, 1.0f, active*(1.0 + sin(time*6.456f)*0.3)));
+    }
+  );
+
+Eigen::Vector3f project3(const Eigen::Projective3f& projection,
+                         const Eigen::Vector3f& vector);
+
 
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Disabled), m_name(name), m_scene(scene),
     m_clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT),
     m_width(0), m_height(0), m_autosize(true),
-    m_fbo(new FrameBufferObject) {
+    m_fbo(new FrameBufferObject),
+    m_gridProg(new GLProgram("grid")) {
   connect(this, SIGNAL(changed(RenderPassPtr)),
           scene.get(), SLOT(changedSlot()));
+  m_gridProg->addShaderSrc(vertex_shader, Shader::Vertex);
+  m_gridProg->addShaderSrc(fragment_shader, Shader::Fragment);
 }
 
 int RenderPass::width() const {
@@ -263,10 +306,11 @@ void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
   glEnable(GL_LINE_SMOOTH);
   glLineWidth(1.7f);
 
+  const float step = 10.0f;
+  const int dist = 5;
+
   if (render_opts.grid) {
     if (!m_gridVertices.size()) {
-      float step = 10.0f;
-      int dist = 5;
       std::vector<float> v;
       std::vector<float> c;
 #define V(a,b,c) v.push_back(a), v.push_back(b), v.push_back(c)
@@ -288,7 +332,7 @@ void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
           for (int j = 0; j < 4; ++j) C(0.5f, 1.0, 0.5f, 0.5f);
         } else {
           for (int j = 0; j < 4; ++j) {
-            c.push_back(0.5f); c.push_back(0.5f); c.push_back(0.5f); c.push_back(0.3f);
+            C(0.5f, 0.5f, 0.5f, 0.3f);
           }
         }
       }
@@ -300,10 +344,26 @@ void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
       m_gridVertices.enableArray(state, GL_VERTEX_ARRAY, 3);
       m_gridColors.enableArray(state, GL_COLOR_ARRAY, 4);
     }
+    m_gridProg->bind(&state);
+    if (render_opts.grid_animation <= 1.0f) {
+      const float drop = step * dist * 0.5f;
+      const float r = 1.4142135623731f * step * dist + drop;
+      m_gridProg->setUniform(&state, "anim", (render_opts.grid_animation * 2.0f - 1.0f) * r);
+    } else {
+      m_gridProg->setUniform(&state, "anim", step * dist * 10.0f);
+    }
+    m_gridProg->setUniform(&state, "time", state.time());
+    m_gridProg->setUniform(&state, "active", render_opts.focus_grabber ? 0.2f : 0);
     glRun(glDrawArrays(GL_LINES, 0, m_gridVertices.size()/sizeof(float)/3));
+    m_gridProg->unbind();
   }
 
   state.pop();
+
+  if (render_opts.focus_grabber) {
+    render_opts.focus_grabber->render(state, render_opts);
+  }
+
   if (render_opts.gizmo)
     render_opts.gizmo->render(QSize(width(), height()), state, render_opts);
 }

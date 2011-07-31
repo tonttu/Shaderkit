@@ -41,7 +41,7 @@
  */
 class State {
 public:
-  State(float time);
+  State(float time, float dt);
 
   /// Returns the next available light id, can be used like GL_LIGHT0 + id
   int nextFreeLight() const;
@@ -65,11 +65,15 @@ public:
   void popMaterial();
 
   /// Multiplies the current matrix from right
-  void pushTransform(const Eigen::Affine3f& transform);
-  void popTransform();
+  void pushModel(const Eigen::Affine3f& model);
+  void popModel();
 
   /// Return model matrix
-  const Eigen::Affine3f& transform() const;
+  const Eigen::Affine3f& model() const;
+
+  /// Matrix from model coordinates to window coordinates
+  /// @param swap_y enable if you want to project to Qt coordinates
+  Eigen::Projective3f transform(bool swap_y = false) const;
 
   void setSelection(QList<ObjectPtr> objects);
   QList<ObjectPtr> selection() const;
@@ -78,9 +82,10 @@ public:
   QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
   void setCamera(CameraPtr camera);
-  CameraPtr camera();
+  CameraPtr camera() const;
 
   float time() const { return m_time; }
+  float dt() const { return m_dt; }
 
   void setPicking(QPoint pos);
   QPoint pickingPos() const;
@@ -102,7 +107,7 @@ protected:
   QList<MaterialPtr> m_materials;
   QSet<MaterialPtr> m_usedMaterials;
   QList<ObjectPtr> m_selection;
-  float m_time;
+  float m_time, m_dt;
 
   QPoint m_picking_point;
   bool m_picking;

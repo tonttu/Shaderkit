@@ -60,7 +60,8 @@ HEADERS += \
     texture_browser.hpp \
     history.hpp \
     viewport.hpp \
-    gizmos.hpp
+    gizmos.hpp \
+    object_creator.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -105,7 +106,8 @@ SOURCES += \
     texture_browser.cpp \
     history.cpp \
     viewport.cpp \
-    gizmos.cpp
+    gizmos.cpp \
+    object_creator.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp

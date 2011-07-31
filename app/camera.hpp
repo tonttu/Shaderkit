@@ -49,6 +49,9 @@ public:
 
   CameraPtr clone() const;
 
+  float width() const { return m_width; }
+  float height() const { return m_height; }
+
   /// Sets this camera to use orthographic matrix that fills the screen
   void setRect(float near = -1.0f, float far = 1.0f);
 
@@ -68,10 +71,18 @@ public:
 
   Type type() const { return m_type; }
 
-  void setPickDisplay(float x, float y);
+  //void setPickDisplay(float x, float y);
 
   const Eigen::Projective3f& projection() const { return m_projection; }
+
   const Eigen::Affine3f& view() const { return m_view; }
+
+  /// @param swap_y enable if you want to project to Qt coordinates
+  Eigen::Projective3f normToWindow(bool swap_y = false) const;
+
+  /// Matrix from view coordinates to window coordinates
+  /// @param swap_y enable if you want to project to Qt coordinates
+  Eigen::Projective3f transform(bool swap_y = false) const;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 protected:
@@ -91,6 +102,8 @@ protected:
 
   Eigen::Projective3f m_projection;
   Eigen::Affine3f m_view;
+
+  float m_width, m_height;
 
   /// Field of view, in degrees, in the y direction (Perspective)
   float m_fov;

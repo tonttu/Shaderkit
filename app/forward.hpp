@@ -83,6 +83,8 @@ class Highlighter;
 
 class Gizmo;
 typedef std::shared_ptr<Gizmo> GizmoPtr;
+class FocusGrabber;
+typedef std::shared_ptr<FocusGrabber> FocusGrabberPtr;
 
 namespace Ui {
   class MainWindow;
@@ -96,6 +98,14 @@ class Viewport;
 class QColor;
 class QVector3D;
 class QVector4D;
+
+namespace Eigen {
+  template<typename S, int R, int C, int O, int MR, int MC> class Matrix;
+
+  typedef Matrix<float, 2, 1, 0, 2, 1> Vector2f;
+  typedef Matrix<float, 3, 1, 0, 3, 1> Vector3f;
+  typedef Matrix<float, 4, 1, 0, 4, 1> Vector4f;
+}
 
 /// Hash for QSet etc
 template <typename T>

@@ -55,9 +55,9 @@ Model::Model(QString name) : SceneObject(name), m_dirty(true), m_node(new Node),
 
 void Model::render(ObjectPtr o, State& state, const Node& node) {
   /// @todo forget pushmatrix etc, use state
-  state.pushTransform(node.transform);
+  state.pushModel(node.transform);
   glPushMatrix();
-  glMultMatrix(state.transform());
+  glMultMatrix(state.model());
 
   foreach (MeshPtr m, node.meshes) {
     MaterialPtr material = o->materialForMesh(m->name);
@@ -100,7 +100,7 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
     glColor4f(1, 1, 1, 0.5f);
 
     glPushMatrix();
-    glMultMatrix(state.transform());
+    glMultMatrix(state.model());
 
     std::vector<float> vertices(8*3*2*3);
     float* v = &vertices[0];
@@ -125,7 +125,7 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
     glRun(glPopMatrix());
     state.pop();
   }
-  state.popTransform();
+  state.popModel();
 }
 
 QVariantMap Model::save() const {
@@ -164,7 +164,7 @@ void Model::calcBbox(const Eigen::Affine3f& transform, const Node& node) {
     calcBbox(t, *node.children[i]);
 }
 
-ModelPtr Model::createBuiltin(const QString& name, const QString& model_name) {
+ModelPtr Model::createBuiltin(const QString& name, const QString& model_name, const Eigen::Vector3f size) {
   /// @todo tidy this up
   if (model_name == "teapot") {
     ModelPtr m(new Model(name));
@@ -176,7 +176,7 @@ ModelPtr Model::createBuiltin(const QString& name, const QString& model_name) {
     ModelPtr m(new Model(name));
     m->m_builtin = true;
     m->node()->name = model_name;
-    m->node()->meshes << MeshPtr(new Box);
+    m->node()->meshes << MeshPtr(new Box(size));
     return m;
   } else if (model_name == "sphere") {
     ModelPtr m(new Model(name));
@@ -207,13 +207,13 @@ void Teapot::renderObj(State&) {
 
 void Box::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
   for (int i = 0; i < 8; ++i)
-    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*7-3.5f, ((i>>1)&1)*0.8f-0.4f-3.1f, (i&1)*7-3.5f));
+    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*m_size[0]-m_size[0]*0.5f,
+                                            ((i>>1)&1)*m_size[1]-m_size[1]*0.5f,
+                                            (i&1)*m_size[2]-m_size[2]*0.5f));
 }
 
 void Box::renderObj(State&) {
-  /// @todo remove translatef
-  glTranslatef(0, -3.1f, 0);
-  drawBox(3.5f, 0.4f, 3.5f);
+  drawBox(m_size[0]*0.5f, m_size[1]*0.5f, m_size[2]*0.5f);
 }
 
 void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {

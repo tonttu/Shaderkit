@@ -18,8 +18,9 @@
 #include "forward.hpp"
 #include "state.hpp"
 #include "material.hpp"
+#include "camera.hpp"
 
-State::State(float time) : m_time(time), m_picking(false) {
+State::State(float time, float dt) : m_time(time), m_dt(dt), m_picking(false) {
   m_data.push_back(Data());
   m_transforms.push_back(Eigen::Affine3f::Identity());
 }
@@ -108,11 +109,11 @@ void State::popMaterial() {
   }
 }
 
-void State::pushTransform(const Eigen::Affine3f& transform) {
+void State::pushModel(const Eigen::Affine3f& transform) {
   m_transforms.push_back(m_transforms.back() * transform);
 }
 
-void State::popTransform() {
+void State::popModel() {
   if (m_transforms.size() <= 1) {
     Log::error("State transform push/pop mismatch");
   } else {
@@ -120,15 +121,25 @@ void State::popTransform() {
   }
 }
 
-const Eigen::Affine3f& State::transform() const {
+const Eigen::Affine3f& State::model() const {
   return m_transforms.back();
+}
+
+Eigen::Projective3f State::transform(bool swap_y) const {
+  CameraPtr c = camera();
+  if (!c) {
+    Log::error("No valid camera in State::transform!");
+    return Eigen::Projective3f::Identity();
+  }
+
+  return c->transform(swap_y) * model();
 }
 
 void State::setCamera(CameraPtr camera) {
   m_data.back().m_camera = camera;
 }
 
-CameraPtr State::camera() {
+CameraPtr State::camera() const {
   return m_data.back().m_camera;
 }
 
