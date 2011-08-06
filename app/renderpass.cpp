@@ -222,6 +222,9 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
   state.push();
   beginFBO();
 
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+
   resize(width(), height());
   state.setCamera(m_view);
   m_view->prepare(width(), height());

@@ -79,10 +79,14 @@ public:
     if (m_context)
       t = new T(m_context, parent);
 
-    if (!t)
-      foreach (QGLWidget* w, m_glwidgets)
-        if (w->isValid())
+    if (!t) {
+      foreach (QGLWidget* w, m_glwidgets) {
+        if (w->isValid()) {
           t = new T(formatGL(), parent, w);
+          break;
+        }
+      }
+    }
 
     if (!t && !m_glwidgets.isEmpty())
       t = new T(formatGL(), parent, m_glwidgets.first());

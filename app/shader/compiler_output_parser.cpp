@@ -147,7 +147,7 @@ FglrxParser::FglrxParser() {
   // 1.50 ATI
   // ERROR: 0:3: error(#132) Syntax error: 'preciswion' parse error
 
-  pattern = "\\s*ERROR:\\s+"               // ERROR:
+  pattern = "\\s*(?:ERROR|WARNING):\\s+"   // ERROR:
             "\\d+ : (\\d+)"                // "0:3:", shader:line [1]:
             "\\s* : \\s*"                  // ":", separator
             "([a-z]+)"                     // "error", type [2]
@@ -166,7 +166,8 @@ FglrxParser::FglrxParser() {
   m_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
 
   // ERROR: error(#273) 1 compilation errors.  No code generated
-  pattern = "ERROR: ((error)\\(#\\d+\\).*)";
+  // ERROR: 0:? : error(#167) Only allowed at global scope uniform
+  pattern = "(?:ERROR|WARNING):\\s*(?:\\d:\\?\\s*)?((error|warning)\\(#\\d+\\).*)";
   m_generic << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
 }
 

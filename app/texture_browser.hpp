@@ -35,9 +35,10 @@ class QLabel;
 class TextureWidgetGL : public QGLWidget {
   Q_OBJECT
 
-public:
+  friend class MainWindow;
   TextureWidgetGL(const QGLFormat& format, QWidget* parent, const QGLWidget* shared = 0);
   TextureWidgetGL(QGLContext * context, QWidget* parent);
+public:
   ~TextureWidgetGL();
 
   void setTexture(TexturePtr tex);
@@ -65,6 +66,9 @@ private:
   /// @todo this could be shared between all texture widgets..
   BufferObject m_vertices, m_uv0;
   TexturePtr m_tex;
+
+  TextureWidgetGL(const TextureWidgetGL&);
+  void operator=(const TextureWidgetGL&);
 };
 
 class TextureWidget : public QWidget {
