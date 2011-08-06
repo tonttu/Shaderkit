@@ -49,7 +49,8 @@ void History::sync() {
   if (!m_historyEnabled) {
     QVariantMap state;
     state["scene"] = scene;
-    state["time"] = QDateTime::currentDateTimeUtc();
+    state["time"] = QDateTime::currentDateTime().toUTC();
+    // Qt 4.7 only: QDateTime::currentDateTimeUtc();
 
     {
       QMutexLocker lock(&m_queueMutex);
@@ -73,7 +74,7 @@ void History::save() {
   if (!m_historyEnabled) {
     QVariantMap state;
     state["scene"] = scene;
-    state["time"] = QDateTime::currentDateTimeUtc();
+    state["time"] = QDateTime::currentDateTime().toUTC();
     /// @todo save all changed shader files
 
     QMutexLocker lock(&m_queueMutex);

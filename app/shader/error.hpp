@@ -85,6 +85,7 @@ public:
   using List::const_iterator;
   using List::begin;
   using List::end;
+  using List::size;
 
   ShaderErrorList(MaterialPtr material_ = MaterialPtr(), QString program_ = "", QString shader_ = "")
     : material(material_), program(program_), shader(shader_) {}

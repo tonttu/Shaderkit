@@ -47,6 +47,7 @@ void ShaderLexer::tokenize() {
   glslset_scan_string(m_data.data(), m_data.length());
   m_tokenized_length = 0;
   m_tokens.clear();
+  m_splitted.clear();
 
   int token;
   while ((token = glsllex_wrapper())) {
@@ -57,7 +58,8 @@ void ShaderLexer::tokenize() {
 }
 
 std::string& ShaderLexer::toLines() {
-  m_splitted.clear();
+  if (!m_splitted.empty()) return m_splitted;
+
   // the length of the splitted src is the length of all tokens splitted to lines
   m_splitted.reserve(m_tokenized_length + m_tokens.size());
   const char *data = m_data.data();

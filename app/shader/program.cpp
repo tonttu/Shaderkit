@@ -165,8 +165,8 @@ void GLProgram::link(State* state) {
     std::vector<GLchar> log(len);
     GLsizei size = len;
     glRun(glGetProgramInfoLog(m_prog, size, &size, &log[0]));
-    ShaderCompilerOutputParser parser(QString::fromUtf8(&log[0], size));
-    parser.parse(errors);
+    ShaderCompilerOutputParser::instance().parse(QString::fromUtf8(&log[0], size),
+                                                 errors);
   }
 
   if (ok) {

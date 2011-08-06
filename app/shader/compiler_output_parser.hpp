@@ -23,6 +23,14 @@
 #include <QStringList>
 #include <QRegExp>
 
+
+class ParserImpl {
+public:
+  virtual ~ParserImpl() {}
+  virtual bool parse(const QStringList& list, ShaderErrorList& errors) = 0;
+  virtual bool hasColumnInformation() const;
+};
+
 /**
  * Tries to parse the GLSL Compiler output. Unfortunately the output format is
  * implementation-dependent, so the parsing is not guaranteed to work.
@@ -38,16 +46,15 @@ class ShaderCompilerOutputParser {
 public:
   /// Initializes the parser with given compiler output
   /// @todo Implement also some other formats than "1.50 NVIDIA via Cg compiler"
-  ShaderCompilerOutputParser(QString compiler_output);
+  ShaderCompilerOutputParser();
 
-  bool parse(ShaderErrorList& errors);
+  bool parse(const QString & output, ShaderErrorList& errors);
+  bool parse(Shader& shader, ShaderErrorList& errors);
+
+  static ShaderCompilerOutputParser& instance();
 
 protected:
-  /// The current parsing regexp, compiled in the constructor
-  QRegExp m_regexp;
-
-  /// The compiler output splitted to lines
-  QStringList m_lines;
+  QList<std::shared_ptr<ParserImpl>> m_parsers;
 };
 
 #endif

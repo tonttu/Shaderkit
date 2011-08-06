@@ -16,81 +16,48 @@
  */
 
 #include "shader/compiler_output_parser.hpp"
+#include "shader/grammar.hpp"
+#include "shader/shader.hpp"
+
+#include "opengl.hpp"
 
 #include <cassert>
 
-/**
- * NVIDIA:
- *  0(11) : warning C7522: OpenGL requires constants to be initialized
- *  0(11) : error C0000: syntax error, unexpected identifier, expecting ',' or ';' at token "foo"
- *    (0) : error C0000: syntax error, unexpected $end at token "<EOF>"
- *
- * MESA:
- *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
- *  0:1(15): preprocessor error: syntax error, unexpected IDENTIFIER, expecting NEWLINE
- */
-ShaderCompilerOutputParser::ShaderCompilerOutputParser(QString compiler_output) {
-  m_lines = compiler_output.split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
+
+bool ParserImpl::hasColumnInformation() const {
+  return false;
 }
 
-bool ShaderCompilerOutputParser::parse(ShaderErrorList& errors) {
-  static QList<QRegExp> s_patterns;
-  static QList<QRegExp> s_modes;
-  static QList<QRegExp> s_ignore;
-  if (s_patterns.isEmpty()) {
-    QString pattern;
+class SimpleParser : public ParserImpl {
+public:
+  virtual bool parse(const QStringList& lines, ShaderErrorList& errors);
 
-    // 1.50 NVIDIA via Cg compiler
-    pattern = "\\s*\\d* \\( (\\d+) \\)" // "0(11)", shader(line number [1])
-              "\\s* : \\s*"             // ":", separator
-              "([^\\s]+)  \\s+"         // "warning", type [2]
-              "[^\\s:]+"                // "C7522", nvidia error code
-              "\\s* : \\s*"             // ":", separator
-              "(.*)";                   // the actual error [3]
-    pattern.remove(QChar(' '));
-    s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+protected:
+  QList<QRegExp> m_patterns;
+  QList<QRegExp> m_modes;
+  QList<QRegExp> m_ignore;
+};
 
-    // MESA
-    /// @todo Use the column information here and skip the recompile hack totally
-    pattern = "\\s*\\d+ : (\\d+) \\(\\d+\\)" // "0:8(1)", shader:line [1] (column)
-              "\\s* : \\s*"                  // ":", separator
-              "(?:[a-z]+ \\s+)?"                // "preprocessor ", optional
-              "([^\\s]+)"                    // "warning", type [2]
-              "\\s* : \\s*"                  // ":", separator
-              "(.*)";                        // the actual error [3]
-    pattern.remove(QChar(' '));
-    s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
-
-    // 3.30 NVIDIA via Cg compiler
-    pattern = "\\s*(\\w*)\\s+info";
-    s_modes << QRegExp(pattern, Qt::CaseInsensitive, QRegExp::RegExp2);
-
-    // 3.30 NVIDIA via Cg compiler
-    pattern = "\\s*-*\\s*";
-    s_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
-  }
-
-  QString mode = "";
-  bool ok = true;
-
-  foreach (QString msg, m_lines) {
+bool SimpleParser::parse(const QStringList& lines, ShaderErrorList& errors) {
+  foreach (QString msg, lines) {
     bool found = false;
-    for (int i = 0; i < s_ignore.size(); ++i) {
-      if (s_ignore[i].exactMatch(msg)) {
+    for (int i = 0; i < m_ignore.size(); ++i) {
+      if (m_ignore[i].exactMatch(msg)) {
         found = true;
         break;
       }
     }
     if (found) continue;
 
-    for (int i = 0; i < s_modes.size(); ++i) {
-      if (s_modes[i].exactMatch(msg)) {
-        mode = s_modes[i].cap(1);
+    QString mode;
+    for (int i = 0; i < m_modes.size(); ++i) {
+      if (m_modes[i].exactMatch(msg)) {
+        mode = m_modes[i].cap(1);
         found = true;
         if (i != 0) {
-          QRegExp r = s_modes[i];
-          s_modes.removeAt(i);
-          s_modes.insert(0, r);
+          QRegExp r = m_modes[i];
+          m_modes.removeAt(i);
+          m_modes.insert(0, r);
         }
         break;
       }
@@ -98,13 +65,13 @@ bool ShaderCompilerOutputParser::parse(ShaderErrorList& errors) {
     if (found) continue;
 
     QStringList list;
-    for (int i = 0; i < s_patterns.size(); ++i) {
-      if (s_patterns[i].exactMatch(msg)) {
-        list = s_patterns[i].capturedTexts();
+    for (int i = 0; i < m_patterns.size(); ++i) {
+      if (m_patterns[i].exactMatch(msg)) {
+        list = m_patterns[i].capturedTexts();
         if (i != 0) {
-          QRegExp r = s_patterns[i];
-          s_patterns.removeAt(i);
-          s_patterns.insert(0, r);
+          QRegExp r = m_patterns[i];
+          m_patterns.removeAt(i);
+          m_patterns.insert(0, r);
         }
       }
     }
@@ -114,11 +81,170 @@ bool ShaderCompilerOutputParser::parse(ShaderErrorList& errors) {
       errors << ShaderError(str, list[2], list[1].toInt()-1);
     } else {
       Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
-      ok = false;
-      QString str = mode.isEmpty() ? msg : msg + " (" + mode + ")";
-      errors << ShaderError(msg, "error", 0, 0);
+      return false;
     }
   }
-  return ok;
+  return true;
 }
 
+
+class NvidiaParser : public SimpleParser {
+public:
+  NvidiaParser();
+};
+
+// 0(11) : warning C7522: OpenGL requires constants to be initialized
+// 0(11) : error C0000: syntax error, unexpected identifier, expecting ',' or ';' at token "foo"
+//   (0) : error C0000: syntax error, unexpected $end at token "<EOF>"
+NvidiaParser::NvidiaParser() {
+  QString pattern;
+
+  // 1.50 NVIDIA via Cg compiler
+  pattern = "\\s*\\d* \\( (\\d+) \\)" // "0(11)", shader(line number [1])
+            "\\s* : \\s*"             // ":", separator
+            "([^\\s]+)  \\s+"         // "warning", type [2]
+            "[^\\s:]+"                // "C7522", nvidia error code
+            "\\s* : \\s*"             // ":", separator
+            "(.*)";                   // the actual error [3]
+  pattern.remove(QChar(' '));
+  m_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+  pattern = "\\s*(\\w*)\\s+info";
+  m_modes << QRegExp(pattern, Qt::CaseInsensitive, QRegExp::RegExp2);
+
+  pattern = "\\s*-*\\s*";
+  m_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+}
+
+class FglrxParser : public SimpleParser {
+public:
+  FglrxParser();
+};
+
+FglrxParser::FglrxParser() {
+  QString pattern;
+
+  // 1.50 ATI
+  // ERROR: 0:3: error(#132) Syntax error: 'preciswion' parse error
+
+  pattern = "\\s*ERROR:\\s+"               // ERROR:
+            "\\d+ : (\\d+)"                // "0:3:", shader:line [1]:
+            "\\s* : \\s*"                  // ":", separator
+            "([a-z]+)"                     // "error", type [2]
+            "\\([^\\)]+\\)\\s*"            // "(#132)" error code
+            "(.*)";                        // the actual error [3]
+  pattern.remove(QChar(' '));
+  m_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+  pattern = ".* shader was successfully compiled .*";
+  m_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+  pattern = ".* shader\\(s\\) linked.*";
+  m_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+  pattern = ".* shader failed to compile with the following errors.*";
+  m_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+}
+
+ShaderCompilerOutputParser::ShaderCompilerOutputParser() {
+  /// @todo initialize the scripting context here and load parser plugins. maybe.
+
+  /// @todo load these better
+  //m_parsers << std::make_shared<NvidiaParser>();
+  m_parsers << std::make_shared<FglrxParser>();
+}
+
+ShaderCompilerOutputParser& ShaderCompilerOutputParser::instance() {
+  static ShaderCompilerOutputParser s_instance;
+  return s_instance;
+}
+
+bool ShaderCompilerOutputParser::parse(const QString & output, ShaderErrorList& errors) {
+  Log::error("ShaderCompilerOutputParser::parse NOT IMPLEMENTED (%s)", output.toUtf8().data());
+  return false;
+}
+
+bool ShaderCompilerOutputParser::parse(Shader& shader, ShaderErrorList& errors) {
+  ShaderLexer lexer;
+  for (int i = 0, e = m_parsers.size(); i < e; ++i) {
+    std::shared_ptr<ParserImpl> impl = m_parsers[i];
+    assert(impl);
+    std::vector<GLchar> log;
+    GLint len = 0;
+
+    if (!impl->hasColumnInformation() && lexer.tokens() == 0) {
+      // Split the source tokens to lines so that we can find the exact error location
+      lexer.loadSrc(shader.src());
+      const std::string& data = lexer.toLines();
+      const GLchar* str = data.c_str();
+      len = data.length();
+
+      // Recompile
+      glRun(glShaderSource(shader.id(), 1, &str, &len));
+      glRun(glCompileShader(shader.id()));
+    }
+
+    glRun(glGetShaderiv(shader.id(), GL_INFO_LOG_LENGTH, &len));
+
+    // Usually this shouldn't happen, since this function is called only
+    // when there actually are some errors in the source code.
+    if (len <= 1) {
+      Log::error("CompilerOutputParser, tokenized shader gives weird results");
+      continue;
+    }
+
+    log.resize(len);
+    GLsizei size = len;
+    glRun(glGetShaderInfoLog(shader.id(), size, &size, &log[0]));
+
+    QStringList lines = QString::fromUtf8(&log[0], size).split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
+
+    ShaderErrorList tmp;
+    if (impl->parse(lines, tmp)) {
+      foreach (ShaderError e, tmp) {
+        // instead of using the original error log, we have used lexer to split
+        // the output to lines, therefore we need to map these line number to
+        // original line/column numbers
+        int l = lexer.tokens();
+        if (l) {
+          if (e.line() > l || l == 0) {
+            Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
+                       e.line(), l, &log[0], lexer.toLines().c_str(), shader.src().toUtf8().data());
+          }
+          const ShaderLexer::Token& token = lexer.transform(e.line());
+          e.setLine(token.line);
+          e.setColumn(token.column);
+          e.setLength(token.len);
+        }
+        errors << e;
+      }
+
+      if (i != 0) {
+        /// This seems to be the best parser implementation, always prefer this
+        m_parsers.removeAll(impl);
+        m_parsers.insert(0, impl);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+/// @todo implement mesa parser
+/**
+ * MESA:
+ *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
+ *  0:1(15): preprocessor error: syntax error, unexpected IDENTIFIER, expecting NEWLINE
+ */
+
+#if 0
+    // MESA
+    pattern = "\\s*\\d+ : (\\d+) \\(\\d+\\)" // "0:8(1)", shader:line [1] (column)
+              "\\s* : \\s*"                  // ":", separator
+              "(?:[a-z]+ \\s+)?"                // "preprocessor ", optional
+              "([^\\s]+)"                    // "warning", type [2]
+              "\\s* : \\s*"                  // ":", separator
+              "(.*)";                        // the actual error [3]
+    pattern.remove(QChar(' '));
+    s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+#endif

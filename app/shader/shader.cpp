@@ -17,7 +17,6 @@
 
 #include "shader/shader.hpp"
 #include "shader/program.hpp"
-#include "shader/grammar.hpp"
 #include "shader/compiler_output_parser.hpp"
 #ifndef _WIN32
 #include "shader/sandbox_compiler.hpp"
@@ -91,13 +90,13 @@ Shader::CompileStatus Shader::compile(ShaderErrorList& errors) {
     GLint ok = 0;
     glRun(glGetShaderiv(m_shader, GL_COMPILE_STATUS, &ok));
     glRun(glGetShaderiv(m_shader, GL_INFO_LOG_LENGTH, &len));
+    int error_count = errors.size();
     // len may include the zero byte
-    if (len > 1) {
-      bool parse_ok = handleCompilerOutput(m_src, errors);
-      return ok && parse_ok ? WARNINGS : ERRORS;
-    } else {
-      return ok ? OK : ERRORS;
+    if (len > 1 && !handleCompilerOutput(errors)) {
+      Log::error("Failed to parse GLSL compiler output");
     }
+    error_count = errors.size() - error_count;
+    return ok ? error_count ? WARNINGS : OK : ERRORS;
   } else {
     return NONE;
   }
@@ -180,51 +179,9 @@ Shader::Type Shader::guessType(const QString& filename) {
   return Unknown;
 }
 
-bool Shader::handleCompilerOutput(const QString& src, ShaderErrorList& errors) {
+bool Shader::handleCompilerOutput(ShaderErrorList& errors) {
   glCheck("handleCompilerOutput");
 
-  // Split the source tokens to lines so that we can find the exact error location
-  ShaderLexer lexer;
-  lexer.loadSrc(src);
-  std::string& data = lexer.toLines();
-  const GLchar* str = data.c_str();
-  GLint len = data.length();
-
-  // Recompile
-  glRun(glShaderSource(id(), 1, &str, &len));
-  glRun(glCompileShader(id()));
-
-  glRun(glGetShaderiv(id(), GL_INFO_LOG_LENGTH, &len));
-
-  // Usually this shouldn't happen, since this function is called only
-  // when there actually are some errors in the source code.
-  if (len < 1) return false;
-
-  // Read the info log
-  std::vector<GLchar> log(len);
-  glRun(glGetShaderInfoLog(id(), len, &len, &log[0]));
-
-  // unless we get something parsed from the output, we think this as a failure
-  bool ok = false;
-
-  ShaderCompilerOutputParser parser(QString::fromUtf8(&log[0], len));
-  int l = lexer.tokens();
-  ShaderErrorList tmp;
-  parser.parse(tmp);
-  foreach (ShaderError e, tmp) {
-    if (e.line() > l || l == 0) {
-      Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
-                 e.line(), l, &log[0], data.c_str(), src.toUtf8().data());
-      errors << e;
-      continue;
-    }
-    const ShaderLexer::Token& token = lexer.transform(e.line());
-    e.setLine(token.line);
-    e.setColumn(token.column);
-    e.setLength(token.len);
-    errors << e;
-    ok = true;
-  }
-
-  return ok;
+  ShaderCompilerOutputParser& parser = ShaderCompilerOutputParser::instance();
+  return parser.parse(*this, errors);
 }

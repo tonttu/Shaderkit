@@ -119,9 +119,9 @@ protected:
    * Recompiles the shader in a way that the error list can be generated.
    * Call this only if there are some errors with the shader.
    *
-   * Returns true if the output parsing is successful.
+   * @return true if Returns true if the output parsing is successful.
    */
-  bool handleCompilerOutput(const QString& src, ShaderErrorList& errors);
+  bool handleCompilerOutput(ShaderErrorList& errors);
 
   /// The actual wrapped shader object
   GLuint m_shader;
