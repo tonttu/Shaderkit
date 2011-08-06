@@ -36,11 +36,16 @@ protected:
   QList<QRegExp> m_patterns;
   QList<QRegExp> m_modes;
   QList<QRegExp> m_ignore;
+  QList<QRegExp> m_generic;
+
+  virtual bool handleLine(const QString&) { return false; }
 };
 
 bool SimpleParser::parse(const QStringList& lines, ShaderErrorList& errors) {
-  foreach (QString msg, lines) {
-    bool found = false;
+  foreach (const QString& msg, lines) {
+    bool found = handleLine(msg);
+    if (found) continue;
+
     for (int i = 0; i < m_ignore.size(); ++i) {
       if (m_ignore[i].exactMatch(msg)) {
         found = true;
@@ -80,8 +85,23 @@ bool SimpleParser::parse(const QStringList& lines, ShaderErrorList& errors) {
       QString str = mode.isEmpty() ? list[3] : list[3] + " (" + mode + ")";
       errors << ShaderError(str, list[2], list[1].toInt()-1);
     } else {
-      Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
-      return false;
+      bool ok = false;
+      for (int i = 0; i < m_generic.size(); ++i) {
+        if (m_generic[i].exactMatch(msg)) {
+          list = m_generic[i].capturedTexts();
+          if (list.size() == 3)
+            errors << ShaderError(list[1], list[2], -1);
+          else
+            errors << ShaderError(msg, "error", -1);
+          ok = true;
+          break;
+        }
+      }
+
+      if (!ok) {
+        Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
+        return false;
+      }
     }
   }
   return true;
@@ -144,6 +164,10 @@ FglrxParser::FglrxParser() {
 
   pattern = ".* shader failed to compile with the following errors.*";
   m_ignore << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+  // ERROR: error(#273) 1 compilation errors.  No code generated
+  pattern = "ERROR: ((error)\\(#\\d+\\).*)";
+  m_generic << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
 }
 
 ShaderCompilerOutputParser::ShaderCompilerOutputParser() {
@@ -159,8 +183,28 @@ ShaderCompilerOutputParser& ShaderCompilerOutputParser::instance() {
   return s_instance;
 }
 
+QStringList ShaderCompilerOutputParser::split(const QString& str) const {
+  return str.split(QRegExp("\\s*[\\r\\n]+\\s*"), QString::SkipEmptyParts);
+}
+
 bool ShaderCompilerOutputParser::parse(const QString & output, ShaderErrorList& errors) {
-  Log::error("ShaderCompilerOutputParser::parse NOT IMPLEMENTED (%s)", output.toUtf8().data());
+  QStringList lines = split(output);
+  for (int i = 0, e = m_parsers.size(); i < e; ++i) {
+    std::shared_ptr<ParserImpl> impl = m_parsers[i];
+    assert(impl);
+
+    ShaderErrorList tmp;
+    if (impl->parse(lines, tmp)) {
+      errors += tmp;
+
+      if (i != 0) {
+        /// This seems to be the best parser implementation, always prefer this
+        m_parsers.removeAll(impl);
+        m_parsers.insert(0, impl);
+      }
+      return true;
+    }
+  }
   return false;
 }
 
@@ -197,7 +241,7 @@ bool ShaderCompilerOutputParser::parse(Shader& shader, ShaderErrorList& errors) 
     GLsizei size = len;
     glRun(glGetShaderInfoLog(shader.id(), size, &size, &log[0]));
 
-    QStringList lines = QString::fromUtf8(&log[0], size).split(QRegExp("[\\r\\n]+"), QString::SkipEmptyParts);
+    QStringList lines = split(QString::fromUtf8(&log[0], size));
 
     ShaderErrorList tmp;
     if (impl->parse(lines, tmp)) {

@@ -51,6 +51,8 @@ public:
   bool parse(const QString & output, ShaderErrorList& errors);
   bool parse(Shader& shader, ShaderErrorList& errors);
 
+  QStringList split(const QString& str) const;
+
   static ShaderCompilerOutputParser& instance();
 
 protected:

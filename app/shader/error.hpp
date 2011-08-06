@@ -98,6 +98,12 @@ public:
     return *this;
   }
 
+  ShaderErrorList& operator+=(const ShaderErrorList& that) {
+    foreach (const ShaderError& error, that)
+      *this << error;
+    return *this;
+  }
+
   MaterialPtr material;
   QString program, shader;
 };
