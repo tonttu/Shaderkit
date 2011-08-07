@@ -171,12 +171,34 @@ FglrxParser::FglrxParser() {
   m_generic << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
 }
 
+class MesaParser : public SimpleParser {
+public:
+  MesaParser();
+};
+
+MesaParser::MesaParser() {
+  QString pattern;
+
+  // 0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
+  // 0:1(15): preprocessor error: syntax error, unexpected IDENTIFIER, expecting NEWLINE
+
+  pattern = "\\s*\\d+ : (\\d+) \\(\\d+\\)" // "0:8(1)", shader:line [1] (column)
+            "\\s* : \\s*"                  // ":", separator
+            "(?:[a-z]+ \\s+)?"             // "preprocessor ", optional
+            "([^\\s]+)"                    // "warning", type [2]
+            "\\s* : \\s*"                  // ":", separator
+            "(.*)";                        // the actual error [3]
+  pattern.remove(QChar(' '));
+  m_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+}
+
 ShaderCompilerOutputParser::ShaderCompilerOutputParser() {
   /// @todo initialize the scripting context here and load parser plugins. maybe.
 
   /// @todo load these better
-  //m_parsers << std::make_shared<NvidiaParser>();
+  m_parsers << std::make_shared<NvidiaParser>();
   m_parsers << std::make_shared<FglrxParser>();
+  m_parsers << std::make_shared<MesaParser>();
 }
 
 ShaderCompilerOutputParser& ShaderCompilerOutputParser::instance() {
@@ -274,22 +296,3 @@ bool ShaderCompilerOutputParser::parse(Shader& shader, ShaderErrorList& errors) 
   }
   return false;
 }
-
-/// @todo implement mesa parser
-/**
- * MESA:
- *  0:8(1): error: syntax error, unexpected XOR_ASSIGN, expecting ',' or ';'
- *  0:1(15): preprocessor error: syntax error, unexpected IDENTIFIER, expecting NEWLINE
- */
-
-#if 0
-    // MESA
-    pattern = "\\s*\\d+ : (\\d+) \\(\\d+\\)" // "0:8(1)", shader:line [1] (column)
-              "\\s* : \\s*"                  // ":", separator
-              "(?:[a-z]+ \\s+)?"                // "preprocessor ", optional
-              "([^\\s]+)"                    // "warning", type [2]
-              "\\s* : \\s*"                  // ":", separator
-              "(.*)";                        // the actual error [3]
-    pattern.remove(QChar(' '));
-    s_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::RegExp2);
-#endif

@@ -313,6 +313,7 @@ void TextureChangeManager::listenerDeleted(QObject* obj) {
     else ++it;
   }
   if (m_callbacks.isEmpty()) {
+    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(run()));
     deleteLater();
     s_instance = 0;
   }

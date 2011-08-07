@@ -133,6 +133,8 @@ public slots:
   /// Does the editor ask for autocompiling the shader after codeChanged().
   bool autoCompileEnabled() const;
 
+  static void cleanup();
+
 signals:
   void newScene(ScenePtr);
 

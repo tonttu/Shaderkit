@@ -80,9 +80,14 @@ int main(int argc, char* argv[]) {
 
   ShaderManager shader_manager;
 
-  MainWindow window;
-  Welcome* welcome = new Welcome;
-  welcome->show();
+  int ret = 0;
+  {
+    MainWindow window;
+    Welcome* welcome = new Welcome;
+    welcome->show();
 
-  return app.exec();
+    ret = app.exec();
+  }
+  MainWindow::cleanup();
+  return ret;
 }

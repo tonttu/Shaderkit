@@ -227,6 +227,8 @@ void GLWidget::mouseReleaseEvent(QMouseEvent* event) {
 
   if (m_render_options.focus_grabber) {
     if (m_render_options.focus_grabber->btn(event)) {
+      if (m_render_options.focus_grabber->done())
+        m_render_options.focus_grabber.reset();
       event->accept();
       return;
     }

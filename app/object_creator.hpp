@@ -13,6 +13,7 @@ public:
   virtual bool move(QMouseEvent* ev) = 0;
   virtual bool btn(QMouseEvent* ev) = 0;
   virtual void render(State& state, const RenderOptions& render_opts) = 0;
+  virtual bool done() const = 0;
 };
 
 class ObjectCreator : public FocusGrabber {
@@ -21,6 +22,7 @@ public:
   virtual bool move(QMouseEvent* ev);
   virtual bool btn(QMouseEvent* ev);
   virtual void render(State& state, const RenderOptions& render_opts);
+  virtual bool done() const;
 
 private:
   int m_state;

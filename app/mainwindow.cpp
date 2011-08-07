@@ -133,8 +133,7 @@ MainWindow::MainWindow(QWidget* parent)
 }
 
 MainWindow::~MainWindow() {
-  if (s_instance == this)
-    s_instance = 0;
+  assert (s_instance == this);
 }
 
 MultiEditor* MainWindow::createEditor(MaterialPtr material) {
@@ -161,6 +160,10 @@ void MainWindow::activateEditor(MultiEditor* editor) {
 MainWindow& MainWindow::instance() {
   assert(s_instance);
   return *s_instance;
+}
+
+void MainWindow::cleanup() {
+  s_instance = 0;
 }
 
 ScenePtr MainWindow::scene() {

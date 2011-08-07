@@ -81,6 +81,10 @@ bool ObjectCreator::btn(QMouseEvent* ev) {
   return true;
 }
 
+bool ObjectCreator::done() const {
+  return m_state == 3;
+}
+
 void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
   m_window_to_obj = state.transform(true).inverse();
 

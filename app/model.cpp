@@ -29,20 +29,41 @@
 namespace {
   /// Renders a rectangular box.
   void drawBox(float x, float y, float z) {
-    glBegin(GL_QUADS);
-    glNormal3f(1,0,0);
-    glVertex3f(x,-y,z); glVertex3f(x,-y,-z); glVertex3f(x,y,-z); glVertex3f(x,y,z);
-    glNormal3f(0,0,-1);
-    glVertex3f(x,-y,-z); glVertex3f(-x,-y,-z); glVertex3f(-x,y,-z); glVertex3f(x,y,-z);
-    glNormal3f(-1,0,0);
-    glVertex3f(-x,-y,-z); glVertex3f(-x,-y,z); glVertex3f(-x,y,z); glVertex3f(-x,y,-z);
-    glNormal3f(0,0,1);
-    glVertex3f(-x,-y,z); glVertex3f(x,-y,z); glVertex3f(x,y,z); glVertex3f(-x,y,z);
-    glNormal3f(0,1,0);
-    glVertex3f(-x,y,z); glVertex3f(x,y,z); glVertex3f(x,y,-z); glVertex3f(-x,y,-z);
-    glNormal3f(0,-1,0);
-    glVertex3f(-x,-y,z); glVertex3f(-x,-y,-z); glVertex3f(x,-y,-z); glVertex3f(x,-y,z);
-    glEnd();
+#define N(a, b, c) for (int j=0;j<4;++j) normals[i+j] = Eigen::Vector3f(a, b, c)
+#define V(a, b, c) vertices[i] = Eigen::Vector3f((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
+  uv3d[i] = Eigen::Vector3f(a,b,c), \
+  uv2d[i] = Eigen::Vector2f(((i + 3) / 2) % 2, (i / 2) % 2), ++i
+
+    using std::abs;
+    Eigen::Vector3f normals[4*6], vertices[4*6], uv3d[4*6];
+    Eigen::Vector2f uv2d[4*6];
+
+    int i = 0;
+    N(1,0,0); V(1,0,1), V(1,0,0), V(1,1,0), V(1,1,1);
+
+    N(0,0,-1); V(1,0,0), V(0,0,0), V(0,1,0), V(1,1,0);
+
+    N(-1,0,0); V(0,0,0), V(0,0,1), V(0,1,1); V(0,1,0);
+
+    N(0,0,1); V(0,0,1), V(1,0,1), V(1,1,1), V(0,1,1);
+
+    N(0,1,0); V(0,1,1), V(1,1,1), V(1,1,0), V(0,1,0);
+
+    N(0,-1,0); V(0,0,0), V(1,0,0), V(1,0,1), V(0,0,1);
+
+    glRun(glEnableClientState(GL_NORMAL_ARRAY));
+    glRun(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+    glRun(glEnableClientState(GL_VERTEX_ARRAY));
+
+    glNormalPointer(GL_FLOAT, (unsigned char*)(normals+1)-(unsigned char*)(normals), normals);
+    //glTexCoordPointer(3, GL_FLOAT, (unsigned char*)(uv3d+1)-(unsigned char*)(uv3d), uv3d);
+    glTexCoordPointer(2, GL_FLOAT, (unsigned char*)(uv2d+1)-(unsigned char*)(uv2d), uv2d);
+    glVertexPointer(3, GL_FLOAT, (unsigned char*)(vertices+1)-(unsigned char*)(vertices), vertices);
+
+    glDrawArrays(GL_QUADS, 0, 4*6);
+
+#undef V
+#undef N
   }
 }
 
