@@ -37,6 +37,7 @@ private:
 
   Eigen::Vector3f hit(const Eigen::Vector2f& c);
   void renderBox(State& state, const RenderOptions& render_opts);
+  void renderSphere(State& state, const RenderOptions& render_opts);
 };
 
 #endif // OBJECT_CREATOR_HPP

@@ -26,7 +26,7 @@
 
 // #include <GL/glut.h>
 
-namespace {
+namespace ObjectRenderer {
   /// Renders a rectangular box.
   void drawBox(float x, float y, float z) {
 #define N(a, b, c) for (int j=0;j<4;++j) normals[i+j] = Eigen::Vector3f(a, b, c)
@@ -62,8 +62,69 @@ namespace {
 
     glDrawArrays(GL_QUADS, 0, 4*6);
 
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
 #undef V
 #undef N
+  }
+
+  void drawSphere(float radius, int segments, int rings) {
+    float ring_angle = M_PI / rings;
+    float segment_angle = 2.0f * M_PI / segments;
+
+    // two layers of vertices per triangle strip (ring)
+    int ring_size = 2 * (segments + 1);
+    int count = rings * ring_size;
+
+    std::vector<Eigen::Vector3f> normals(count), vertices(count), uv3d(count);
+    std::vector<Eigen::Vector2f> uv2d(count);
+
+    int i = 0;
+    float r2 = 0.5f / radius;
+    for (int layer = 0; layer <= rings; ++layer) {
+      float segment_radius = radius * sin(ring_angle * layer);
+      float y = radius * cos(ring_angle * layer);
+
+      if (layer == 1) i = 1;
+
+      for (int segment = segments; segment >= 0; --segment) {
+        float z = segment_radius * sin(segment_angle * segment);
+        float x = segment_radius * cos(segment_angle * segment);
+
+        Eigen::Vector3f point(x, y, z);
+        Eigen::Vector3f normal = point.normalized();
+        Eigen::Vector3f uv3(0.5f + x * r2, 0.5f + y * r2, 0.5f + z * r2);
+        Eigen::Vector2f uv2(float(segment) / segments, float(layer) / rings);
+
+        normals[i] = normal;
+        vertices[i] = point;
+        uv3d[i] = uv3;
+        uv2d[i] = uv2;
+        if (layer > 0 && layer < rings) {
+          normals[i + ring_size - 1] = normal;
+          vertices[i + ring_size - 1] = point;
+          uv3d[i + ring_size - 1] = uv3;
+          uv2d[i + ring_size - 1] = uv2;
+        }
+        i += 2;
+      }
+    }
+
+    glRun(glVertexAttribPointer(0, 3, GL_FLOAT, false, (char*)&vertices[1] - (char*)&vertices[0], &vertices[0]));
+/*    glRun(glEnableClientState(GL_NORMAL_ARRAY));
+    glRun(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+    glRun(glEnableClientState(GL_VERTEX_ARRAY));
+
+    glNormalPointer(GL_FLOAT, 0, &normals[0]);
+    glTexCoordPointer(3, GL_FLOAT, 0, &uv3d[0]);
+    //glTexCoordPointer(2, GL_FLOAT, 0, &uv2d[0]);
+    glVertexPointer(3, GL_FLOAT, 0, &vertices[0]);*/
+
+    for (int ring = 0; ring < rings; ++ring) {
+      glRun(glDrawArrays(GL_TRIANGLE_STRIP, ring_size*ring, ring_size));
+    }
   }
 }
 
@@ -203,7 +264,8 @@ ModelPtr Model::createBuiltin(const QString& name, const QString& model_name, co
     ModelPtr m(new Model(name));
     m->m_builtin = true;
     m->node()->name = model_name;
-    m->node()->meshes << MeshPtr(new Sphere);
+    float s = size[0] + size[1] + size[2];
+    m->node()->meshes << MeshPtr(new Sphere(s / 3.0f));
     return m;
   }
 
@@ -234,16 +296,18 @@ void Box::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>
 }
 
 void Box::renderObj(State&) {
-  drawBox(m_size[0]*0.5f, m_size[1]*0.5f, m_size[2]*0.5f);
+  ObjectRenderer::drawBox(m_size[0]*0.5f, m_size[1]*0.5f, m_size[2]*0.5f);
 }
 
 void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
   for (int i = 0; i < 8; ++i)
-    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*10-5, ((i>>1)&1)*10-5, (i&1)*10-5));
+    bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*m_size-m_size*0.5f,
+                                            ((i>>1)&1)*m_size-m_size*0.5f,
+                                            (i&1)*m_size-m_size*0.5f));
 }
 
 void Sphere::renderObj(State&) {
-//   glutSolidSphere(5.0f, 32, 32);
+  //ObjectRenderer::drawSphere(m_size/2, 32, 32);
 }
 
 void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {

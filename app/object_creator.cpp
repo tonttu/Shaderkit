@@ -7,6 +7,8 @@
 #include "object3d.hpp"
 #include "shader/program.hpp"
 
+#include <Eigen/OpenGLSupport>
+
 inline Eigen::Vector3f v3(float x, float y, float z) { return Eigen::Vector3f(x, y, z); }
 
 #define SHADER(x) #x
@@ -61,28 +63,46 @@ bool ObjectCreator::btn(QMouseEvent* ev) {
   if (ev->type() == QEvent::MouseButtonPress) {
     if(m_state == 0 || m_state == 2) ++m_state;
   } else {
-    if (m_state == 1) ++m_state;
-    else if (m_state == 3) {
-      Eigen::AlignedBox<float, 3> box;
-      for (int i = 0; i < 3; ++i) box.extend(m_points[i]);
-      // we are not re-using models, since we don't want to change the scale here
-      ModelPtr model = Model::createBuiltin(m_name, m_name, box.sizes());
+    if (m_name == "sphere") {
+      float r = (m_points[1] - m_points[0]).norm();
+      ModelPtr model = Model::createBuiltin(m_name, m_name, Eigen::Vector3f(2*r, 2*r, 2*r));
       m_scene->add(model);
       ObjectPtr obj(new Object3D(model->name(), model));
-      obj->transform() = Eigen::Translation3f(box.center());
+      Eigen::Vector3f c = m_points[0];
+      c[1] += r;
+      obj->transform() = Eigen::Translation3f(c);
 
       m_scene->add(obj);
       RenderPassPtr rp = m_scene->selectedRenderPass(RenderPass::Normal);
 
       if (rp) rp->add(obj);
+      m_state = -1;
+    } else {
+      if (m_state == 1) ++m_state;
+      else if (m_name == "box" && m_state == 3) {
+        Eigen::AlignedBox<float, 3> box;
+        for (int i = 0; i < 3; ++i) box.extend(m_points[i]);
+        // we are not re-using models, since we don't want to change the scale here
+        ModelPtr model = Model::createBuiltin(m_name, m_name, box.sizes());
+        m_scene->add(model);
+        ObjectPtr obj(new Object3D(model->name(), model));
+        obj->transform() = Eigen::Translation3f(box.center());
+
+        m_scene->add(obj);
+        RenderPassPtr rp = m_scene->selectedRenderPass(RenderPass::Normal);
+
+        if (rp) rp->add(obj);
+        m_state = -1;
+      }
     }
   }
-  m_points[m_state] = hit(Eigen::Vector2f(ev->x(), ev->y()));
+  if (m_state >= 0 && m_state < 5)
+    m_points[m_state] = hit(Eigen::Vector2f(ev->x(), ev->y()));
   return true;
 }
 
 bool ObjectCreator::done() const {
-  return m_state == 3;
+  return m_state < 0;
 }
 
 void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
@@ -123,7 +143,8 @@ void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
     glDrawArrays(GL_LINES, 0, 4);
   }
 
-  if (m_state > 0) renderBox(state, render_opts);
+  if (m_name == "box" && m_state > 0) renderBox(state, render_opts);
+  if (m_name == "sphere" && m_state > 0) renderSphere(state, render_opts);
 
   m_prog->unbind();
   state.pop();
@@ -202,6 +223,20 @@ void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts) {
     glDrawArrays(GL_QUAD_STRIP, 0, 10);
     glDrawArrays(GL_QUADS, 10, 4);
   }
+}
+
+void ObjectCreator::renderSphere(State& state, const RenderOptions& render_opts) {
+  Eigen::Vector3f p = m_points[0];
+  const float r = (m_hover - p).norm();
+
+  p[1] += r;
+
+  glPushMatrix();
+  glMultMatrix(Eigen::Projective3f(Eigen::Translation3f(p)));
+
+  ObjectRenderer::drawSphere(r, 32, 32);
+
+  glPopMatrix();
 }
 
 

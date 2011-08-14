@@ -38,6 +38,12 @@ struct Node {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
+namespace ObjectRenderer {
+  /// Renders a rectangular box.
+  void drawBox(float x, float y, float z);
+  void drawSphere(float radius, int segments, int rings);
+}
+
 class Model : public SceneObject {
 public:
   Model(QString name);
@@ -113,11 +119,14 @@ protected:
 
 class Sphere : public BuiltIn {
 public:
+  Sphere(float size) : m_size(size) {}
   virtual ~Sphere() {}
   virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
 protected:
   void renderObj(State& state);
+
+  const float m_size;
 };
 
 class TriMesh : public Mesh {
