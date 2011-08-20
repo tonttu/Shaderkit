@@ -205,7 +205,7 @@ void Scene::render(RenderOptions& opts_in) {
   }
 
   if (m_pickFunc) {
-    if (m_picked.first && m_picked.second) {
+    if ((m_picked.first && m_picked.second) || m_pickEmpty) {
       m_pickFunc(m_picked.first, m_picked.second);
     }
     if (m_pickOnce) {
@@ -772,9 +772,10 @@ CameraPtr Scene::camera() {
   return CameraPtr();
 }
 
-void Scene::pick(float x, float y, bool once, PickFunc func) {
+void Scene::pick(float x, float y, bool once, bool pick_empty, PickFunc func) {
   m_picking = QPointF(x, y);
   m_pickOnce = once;
+  m_pickEmpty = pick_empty;
   m_pickFunc = func;
 }
 

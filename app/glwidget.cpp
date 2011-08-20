@@ -242,11 +242,11 @@ void GLWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (diff.x()*diff.x() + diff.y()*diff.y() < 3*3) {
       struct hate_too_old_gcc { static void func(ScenePtr scene, ObjectPtr obj, MeshPtr /*mesh*/) {
           QList<ObjectPtr> objects;
-          objects << obj;
+          if (obj) objects << obj;
           scene->setSelection(objects);
       }};
       using namespace std::placeholders;
-      m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
+      m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true, true,
                     std::bind(&hate_too_old_gcc::func, m_scene, _1, _2));
     }
   }
@@ -290,7 +290,7 @@ void GLWidget::dropEvent(QDropEvent* event) {
         obj->setMaterialForMesh(mesh->name, material);
     }};
     using namespace std::placeholders;
-    m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
+    m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true, false,
                   std::bind(&hate_too_old_gcc::func, material, _1, _2));
   } else {
     m_scene->pick(-1, -1);

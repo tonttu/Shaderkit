@@ -131,7 +131,7 @@ public:
 
   CameraPtr camera();
 
-  void pick(float x, float y, bool once = true, PickFunc func = PickFunc());
+  void pick(float x, float y, bool once = true, bool pick_empty = false, PickFunc func = PickFunc());
 
   void setMaterial(QString name, MaterialPtr material);
   void add(TexturePtr t);
@@ -221,6 +221,7 @@ protected:
   QPair<ObjectPtr, MeshPtr> m_picked;
   QPointF m_picking;
   bool m_pickOnce;
+  bool m_pickEmpty;
   PickFunc m_pickFunc;
 
   bool m_automaticSaving;
