@@ -90,6 +90,11 @@ void GLProgram::unbind() {
   glRun(glUseProgram(0));
 }
 
+int GLProgram::attribLocation(const QString& name) {
+  /// @todo should this accept State* and bind if necessary?
+  return glRun2(glGetAttribLocation(id(), name.toUtf8().data()));
+}
+
 void GLProgram::setUniform(UniformVar::List list, bool relocate) {
   for (UniformVar::List::iterator it = list.begin(); it != list.end(); ++it) {
     it->set(shared_from_this(), relocate);

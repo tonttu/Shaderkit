@@ -61,7 +61,8 @@ HEADERS += \
     history.hpp \
     viewport.hpp \
     gizmos.hpp \
-    object_creator.hpp
+    object_creator.hpp \
+    mesh_manager.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -107,7 +108,8 @@ SOURCES += \
     history.cpp \
     viewport.cpp \
     gizmos.cpp \
-    object_creator.cpp
+    object_creator.cpp \
+    mesh_manager.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp

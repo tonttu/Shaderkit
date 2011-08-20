@@ -112,3 +112,106 @@ float* BufferObject::mapRW() {
 void BufferObject::unmap() {
   glUnmapBuffer(m_target);
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+BufferObject2::BufferObject2(GLenum target, GLenum usage)
+  : m_id(0),
+    m_target(target),
+    m_usage(usage),
+    m_stride(0),
+    m_size(0),
+    m_bind_stack(0) {}
+
+BufferObject2::~BufferObject2() {
+  assert(m_bind_stack == 0);
+  if (m_id)
+    glRun(glDeleteBuffers(1, &m_id));
+}
+
+void* BufferObject2::map(int offset, int size, int access) {
+  bind();
+  if (m_size < offset + size) {
+    glRun(glBufferData(m_target, offset + size, 0, m_usage));
+    m_size = offset + size;
+  }
+  return glRun2(glMapBufferRange(m_target, offset, size, access));
+}
+
+void BufferObject2::unmap() {
+  if (m_id && m_target) {
+    glRun(glUnmapBuffer(m_target));
+    if (m_bind_stack == 0) unbind();
+  }
+}
+
+void BufferObject2::unbind(const BindHolder& holder) {
+  --m_bind_stack;
+  assert(m_bind_stack >= 0);
+  if (m_id && m_target && m_bind_stack == 0) {
+    unbind();
+  }
+  foreach (int attrib, holder.m_active) {
+    int v = --m_active_vertex_attribs[attrib];
+    assert(v >= 0);
+    if (v == 0)
+      glRun(glDisableVertexAttribArray(attrib));
+  }
+}
+
+BufferObject2::BindHolder BufferObject2::bind(const VertexAttrib& attr) {
+  // * m_attribs will map logical channel (like Vertex0 or UV1) to specific
+  //   offset to the actual struct
+  // * attr will give the list of logical channels that are asked to bind
+  //   and also maps those logical channels to shader attribute locations
+
+  BufferObject2::BindHolder ret(*this);
+
+  for (auto it = attr->begin(), end = attr->end(); it != end; ++it) {
+    if (!m_attribs.contains(it.key())) continue;
+    const AttribInfo & info = m_attribs[it.key()];
+    glRun(glVertexAttribPointer(it.value(), info.size, info.type, false,
+                                m_stride, (char *)0 + info.offset));
+    glRun(glEnableVertexAttribArray(it.value()));
+    ret.m_active << it.value();
+    ++m_active_vertex_attribs[it.value()];
+  }
+
+  return ret;
+}
+
+void BufferObject2::bind(const BindHolder&) {
+  ++m_bind_stack;
+  bind();
+}
+
+void BufferObject2::bind() {
+  if (m_id == 0) glRun(glGenBuffers(1, &m_id));
+  /// @todo handle the state correct, so no need to re-bind this
+  if (m_target == GL_TRANSFORM_FEEDBACK_BUFFER || m_target == GL_UNIFORM_BUFFER)
+    glRun(glBindBufferBase(m_target, 0, m_id));
+  else
+    glRun(glBindBuffer(m_target, m_id));
+}
+
+void BufferObject2::unbind() {
+  if (m_target == GL_TRANSFORM_FEEDBACK_BUFFER || m_target == GL_UNIFORM_BUFFER)
+    glRun(glBindBufferBase(m_target, 0, 0));
+  else
+    glRun(glBindBuffer(m_target, 0));
+}
+
+void BufferObject2::uploadData(const void* data, int offset, int size) {
+  bind();
+  if (m_size < offset + size) {
+    glRun(glBufferData(m_target, offset + size, 0, m_usage));
+    m_size = offset + size;
+  }
+
+  glRun(glBufferSubData(m_target, offset, size, data));
+  unbind();
+}

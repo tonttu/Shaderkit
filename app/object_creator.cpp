@@ -5,6 +5,7 @@
 #include "model.hpp"
 #include "scene.hpp"
 #include "object3d.hpp"
+#include "mesh_manager.hpp"
 #include "shader/program.hpp"
 
 #include <Eigen/OpenGLSupport>

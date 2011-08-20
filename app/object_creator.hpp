@@ -3,6 +3,8 @@
 
 #include "forward.hpp"
 
+#include "buffer_object.hpp"
+
 #include "Eigen/Geometry"
 
 class QString;

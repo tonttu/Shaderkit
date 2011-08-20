@@ -82,6 +82,8 @@ public:
   /// Unbinds the program object.
   void unbind();
 
+  int attribLocation(const QString& name);
+
   /// Sets the compiled status
   void setIsCompiled(bool state) { m_compiled = state; }
 

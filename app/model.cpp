@@ -19,6 +19,7 @@
 #include "opengl.hpp"
 #include "object3d.hpp"
 #include "state.hpp"
+#include "mesh_manager.hpp"
 
 #include "ext/glut_teapot.hpp"
 
@@ -27,7 +28,7 @@
 // #include <GL/glut.h>
 
 namespace ObjectRenderer {
-  /// Renders a rectangular box.
+  /// @todo delete
   void drawBox(float x, float y, float z) {
 #define N(a, b, c) for (int j=0;j<4;++j) normals[i+j] = Eigen::Vector3f(a, b, c)
 #define V(a, b, c) vertices[i] = Eigen::Vector3f((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \

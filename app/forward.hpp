@@ -99,6 +99,10 @@ class QColor;
 class QVector3D;
 class QVector4D;
 
+class MeshManager;
+class BufferObject;
+class BufferObject2;
+
 namespace Eigen {
   template<typename S, int R, int C, int O, int MR, int MC> class Matrix;
 
