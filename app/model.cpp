@@ -71,60 +71,106 @@ namespace ObjectRenderer {
 #undef N
   }
 
-  void drawSphere(float radius, int segments, int rings) {
-    float ring_angle = M_PI / rings;
-    float segment_angle = 2.0f * M_PI / segments;
+  struct Vertex {
+    Eigen::Vector3f point;
+    Eigen::Vector2f uv2d;
+    Eigen::Vector3f uv3d;
+    Eigen::Vector3f normal;
+  };
 
-    // two layers of vertices per triangle strip (ring)
-    int ring_size = 2 * (segments + 1);
-    int count = rings * ring_size;
+  /// Renders a rectangular box.
+  void drawBox(float x, float y, float z, const VertexAttrib& attrib) {
+#define N(a, b, c) for (int j=0;j<4;++j) data[j].normal = Eigen::Vector3f(a, b, c)
+#define V(a, b, c) data->point = Eigen::Vector3f((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
+  data->uv3d = Eigen::Vector3f(a,b,c), \
+  data->uv2d = Eigen::Vector2f(((data.pos() + 3) / 2) % 2, (data.pos() / 2) % 2), ++data
 
-    std::vector<Eigen::Vector3f> normals(count), vertices(count), uv3d(count);
-    std::vector<Eigen::Vector2f> uv2d(count);
+    BufferObject2 & bo = MeshManager::fetch("drawBox", x, y, z);
 
-    int i = 0;
-    float r2 = 0.5f / radius;
-    for (int layer = 0; layer <= rings; ++layer) {
-      float segment_radius = radius * sin(ring_angle * layer);
-      float y = radius * cos(ring_angle * layer);
+    if (bo.size() == 0) {
+      bo.link<GL_FLOAT>(&Vertex::point, VertexAttrib::Vertex0);
+      bo.link<GL_FLOAT>(&Vertex::uv2d, VertexAttrib::UV0);
+      bo.link<GL_FLOAT>(&Vertex::uv3d, VertexAttrib::UV1);
+      bo.link<GL_FLOAT>(&Vertex::normal, VertexAttrib::Normal);
 
-      if (layer == 1) i = 1;
+      using std::abs;
 
-      for (int segment = segments; segment >= 0; --segment) {
-        float z = segment_radius * sin(segment_angle * segment);
-        float x = segment_radius * cos(segment_angle * segment);
+      BufferObject2::Array<Vertex> data = bo.mapWrite<Vertex>(0, 4*6);
 
-        Eigen::Vector3f point(x, y, z);
-        Eigen::Vector3f normal = point.normalized();
-        Eigen::Vector3f uv3(0.5f + x * r2, 0.5f + y * r2, 0.5f + z * r2);
-        Eigen::Vector2f uv2(float(segment) / segments, float(layer) / rings);
+      N(1,0,0); V(1,0,1), V(1,0,0), V(1,1,0), V(1,1,1);
 
-        normals[i] = normal;
-        vertices[i] = point;
-        uv3d[i] = uv3;
-        uv2d[i] = uv2;
-        if (layer > 0 && layer < rings) {
-          normals[i + ring_size - 1] = normal;
-          vertices[i + ring_size - 1] = point;
-          uv3d[i + ring_size - 1] = uv3;
-          uv2d[i + ring_size - 1] = uv2;
+      N(0,0,-1); V(1,0,0), V(0,0,0), V(0,1,0), V(1,1,0);
+
+      N(-1,0,0); V(0,0,0), V(0,0,1), V(0,1,1); V(0,1,0);
+
+      N(0,0,1); V(0,0,1), V(1,0,1), V(1,1,1), V(0,1,1);
+
+      N(0,1,0); V(0,1,1), V(1,1,1), V(1,1,0), V(0,1,0);
+
+      N(0,-1,0); V(0,0,0), V(1,0,0), V(1,0,1), V(0,0,1);
+    }
+
+    BufferObject2::BindHolder b = bo.bind(attrib);
+
+    glDrawArrays(GL_QUADS, 0, 4*6);
+
+#undef V
+#undef N
+  }
+
+  void drawSphere(float radius, int segments, int stripes, const VertexAttrib& attrib) {
+    assert(sizeof(Vertex) == sizeof(float)*(3*3+2));
+    BufferObject2 & bo = MeshManager::fetch("drawSphere", radius, segments, stripes);
+
+    // two layers of vertices per triangle strip (stripe)
+    int vertices_in_stripe = 2 * (segments + 1);
+
+    if (bo.size() == 0) {
+      bo.link<GL_FLOAT>(&Vertex::point, VertexAttrib::Vertex0);
+      bo.link<GL_FLOAT>(&Vertex::uv2d, VertexAttrib::UV0);
+      bo.link<GL_FLOAT>(&Vertex::uv3d, VertexAttrib::UV1);
+      bo.link<GL_FLOAT>(&Vertex::normal, VertexAttrib::Normal);
+
+      float stripe_angle = M_PI / stripes;
+      float segment_angle = 2.0f * M_PI / segments;
+
+      int vertex_count = stripes * vertices_in_stripe;
+
+      BufferObject2::Array<Vertex> data = bo.mapWrite<Vertex>(0, vertex_count);
+
+      int i = 0;
+      float r2 = 0.5f / radius;
+      for (int layer = 0; layer <= stripes; ++layer) {
+        float layer_radius = radius * sin(stripe_angle * layer);
+        float y = radius * cos(stripe_angle * layer);
+
+        if (layer == 1) data = 1;
+
+        for (int segment = segments; segment >= 0; --segment) {
+          float z = layer_radius * sin(segment_angle * segment);
+          float x = layer_radius * cos(segment_angle * segment);
+
+          Eigen::Vector3f point(x, y, z);
+          Eigen::Vector3f normal = point.normalized();
+          Eigen::Vector3f uv3(0.5f + x * r2, 0.5f + y * r2, 0.5f + z * r2);
+          Eigen::Vector2f uv2(float(segment) / segments, float(layer) / stripes);
+
+          data->point = point;
+          data->uv2d = uv2;
+          data->uv3d = uv3;
+          data->normal = normal;
+          if (layer > 0 && layer < stripes) {
+            data[vertices_in_stripe - 1] = {point, uv2, uv3, normal};
+          }
+          data += 2;
         }
-        i += 2;
       }
     }
 
-    glRun(glVertexAttribPointer(0, 3, GL_FLOAT, false, (char*)&vertices[1] - (char*)&vertices[0], &vertices[0]));
-/*    glRun(glEnableClientState(GL_NORMAL_ARRAY));
-    glRun(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-    glRun(glEnableClientState(GL_VERTEX_ARRAY));
+    BufferObject2::BindHolder b = bo.bind(attrib);
 
-    glNormalPointer(GL_FLOAT, 0, &normals[0]);
-    glTexCoordPointer(3, GL_FLOAT, 0, &uv3d[0]);
-    //glTexCoordPointer(2, GL_FLOAT, 0, &uv2d[0]);
-    glVertexPointer(3, GL_FLOAT, 0, &vertices[0]);*/
-
-    for (int ring = 0; ring < rings; ++ring) {
-      glRun(glDrawArrays(GL_TRIANGLE_STRIP, ring_size*ring, ring_size));
+    for (int stripe = 0; stripe < stripes; ++stripe) {
+      glRun(glDrawArrays(GL_TRIANGLE_STRIP, vertices_in_stripe*stripe, vertices_in_stripe));
     }
   }
 }
@@ -308,7 +354,11 @@ void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float,
 }
 
 void Sphere::renderObj(State&) {
-  //ObjectRenderer::drawSphere(m_size/2, 32, 32);
+  VertexAttrib attrib;
+  attrib[VertexAttrib::Vertex0] = 0;
+  attrib[VertexAttrib::UV0] = 8;
+  attrib[VertexAttrib::Normal] = 2;
+  ObjectRenderer::drawSphere(m_size/2, 32, 32, attrib);
 }
 
 void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {

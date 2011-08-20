@@ -41,7 +41,8 @@ struct Node {
 namespace ObjectRenderer {
   /// Renders a rectangular box.
   void drawBox(float x, float y, float z);
-  void drawSphere(float radius, int segments, int rings);
+  void drawBox(float x, float y, float z, const VertexAttrib& attrib);
+  void drawSphere(float radius, int segments, int rings, const VertexAttrib& attr);
 }
 
 class Model : public SceneObject {

@@ -36,6 +36,36 @@ const char* fragment_shader =
       gl_FragColor = gl_Color;
     }
   );
+
+const char* vertex_shader_norm =
+  "#version 150 compatibility\n"
+  SHADER(
+    precision highp float;
+    in vec3 vertex;
+    in vec3 normal;
+
+    out vec3 surface_normal;
+
+    void main() {
+      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(vertex, 1.0);
+      surface_normal = normal;
+      gl_FrontColor = gl_Color;
+    }
+  );
+
+const char* fragment_shader_norm =
+  "#version 150 compatibility\n"
+  SHADER(
+    precision highp float;
+    in vec3 surface_normal;
+
+    void main() {
+      vec3 surface_unit = normalize(surface_normal);
+      float dotv = 1.0f;
+      //float dotv = abs(surface_unit.z);
+      gl_FragColor = vec4(gl_Color.rgb * dotv, gl_Color.a);
+    }
+  );
 }
 
 Eigen::Vector3f project3(const Eigen::Projective3f& projection,
@@ -47,10 +77,13 @@ ObjectCreator::ObjectCreator(ScenePtr scene, const QString& name)
     m_name(name),
     m_hover(0, 0, 0),
     m_prog(new GLProgram("object-creator")),
+    m_prog2(new GLProgram("object-creator2")),
     m_window_to_obj(Eigen::Projective3f::Identity()) {
   for (int i = 0; i < 5; ++i) m_points[i] = Eigen::Vector3f(0, 0, 0);
   m_prog->addShaderSrc(vertex_shader, Shader::Vertex);
   m_prog->addShaderSrc(fragment_shader, Shader::Fragment);
+  m_prog2->addShaderSrc(vertex_shader_norm, Shader::Vertex);
+  m_prog2->addShaderSrc(fragment_shader_norm, Shader::Fragment);
 }
 
 bool ObjectCreator::move(QMouseEvent* ev) {
@@ -112,10 +145,16 @@ void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
   m_hover = hit(Eigen::Vector2f(render_opts.hover.x(), render_opts.hover.y()));
   float s = 100.0f;
 
+  BufferObject2 & hover_bo = MeshManager::fetch("ObjectCreator::hover");
+  hover_bo.setUsage(GL_DYNAMIC_DRAW);
+  hover_bo.set<GL_FLOAT>(VertexAttrib::Vertex0, 3);
+
   float hover[] = {
     m_hover[0]-s, m_hover[1],   m_hover[2],   m_hover[0]+s, m_hover[1], m_hover[2],
     m_hover[0]  , m_hover[1], m_hover[2]-s,     m_hover[0], m_hover[1], m_hover[2]+s,
   };
+
+  hover_bo.upload(hover, 0, 4*3);
 
   state.push();
   glDisable(GL_TEXTURE_2D);
@@ -130,11 +169,10 @@ void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
   glLineWidth(1.2f);
 
   m_prog->bind(&state);
-  int vertex_attrib = glGetAttribLocation(m_prog->id(), "vertex");
-  glVertexAttribPointer(vertex_attrib, 3, GL_FLOAT, false, 0, hover);
-  glEnableVertexAttribArray(vertex_attrib);
+  m_attrib[VertexAttrib::Vertex0] = m_prog->attribLocation("vertex");
 
   if (m_state < 2) {
+    BufferObject2::BindHolder b = hover_bo.bind(m_attrib);
     glColor4f(1,1,1,0.15);
     glDepthFunc(GL_GEQUAL);
     glDrawArrays(GL_LINES, 0, 4);
@@ -152,16 +190,19 @@ void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
 }
 
 void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts) {
+  BufferObject2 & box_bo = MeshManager::fetch("ObjectCreator::renderBox");
+  box_bo.setUsage(GL_DYNAMIC_DRAW);
+  box_bo.set<GL_FLOAT>(VertexAttrib::Vertex0, 3);
+
   const Eigen::Vector3f p = m_points[0];
   Eigen::Vector3f p2 = m_state == 1 ? m_hover : m_points[1];
-  std::vector<Eigen::Vector3f> points;
-  points.push_back(p);
-  points.push_back(v3(p2[0], p[1], p[2]));
-  points.push_back(p2);
-  points.push_back(v3(p[0], p[1], p2[2]));
-  points.push_back(p);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, (char*)&points[1] - (char*)&points[0], &points[0]);
+  {
+    BufferObject2::Array<Eigen::Vector3f> points = box_bo.mapWrite<Eigen::Vector3f>(0, 5);
+    points << p << v3(p2[0], p[1], p[2]) << p2 << v3(p[0], p[1], p2[2]) << p;
+  }
+
+  BufferObject2::BindHolder b = box_bo.bind(m_attrib);
 
   glDepthFunc(GL_GEQUAL);
 
@@ -178,31 +219,24 @@ void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts) {
   glDrawArrays(GL_QUADS, 0, 4);
 
   if (m_state > 1) {
-    points.clear();
-    Eigen::Vector3f p3 = m_state == 2 ? m_hover : m_points[2];
+    {
+      BufferObject2::Array<Eigen::Vector3f> points = box_bo.mapWrite<Eigen::Vector3f>(0, 15);
 
-    points.push_back(p);
-    points.push_back(v3(p[0], p3[1], p[2]));
+      Eigen::Vector3f p3 = m_state == 2 ? m_hover : m_points[2];
 
-    points.push_back(v3(p2[0], p[1], p[2]));
-    points.push_back(v3(p2[0], p3[1], p[2]));
+      points << p << v3(p[0], p3[1], p[2]);
 
-    points.push_back(p2);
-    points.push_back(v3(p2[0], p3[1], p2[2]));
+      points << v3(p2[0], p[1], p[2]) << v3(p2[0], p3[1], p[2]);
 
-    points.push_back(v3(p[0], p[1], p2[2]));
-    points.push_back(v3(p[0], p3[1], p2[2]));
+      points << p2 << v3(p2[0], p3[1], p2[2]);
 
-    points.push_back(p);
-    points.push_back(v3(p[0], p3[1], p[2]));
+      points << v3(p[0], p[1], p2[2]) << v3(p[0], p3[1], p2[2]);
 
-    points.push_back(v3(p[0], p3[1], p[2]));
-    points.push_back(v3(p2[0], p3[1], p[2]));
-    points.push_back(v3(p2[0], p3[1], p2[2]));
-    points.push_back(v3(p[0], p3[1], p2[2]));
-    points.push_back(v3(p[0], p3[1], p[2]));
+      points << p << v3(p[0], p3[1], p[2]);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, (char*)&points[1] - (char*)&points[0], &points[0]);
+      points << v3(p[0], p3[1], p[2]) << v3(p2[0], p3[1], p[2]) << v3(p2[0], p3[1], p2[2]) <<
+                v3(p[0], p3[1], p2[2]) << v3(p[0], p3[1], p[2]);
+    }
 
     glDepthFunc(GL_GEQUAL);
 
@@ -230,14 +264,23 @@ void ObjectCreator::renderSphere(State& state, const RenderOptions& render_opts)
   Eigen::Vector3f p = m_points[0];
   const float r = (m_hover - p).norm();
 
+  m_prog2->bind(&state);
+  m_attrib[VertexAttrib::Vertex0] = m_prog2->attribLocation("vertex");
+  m_attrib[VertexAttrib::Normal] = m_prog2->attribLocation("normal");
+
   p[1] += r;
 
   glPushMatrix();
   glMultMatrix(Eigen::Projective3f(Eigen::Translation3f(p)));
 
-  ObjectRenderer::drawSphere(r, 32, 32);
+  if (r > 0.05f) {
+    ObjectRenderer::drawSphere(r, 32, 32, m_attrib);
+    glColor4f(0.2f, 0.4f, 0.8f, 0.1f);
+    ObjectRenderer::drawBox(r, r, r, m_attrib);
+  }
 
   glPopMatrix();
+  m_prog2->unbind();
 }
 
 
