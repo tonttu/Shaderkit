@@ -49,14 +49,19 @@ void Viewport::newObject() {
   QMenu menu("New object", this);
   menu.addAction(QIcon(":/icons/cube.png"), "Box")->setData("box");
   menu.addAction(QIcon(":/icons/sphere.png"), "Sphere")->setData("sphere");
-  menu.addAction(QIcon(":/icons/tube.png"), "Tube")->setData("tube");
-  menu.addAction(QIcon(":/icons/torus.png"), "Torus")->setData("torus");
-  menu.addAction(QIcon(":/icons/cone.png"), "Cone")->setData("cone");
-  menu.addAction(QIcon(":/icons/plane.png"), "Plane")->setData("plane");
+  menu.addAction(QIcon(":/icons/tube.png"), "Tube")->setDisabled(true);// ->setData("tube");
+  menu.addAction(QIcon(":/icons/torus.png"), "Torus")->setDisabled(true);// ->setData("torus");
+  menu.addAction(QIcon(":/icons/cone.png"), "Cone")->setDisabled(true);//->setData("cone");
+  menu.addAction(QIcon(":/icons/plane.png"), "Plane")->setDisabled(true);//->setData("plane");
   menu.addSeparator();
   menu.addAction(QIcon(":/icons/import.png"), "Import...")->setData("import");
   QAction* a = menu.exec(QCursor::pos());
   if (!a) return;
+
+  if (a->data().toString() == "import") {
+    MainWindow::instance().import();
+    return;
+  }
 
   m_gl_widget->renderOptions().gizmo_type = RenderOptions::NONE;
   m_gl_widget->renderOptions().grid_animation = 0.0f;

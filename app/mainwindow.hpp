@@ -135,6 +135,9 @@ public slots:
 
   static void cleanup();
 
+  /// Open import wizard
+  void import();
+
 signals:
   void newScene(ScenePtr);
 
@@ -159,7 +162,6 @@ protected slots:
   void changed();
   void setSandboxCompiler(bool);
 
-  void import();
   void compileAll();
 
   void openTextureBrowser();
