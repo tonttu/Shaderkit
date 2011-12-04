@@ -113,6 +113,7 @@ public:
   Objects objects() const { return m_objects; }
   void setObjects(Objects objs);
   void add(ObjectPtr obj);
+  void remove(ObjectPtr obj);
 
   Lights lights() { return m_lights; }
   void setLights(Lights lights);

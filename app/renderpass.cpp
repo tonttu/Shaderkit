@@ -167,6 +167,12 @@ void RenderPass::add(ObjectPtr obj) {
   emit changed(shared_from_this());
 }
 
+void RenderPass::remove(ObjectPtr obj) {
+  if (!m_objects.contains(obj)) return;
+  m_objects.remove(obj);
+  emit changed(shared_from_this());
+}
+
 void RenderPass::setLights(Lights lights) {
   if (lights != m_lights) {
     m_lights = lights;

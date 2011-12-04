@@ -2,6 +2,7 @@
 #include "mainwindow.hpp"
 #include "glwidget.hpp"
 #include "object_creator.hpp"
+#include "scene.hpp"
 
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -118,4 +119,9 @@ void Viewport::renderMode() {
 }
 
 void Viewport::deleteObject() {
+  ScenePtr scene = m_gl_widget->scene();
+  if (!scene) return;
+
+  foreach (ObjectPtr obj, scene->selection())
+    scene->remove(obj);
 }

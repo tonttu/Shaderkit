@@ -712,9 +712,42 @@ void Scene::add(ObjectPtr obj) {
   emit objectListUpdated();
 }
 
+void Scene::remove(ObjectPtr obj) {
+  foreach (const QString& name, m_objects.keys(obj))
+    m_selection.removeAll(m_objects.take(name));
+
+  foreach (RenderPassPtr rp, m_render_passes)
+    rp->remove(obj);
+
+  ModelPtr model = obj->model();
+
+  bool used = false;
+  foreach (ObjectPtr o, m_objects)
+    if (o->model() == model) {
+      used = true;
+      break;
+    }
+
+  if (!used)
+    remove(model);
+
+  /// @todo gizmo?
+
+  emit objectListUpdated();
+}
+
 void Scene::add(ModelPtr model) {
   model->setName(Utils::uniqueName(model->name(), m_models.keys(), "Model"));
   m_models[model->name()] = model;
+}
+
+void Scene::remove(ModelPtr model) {
+  foreach (const QString& name, m_models.keys(model))
+    m_models.remove(name);
+
+  foreach (ObjectPtr o, m_objects)
+    if (o->model() == model)
+      remove(o);
 }
 
 RenderPassPtr Scene::selectedRenderPass(RenderPass::Type filter) const {

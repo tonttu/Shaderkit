@@ -164,8 +164,10 @@ public:
   void add(MaterialPtr mat);
 
   void add(ObjectPtr obj);
+  void remove(ObjectPtr obj);
 
   void add(ModelPtr model);
+  void remove(ModelPtr model);
 
   void setSelection(QList<ObjectPtr> objects) { m_selection = objects; }
   QList<ObjectPtr> selection() const { return m_selection; }
