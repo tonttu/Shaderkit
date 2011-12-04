@@ -234,6 +234,7 @@ protected:
   float m_lastTime;
 };
 
+/// @todo these should be somewhere else
 /// Convert array of three doubles to vector
 QVector3D toVector(QVariant in);
 Eigen::Vector3f toVector3(QVariant in);

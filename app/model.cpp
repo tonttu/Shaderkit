@@ -20,6 +20,7 @@
 #include "object3d.hpp"
 #include "state.hpp"
 #include "mesh_manager.hpp"
+#include "scene.hpp"
 
 #include "ext/glut_teapot.hpp"
 
@@ -258,10 +259,10 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
 }
 
 QVariantMap Model::save() const {
-  QVariantMap map = SceneObject::save();
-  if (m_builtin) {
+  QVariantMap map = m_map;
+  map.unite(SceneObject::save());
+  if (m_builtin)
     map["built-in"] = m_node->name;
-  }
   return map;
 }
 
@@ -293,31 +294,26 @@ void Model::calcBbox(const Eigen::Affine3f& transform, const Node& node) {
     calcBbox(t, *node.children[i]);
 }
 
-ModelPtr Model::createBuiltin(const QString& name, const QString& model_name, const Eigen::Vector3f size) {
-  /// @todo tidy this up
+ModelPtr Model::createBuiltin(const QString& name, const QString& model_name, const QVariantMap& map) {
+  auto vec3 = map.value("size", QVariantList() << 1.0f << 1.0f << 1.0f);
+  const Eigen::Vector3f size = toVector3(vec3);
+  ModelPtr m(new Model(name));
+  m->m_map["size"] = vec3;
+
   if (model_name == "teapot") {
-    ModelPtr m(new Model(name));
-    m->m_builtin = true;
-    m->node()->name = model_name;
     m->node()->meshes << MeshPtr(new Teapot);
-    return m;
   } else if (model_name == "box") {
-    ModelPtr m(new Model(name));
-    m->m_builtin = true;
-    m->node()->name = model_name;
     m->node()->meshes << MeshPtr(new Box(size));
-    return m;
   } else if (model_name == "sphere") {
-    ModelPtr m(new Model(name));
-    m->m_builtin = true;
-    m->node()->name = model_name;
     float s = size[0] + size[1] + size[2];
     m->node()->meshes << MeshPtr(new Sphere(s / 3.0f));
-    return m;
+  } else {
+    Log::error("Unknown builtin '%s'", model_name.toUtf8().data());
+    return ModelPtr();
   }
-
-  Log::error("Unknown builtin '%s'", model_name.toUtf8().data());
-  return ModelPtr();
+  m->m_builtin = true;
+  m->node()->name = model_name;
+  return m;
 }
 
 void Mesh::render(State& state) {

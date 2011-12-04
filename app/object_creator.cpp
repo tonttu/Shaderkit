@@ -99,7 +99,9 @@ bool ObjectCreator::btn(QMouseEvent* ev) {
   } else {
     if (m_name == "sphere") {
       float r = (m_points[1] - m_points[0]).norm();
-      ModelPtr model = Model::createBuiltin(m_name, m_name, Eigen::Vector3f(2*r, 2*r, 2*r));
+      QVariantMap map;
+      map["size"] = QVariantList() << 2*r << 2*r << 2*r;
+      ModelPtr model = Model::createBuiltin(m_name, m_name, map);
       m_scene->add(model);
       ObjectPtr obj(new Object3D(model->name(), model));
       Eigen::Vector3f c = m_points[0];
@@ -117,7 +119,10 @@ bool ObjectCreator::btn(QMouseEvent* ev) {
         Eigen::AlignedBox<float, 3> box;
         for (int i = 0; i < 3; ++i) box.extend(m_points[i]);
         // we are not re-using models, since we don't want to change the scale here
-        ModelPtr model = Model::createBuiltin(m_name, m_name, box.sizes());
+        auto vec3 = box.sizes();
+        QVariantMap map;
+        map["size"] = QVariantList() << vec3[0] << vec3[1] << vec3[2];
+        ModelPtr model = Model::createBuiltin(m_name, m_name, map);
         m_scene->add(model);
         ObjectPtr obj(new Object3D(model->name(), model));
         obj->transform() = Eigen::Translation3f(box.center());

@@ -63,7 +63,7 @@ public:
   const Eigen::AlignedBox<float, 3>& bbox();
 
   static ModelPtr createBuiltin(const QString& name, const QString& model,
-                                const Eigen::Vector3f size = Eigen::Vector3f(1, 1, 1));
+                                const QVariantMap& map = QVariantMap());
 
 private:
   void calcBbox(const Eigen::Affine3f& transform, const Node& node);
@@ -71,6 +71,8 @@ private:
   // bounding box in local coordinates
   Eigen::AlignedBox<float, 3> m_bbox;
   bool m_dirty;
+
+  QVariantMap m_map;
 
   NodePtr m_node;
   bool m_builtin;

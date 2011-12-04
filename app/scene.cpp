@@ -355,6 +355,17 @@ void Scene::load(QVariantMap map) {
   ObjImporter importer;
   QMap<QString, ObjImporter::Scene> imported;
 
+  /** @todo node graph
+  "scene" : [
+   ["object", "box.1",
+     ["object", "box.2"]
+   ],
+   ["object", "dwarf",
+     ["camera", "cam.1", "HAND.L"]
+   ],
+   ["light", "light1"]
+  ]*/
+
   /// @todo some kind of incremental loading would be cool
   m_selection.clear();
   m_render_passes.clear();
@@ -396,7 +407,7 @@ void Scene::load(QVariantMap map) {
   foreach (P p, iterate(map["models"])) {
     ModelPtr model;
     if (!p.map["built-in"].toString().isEmpty()) {
-      model = Model::createBuiltin(p.name, p.map["built-in"].toString());
+      model = Model::createBuiltin(p.name, p.map["built-in"].toString(), p.map);
     } else {
       model = clone(imported, p, &ObjImporter::Scene::models);
     }

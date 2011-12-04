@@ -20,12 +20,36 @@
 #include "model.hpp"
 #include "material.hpp"
 
+QVariantMap saveTransform(const Eigen::Affine3f& affine) {
+  const Eigen::Matrix4f& m = affine.matrix();
+  QStringList tmp;
+  for (int i = 0; i < 16; ++i)
+    tmp << QString::number(m.data()[i]);
+  QVariantMap ret;
+  ret["matrix"] = tmp.join(" ");
+  return ret;
+}
+
+Eigen::Affine3f loadTransform(const QVariant& var) {
+  QVariantMap map = var.toMap();
+  if (map.contains("matrix")) {
+    QStringList tmp;
+    tmp = map["matrix"].toString().split(QRegExp("\\s+"));
+    if (tmp.size() == 16) {
+      Eigen::Affine3f affine;
+      Eigen::Matrix4f& m = affine.matrix();
+      for (int i = 0; i < 16; ++i)
+        m.data()[i] = tmp[i].toFloat();
+      return affine;
+    }
+  }
+  return Eigen::Affine3f::Identity();
+}
+
 Object3D::Object3D(QString name, ModelPtr model)
   : SceneObject(name),
     m_transform(Eigen::Affine3f::Identity()),
     m_model(model) {
-  m_transform = Eigen::Translation3f(20, 0, 0) *
-      Eigen::AngleAxis<float>(M_PI * 0.25f, Eigen::Vector3f(0, 1, 0));
 }
 Object3D::~Object3D() {}
 
@@ -74,12 +98,14 @@ QVariantMap Object3D::save() const {
     if (*it) materials[it.key()] = (*it)->name();
   }
   if (!materials.isEmpty()) map["materials"] = materials;
+  map["transform"] = saveTransform(m_transform);
 
   return map;
 }
 
 void Object3D::load(QVariantMap map) {
   SceneObject::load(map);
+  m_transform = loadTransform(map["transform"]);
 }
 
 ObjectPtr Object3D::clone() {
