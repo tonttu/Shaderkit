@@ -111,6 +111,29 @@
       </column>
      </widget>
     </item>
+    <item>
+     <widget class="QCheckBox" name="manualDrag">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Select center location &amp;&amp; scale by mouse drag</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="autoScale">
+      <property name="toolTip">
+       <string>Scales the object group so that it fits inside a 50x50x50 box. If disabled, the original size is used.</string>
+      </property>
+      <property name="text">
+       <string>Automatic scale</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
  </widget>

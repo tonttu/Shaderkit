@@ -18,6 +18,7 @@
 #include "importer_wizard.hpp"
 #include "ui_importer_wizard.h"
 #include "scene.hpp"
+#include "model.hpp"
 
 #include <QFileInfo>
 #include <QSettings>
@@ -54,6 +55,12 @@ ImporterWizard::ImporterWizard(ScenePtr scene, QWidget *parent)
   connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
   connect(m_ui->filename, SIGNAL(textChanged(QString)), this, SLOT(fileChanged(QString)));
   connect(this, SIGNAL(currentIdChanged(int)), SLOT(changed(int)));
+
+  connect(m_ui->manualDrag, SIGNAL(toggled(bool)), this, SLOT(manualDragToggled(bool)));
+
+  QSettings settings("Shaderkit", "Shaderkit");
+  m_ui->autoScale->setChecked(settings.value("import/auto_scale", true).toBool());
+  m_ui->manualDrag->setChecked(settings.value("import/manual_drag", false).toBool());
 }
 
 ImporterWizard::~ImporterWizard() {
@@ -106,6 +113,12 @@ void ImporterWizard::fileChanged(QString name) {
     ok = fi.isReadable();
   }
   button(NextButton)->setEnabled(ok);
+}
+
+void ImporterWizard::manualDragToggled(bool s) {
+  if (s)
+    m_ui->autoScale->setChecked(false);
+  m_ui->autoScale->setEnabled(!s);
 }
 
 void ImporterWizard::load(ObjImporter::SceneInfo& si) {
@@ -167,6 +180,10 @@ void ImporterWizard::done(int result) {
 
   if (!result || !m_objects) return;
 
+  QSettings settings("Shaderkit", "Shaderkit");
+  settings.setValue("import/auto_scale", m_ui->autoScale->isChecked());
+  settings.setValue("import/manual_drag", m_ui->manualDrag->isChecked());
+
   QList<QTreeWidgetItem*> items;
   QList<QSet<QString>*> filters;
 
@@ -187,5 +204,18 @@ void ImporterWizard::done(int result) {
     }
   }
 
-  m_scene->merge(m_import, m_importer.load(m_import.filter));
+  ObjImporter::Scene scene = m_importer.load(m_import.filter);
+  if (m_ui->autoScale->isChecked()) {
+    const float target_size = 50.0f;
+
+    const Eigen::AlignedBox<float, 3>& bbox = scene.node->bbox();
+    auto vec3 = bbox.sizes();
+    float m = std::max(std::max(vec3[0], vec3[1]), vec3[2]);
+    if(m > std::numeric_limits<float>::epsilon()) {
+      float scale = target_size/m;
+      scene.node->transform = Eigen::Scaling(scale) * scene.node->transform;
+    }
+  }
+
+  m_scene->merge(m_import, scene);
 }

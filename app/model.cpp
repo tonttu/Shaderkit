@@ -176,8 +176,30 @@ namespace ObjectRenderer {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 Node::Node() : transform(Eigen::Affine3f::Identity()) {
 }
+
+Eigen::AlignedBox<float, 3> Node::bbox() {
+  Eigen::AlignedBox<float, 3> bb;
+  calcBbox(bb);
+  return bb;
+}
+
+void Node::calcBbox(Eigen::AlignedBox<float, 3>& bbox, const Eigen::Affine3f& p) const {
+  const Eigen::Affine3f& t = transform * p;
+
+  foreach (MeshPtr m, meshes)
+    m->calcBbox(t, bbox);
+
+  for (int i = 0; i < children.size(); ++i)
+    children[i]->calcBbox(bbox, t);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 Model::Model(QString name) : SceneObject(name), m_dirty(true), m_node(new Node), m_builtin(false) {
   m_node->name = name;
@@ -277,21 +299,9 @@ ModelPtr Model::clone() {
 const Eigen::AlignedBox<float, 3>& Model::bbox() {
   if (m_dirty) {
     m_dirty = false;
-    m_bbox.setEmpty();
-
-    calcBbox(Eigen::Affine3f::Identity(), *m_node);
+    m_bbox = m_node->bbox();
   }
   return m_bbox;
-}
-
-void Model::calcBbox(const Eigen::Affine3f& transform, const Node& node) {
-  const Eigen::Affine3f& t = node.transform * transform;
-
-  foreach (MeshPtr m, node.meshes)
-    m->calcBbox(t, m_bbox);
-
-  for (int i = 0; i < node.children.size(); ++i)
-    calcBbox(t, *node.children[i]);
 }
 
 ModelPtr Model::createBuiltin(const QString& name, const QString& model_name, const QVariantMap& map) {

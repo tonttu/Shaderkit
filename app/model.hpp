@@ -35,6 +35,10 @@ struct Node {
   QList<NodePtr> children;
   QList<MeshPtr> meshes;
 
+  Eigen::AlignedBox<float, 3> bbox();
+  void calcBbox(Eigen::AlignedBox<float, 3>& bbox,
+                const Eigen::Affine3f& transform = Eigen::Affine3f::Identity()) const;
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
@@ -66,7 +70,6 @@ public:
                                 const QVariantMap& map = QVariantMap());
 
 private:
-  void calcBbox(const Eigen::Affine3f& transform, const Node& node);
 
   // bounding box in local coordinates
   Eigen::AlignedBox<float, 3> m_bbox;

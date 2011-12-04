@@ -41,6 +41,7 @@ protected slots:
   void browse();
   void changed(int);
   void fileChanged(QString);
+  void manualDragToggled(bool);
 
 protected:
   void load(ObjImporter::SceneInfo& si);
