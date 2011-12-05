@@ -118,6 +118,7 @@ public:
   Lights lights() { return m_lights; }
   void setLights(Lights lights);
   void add(LightPtr light);
+  void remove(LightPtr light);
 
   CameraPtr view() { return m_view; }
   void setView(CameraPtr camera);

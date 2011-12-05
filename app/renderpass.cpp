@@ -186,6 +186,12 @@ void RenderPass::add(LightPtr light) {
   emit changed(shared_from_this());
 }
 
+void RenderPass::remove(LightPtr light) {
+  if (!m_lights.contains(light)) return;
+  m_lights.remove(light);
+  emit changed(shared_from_this());
+}
+
 void RenderPass::setView(CameraPtr camera) {
   if (m_view != camera) {
     m_view = camera;

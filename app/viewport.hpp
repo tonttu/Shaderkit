@@ -12,6 +12,7 @@ public:
   Viewport(QWidget* parent = 0);
 
   QAction* actionNewObj() const { return m_new_object; }
+  QAction* actionNewLight() const { return m_new_light; }
 
 signals:
 

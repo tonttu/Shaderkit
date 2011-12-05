@@ -26,6 +26,7 @@
 #include "material.hpp"
 #include "utils.hpp"
 #include "object_list.hpp"
+#include "light_list.hpp"
 
 /// @todo this is only for IconBtn
 #include "mainwindow.hpp"
@@ -371,6 +372,8 @@ void LightEditor::setStatus(bool v) {
 
 void LightEditor::editClicked() {
   /// @todo
+  LightList* lst = new LightList(0, m_pass);
+  lst->show();
 }
 
 void LightEditor::toggled(bool v) {
