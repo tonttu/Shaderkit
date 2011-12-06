@@ -62,7 +62,8 @@ HEADERS += \
     viewport.hpp \
     gizmos.hpp \
     object_creator.hpp \
-    mesh_manager.hpp
+    mesh_manager.hpp \
+    object_list.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -109,7 +110,8 @@ SOURCES += \
     viewport.cpp \
     gizmos.cpp \
     object_creator.cpp \
-    mesh_manager.cpp
+    mesh_manager.cpp \
+    object_list.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp
@@ -121,7 +123,8 @@ FORMS += \
     welcome.ui \
     new_wizard.ui \
     importer_wizard.ui \
-    texture_browser.ui
+    texture_browser.ui \
+    object_list.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

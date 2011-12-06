@@ -11,6 +11,8 @@ class Viewport : public QWidget {
 public:
   Viewport(QWidget* parent = 0);
 
+  QAction* actionNewObj() const { return m_new_object; }
+
 signals:
 
 private slots:

@@ -585,6 +585,16 @@ void MainWindow::createViewport() {
   addDockWidget(Qt::TopDockWidgetArea, gldock);
 }
 
+Viewport* MainWindow::mainViewport() const {
+  /// @todo should take "main" viewport instead of first one
+  QRegExp match("^Viewport(\\s\\d+)?$");
+  foreach (QDockWidget* d, findChildren<QDockWidget*>(match)) {
+    Viewport* view = dynamic_cast<Viewport*>(d->widget());
+    if (view) return view;
+  }
+  return 0;
+}
+
 void MainWindow::restore() {
   QSettings settings("Shaderkit", "Shaderkit");
   m_ui->action_autosave_layout->setChecked(settings.value("gui/autosave_layout", true).toBool());

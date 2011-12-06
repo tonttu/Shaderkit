@@ -138,6 +138,8 @@ public slots:
   /// Open import wizard
   void import();
 
+  Viewport* mainViewport() const;
+
 signals:
   void newScene(ScenePtr);
 

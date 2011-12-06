@@ -25,6 +25,7 @@
 #include "texture.hpp"
 #include "material.hpp"
 #include "utils.hpp"
+#include "object_list.hpp"
 
 /// @todo this is only for IconBtn
 #include "mainwindow.hpp"
@@ -273,6 +274,8 @@ ObjectEditor::ObjectEditor(RenderPassPtr pass, ObjectPtr obj)
 }
 
 void ObjectEditor::editClicked() {
+  ObjectList* lst = new ObjectList(0, m_pass);
+  lst->show();
   /// @todo
 }
 

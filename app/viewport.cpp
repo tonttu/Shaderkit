@@ -23,6 +23,7 @@ Viewport::Viewport(QWidget* parent) : QWidget(parent) {
 
   m_new_object = tb->addAction(QIcon(":/icons/new_object.png"), "New object", this, SLOT(newObject()));
   m_new_light = tb->addAction(QIcon(":/icons/new_light.png"), "New light", this, SLOT(newLight()));
+  m_new_light->setEnabled(false);
   tb->addSeparator();
   m_translate = tb->addAction(QIcon(":/icons/translate.png"), "Translate (W)", this, SLOT(translateGizmo()));
   m_translate->setCheckable(true);
@@ -33,13 +34,18 @@ Viewport::Viewport(QWidget* parent) : QWidget(parent) {
   m_scale = tb->addAction(QIcon(":/icons/scale.png"), "Scale (R)", this, SLOT(scaleGizmo()));
   m_scale->setCheckable(true);
   m_scale->setChecked(false);
+  m_scale->setEnabled(false);
   tb->addSeparator();
   m_frame_selection = tb->addAction(QIcon(":/icons/frame.png"), "Frame selection (F)", this, SLOT(frameSelection()));
+  m_frame_selection->setEnabled(false);
   m_frame_all = tb->addAction(QIcon(":/icons/frame_all.png"), "Frame all (A)", this, SLOT(frameAll()));
+  m_frame_all->setEnabled(false);
   tb->addSeparator();
   m_scene_mode = tb->addAction(QIcon(":/icons/blueprint.png"), "Blueprint mode (B)", this, SLOT(sceneMode()));
   m_scene_mode->setChecked(true);
+  m_scene_mode->setEnabled(false);
   m_render_mode = tb->addAction(QIcon(":/icons/shader.png"), "Render mode (G)", this, SLOT(renderMode()));
+  m_render_mode->setEnabled(false);
   tb->addSeparator();
   m_delete_object = tb->addAction(QIcon(":/icons/delete.png"), "Delete object", this, SLOT(deleteObject()));
 
