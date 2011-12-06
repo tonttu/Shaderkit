@@ -47,10 +47,27 @@ public:
 
   LightPtr clone() const;
 
+  void setType(Type t);
+  Type type() const { return m_type; }
+
   void setAmbient(const QColor& color);
   void setDiffuse(const QColor& color);
   void setSpecular(const QColor& color);
+  const QColor& ambient() const { return m_ambient; }
+  const QColor& diffuse() const { return m_diffuse; }
+  const QColor& specular() const { return m_specular; }
+
+  const QVector3D location() const { return m_location; }
+  void setLocation(const QVector3D& loc);
+
+  const QVector3D target() const { return m_target; }
+  void setTarget(const QVector3D& target);
+
   void setDirection(const QVector3D& dir);
+  const QVector3D direction() const { return m_direction; }
+
+  float spotCutoff() const { return m_spot_cutoff; }
+  void setSpotCutoff(float v);
 
 protected:
   Type m_type;
@@ -68,7 +85,7 @@ protected:
   /// With direction lights (m_type == Direction) there is only direction vector
   QVector3D m_direction;
 
-  /// The maximum spread angle of a light source.
+  /// The maximum spread angle of a light source, if m_type == Spot.
   float m_spot_cutoff;
 };
 

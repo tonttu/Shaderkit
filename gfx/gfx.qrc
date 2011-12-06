@@ -51,6 +51,8 @@
         <file>plane.png</file>
         <file>new_object.png</file>
         <file>new_light.png</file>
+        <file>color.png</file>
+        <file>dirlight.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>

@@ -113,6 +113,10 @@ LightPtr Light::clone() const {
   return LightPtr(new Light(*this));
 }
 
+void Light::setType(Type t) {
+  m_type = t;
+}
+
 void Light::setAmbient(const QColor& color) {
   m_ambient = color;
 }
@@ -125,7 +129,21 @@ void Light::setSpecular(const QColor& color) {
   m_specular = color;
 }
 
+void Light::setLocation(const QVector3D& loc) {
+  m_location = loc;
+  //m_type = Spot;
+}
+
+void Light::setTarget(const QVector3D& target) {
+  m_target = target;
+  //m_type = Spot;
+}
+
 void Light::setDirection(const QVector3D& dir) {
   m_direction = dir;
   m_type = Direction;
+}
+
+void Light::setSpotCutoff(float v) {
+  m_spot_cutoff = v;
 }
