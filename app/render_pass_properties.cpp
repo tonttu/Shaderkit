@@ -38,7 +38,7 @@ RenderPassProperties* RenderPassProperties::s_instance = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
+#if 0
 ShaderEditor::ShaderEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
@@ -276,8 +276,6 @@ ObjectEditor::ObjectEditor(RenderPassPtr pass, ObjectPtr obj)
 }
 
 void ObjectEditor::editClicked() {
-  ObjectList* lst = new ObjectList(0, m_pass);
-  lst->show();
   /// @todo
 }
 
@@ -606,7 +604,7 @@ void ClearEditor::clicked() {
 
   m_pass->setClearBits(value);
 }
-
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -796,15 +794,35 @@ RenderPassProperties &RenderPassProperties::instance() {
 }
 
 RenderPassProperties::RenderPassProperties(QWidget* parent)
-  : Properties(parent),
+  : QTableWidget(parent),
+    m_data(new PropertyLayoutData(3, 1)),
     m_create(0), m_duplicate(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
   //connect(m_manager, SIGNAL(valueChanged(QtProperty*, const QVariant&)),
   //        this, SLOT(valueChanged(QtProperty*, const QVariant&)));
 
+  m_data->margins(0).setLeft(5);
+
+  setColumnCount(2);
+
+  verticalHeader()->hide();
+  horizontalHeader()->hide();
+
+  horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  horizontalHeader()->setStretchLastSection(true);
+
+  setHorizontalScrollMode(ScrollPerPixel);
+  setVerticalScrollMode(ScrollPerPixel);
+
+  setFrameShape(NoFrame);
+
+  //setDragDropMode(DragOnly);
+  setSelectionMode(SingleSelection);
+  setSelectionBehavior(SelectRows);
+
   //setHeaderLabels(QStringList() << "Property" << "Value");
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
-  connect(this, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(recalcLayout()));
+  //connect(this, SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(recalcLayout()));
 }
 
 RenderPassProperties::~RenderPassProperties() {
@@ -828,7 +846,7 @@ void RenderPassProperties::init() {
 
   selectionChanged();
 }
-
+#if 0
 QList<RenderPassPtr> RenderPassProperties::list() {
   QList<RenderPassPtr> out;
 
@@ -964,30 +982,157 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
 
   /// @todo group and hide/show items by render pass type
 }
+#endif
+
+QWidget* RenderPassProperties::insertItem(int row, const QString& name, PropertyLayout*& pl) {
+  QWidget* label_container = new QWidget;
+  QHBoxLayout* l = new QHBoxLayout(label_container);
+  l->setMargin(0);
+  QLabel* label = new QLabel(name, label_container);
+  l->addWidget(label);
+  l->addSpacerItem(new QSpacerItem(10, 1));
+  label->setIndent(10);
+
+  insertRow(row);
+  setRowHeight(row, 24);
+  QPersistentModelIndex index = model()->index(row, 0);
+  setIndexWidget(index, label_container);
+
+  QWidget* container = new QWidget;
+  pl = new PropertyLayout(m_data);
+  container->setLayout(pl);
+
+  setCellWidget(row, 1, container);
+
+  return container;
+}
 
 void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
-  QList<RenderPassPtr> lst = list();
-  if(lst == passes) return;
+  if (!passes.isEmpty() && passes[0]->scene() != m_scene) {
+    if (m_scene) {
+      disconnect(SLOT(materialListUpdated()));
+      disconnect(SLOT(cameraListUpdated()));
+    }
+    m_scene = passes[0]->scene();
+    if (m_scene) {
+      connect(m_scene.get(), SIGNAL(materialListUpdated(ScenePtr)), this, SLOT(materialListUpdated()));
+      connect(m_scene.get(), SIGNAL(cameraListUpdated()), this, SLOT(cameraListUpdated()));
+    }
+  } else if(m_list == passes) return;
 
-  while (takeTopLevelItem(0)) {}
+  disconnect(SLOT(changed(RenderPassPtr)));
+
+  m_list = passes;
+  m_passes.clear();
+  setRowCount(0);
 
   foreach (RenderPassPtr pass, passes) {
-    Sub& sub = m_renderpasses[pass];
+    PassItem& item = m_passes[pass];
 
-    // Ensure the existence of the Sub instance of this render pass
-    if (sub.item) {
-      addTopLevelItem(sub.item);
-      expandItem(sub.item);
-    } else {
-      init(sub, pass);
+    /// @todo change icons
+    item.header = new HeaderWidget(QIcon(":/icons/uniforms.png"),
+                                   QIcon(":/icons/uniforms_off.png"));
+
+    int row = rowCount();
+    setRowCount(row+1);
+
+    item.header_index = model()->index(row, 0);
+    setIndexWidget(item.header_index, item.header);
+
+    setSpan(row, 0, 1, 2);
+    setRowHeight(row, 24);
+
+    PropertyLayout* layout = 0;
+
+    {
+      QWidget* container = insertItem(++row, "Default material", layout);
+
+      item.material_box = new QComboBox(container);
+      layout->setWidget(0, 1, item.material_box);
+
+      /// @todo why this or something similar won't work?
+      /// @todo do not use our custom view or model
+      // m_shaderlist->model()->setData(m_shaderlist->model()->index(0, 0), font, Qt::FontRole);
+      {
+        QListWidget* view = new QListWidget(item.material_box);
+
+        QListWidgetItem* tmp = new QListWidgetItem("None");
+        QFont font = tmp->font();
+        font.setBold(true);
+        tmp->setFont(font);
+        view->addItem(tmp);
+
+        tmp = new QListWidgetItem("");
+        tmp->setFlags(Qt::NoItemFlags);
+        font.setPixelSize(2);
+        tmp->setFont(font);
+        view->addItem(tmp);
+
+        item.material_box->setModel(view->model());
+        item.material_box->setView(view);
+      }
     }
-  }
 
-  foreach (RenderPassPtr pass, m_renderpasses.keys().toSet() - passes.toSet()) {
-    Sub& sub = m_renderpasses[pass];
-    delete sub.item;
+    {
+      QWidget* container = insertItem(++row, "View", layout);
 
-    m_renderpasses.remove(pass);
+      item.view_box = new QComboBox(container);
+      layout->setWidget(0, 1, item.view_box);
+
+      QPushButton* btn = createButton(pass, container, QIcon(":/icons/view.png"),
+                                      SLOT(openCameraEditor()));
+      layout->setWidget(2, 1, btn);
+
+      {
+        QListWidget* view = new QListWidget(item.view_box);
+
+        QListWidgetItem* tmp = new QListWidgetItem("Disabled");
+        QFont font = tmp->font();
+        font.setBold(true);
+        tmp->setFont(font);
+        view->addItem(tmp);
+
+        tmp = new QListWidgetItem("Post");
+        tmp->setIcon(QIcon(":/icons/texture.png"));
+        tmp->setFont(font);
+        view->addItem(tmp);
+
+        tmp = new QListWidgetItem("");
+        tmp->setFlags(Qt::NoItemFlags);
+        font.setPixelSize(2);
+        tmp->setFont(font);
+        view->addItem(tmp);
+
+        item.view_box->setModel(view->model());
+        item.view_box->setView(view);
+      }
+    }
+
+    {
+      QWidget* container = insertItem(++row, "Objects", layout);
+
+      item.objects_label = new QLabel(container);
+      layout->setWidget(0, 1, item.objects_label);
+
+      QPushButton* btn = createButton(pass, container, QIcon(":/icons/objects.png"),
+                                      SLOT(openObjectBrowser()));
+      layout->setWidget(2, 1, btn);
+    }
+
+    {
+      QWidget* container = insertItem(++row, "Lights", layout);
+
+      item.lights_label = new QLabel(container);
+      layout->setWidget(0, 1, item.lights_label);
+
+      QPushButton* btn = createButton(pass, container, QIcon(":/icons/light.png"),
+                                      SLOT(openLightEditor()));
+      layout->setWidget(2, 1, btn);
+    }
+
+    connect(pass.get(), SIGNAL(changed(RenderPassPtr)),
+            this, SLOT(changed(RenderPassPtr)));
+    changed(pass);
   }
 
 /*
@@ -1048,25 +1193,125 @@ void RenderPassProperties::valueChanged(QtProperty* property, const QVariant& va
   it->set(variant);*/
 //}
 
+void RenderPassProperties::changed(RenderPassPtr pass) {
+  if (!m_passes.contains(pass)) return;
+  PassItem& item = m_passes[pass];
+
+  /// @todo render pass icon
+
+  item.header->setText(pass->name());
+
+  { /// Material
+    while (item.material_box->count() > 2)
+      item.material_box->removeItem(2);
+
+    bool found = !pass->defaultMaterial();
+    item.material_box->setCurrentIndex(0);
+
+    foreach (MaterialPtr material, m_scene->materials()) {
+      item.material_box->addItem(QIcon(material->prog() ? ":/icons/shader.png" : ":/icons/noshader.png"),
+                                 material->name(), material->name());
+      if (!found && material == pass->defaultMaterial()) {
+        found = true;
+        item.material_box->setCurrentIndex(item.material_box->count()-1);
+      }
+    }
+  }
+
+  { /// View
+    while (item.view_box->count() > 3)
+      item.view_box->removeItem(3);
+
+    bool found = !pass->view();
+    item.view_box->setCurrentIndex(0);
+
+    if (!found && pass->view()->type() == Camera::Rect) {
+      found = true;
+      item.view_box->setCurrentIndex(1);
+    }
+    foreach (CameraPtr camera, m_scene->cameras()) {
+      item.view_box->addItem(camera->icon(), camera->name(), camera->name());
+      if (!found && camera == pass->view()) {
+        found = true;
+        item.view_box->setCurrentIndex(item.view_box->count()-1);
+      }
+    }
+  }
+
+  { /// Objects
+    RenderPass::Objects objs = pass->objects();
+    int count = objs.size();
+    int total_count = pass->scene()->objects().size();
+    item.objects_label->setText(QString("%1 / %2 objects").arg(count).arg(total_count));
+  }
+
+  { /// Lights
+    RenderPass::Lights all_lights = pass->scene()->lights().values().toSet();
+    RenderPass::Lights pass_lights = pass->lights();
+    item.lights_label->setText(QString("%1 / %2 lights").arg(pass_lights.size()).arg(all_lights.size()));
+  }
+}
+
 void RenderPassProperties::selectionChanged() {
+  RenderPassPtr pass = getSelected();
+
+  if (m_selected != pass) {
+    if (m_selected && m_passes.contains(m_selected))
+      m_passes[m_selected].header->setSelected(false);
+    if (pass && m_passes.contains(pass))
+      m_passes[pass].header->setSelected(true);
+    m_selected = pass;
+  }
+
   if (!m_create) return;
 
-  RenderPassPtr rp;
-  QList<QTreeWidgetItem*> items = selectedItems();
-  if (items.size() == 1) rp = get(items[0]);
-  if (rp) {
+  if (pass) {
     m_duplicate->setEnabled(true);
     m_destroy->setEnabled(true);
 
-    QString name = rp->name();
+    QString name = pass->name();
     m_duplicate->setText(QString("Duplicate \"%1\"").arg(name));
     m_destroy->setText(QString("Delete \"%1\"").arg(name));
   } else {
     m_duplicate->setEnabled(false);
     m_destroy->setEnabled(false);
+    m_duplicate->setText(QString("Duplicate render pass"));
+    m_destroy->setText(QString("Delete render pass"));
   }
 }
 
+RenderPassPtr RenderPassProperties::get(QModelIndex index) const {
+  QModelIndex idx = index.column() == 0 ? index : index.sibling(index.row(), 0);
+  while (idx.isValid()) {
+    for (QMap<RenderPassPtr, PassItem>::const_iterator it = m_passes.begin(); it != m_passes.end(); ++it) {
+      if (idx == it->header_index)
+        return it.key();
+    }
+    idx = idx.sibling(index.row()-1, 0);
+  }
+  return RenderPassPtr();
+}
+
+RenderPassPtr RenderPassProperties::getSelected() const {
+  auto lst = selectedIndexes();
+  if (lst.size() == 1) return get(lst[0]);
+  return RenderPassPtr();
+}
+
+RenderPassPtr RenderPassProperties::getSender() const {
+  return m_senders.value(sender());
+}
+
+QItemSelectionModel::SelectionFlags RenderPassProperties::selectionCommand(
+    const QModelIndex& index, const QEvent* event) const {
+  QWidget* w = indexWidget(index);
+  if (w && typeid(*w) == typeid(HeaderWidget)) {
+    return QTableWidget::selectionCommand(index, event);
+  }
+  return QItemSelectionModel::NoUpdate;
+}
+
+#if 0
 void RenderPassProperties::recalcLayout() {
   int s = topLevelItemCount();
   for (int i = 0; i < s; ++i) {
@@ -1076,7 +1321,7 @@ void RenderPassProperties::recalcLayout() {
   for (int i = 0; i < columnCount(); ++i)
     resizeColumnToContents(i);
 }
-
+#endif
 void RenderPassProperties::create() {
   ScenePtr s = MainWindow::scene();
   if (!s) {
@@ -1087,17 +1332,63 @@ void RenderPassProperties::create() {
 }
 
 void RenderPassProperties::duplicate() {
-  QList<RenderPassPtr> sel = selectedPasses();
-  if (sel.size() != 1) return;
+  RenderPassPtr pass = getSelected();
 
-  sel[0]->scene()->add(sel[0]->clone());
+  if (pass) pass->scene()->add(pass->clone());
 }
 
 void RenderPassProperties::remove() {
-  foreach (RenderPassPtr rp, selectedPasses())
-    rp->scene()->remove(rp);
+  RenderPassPtr pass = getSelected();
+  if (pass)
+    pass->scene()->remove(pass);
 }
 
+void RenderPassProperties::materialListUpdated() {
+  foreach (RenderPassPtr pass, m_passes.keys())
+    changed(pass);
+}
+
+void RenderPassProperties::cameraListUpdated() {
+  foreach (RenderPassPtr pass, m_passes.keys())
+    changed(pass);
+}
+
+void RenderPassProperties::openObjectBrowser() {
+  RenderPassPtr pass = getSender();
+  if (pass) {
+    ObjectList* browser = new ObjectList(0, pass);
+    browser->show();
+  }
+}
+
+void RenderPassProperties::openLightEditor() {
+  RenderPassPtr pass = getSender();
+  if (pass) {
+    LightList* editor = new LightList(0, pass);
+    editor->show();
+  }
+}
+
+void RenderPassProperties::openCameraEditor() {
+  RenderPassPtr pass = getSender();
+  if (pass) {
+    CameraEditor* editor = new CameraEditor(0, pass);
+    editor->show();
+  }
+}
+
+QPushButton* RenderPassProperties::createButton(RenderPassPtr pass, QWidget* container,
+                                                const QIcon& icon, const char * method) {
+  QPushButton* btn = new QPushButton(icon, "", container);
+  btn->setFlat(true);
+  btn->setMinimumSize(24, 24);
+  btn->setMaximumSize(24, 24);
+  m_senders[btn] = pass;
+  connect(btn, SIGNAL(clicked()), this, method);
+  return btn;
+}
+
+#if 0
 QList<RenderPassPtr> RenderPassProperties::selectedPasses() const {
   QSet<QTreeWidgetItem*> selected;
   foreach (QTreeWidgetItem* item, selectedItems())
@@ -1111,3 +1402,4 @@ QList<RenderPassPtr> RenderPassProperties::selectedPasses() const {
 
   return ret;
 }
+#endif

@@ -29,15 +29,16 @@
 
 #include <cassert>
 
-namespace {
-  class PropertyItem : public QWidgetItem {
-  public:
-    PropertyItem(QWidget* w, int colspan = 1) : QWidgetItem(w), m_colspan(colspan) {}
-    int colspan() const { return m_colspan; }
+class PropertyItem : public QWidgetItem {
+public:
+  PropertyItem(QWidget* w, int colspan = 1) : QWidgetItem(w), m_colspan(colspan) {}
+  int colspan() const { return m_colspan; }
 
-  private:
-    int m_colspan;
-  };
+private:
+  int m_colspan;
+};
+
+namespace {
   template <typename T> T& insert(QList<T>& l) {
     l.push_back(T());
     return l.back();
@@ -46,42 +47,6 @@ namespace {
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-class PropertyLayout;
-struct PropertyLayoutData {
-  PropertyLayoutData(int columns, int stretch_column);
-
-private:
-  int columns, stretch_column;
-  typedef QList<QVector<PropertyItem*> > Items;
-  Items items;
-  QVector<QMargins> padding;
-  QSize min_size;
-
-  friend class MaterialProperties;
-  friend class PropertyLayout;
-};
-
-class PropertyLayout : public QLayout {
-public:
-  PropertyLayout(std::shared_ptr<PropertyLayoutData> data);
-  ~PropertyLayout();
-
-  virtual QSize minimumSize() const;
-  virtual QSize sizeHint() const;
-  virtual void addItem(QLayoutItem*);
-  virtual QLayoutItem* itemAt(int index) const;
-  virtual QLayoutItem* takeAt(int index);
-  virtual int count() const;
-
-  void setWidget(int column, int colspan, QWidget* widget);
-
-  void setGeometry(const QRect& r);
-
-private:
-  std::shared_ptr<PropertyLayoutData> m_data;
-  QVector<PropertyItem*>& m_row;
-};
 
 PropertyLayoutData::PropertyLayoutData(int c, int s) : columns(c), stretch_column(s) {
   padding.resize(columns);
@@ -261,57 +226,43 @@ void LineEdit::updateSizes() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-class HeaderWidget : public QWidget {
-public:
-  HeaderWidget() : m_selected(false) {
-    setAutoFillBackground(true);
-    m_icon = QIcon(":/icons/uniforms_off.png");
+HeaderWidget::HeaderWidget(QIcon active, QIcon inactive)
+  : m_selected(false), m_icon(&m_inactive), m_active(active), m_inactive(inactive) {
+  setAutoFillBackground(true);
+}
+
+void HeaderWidget::setSelected(bool selected) {
+  if (m_selected != selected) {
+    m_selected = selected;
+    m_icon = selected ? &m_active : &m_inactive;
+    update();
   }
+}
 
-  void setText(QString text) { m_text = text; }
-  QString text() const { return m_text; }
+void HeaderWidget::paintEvent(QPaintEvent* ev) {
+  QPainter painter(this);
+  painter.setClipRect(ev->rect());
 
-/*  void setIcon(const QIcon& icon) { m_icon = icon; }*/
-  QIcon icon() const { return m_icon; }
+  QStyleOptionHeader opt;
+  opt.state = QStyle::State_Raised | QStyle::State_Horizontal | QStyle::State_Enabled;
+  //opt.state |= QStyle::State_MouseOver;
 
-  void setSelected(bool selected) {
-    if (m_selected != selected) {
-      m_selected = selected;
-      m_icon = QIcon(selected ? ":/icons/uniforms.png": ":/icons/uniforms_off.png");
-      update();
-    }
-  }
+  if (m_selected) opt.state |= QStyle::State_On;
 
-protected:
-  void paintEvent(QPaintEvent* ev) {
-    QPainter painter(this);
-    painter.setClipRect(ev->rect());
+  opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+  opt.orientation = Qt::Horizontal;
 
-    QStyleOptionHeader opt;
-    opt.state = QStyle::State_Raised | QStyle::State_Horizontal | QStyle::State_Enabled;
-    //opt.state |= QStyle::State_MouseOver;
+  opt.text = m_text;
+  opt.icon = *m_icon;
 
-    if (m_selected) opt.state |= QStyle::State_On;
+  /// clip borders
+  QRect r = ev->rect();
+  r.setRight(r.right() + 3);
+  r.setBottom(r.bottom() + 1);
+  opt.rect = r;
 
-    opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
-    opt.orientation = Qt::Horizontal;
-
-    opt.text = m_text;
-    opt.icon = m_icon;
-
-    /// clip borders
-    QRect r = ev->rect();
-    r.setRight(r.right() + 3);
-    r.setBottom(r.bottom() + 1);
-    opt.rect = r;
-
-    style()->drawControl(QStyle::CE_Header, &opt, &painter, this);
-  }
-
-  QString m_text;
-  QIcon m_icon;
-  bool m_selected;
-};
+  style()->drawControl(QStyle::CE_Header, &opt, &painter, this);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -499,10 +450,6 @@ MaterialProperties &MaterialProperties::instance() {
 /*MaterialProperties::Sub::~Sub() {
 }*/
 
-Properties::Properties(QWidget* parent)
-  : QTreeWidget(parent) {
-}
-
 MaterialProperties::MaterialProperties(QWidget* parent)
   : QTableWidget(parent),
     m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
@@ -577,7 +524,8 @@ void MaterialProperties::update(MaterialPtr mat) {
   MaterialItem& item = m_materials[mat];
   if (!item.material) {
     item.material = mat;
-    item.header = new HeaderWidget;
+    item.header = new HeaderWidget(QIcon(":/icons/uniforms.png"),
+                                   QIcon(":/icons/uniforms_off.png"));
 
     int r = rowCount();
     setRowCount(r+1);

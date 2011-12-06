@@ -19,7 +19,7 @@
 #define RENDER_PASS_PROPERTIES_HPP
 
 #include "properties.hpp"
-
+#if 0
 class ShaderEditor : public QWidget {
   Q_OBJECT
 
@@ -174,7 +174,7 @@ protected:
   QAction* m_depth;
   QAction* m_stencil;
 };
-
+#endif
 /*class TextureEditor : public QWidget {
   Q_OBJECT
 
@@ -215,13 +215,23 @@ protected:
   QList<QPair<QTreeWidgetItem*, TextureEditor*>> m_editors;
 };*/
 
+struct PassItem {
+  HeaderWidget* header;
+  QPersistentModelIndex header_index;
+
+  QComboBox* material_box;
+  QComboBox* view_box;
+
+  QLabel* objects_label;
+  QLabel* lights_label;
+};
 
 /**
  * Real-time property editor for render passes.
  *
  * This is a singleton class.
  */
-class RenderPassProperties : public Properties {
+class RenderPassProperties : public QTableWidget {
   Q_OBJECT
 
 public:
@@ -230,34 +240,57 @@ public:
   virtual ~RenderPassProperties();
 
   void init();
-  QList<RenderPassPtr> list();
+  //QList<RenderPassPtr> list();
 
 public slots:
+  void changed(RenderPassPtr pass);
   void listUpdated(QList<RenderPassPtr> passes);
   void selectionChanged();
-  void recalcLayout();
+  //void recalcLayout();
   void create();
   void duplicate();
   void remove();
 
+  void materialListUpdated();
+  void cameraListUpdated();
+
+private slots:
+  void openObjectBrowser();
+  void openLightEditor();
+  void openCameraEditor();
+
 protected:
-  struct Sub {
-    QTreeWidgetItem* item;
-
-    Sub() : item(0) {}
-  };
-
-  void dropEvent(QDropEvent* event);
-  virtual void contextMenuEvent(QContextMenuEvent* e);
-  RenderPassPtr get(QTreeWidgetItem*& item) const;
+  //void dropEvent(QDropEvent* event);
+  //virtual void contextMenuEvent(QContextMenuEvent* e);
+/*  RenderPassPtr get(QTreeWidgetItem*& item) const;
 
   void init(Sub& sub, RenderPassPtr pass);
   QList<RenderPassPtr> selectedPasses() const;
 
   /// Every render pass has one group property whose children are the actual passes
   QMap<RenderPassPtr, Sub> m_renderpasses;
+*/
+  RenderPassPtr get(QModelIndex index) const;
+  RenderPassPtr getSelected() const;
+  RenderPassPtr getSender() const;
+
+  QItemSelectionModel::SelectionFlags selectionCommand(const QModelIndex& index,
+                                                       const QEvent* event) const;
+
+  QWidget* insertItem(int row, const QString& name, PropertyLayout*& pl);
+  QPushButton* createButton(RenderPassPtr pass, QWidget* container,
+                            const QIcon& icon, const char * method);
+
+  QMap<RenderPassPtr, PassItem> m_passes;
+  QMap<QObject*, RenderPassPtr> m_senders;
+
+  std::shared_ptr<PropertyLayoutData> m_data;
+
+  ScenePtr m_scene;
+  RenderPassPtr m_selected;
 
   QAction *m_create, *m_duplicate, *m_destroy;
+  QList<RenderPassPtr> m_list;
 
   static RenderPassProperties* s_instance;
 };

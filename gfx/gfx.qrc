@@ -53,6 +53,7 @@
         <file>new_light.png</file>
         <file>color.png</file>
         <file>dirlight.png</file>
+        <file>noshader.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>

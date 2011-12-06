@@ -49,6 +49,8 @@ public:
 
   CameraPtr clone() const;
 
+  QIcon icon();
+
   float width() const { return m_width; }
   float height() const { return m_height; }
 

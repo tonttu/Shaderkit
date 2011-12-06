@@ -306,48 +306,6 @@
      </property>
      <item>
       <widget class="RenderPassProperties" name="renderpass_properties">
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="dragEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::InternalMove</enum>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::SingleSelection</enum>
-       </property>
-       <property name="verticalScrollMode">
-        <enum>QAbstractItemView::ScrollPerPixel</enum>
-       </property>
-       <property name="rootIsDecorated">
-        <bool>false</bool>
-       </property>
-       <property name="animated">
-        <bool>true</bool>
-       </property>
-       <property name="headerHidden">
-        <bool>true</bool>
-       </property>
-       <property name="columnCount">
-        <number>3</number>
-       </property>
-       <column>
-        <property name="text">
-         <string notr="true">1</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string notr="true">2</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string notr="true">3</string>
-        </property>
-       </column>
       </widget>
      </item>
      <item>
@@ -614,7 +572,7 @@
   </customwidget>
   <customwidget>
    <class>RenderPassProperties</class>
-   <extends>QTreeWidget</extends>
+   <extends>QTableWidget</extends>
    <header>render_pass_properties.hpp</header>
   </customwidget>
  </customwidgets>

@@ -121,7 +121,7 @@ public:
   void add(LightPtr light);
   void remove(LightPtr light);
 
-  CameraPtr view() { return m_view; }
+  CameraPtr view() const { return m_view; }
   void setView(CameraPtr camera);
 
   QIcon icon();

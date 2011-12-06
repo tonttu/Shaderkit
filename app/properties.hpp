@@ -113,14 +113,64 @@ private:
   TextureWidgetGL* m_icon;
 };
 
-class Properties : public QTreeWidget {
-  Q_OBJECT
+class PropertyLayout;
+class PropertyItem;
+struct PropertyLayoutData {
+  PropertyLayoutData(int columns, int stretch_column);
 
+  QMargins& margins(int i) { return padding[i]; }
+
+private:
+  int columns, stretch_column;
+  typedef QList<QVector<PropertyItem*> > Items;
+  Items items;
+  QVector<QMargins> padding;
+  QSize min_size;
+
+  friend class MaterialProperties;
+  friend class PropertyLayout;
+};
+
+class PropertyLayout : public QLayout {
 public:
-  Properties(QWidget* parent = 0);
-  virtual ~Properties() {}
+  PropertyLayout(std::shared_ptr<PropertyLayoutData> data);
+  ~PropertyLayout();
+
+  virtual QSize minimumSize() const;
+  virtual QSize sizeHint() const;
+  virtual void addItem(QLayoutItem*);
+  virtual QLayoutItem* itemAt(int index) const;
+  virtual QLayoutItem* takeAt(int index);
+  virtual int count() const;
+
+  void setWidget(int column, int colspan, QWidget* widget);
+
+  void setGeometry(const QRect& r);
+
+private:
+  std::shared_ptr<PropertyLayoutData> m_data;
+  QVector<PropertyItem*>& m_row;
+};
+
+class HeaderWidget : public QWidget {
+public:
+  HeaderWidget(QIcon active, QIcon inactive);
+
+  void setText(QString text) { m_text = text; }
+  QString text() const { return m_text; }
+
+  QIcon icon() const { return *m_icon; }
+
+  void setSelected(bool selected);
 
 protected:
+  void paintEvent(QPaintEvent* ev);
+
+  QString m_text;
+  bool m_selected;
+  QIcon* m_icon;
+  QIcon m_active;
+  QIcon m_inactive;
 };
 
 class PropertyLayoutData;

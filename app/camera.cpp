@@ -142,6 +142,15 @@ CameraPtr Camera::clone() const {
   return CameraPtr(new Camera(*this));
 }
 
+QIcon Camera::icon() {
+  if (m_type == Perspective)
+    return QIcon(":/icons/3dpass.png");
+  else if (m_type == Rect)
+    return QIcon(":/icons/texture.png");
+  else
+    return QIcon(":/icons/2dpass.png");
+}
+
 void Camera::rotate(QPointF diff) {
   diff *= 5.0f;
   m_dx -= diff.x();
