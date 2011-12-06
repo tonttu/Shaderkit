@@ -82,6 +82,18 @@ void Camera::setRect(float near_, float far_) {
   m_far = far_;
 }
 
+void Camera::setNear(float near) {
+  m_near = near;
+}
+
+void Camera::setFar(float far) {
+  m_far = far;
+}
+
+void Camera::setFov(float fov) {
+  m_fov = fov;
+}
+
 QVariantMap Camera::save() const {
   QVariantMap map = SceneObject::save();
   if (m_type == Perspective)
@@ -152,6 +164,10 @@ void Camera::setTarget(const Eigen::Vector3f& target) {
   m_target = target;
 }
 
+const Eigen::Vector3f& Camera::target() const {
+  return m_target;
+}
+
 void Camera::setLocation(const Eigen::Vector3f& location) {
   Eigen::Vector3f to = m_target - location;
   m_dist = to.norm();
@@ -163,6 +179,11 @@ void Camera::setLocation(const Eigen::Vector3f& location) {
 
 const Eigen::Vector3f Camera::location() const {
   return m_target - m_front*m_dist;
+}
+
+void Camera::setType(Type type) {
+  m_type = type;
+  updateVectors();
 }
 
 Eigen::Projective3f Camera::normToWindow(bool swap_y) const {

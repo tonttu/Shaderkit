@@ -215,6 +215,9 @@ void LightList::updatePanel() {
     m_ui->targetx->setText("0.0");
     m_ui->targety->setText("0.0");
     m_ui->targetz->setText("0.0");
+    m_ui->cutoff->setText("0.0");
+    m_ui->spot_group->hide();
+    m_ui->dir_group->hide();
   }
 }
 

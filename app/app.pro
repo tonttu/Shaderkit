@@ -64,7 +64,8 @@ HEADERS += \
     object_creator.hpp \
     mesh_manager.hpp \
     object_list.hpp \
-    light_list.hpp
+    light_list.hpp \
+    camera_editor.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -113,7 +114,8 @@ SOURCES += \
     object_creator.cpp \
     mesh_manager.cpp \
     object_list.cpp \
-    light_list.cpp
+    light_list.cpp \
+    camera_editor.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp
@@ -127,7 +129,8 @@ FORMS += \
     importer_wizard.ui \
     texture_browser.ui \
     object_list.ui \
-    light_list.ui
+    light_list.ui \
+    camera_editor.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

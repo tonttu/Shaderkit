@@ -55,9 +55,13 @@ public:
   /// Sets this camera to use orthographic matrix that fills the screen
   void setRect(float near = -1.0f, float far = 1.0f);
 
+  void setNear(float near);
   float near() const { return m_near; }
+
+  void setFar(float far);
   float far() const { return m_far; }
 
+  void setFov(float fov);
   float fov() const { return m_fov; }
 
   void rotate(QPointF diff);
@@ -65,11 +69,13 @@ public:
   void zoom(float diff);
 
   void setTarget(const Eigen::Vector3f& target);
-  void setLocation(const Eigen::Vector3f& location);
+  const Eigen::Vector3f& target() const;
 
+  void setLocation(const Eigen::Vector3f& location);
   const Eigen::Vector3f location() const;
 
   Type type() const { return m_type; }
+  void setType(Type type);
 
   //void setPickDisplay(float x, float y);
 

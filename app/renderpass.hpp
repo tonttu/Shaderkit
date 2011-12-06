@@ -102,6 +102,7 @@ public:
   QString name() const;
   void setName(const QString& name);
 
+  /// @todo this should be removed, CameraEditor & Camera have the same functionality
   Type type() const { return m_type; }
   void setType(Type type);
 

@@ -27,6 +27,7 @@
 #include "utils.hpp"
 #include "object_list.hpp"
 #include "light_list.hpp"
+#include "camera_editor.hpp"
 
 /// @todo this is only for IconBtn
 #include "mainwindow.hpp"
@@ -448,7 +449,7 @@ void LightsEditor::updated(RenderPassPtr pass) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CameraEditor::CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(pass) {
+CameraEditorTmp::CameraEditorTmp(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(pass) {
   QHBoxLayout* layout = new QHBoxLayout(this);
 
   layout->setContentsMargins(2, 2, 2, 2);
@@ -503,7 +504,7 @@ CameraEditor::CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass) : m_pass(p
   connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(updated(RenderPassPtr)));
 }
 
-void CameraEditor::updateList() {
+void CameraEditorTmp::updateList() {
   /// @todo just update changed data
   while (m_list->count() > 3)
     m_list->removeItem(3);
@@ -524,13 +525,13 @@ void CameraEditor::updateList() {
     m_list->setCurrentIndex(0);
 }
 
-void CameraEditor::updated(RenderPassPtr pass) {
+void CameraEditorTmp::updated(RenderPassPtr pass) {
   assert(m_pass == pass);
 
   updateList();
 }
 
-void CameraEditor::listActivated(int index) {
+void CameraEditorTmp::listActivated(int index) {
   if (index == 0) {
     m_pass->setType(RenderPass::Disabled);
   } else if (index == 1) {
@@ -541,11 +542,13 @@ void CameraEditor::listActivated(int index) {
   }
 }
 
-void CameraEditor::newClicked() {
+void CameraEditorTmp::newClicked() {
   /// @todo
 }
 
-void CameraEditor::editClicked() {
+void CameraEditorTmp::editClicked() {
+  CameraEditor* lst = new CameraEditor(0, m_pass);
+  lst->show();
   /// @todo
 }
 
@@ -936,7 +939,7 @@ void RenderPassProperties::init(Sub& sub, RenderPassPtr pass) {
   font = item->font(0);
   font.setBold(true);
   item->setFont(0, font);
-  setItemWidget(item, 1, new CameraEditor(item, pass));
+  setItemWidget(item, 1, new CameraEditorTmp(item, pass));
 
   item = new QTreeWidgetItem(sub.item);
   item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsDropEnabled);

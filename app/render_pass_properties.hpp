@@ -136,11 +136,11 @@ protected:
   QMap<LightPtr, QPair<QTreeWidgetItem*, LightEditor*>> m_lights;
 };
 
-class CameraEditor : public QWidget {
+class CameraEditorTmp : public QWidget {
   Q_OBJECT
 
 public:
-  CameraEditor(QTreeWidgetItem* item, RenderPassPtr pass);
+  CameraEditorTmp(QTreeWidgetItem* item, RenderPassPtr pass);
 
 public slots:
   void updateList();
