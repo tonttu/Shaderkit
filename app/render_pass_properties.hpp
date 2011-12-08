@@ -222,6 +222,13 @@ struct PassItem {
   QComboBox* material_box;
   QComboBox* view_box;
 
+  QLineEdit* size;
+  QPushButton* size_btn;
+
+  QPushButton* clear_color;
+  QPushButton* clear_depth;
+  QPushButton* clear_stencil;
+
   QLabel* objects_label;
   QLabel* lights_label;
 };
@@ -240,13 +247,12 @@ public:
   virtual ~RenderPassProperties();
 
   void init();
-  //QList<RenderPassPtr> list();
 
 public slots:
   void changed(RenderPassPtr pass);
   void listUpdated(QList<RenderPassPtr> passes);
   void selectionChanged();
-  //void recalcLayout();
+
   void create();
   void duplicate();
   void remove();
@@ -258,6 +264,16 @@ private slots:
   void openObjectBrowser();
   void openLightEditor();
   void openCameraEditor();
+
+  void sizeChanged();
+  void toggleAutoSize();
+
+  void clearChanged();
+  void openClearColorPicker();
+  void setClearColor(QColor);
+
+  void materialActivated(int);
+  void cameraActivated(int);
 
 protected:
   //void dropEvent(QDropEvent* event);
@@ -288,6 +304,7 @@ protected:
 
   ScenePtr m_scene;
   RenderPassPtr m_selected;
+  RenderPassPtr m_pass;
 
   QAction *m_create, *m_duplicate, *m_destroy;
   QList<RenderPassPtr> m_list;

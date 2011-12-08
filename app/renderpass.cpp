@@ -72,6 +72,7 @@ Eigen::Vector3f project3(const Eigen::Projective3f& projection,
 RenderPass::RenderPass(QString name, ScenePtr scene)
   : m_type(Disabled), m_name(name), m_scene(scene),
     m_clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT),
+    m_clearColor(50, 50, 50),
     m_width(0), m_height(0), m_autosize(true),
     m_fbo(new FrameBufferObject),
     m_gridProg(new GLProgram("grid")) {
@@ -94,7 +95,9 @@ bool RenderPass::autosize() const {
 }
 
 void RenderPass::setAutosize(bool v) {
+  if (m_autosize == v) return;
   m_autosize = v;
+  emit changed(shared_from_this());
 }
 
 void RenderPass::resize(int w, int h) {
@@ -109,6 +112,13 @@ void RenderPass::resize(int w, int h) {
 void RenderPass::setClearBits(GLbitfield bits) {
   if (m_clear != bits) {
     m_clear = bits;
+    emit changed(shared_from_this());
+  }
+}
+
+void RenderPass::setClearColor(QColor color) {
+  if (m_clearColor != color) {
+    m_clearColor = color;
     emit changed(shared_from_this());
   }
 }
@@ -224,6 +234,7 @@ RenderPassPtr RenderPass::clone() const {
   r->m_defaultMaterial = m_defaultMaterial;
   r->m_view = m_view;
   r->m_clear = m_clear;
+  r->m_clearColor = m_clearColor;
   r->m_width = m_width;
   r->m_height = m_height;
   r->m_autosize = m_autosize;
@@ -241,7 +252,7 @@ void RenderPass::render(State& state, const RenderOptions& render_opts) {
   state.setCamera(m_view);
   m_view->prepare(width(), height());
 
-  glClearColor(0.2f, 0.2f, 0.2f, 1);
+  glClearColor(m_clearColor.redF(), m_clearColor.greenF(), m_clearColor.blueF(), m_clearColor.alphaF());
   if (m_clear) glClear(m_clear);
   if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
 
@@ -394,6 +405,7 @@ QVariantMap RenderPass::save() const {
   if (!tmp.isEmpty()) map["clear"] = tmp;
 
   map["name"] = m_name;
+  map["background"] = toList(m_clearColor);
 
   /// @todo material here
   ///if (m_shader) map["shader"] = m_shader->name();
@@ -480,6 +492,8 @@ void RenderPass::load(QVariantMap map) {
     else if (name == "depth") m_clear |= GL_DEPTH_BUFFER_BIT;
     else if (name == "stencil") m_clear |= GL_STENCIL_BUFFER_BIT;
   }
+
+  m_clearColor = toColor(map["background"]);
 
   QVariantMap out = map["render"].toMap();
 

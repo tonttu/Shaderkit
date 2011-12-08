@@ -1048,10 +1048,11 @@ void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
       QWidget* container = insertItem(++row, "Default material", layout);
 
       item.material_box = new QComboBox(container);
+      m_senders[item.material_box] = pass;
+      connect(item.material_box, SIGNAL(activated(int)), this, SLOT(materialActivated(int)));
       layout->setWidget(0, 1, item.material_box);
 
       /// @todo why this or something similar won't work?
-      /// @todo do not use our custom view or model
       // m_shaderlist->model()->setData(m_shaderlist->model()->index(0, 0), font, Qt::FontRole);
       {
         QListWidget* view = new QListWidget(item.material_box);
@@ -1077,6 +1078,8 @@ void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
       QWidget* container = insertItem(++row, "View", layout);
 
       item.view_box = new QComboBox(container);
+      m_senders[item.view_box] = pass;
+      connect(item.view_box, SIGNAL(activated(int)), this, SLOT(cameraActivated(int)));
       layout->setWidget(0, 1, item.view_box);
 
       QPushButton* btn = createButton(pass, container, QIcon(":/icons/view.png"),
@@ -1106,6 +1109,57 @@ void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
         item.view_box->setModel(view->model());
         item.view_box->setView(view);
       }
+    }
+
+    {
+      QWidget* container = insertItem(++row, "Size", layout);
+
+      item.size = new QLineEdit(container);
+      item.size->setValidator(new QRegExpValidator(QRegExp("\\d+x\\d+"), item.size));
+      m_senders[item.size] = pass;
+      connect(item.size, SIGNAL(editingFinished()), this, SLOT(sizeChanged()));
+
+      layout->setWidget(0, 1, item.size);
+
+      QIcon icon;
+      icon.addFile(":/btns/nosync.png", QSize(), QIcon::Normal, QIcon::Off);
+      icon.addFile(":/btns/sync.png", QSize(), QIcon::Normal, QIcon::On);
+
+      item.size_btn = createButton(pass, container, icon, SLOT(toggleAutoSize()));
+      item.size_btn->setCheckable(true);
+      layout->setWidget(2, 1, item.size_btn);
+    }
+
+    {
+      QWidget* container = insertItem(++row, "Clear", layout);
+
+      QWidget* colors = new QWidget(container);
+      QHBoxLayout* color_layout = new QHBoxLayout(colors);
+      color_layout->setMargin(0);
+
+      QString opt[][2] = {{":/icons/colorbuffer.png", "Clear color buffer"},
+                          {":/icons/depthbuffer.png", "Clear depth buffer"},
+                          {":/icons/stencil.png", "Clear stencil buffer"}};
+      QPushButton** btns[] = {&item.clear_color, &item.clear_depth, &item.clear_stencil};
+
+      for (int i = 0; i < 3; ++i) {
+        QPushButton *& btn = *btns[i];
+        btn = new QPushButton(QIcon(opt[i][0]), "");
+        btn->setToolTip(opt[i][1]);
+        btn->setMaximumWidth(26);
+        btn->setCheckable(true);
+        color_layout->addWidget(btn);
+
+        m_senders[btn] = pass;
+        connect(btn, SIGNAL(clicked()), this, SLOT(clearChanged()));
+      }
+
+      color_layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+      layout->setWidget(0, 1, colors);
+
+      QPushButton* btn = createButton(pass, container, QIcon(":/icons/color.png"),
+                                      SLOT(openClearColorPicker()));
+      layout->setWidget(2, 1, btn);
     }
 
     {
@@ -1238,6 +1292,22 @@ void RenderPassProperties::changed(RenderPassPtr pass) {
     }
   }
 
+  { /// View / Camera
+    item.size->setDisabled(pass->autosize());
+    item.size_btn->setChecked(pass->autosize());
+    item.size->setText(QString("%1x%2").arg(pass->width()).arg(pass->height()));
+  }
+
+  { /// Clear
+    GLbitfield value = pass->clearBits();
+
+    item.clear_color->setChecked(value & GL_COLOR_BUFFER_BIT);
+    item.clear_depth->setChecked(value & GL_DEPTH_BUFFER_BIT);
+    item.clear_stencil->setChecked(value & GL_STENCIL_BUFFER_BIT);
+
+    /// @todo something like setHidden(pass->type() != RenderPass::Normal); ?
+  }
+
   { /// Objects
     RenderPass::Objects objs = pass->objects();
     int count = objs.size();
@@ -1277,6 +1347,89 @@ void RenderPassProperties::selectionChanged() {
     m_destroy->setEnabled(false);
     m_duplicate->setText(QString("Duplicate render pass"));
     m_destroy->setText(QString("Delete render pass"));
+  }
+}
+
+void RenderPassProperties::sizeChanged() {
+  RenderPassPtr pass = getSender();
+  if (!pass || !m_passes.contains(pass)) return;
+  QRegExp r("^(\\d+)x(\\d+)$");
+  if (r.exactMatch(m_passes[pass].size->text())) {
+    int w = r.cap(1).toInt(), h = r.cap(2).toInt();
+    pass->resize(w, h);
+  }
+}
+
+void RenderPassProperties::toggleAutoSize() {
+  RenderPassPtr pass = getSender();
+  if (!pass || !m_passes.contains(pass)) return;
+  pass->setAutosize(m_passes[pass].size_btn->isChecked());
+}
+
+void RenderPassProperties::clearChanged() {
+  RenderPassPtr pass = getSender();
+  if (!pass || !m_passes.contains(pass)) return;
+  PassItem& item = m_passes[pass];
+
+  GLbitfield value = 0;
+  if (item.clear_color->isChecked()) value |= GL_COLOR_BUFFER_BIT;
+  if (item.clear_depth->isChecked()) value |= GL_DEPTH_BUFFER_BIT;
+  if (item.clear_stencil->isChecked()) value |= GL_STENCIL_BUFFER_BIT;
+
+  pass->setClearBits(value);
+}
+
+void RenderPassProperties::openClearColorPicker() {
+  RenderPassPtr pass = getSender();
+  if (!pass) return;
+
+  QColor orig = pass->clearColor();
+
+  QColorDialog dialog(this);
+  dialog.setWindowTitle("Select background color for render pass " + pass->name());
+  dialog.setOptions(QColorDialog::ShowAlphaChannel);
+  dialog.setCurrentColor(orig);
+
+  connect(&dialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(setClearColor(QColor)));
+
+  RenderPassPtr tmp = pass;
+
+  std::swap(tmp, m_pass);
+  dialog.exec();
+  std::swap(tmp, m_pass);
+
+  if (dialog.result() == QDialog::Rejected) {
+    pass->setClearColor(orig);
+  }
+}
+
+void RenderPassProperties::setClearColor(QColor color) {
+  if (m_pass) m_pass->setClearColor(color);
+}
+
+void RenderPassProperties::materialActivated(int index) {
+  RenderPassPtr pass = getSender();
+  if (!pass) return;
+  if (index == 0) {
+    pass->setDefaultMaterial(MaterialPtr());
+  } else if (index > 1) {
+    if (m_passes.contains(pass))
+      pass->setDefaultMaterial(pass->scene()->material(m_passes[pass].material_box->itemData(index).toString()));
+  }
+}
+
+void RenderPassProperties::cameraActivated(int index) {
+  RenderPassPtr pass = getSender();
+  if (!pass) return;
+  if (index == 0) {
+    pass->setType(RenderPass::Disabled);
+  } else if (index == 1) {
+    pass->setType(RenderPass::PostProc);
+  } else {
+    /// @todo this isn't exactly right
+    pass->setType(RenderPass::Normal);
+    if (m_passes.contains(pass))
+      pass->setView(pass->scene()->camera(m_passes[pass].view_box->itemData(index).toString()));
   }
 }
 
