@@ -28,6 +28,7 @@
 #include "object_list.hpp"
 #include "light_list.hpp"
 #include "camera_editor.hpp"
+#include "render_pass_list.hpp"
 
 #include "mainwindow.hpp"
 
@@ -226,7 +227,7 @@ RenderPassProperties &RenderPassProperties::instance() {
 RenderPassProperties::RenderPassProperties(QWidget* parent)
   : QTableWidget(parent),
     m_data(new PropertyLayoutData(3, 1)),
-    m_create(0), m_duplicate(0), m_destroy(0) {
+    m_create(0), m_reorder(0), m_duplicate(0), m_destroy(0) {
   if (!s_instance) s_instance = this;
 
   m_data->margins(0).setLeft(5);
@@ -262,11 +263,14 @@ void RenderPassProperties::init() {
   tb->layout()->setMargin(0);
   m_create = tb->addAction(QIcon(":/icons/new2.png"), "New render pass");
   tb->addSeparator();
+  m_reorder = tb->addAction(QIcon(":/icons/reorder.png"), "Reorder render passes");
+  tb->addSeparator();
   m_duplicate = tb->addAction(QIcon(":/icons/duplicate.png"), "Duplicate render pass");
   tb->addSeparator();
   m_destroy = tb->addAction(QIcon(":/icons/delete.png"), "Delete");
 
   connect(m_create, SIGNAL(triggered()), this, SLOT(create()));
+  connect(m_reorder, SIGNAL(triggered()), this, SLOT(reorder()));
   connect(m_duplicate, SIGNAL(triggered()), this, SLOT(duplicate()));
   connect(m_destroy, SIGNAL(triggered()), this, SLOT(remove()));
 
@@ -339,6 +343,8 @@ void RenderPassProperties::listUpdated(QList<RenderPassPtr> passes) {
   } else if(m_list == passes) return;
 
   disconnect(SLOT(changed(RenderPassPtr)));
+
+  m_reorder->setDisabled(passes.isEmpty());
 
   m_list = passes;
   m_passes.clear();
@@ -731,6 +737,15 @@ void RenderPassProperties::create() {
     Log::error("No active scene");
   } else {
     s->add(RenderPassPtr(new RenderPass("Untitled", s)));
+  }
+}
+
+void RenderPassProperties::reorder() {
+  if (m_list.isEmpty()) return;
+  RenderPassList* list = new RenderPassList(m_list, this);
+  list->exec();
+  if (list->result() == RenderPassList::Accepted) {
+    m_list[0]->scene()->setRenderPasses(list->orderedList());
   }
 }
 

@@ -57,6 +57,7 @@
         <file>stencil.png</file>
         <file>colorbuffer.png</file>
         <file>depthbuffer.png</file>
+        <file>reorder.png</file>
     </qresource>
     <qresource prefix="/btns">
         <file>nosync.png</file>

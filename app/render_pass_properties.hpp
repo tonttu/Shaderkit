@@ -99,6 +99,7 @@ public slots:
   void selectionChanged();
 
   void create();
+  void reorder();
   void duplicate();
   void remove();
 
@@ -144,7 +145,7 @@ protected:
   RenderPassPtr m_selected;
   RenderPassPtr m_pass;
 
-  QAction *m_create, *m_duplicate, *m_destroy;
+  QAction *m_create, *m_reorder, *m_duplicate, *m_destroy;
   QList<RenderPassPtr> m_list;
 
   static RenderPassProperties* s_instance;
