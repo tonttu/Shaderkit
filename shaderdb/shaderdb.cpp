@@ -65,6 +65,7 @@ QStringList ShaderDB::localScenes() {
 }
 
 ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
+/*
   QDir dir;
   QString path = makeUniqPath(m_defaultPath, name);
   if (!dir.mkpath(path)) {
@@ -75,17 +76,18 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   path = dir.canonicalPath();
 
   QString target = makeUniqPath(path, name + ".shaderkit");
-
-  ScenePtr scene = Scene::load(srcfile);
+*/
+  ScenePtr scene = srcfile.isEmpty() ? ScenePtr(new Scene()) : Scene::load(srcfile, Scene::New);
   if (!scene) return scene;
 
-  scene->setFilename(target);
+  scene->setFilename("");
   MetaInfo& info = scene->metainfo();
 
   /// @todo use the real version. And shouldn't we use this version to parse
   ///       and interpret everything correctly?
   info.shaderkit_version = "0.0.1";
-  info.description = "Based on " + info.name;
+  if (!info.name.isEmpty())
+    info.description = "Based on " + info.name;
   info.name = name;
   info.id = "";
   info.revision = 0;
@@ -98,7 +100,7 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
 
   /// @todo copy all file-based external 3D objects and texture images
 
-  scene->setRoot(path);
+  //scene->setRoot(path);
   /// @todo
 /*  foreach (ProgramPtr p, scene->shaders()) {
     foreach (ShaderPtr s, p->shaders()) {
@@ -111,12 +113,12 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
     }
   }*/
 
-  QJson::Serializer serializer;
+  /*QJson::Serializer serializer;
   QFile file(target);
   const QByteArray str = serializer.serialize(scene->save());
   if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
     file.write(str);
-  }
+  }*/
 
   return scene;
 }

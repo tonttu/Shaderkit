@@ -596,8 +596,10 @@ void MultiEditor::itemChanged(QListWidgetItem* item) {
   foreach (const Section& s, m_sections) {
     if (s.item != item) continue;
     QString from = s.editor->shader()->res();
+    /// @todo implement rename
+    /*
     QString res = ResourceLocator::rename(from, item->text(), MainWindow::scene()->filenames());
-    MainWindow::scene()->renameFile(from, res);
+    MainWindow::scene()->renameFile(from, res);*/
     break;
   }
 }

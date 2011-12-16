@@ -304,10 +304,15 @@ bool MainWindow::openScene(ScenePtr scene) {
 }
 
 bool MainWindow::openScene(QString filename) {
-  return openScene(Scene::load(filename));
+  /// @todo Detect if we are opening a Limbo / Sample
+  ///       - maybe add Scene::AutoDetect
+  return openScene(Scene::load(filename, Scene::Ok));
 }
 
 bool MainWindow::reload() {
+  return false;
+  /// @todo Implement reload
+  /*
   if (!m_scene) return false;
 
   ScenePtr scene = Scene::load(m_scene->filename());
@@ -317,7 +322,7 @@ bool MainWindow::reload() {
   } else {
     m_ui->statusbar->showMessage("Failed to reload " + m_scene->filename(), 5000);
     return false;
-  }
+  }*/
 }
 
 void MainWindow::setSceneChanged(bool status) {

@@ -51,7 +51,15 @@ public:
     QString file;
   };
 
-  Scene(QString filename);
+  enum SceneState {
+    New,          /// New Scene, never saved, filename should be empty.
+    Limbo,
+    ReadOnly,     /// Filename points to some original file that shouldn't be
+                  /// overwritten. We need to save this with different name.
+    Ok            /// Filename points to the right file, can be freely saved.
+  };
+
+  Scene(/*QString filename*/);
 
   /// Set the viewport size
   void resize(int width, int height);
@@ -105,7 +113,7 @@ public:
   RenderPassPtr findRenderer(TexturePtr tex);
 
   /// Load the scene from map
-  void load(QVariantMap map);
+  void load(const QString& filename, SceneState state, QVariantMap map);
 
   /// Saves the scene to JSON file.
   /// @returns true if saving succeeds
@@ -115,11 +123,9 @@ public:
   /// Returns the metainfo loaded from the project file
   MetaInfo & metainfo() { return m_metainfo; }
 
-  /// @see root()
-  void setRoot(QString root) { m_root = root; }
   /// The root directory for the scene, all relative filenames
   /// are relative to this directory
-  QString root() const { return m_root; }
+  QString root() const;
 
   NodePtr node() { return m_node; }
 
@@ -141,12 +147,15 @@ public:
   void remove(MaterialPtr m);
 
   /// Loads a scene from JSON file.
-  static ScenePtr load(const QString& filename);
+  static ScenePtr load(const QString& filename, SceneState state);
 
-  void renameFile(QString from, QString to);
+  //void renameFile(QString from, QString to);
 
   void setAutomaticSaving(bool state) { m_automaticSaving = state; }
   bool automaticSaving() const { return m_automaticSaving; }
+
+  SceneState state() const { return m_state; }
+  void setState(SceneState state) { m_state = state; }
 
   bool isChanged() const { return m_changed; }
   void syncHistory();
@@ -227,9 +236,11 @@ protected:
   PickFunc m_pickFunc;
 
   bool m_automaticSaving;
-  History m_history;
+  //History m_history;
 
   QList<ObjectPtr> m_selection;
+
+  SceneState m_state;
 
   bool m_changed;
 

@@ -55,6 +55,7 @@ public:
   virtual ~Welcome();
 
 public slots:
+  void openExample(QString filename);
   void open(QString filename);
   void load();
   void newScene();

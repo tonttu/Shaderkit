@@ -109,7 +109,6 @@ public slots:
   void about();
 
   bool openScene(ScenePtr scene);
-  bool openScene(QString filename);
   /// Load a new project from file, open a file browser
   bool load();
   /// Reloads the project file, basically just loads the same file again,
@@ -172,6 +171,8 @@ protected slots:
   void saved();
 
 private:
+  bool openScene(QString filename);
+
   /// Main layout generated from the .ui -file.
   std::auto_ptr<Ui::MainWindow> m_ui;
 

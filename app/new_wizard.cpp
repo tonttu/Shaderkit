@@ -45,9 +45,15 @@ NewWizard::NewWizard(QWidget* parent)
     m_group(new QButtonGroup(this)) {
   m_ui->setupUi(this);
 
-  m_ui->empty_scene->hide();
   m_ui->default_scene->hide();
   m_ui->advanced->hide();
+
+  m_ui->empty_scene->setCheckable(true);
+  m_group->addButton(m_ui->empty_scene);
+  m_ui->empty_scene->setIcon(m_ui->default_scene->icon());
+  m_ui->empty_scene->setText("Empty project");
+  m_ui->empty_scene->setDescription("Empty project");
+  connect(m_ui->empty_scene, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
 
   /// @todo these should be dependent on the current template selection
   m_ui->renderer->addItem("OpenGL 3.2 compatibility / GLSL 1.50");
@@ -145,6 +151,8 @@ void NewWizard::create() {
   ///       user saves it for the first time. Then you could start a new tmp
   ///       project without saving anything to ShaderDB. Then we could have
   ///       a recovery-feature if we find old tmp project on startup.
+  ///       Save maybe only the history to there?
+
   ScenePtr scene = db.newLocalScene(m_ui->name->text(), btn->filename());
   MainWindow::instance().openScene(scene);
 }

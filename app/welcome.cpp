@@ -20,6 +20,7 @@
 #include "ui_welcome.h"
 #include "shaderdb/shaderdb.hpp"
 #include "shaderdb/metainfo.hpp"
+#include "scene.hpp"
 
 #include <QFileInfo>
 #include <QDateTime>
@@ -63,9 +64,8 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
       m_ui->example_layout->insertWidget(0, btn);
       btn->setText(info.name);
       btn->setDescription(info.description);
-      connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
-    }
-    if (info.categories.contains("user")) {
+      connect(btn, SIGNAL(clicked(QString)), this, SLOT(openExample(QString)));
+    } else if (info.categories.contains("user")) {
       QFileInfo finfo(file);
       recent.push(qMakePair(finfo.lastModified(), file));
     }
@@ -95,8 +95,14 @@ Welcome::~Welcome() {
   delete m_ui;
 }
 
+void Welcome::openExample(QString filename) {
+  if (MainWindow::instance().openScene(Scene::load(filename, Scene::ReadOnly))) {
+    deleteLater();
+  }
+}
+
 void Welcome::open(QString filename) {
-  if (MainWindow::instance().openScene(filename)) {
+  if (MainWindow::instance().openScene(Scene::load(filename, Scene::Ok))) {
     deleteLater();
   }
 }

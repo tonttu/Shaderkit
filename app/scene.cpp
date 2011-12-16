@@ -150,11 +150,11 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Scene::Scene(QString filename)
+Scene::Scene(/*QString filename*/)
   : m_width(-1), m_height(-1),
-    m_filename(filename), m_node(new Node), m_picking(-1, -1),
+    /*m_filename(filename), */m_node(new Node), m_picking(-1, -1),
     m_automaticSaving(false),
-    m_history(*this, filename),
+    //m_history(*this, filename),
     m_changed(false), m_lastTime(0) {
   /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
@@ -351,7 +351,9 @@ RenderPassPtr Scene::findRenderer(TexturePtr tex) {
   return RenderPassPtr();
 }
 
-void Scene::load(QVariantMap map) {
+void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
+  m_filename = filename;
+  m_state = state;
   ObjImporter importer;
   QMap<QString, ObjImporter::Scene> imported;
 
@@ -599,29 +601,21 @@ void Scene::remove(MaterialPtr m) {
   emit materialListUpdated(shared_from_this());
 }
 
-ScenePtr Scene::load(const QString& filename) {
+ScenePtr Scene::load(const QString& filename, SceneState state) {
   ScenePtr scene;
-
-  QDir dir(filename);
-  QString root;
-  if (dir.cdUp())
-    root = dir.canonicalPath();
-  if (root.isEmpty())
-    return scene;
 
   QJson::Parser parser;
   bool ok;
   QFile file(filename);
   QVariant data = parser.parse(&file, &ok);
   if (ok) {
-    scene.reset(new Scene(filename));
-    scene->setRoot(root);
-    scene->load(data.toMap());
+    scene.reset(new Scene());
+    scene->load(filename, state, data.toMap());
   }
   return scene;
 }
 
-void Scene::renameFile(QString from, QString to) {
+/*void Scene::renameFile(QString from, QString to) {
   /// @todo Watcher::rename(from, to);
   ///       -> will put the renaming to queue and update stuff on next Watcher::update
   if (QFile::exists(from)) {
@@ -634,10 +628,10 @@ void Scene::renameFile(QString from, QString to) {
     foreach (ShaderPtr s, p->shaders())
       if (s->res() == from)
         s->setFilename(to);
-}
+}*/
 
 void Scene::syncHistory() {
-  m_history.sync();
+  //m_history.sync();
 }
 
 void Scene::add(RenderPassPtr pass) {
@@ -762,7 +756,7 @@ RenderPassPtr Scene::selectedRenderPass(RenderPass::Type filter) const {
 
 void Scene::changedSlot() {
   m_changed = true;
-  m_history.changed();
+  //m_history.changed();
   emit changed();
 }
 
@@ -795,6 +789,12 @@ bool Scene::save(const QVariantMap& map) {
   return false;
 }
 
+QString Scene::root() const {
+  if(m_filename.isEmpty()) return "";
+  QFileInfo fi(m_filename);
+  return fi.absolutePath();
+}
+
 QString Scene::search(QString filename) const {
   if (m_root.isEmpty())
     return QDir(filename).canonicalPath();
@@ -807,7 +807,7 @@ QString Scene::search(QString filename) const {
 
 void Scene::setFilename(QString filename) {
   m_filename = filename;
-  m_history.setSceneFilename(filename);
+  //m_history.setSceneFilename(filename);
 }
 
 CameraPtr Scene::camera() {
