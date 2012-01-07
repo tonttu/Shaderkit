@@ -23,6 +23,7 @@
 #include "Eigen/Geometry"
 
 #include <QSet>
+#include <QMap>
 
 /**
  * Represents OpenGL state.

@@ -26,6 +26,11 @@
 #include "material.hpp"
 
 #include <QDebug>
+#include <QScrollBar>
+#include <QFileInfo>
+#include <QImageReader>
+#include <QSettings>
+#include <QFileDialog>
 
 #include <cassert>
 #include <cmath>

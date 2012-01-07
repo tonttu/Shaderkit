@@ -20,6 +20,9 @@
 
 #include <cassert>
 
+#include <QTimer>
+#include <QGLContext>
+
 #define D_(pname, param, spname, sparam) \
   s_names[pname] = spname, s_names[param] = sparam, \
   s_enums[spname] = pname, s_enums[sparam] = param, \

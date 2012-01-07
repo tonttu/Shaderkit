@@ -29,6 +29,18 @@
 
 #include <cassert>
 
+#include <QApplication>
+#include <QPaintEvent>
+#include <QAction>
+#include <QHeaderView>
+#include <QToolBar>
+#include <QImageReader>
+#include <QSettings>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QMenu>
+
 class PropertyItem : public QWidgetItem {
 public:
   PropertyItem(QWidget* w, int colspan = 1) : QWidgetItem(w), m_colspan(colspan) {}

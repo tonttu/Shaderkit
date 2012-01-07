@@ -23,6 +23,8 @@
 
 #include <cassert>
 
+#include <QDir>
+
 namespace {
   ShaderManager* s_shader_manager = 0;
 }

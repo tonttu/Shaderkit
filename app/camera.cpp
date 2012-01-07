@@ -23,6 +23,8 @@
 
 #include <cassert>
 
+#include <QIcon>
+
 Camera::Camera(const QString &name)
   : SceneObject(name), m_type(Perspective),
     m_target(0, 0, 0), m_up(0, 1, 0),

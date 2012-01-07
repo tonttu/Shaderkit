@@ -23,6 +23,9 @@
 
 #include <cassert>
 
+#include <QSet>
+#include <QMap>
+
 class BufferObject {
 public:
   /**

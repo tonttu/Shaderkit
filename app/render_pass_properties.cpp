@@ -34,6 +34,12 @@
 
 #include <cassert>
 
+#include <QHeaderView>
+#include <QToolBar>
+#include <QAction>
+#include <QListWidget>
+#include <QColorDialog>
+
 RenderPassProperties* RenderPassProperties::s_instance = 0;
 
 ///////////////////////////////////////////////////////////////////////////////

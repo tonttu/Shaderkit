@@ -22,6 +22,8 @@
 #include "shader/error.hpp"
 #include "app/opengl.hpp"
 
+#include <QIcon>
+
 /**
  * GLSL Shader.
  *

@@ -21,6 +21,8 @@
 #include "wrap_glext.h"
 
 #include <QTime>
+#include <QMap>
+#include <QGLContext>
 
 #include <poll.h>
 #include <sys/wait.h>

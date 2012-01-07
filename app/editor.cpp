@@ -34,6 +34,15 @@
 #include <QDebug>
 #include <QScrollBar>
 #include <QCheckBox>
+#include <QDialogButtonBox>
+#include <QSignalMapper>
+#include <QLabel>
+#include <QToolBar>
+#include <QAction>
+#include <QTimer>
+#include <QMenu>
+#include <QSettings>
+#include <QFileDialog>
 
 #include <cassert>
 

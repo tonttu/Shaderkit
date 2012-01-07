@@ -20,6 +20,9 @@
 
 #include "properties.hpp"
 
+#include <QComboBox>
+#include <QPushButton>
+
 /*class TextureEditor : public QWidget {
   Q_OBJECT
 

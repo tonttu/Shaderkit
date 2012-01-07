@@ -23,6 +23,9 @@
 #include "shader/uniform.hpp"
 #include "buffer_object.hpp"
 
+#include <QColor>
+#include <QPointF>
+
 struct RenderOptions {
   RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE) {}
   bool grid;

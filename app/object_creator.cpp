@@ -10,6 +10,8 @@
 
 #include <Eigen/OpenGLSupport>
 
+#include <QMouseEvent>
+
 inline Eigen::Vector3f v3(float x, float y, float z) { return Eigen::Vector3f(x, y, z); }
 
 #define SHADER(x) #x

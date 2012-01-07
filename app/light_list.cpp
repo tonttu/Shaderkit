@@ -7,6 +7,8 @@
 #include "light.hpp"
 #include "viewport.hpp"
 
+#include <QColorDialog>
+
 QString alphaName(const QColor& color) {
   QRgb argb = color.rgba();
   return QString("#%1").arg(((argb & 0xFFFFFF) << 8) | qAlpha(argb), 8, 16, QLatin1Char('0')).toUpper();

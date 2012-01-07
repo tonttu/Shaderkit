@@ -22,6 +22,7 @@
 #include "app/opengl.hpp"
 
 #include <QVector>
+#include <QVariant>
 
 #ifdef _WIN32
 #undef GLAPIENTRY

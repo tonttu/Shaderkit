@@ -37,6 +37,8 @@
 #include <serializer.h>
 
 #include <QVariantMap>
+#include <QFileInfo>
+#include <QDir>
 
 #include <cassert>
 

@@ -6,6 +6,8 @@
 
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QAction>
+#include <QMenu>
 
 Viewport::Viewport(QWidget* parent) : QWidget(parent) {
   QVBoxLayout* layout = new QVBoxLayout(this);

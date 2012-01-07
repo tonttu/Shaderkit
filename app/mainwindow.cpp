@@ -33,6 +33,10 @@
 #include <QFileInfo>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QSettings>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QDialogButtonBox>
 
 #include <cassert>
 

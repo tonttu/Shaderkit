@@ -23,7 +23,6 @@
 #include <windows.h>
 #endif
 #include <GL/glew.h>
-#include <QtOpenGL>
 
 void _check_gl(const char* str, const char* file, int line);
 

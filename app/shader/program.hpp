@@ -27,8 +27,7 @@
 #include "Eigen/Geometry"
 
 #include <QObject>
-
-#include <set>
+#include <QSet>
 
 class ShaderManager : public QObject {
   Q_OBJECT

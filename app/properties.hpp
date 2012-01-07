@@ -23,6 +23,9 @@
 
 #include <QMap>
 #include <QTableWidget>
+#include <QLineEdit>
+#include <QLabel>
+#include <QLayout>
 
 /**
  * This line editor updates its size hints automatically based on the content.

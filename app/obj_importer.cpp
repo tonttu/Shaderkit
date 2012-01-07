@@ -31,6 +31,9 @@
 
 #include <cassert>
 
+#include <QFileInfo>
+#include <QDir>
+
 namespace {
   QString str(const aiString& aistr) {
     return QString::fromUtf8(aistr.data, aistr.length);
