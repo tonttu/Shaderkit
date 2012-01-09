@@ -42,7 +42,7 @@ public:
 
   void setMaterial(MaterialPtr material) { m_material = material; }
   void setProgram(QString res) { m_program = res; }
-  void setShader(QString res) { m_shader = res; }
+  void setShaderFilename(const QString& filename) { m_shaderFilename = filename; }
   void setLine(int line) { m_line = line; }
   void setColumn(int column) { m_column = column; }
   void setLength(int length) { m_length = length; }
@@ -64,7 +64,7 @@ public:
 
   MaterialPtr material() const { return m_material; }
   QString program() const { return m_program; }
-  QString shader() const { return m_shader; }
+  QString shaderFilename() const { return m_shaderFilename; }
 
   /// Implemented only for containers that require this.
   bool operator<(const ShaderError& o) const;
@@ -74,7 +74,7 @@ public:
 
 protected:
   MaterialPtr m_material;
-  QString m_program, m_shader;
+  QString m_program, m_shaderFilename;
   QString m_msg, m_type;
   int m_line, m_column, m_length;
 };
@@ -87,14 +87,14 @@ public:
   using List::end;
   using List::size;
 
-  ShaderErrorList(MaterialPtr material_ = MaterialPtr(), QString program_ = "", QString shader_ = "")
-    : material(material_), program(program_), shader(shader_) {}
+  ShaderErrorList(MaterialPtr material_ = MaterialPtr(), QString program_ = "", QString shaderFilename_ = "")
+    : material(material_), program(program_), shader_filename(shaderFilename_) {}
 
   ShaderErrorList& operator<<(const ShaderError& error) {
     append(error);
     back().setMaterial(material);
     back().setProgram(program);
-    back().setShader(shader);
+    back().setShaderFilename(shader_filename);
     return *this;
   }
 
@@ -105,7 +105,7 @@ public:
   }
 
   MaterialPtr material;
-  QString program, shader;
+  QString program, shader_filename;
 };
 
 #endif

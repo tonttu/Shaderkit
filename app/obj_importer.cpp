@@ -392,7 +392,7 @@ MaterialPtr ObjImporter::loadMaterial(int idx) {
         mapping = aiTextureMapping_UV;
       }
 
-      t->setFile(findFile(str(path)));
+      t->setFilename(findFile(str(path)));
       t->setBlend(blend);
       t->setUV(uvindex);
       /// @todo use aiTextureOp op somehow

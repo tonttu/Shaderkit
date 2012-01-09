@@ -175,22 +175,22 @@ ScenePtr MainWindow::scene() {
 }
 
 void MainWindow::updateErrors(ShaderErrorList errors) {
-  QList<GLSLEditor*> editors = findEditors(errors.shader);
+  QList<GLSLEditor*> editors = findEditors(errors.shader_filename);
   bool changed = false;
 
   // first step is to remove old error messages
   for (int i = 0; i < m_ui->error_list->rowCount(); ++i) {
     QTableWidgetItem* item = m_ui->error_list->item(i, 0);
     const ShaderError& e = m_error_list_items[item];
-    if (errors.shader == e.shader() &&
-        (!errors.shader.isEmpty() || errors.program == e.program())) {
+    if (errors.shader_filename == e.shaderFilename() &&
+        (!errors.shader_filename.isEmpty() || errors.program == e.program())) {
       m_error_list_items.remove(item);
       m_ui->error_list->removeRow(i--);
       changed = true;
     }
   }
 
-  if (!errors.shader.isEmpty())
+  if (!errors.shader_filename.isEmpty())
     foreach (GLSLEditor* e, editors)
       e->clearErrors();
 
@@ -216,8 +216,8 @@ void MainWindow::updateErrors(ShaderErrorList errors) {
     msg->setIcon(QIcon(QPixmap(e.type() == "warning" ? ":/icons/warning.png" : ":/icons/error.png")));
     m_ui->error_list->insertRow(row);
     m_ui->error_list->setItem(row, 0, msg);
-    if (!e.shader().isEmpty())
-      m_ui->error_list->setItem(row, 1, new QTableWidgetItem(ResourceLocator::ui(e.shader())));
+    if (!e.shaderFilename().isEmpty())
+      m_ui->error_list->setItem(row, 1, new QTableWidgetItem(ResourceLocator::ui(e.shaderFilename())));
     m_ui->error_list->setItem(row, 2, new QTableWidgetItem(QString::number(e.line()+1)));
     m_error_list_items[msg] = e;
     changed = true;
@@ -282,7 +282,7 @@ bool MainWindow::openScene(ScenePtr scene) {
 
   foreach (ProgramPtr prog, m_scene->materialPrograms())
     foreach (ShaderPtr shader, prog->shaders())
-      Watcher::instance().add(this, shader->res());
+      Watcher::instance().add(this, shader->filename());
 
   if (should_restore_settings)
     restore();
@@ -342,13 +342,13 @@ void MainWindow::setSceneChanged(bool status) {
 }
 
 QList<GLSLEditor*> MainWindow::findEditors(ShaderPtr shader) {
-  return findEditors(shader->res());
+  return findEditors(shader->filename());
 }
 
-QList<GLSLEditor*> MainWindow::findEditors(QString res) {
+QList<GLSLEditor*> MainWindow::findEditors(const QString& filename) {
   QList<GLSLEditor*> ret;
   foreach (MultiEditor* editor, m_editors.keys()) {
-    GLSLEditor* e = editor->editor(res);
+    GLSLEditor* e = editor->editor(filename);
     if (e) ret << e;
   }
   return ret;
@@ -387,7 +387,7 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   if (editor) {
     ProgramPtr prog = editor->material()->prog();
     if (prog && (prog->name() == err.program() ||
-                 prog->hasShader(err.shader()))) {
+                 prog->hasShader(err.shaderFilename()))) {
       editor->focusOnError(err);
       return;
     }
@@ -396,7 +396,7 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   for (auto it = m_editors.begin(); it != m_editors.end(); ++it) {
     ProgramPtr prog = it.key()->material()->prog();
     if (prog && (prog->name() == err.program() ||
-                 prog->hasShader(err.shader()))) {
+                 prog->hasShader(err.shaderFilename()))) {
       m_ui->editor_tabs->setCurrentWidget(*it);
       it.key()->focusOnError(err);
       return;
@@ -412,7 +412,7 @@ void MainWindow::errorItemActivated(QTableWidgetItem* item) {
   foreach (MaterialPtr m, m_scene->materials().values()) {
     ProgramPtr prog = m->prog();
     if (prog && (prog->name() == err.program() ||
-                 prog->hasShader(err.shader()))) {
+                 prog->hasShader(err.shaderFilename()))) {
       MultiEditor* editor = openMaterial(m);
       editor->focusOnError(err);
       return;
@@ -554,7 +554,7 @@ void MainWindow::compileAll() {
   foreach (MultiEditor* me, m_editors.keys()) {
     foreach (GLSLEditor* e, me->editors()) {
       QString tmp = e->toPlainText();
-      foreach (ShaderPtr shader, m_scene->shaders(e->shader()->res()))
+      foreach (ShaderPtr shader, m_scene->shaders(e->shader()->filename()))
         shader->loadSrc(tmp);
     }
   }

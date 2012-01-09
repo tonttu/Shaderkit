@@ -21,6 +21,7 @@
 #include "app/forward.hpp"
 #include "shader/error.hpp"
 #include "app/opengl.hpp"
+#include "app/file_resource.hpp"
 
 #include <QIcon>
 
@@ -30,7 +31,7 @@
  * It is safe to create Shader objects before actually having an OpenGL context.
  * The actual shader object is created only when the shader is compiled the first time.
  */
-class Shader : public std::enable_shared_from_this<Shader> {
+class Shader : public std::enable_shared_from_this<Shader>, public FileResource {
 public:
   /// Supported shader types
   enum Type {
@@ -83,6 +84,7 @@ public:
    */
   CompileStatus compile(ShaderErrorList& errors);
 
+#if 0
   /**
    * If the shader was once loaded from a file, return the original filename or
    * an empty string.
@@ -92,8 +94,9 @@ public:
    * /// @todo this should now be res, not filename
    */
   QString res() const { return m_filename; }
+#endif
 
-  void setFilename(QString filename);
+  virtual void setFilename(const QString& filename);
 
   /// Returns the actual OpenGL shader id, or 0 if there is no shader created yet.
   GLuint id() const;
@@ -135,8 +138,6 @@ protected:
   /// compile() won't do anything if this is false
   bool m_needCompile;
 
-  /// @see filename()
-  QString m_filename;
 
   /// The current shader source code - it might not be the source code of the
   /// current compiled version, if compile() isn't called yet, or if the

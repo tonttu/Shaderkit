@@ -560,10 +560,6 @@ void Texture::applyParams() {
 
 TextureFile::TextureFile(QString name) : Texture(name) {}
 
-void TextureFile::setFile(QString file) {
-  m_file = file;
-}
-
 TexturePtr Texture::clone() const {
   TexturePtr t(new Texture(*this));
   t->m_id = 0;
@@ -838,29 +834,26 @@ TexturePtr TextureFile::clone() const {
 
 QVariantMap TextureFile::save() const {
   QVariantMap map = Texture::save();
-  /// @todo if this a reference and the file name is unchanged, we should forget
-  ///       this. We need a wrapper class for all of these variables that
-  ///       remembers their original values from the original source.
-  if (!m_file.isEmpty()) map["file"] = m_file;
+  if (!rawFilename().isEmpty()) map["file"] = rawFilename();
   return map;
 }
 
 void TextureFile::load(QVariantMap map) {
   Texture::load(map);
-  if (map.contains("file")) m_file = map["file"].toString();
+  if (map.contains("file")) setFilename(map["file"].toString());
 }
 
 void TextureFile::bind(int texture) {
-  bool reload = m_loadedFile != m_file;
+  bool reload = m_loadedFile != filename();
   if (reload && m_id > 0) {
     QGLContext* cx = const_cast<QGLContext*>(QGLContext::currentContext());
     cx->deleteTexture(m_id);
     m_id = 0;
     m_width = m_height = 0;
-    if (!m_file.isEmpty()) {
-      QImage image(m_file);
+    if (!filename().isEmpty()) {
+      QImage image(filename());
       if (image.isNull()) {
-        Log::error("Failed to load image: %s", m_file.toUtf8().data());
+        Log::error("Failed to load image: %s (%s)", filename().toUtf8().data(), rawFilename().toUtf8().data());
       } else {
         m_id = cx->bindTexture(image, GL_TEXTURE_2D, m_internalFormat,
                  QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
@@ -868,10 +861,10 @@ void TextureFile::bind(int texture) {
         m_height = image.height();
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_internalFormat);
         applyParams();
-        Log::info("Image %s, #%d %dx%d", m_file.toUtf8().data(), m_id, m_width, m_height);
+        Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_id, m_width, m_height);
       }
     }
-    m_loadedFile = m_file;
+    m_loadedFile = filename();
   }
   glRun(glEnable(GL_TEXTURE_2D));
   Texture::bind(texture);

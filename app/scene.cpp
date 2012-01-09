@@ -245,11 +245,11 @@ void Scene::remove(TexturePtr t) {
   if (!tmp.isEmpty()) emit textureListUpdated();
 }
 
-QList<ShaderPtr> Scene::shaders(const QString& res) {
+QList<ShaderPtr> Scene::shaders(const QString& filename) {
   QList<ShaderPtr> ret;
   foreach (ProgramPtr p, materialPrograms())
     foreach (ShaderPtr s, p->shaders())
-      if (s->res() == res) ret << s;
+      if (s->filename() == filename) ret << s;
   return ret;
 }
 
@@ -262,14 +262,10 @@ QList<ProgramPtr> Scene::materialPrograms() const {
 
 QSet<QString> Scene::filenames() const {
   QSet<QString> names;
-  QFileInfo fi;
-  fi.setFile(m_filename);
-  names << fi.absoluteFilePath();
+  names << filename();
   foreach (ProgramPtr p, materialPrograms()) {
-    foreach (ShaderPtr s, p->shaders()) {
-      fi.setFile(s->res());
-      names << fi.absoluteFilePath();
-    }
+    foreach (ShaderPtr s, p->shaders())
+      names << s->filename();
   }
   return names;
 }
@@ -320,7 +316,7 @@ QVariantMap Scene::save() const {
   foreach (QString name, imports) {
     assert(m_imports.contains(name));
     QVariantMap i;
-    i["file"] = m_imports[name].file;
+    i["file"] = m_imports[name].rawFilename();
 
     QStringList flags;
     foreach (QString flag, m_imports[name].options.keys())
@@ -354,7 +350,7 @@ RenderPassPtr Scene::findRenderer(TexturePtr tex) {
 }
 
 void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
-  m_filename = filename;
+  setFilename(filename);
   m_state = state;
   ObjImporter importer;
   QMap<QString, ObjImporter::Scene> imported;
@@ -387,7 +383,7 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
   for (auto it = tmp.begin(); it != tmp.end(); ++it) {
     Import& im = m_imports[it.key()];
     QVariantMap item = it->toMap();
-    im.file = item["file"].toString();
+    im.setFilename(item["file"].toString());
     foreach (QString flag, item["flags"].toStringList())
       im.options[flag] = true;
     /// @todo m_imports = stuff
@@ -402,7 +398,7 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
   loadRefs(m_imports, map["lights"], &ObjImporter::Filter::lights);
 
   for (auto it = m_imports.begin(); it != m_imports.end(); ++it) {
-    if (importer.readFile(search(it->file), it->options)) {
+    if (importer.readFile(search(it->filename()), it->options)) {
       imported[it.key()] = importer.load(it->filter);
       m_node->children << imported[it.key()].node;
     }
@@ -496,7 +492,7 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
 }
 
 void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
-  QFileInfo fi(import.file);
+  QFileInfo fi(import.filename());
   QString name = Utils::uniqueName(fi.baseName(), m_imports.keys(), "import");
 
   m_imports[name] = import;
@@ -770,7 +766,7 @@ bool Scene::save(const QString& filename) {
   const QByteArray str = serializer.serialize(save());
   if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
     file.write(str);
-    m_filename = filename;
+    setFilename(filename);
     m_changed = false;
     emit saved();
     return true;
@@ -780,7 +776,7 @@ bool Scene::save(const QString& filename) {
 
 bool Scene::save(const QVariantMap& map) {
   QJson::Serializer serializer;
-  QFile file(m_filename);
+  QFile file(filename());
   const QByteArray str = serializer.serialize(map);
   if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
     file.write(str);
@@ -792,9 +788,7 @@ bool Scene::save(const QVariantMap& map) {
 }
 
 QString Scene::root() const {
-  if(m_filename.isEmpty()) return "";
-  QFileInfo fi(m_filename);
-  return fi.absolutePath();
+  return filename();
 }
 
 QString Scene::search(QString filename) const {
@@ -807,8 +801,8 @@ QString Scene::search(QString filename) const {
   return ret;
 }
 
-void Scene::setFilename(QString filename) {
-  m_filename = filename;
+void Scene::setFilename(const QString& filename) {
+  FileResource::setFilename(filename);
   //m_history.setSceneFilename(filename);
 }
 

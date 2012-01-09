@@ -66,7 +66,7 @@ bool GLProgram::bind(State* state) {
       return false;
 
     for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
-      ShaderErrorList errors(state ? state->material() : MaterialPtr(), name(), (*it)->res());
+      ShaderErrorList errors(state ? state->material() : MaterialPtr(), name(), (*it)->filename());
       Shader::CompileStatus status = (*it)->compile(errors);
       if (status != Shader::NONE) emit ShaderManager::instance().compiled(errors);
       if (status == Shader::OK || status == Shader::WARNINGS) {
@@ -232,10 +232,9 @@ QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
 
   QMap<Shader::Type, QStringList> shaders;
 
-  /// @todo shouldn't use QDir here, res is already relative
-  QDir rootd(root);
+  /// @todo should make raw filenames relative to root if necessary
   foreach (ShaderPtr s, m_shaders)
-    shaders[s->type()] << rootd.relativeFilePath(s->res());
+    shaders[s->type()] << s->rawFilename();
 
   if (shaders.contains(Shader::Geometry))
     map["geometry"] = shaders[Shader::Geometry];
@@ -247,9 +246,9 @@ QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
   return map;
 }
 
-bool GLProgram::hasShader(QString res) const {
+bool GLProgram::hasShader(const QString& filename) const {
   foreach (ShaderPtr s, m_shaders)
-    if (s->res() == res) return true;
+    if (s->filename() == filename) return true;
   return false;
 }
 

@@ -277,7 +277,7 @@ bool GLSLEditor::viewportEvent(QEvent* event) {
 
 void GLSLEditor::save() {
   /// @todo atomic writing
-  QFile file(m_shader->res());
+  QFile file(m_shader->filename());
   if (file.open(QIODevice::WriteOnly)) {
     file.write(toPlainText().toUtf8());
     document()->setModified(false);
@@ -288,7 +288,7 @@ bool GLSLEditor::checkClose() {
   if (document()->isModified()) {
     int ret = QMessageBox::question(this, "Unsaved changes", QString(
                                     "The shader %1 has some unsaved changes, what to do?").
-                                    arg(shader()->res()),
+                                    arg(shader()->filename()),
                                     QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
     if (ret == QMessageBox::Save) {
       save();
@@ -367,7 +367,7 @@ void GLSLEditor::textChangedSlot() {
   if (m_lastdata != tmp) {
     m_lastdata = tmp;
     if (MainWindow::instance().autoCompileEnabled() && MainWindow::scene()) {
-      foreach (ShaderPtr shader, MainWindow::scene()->shaders(m_shader->res()))
+      foreach (ShaderPtr shader, MainWindow::scene()->shaders(m_shader->filename()))
         shader->loadSrc(tmp);
     }
   }
@@ -504,7 +504,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
   QTextDocument* doc = editors.isEmpty() ? 0 : editors[0]->document();
 
   QString src = shader->src();
-  QFile f(shader->res());
+  QFile f(shader->filename());
   bool open = f.open(QFile::ReadOnly);
   bool changed = !open;
   if (!doc && src.isEmpty() && open) {
@@ -512,19 +512,19 @@ void MultiEditor::addShader(ShaderPtr shader) {
     if (!src.isEmpty()) changed = true;
   }
 
-  Section& s = m_sections[shader->res()];
+  Section& s = m_sections[shader->filename()];
 
-  s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->res()));
+  s.item = new QListWidgetItem(shader->icon(), ResourceLocator::ui(shader->filename()));
   s.item->setFlags(s.item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable);
   /// @todo handle hide/show
   s.item->setCheckState(Qt::Checked);
-  s.item->setData(Qt::UserRole, shader->res());
+  s.item->setData(Qt::UserRole, shader->filename());
   m_list->addItem(s.item);
 
   s.header = new QWidget(m_canvas);
   QHBoxLayout* l = new QHBoxLayout(s.header);
 
-  s.label = new QLabel("<b>"+ResourceLocator::ui(shader->res())+"</b>", s.header);
+  s.label = new QLabel("<b>"+ResourceLocator::ui(shader->filename())+"</b>", s.header);
   s.icon = new QLabel(s.header);
   s.icon->setPixmap(shader->icon().pixmap(16));
   l->addWidget(s.icon);
@@ -537,7 +537,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
 
   m_canvas->layout()->addWidget(s.editor);
 
-  m_mapper->setMapping(s.editor->document()->documentLayout(), shader->res());
+  m_mapper->setMapping(s.editor->document()->documentLayout(), shader->filename());
   connect(s.editor->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)),
           m_mapper, SLOT(map()));
 
@@ -551,7 +551,7 @@ void MultiEditor::addShader(ShaderPtr shader) {
   } else {
     /// @todo this is not enough, maybe using a timer?
     /// @todo ensurePolished?
-    autosize(shader->res());
+    autosize(shader->filename());
   }
 
   if (changed)
@@ -581,7 +581,7 @@ void MultiEditor::materialChanged() {
       current << s.editor->shader();
 
     foreach (ShaderPtr s, current - target) {
-      Section section = m_sections.take(s->res());
+      Section section = m_sections.take(s->filename());
       delete section.item;
       delete section.header;
       section.editor->deleteLater();
@@ -604,7 +604,7 @@ void MultiEditor::ensureCursorVisible(GLSLEditor* ed) {
 void MultiEditor::itemChanged(QListWidgetItem* item) {
   foreach (const Section& s, m_sections) {
     if (s.item != item) continue;
-    QString from = s.editor->shader()->res();
+    QString from = s.editor->shader()->filename();
     /// @todo implement rename
     /*
     QString res = ResourceLocator::rename(from, item->text(), MainWindow::scene()->filenames());
@@ -622,10 +622,10 @@ void MultiEditor::shaderChanged(ShaderPtr shader) {
       // again. if the endless recursion won't kill us, then the invalidated it will
       // do that later
       m_sections.erase(it);
-      s.item->setText(ResourceLocator::ui(shader->res()));
-      s.item->setData(Qt::UserRole, shader->res());
-      s.label->setText("<b>"+ResourceLocator::ui(shader->res())+"</b>");
-      m_sections[shader->res()] = s;
+      s.item->setText(ResourceLocator::ui(shader->filename()));
+      s.item->setData(Qt::UserRole, shader->filename());
+      s.label->setText("<b>"+ResourceLocator::ui(shader->filename())+"</b>");
+      m_sections[shader->filename()] = s;
       break;
     }
   }
@@ -668,11 +668,11 @@ void MultiEditor::load() {
   QMap<QString, Shader::Type> shaders;
   foreach (ProgramPtr p, MainWindow::scene()->materialPrograms())
     foreach (ShaderPtr s, p->shaders())
-      shaders[s->res()] = s->type();
+      shaders[s->filename()] = s->type();
 
   if (m_material->prog())
     foreach (ShaderPtr s, m_material->prog()->shaders())
-      shaders.remove(s->res());
+      shaders.remove(s->filename());
 
   if (!shaders.isEmpty()) {
     QMenu menu("Load a shader file", this);
@@ -726,7 +726,7 @@ void MultiEditor::duplicate() {
   if (!shader || !prog) return;
 
   ShaderPtr cloned = shader->clone(prog);
-  cloned->setFilename(ResourceLocator::unique(cloned->res(), MainWindow::scene()->filenames()));
+  cloned->setFilename(ResourceLocator::unique(cloned->filename(), MainWindow::scene()->filenames()));
   prog->addShader(cloned);
 }
 
@@ -734,25 +734,25 @@ void MultiEditor::remove() {
   const Section* s = selected();
   if (!s) return;
 
-  QString res = s->editor->shader()->res();
-  QList<ShaderPtr> all = MainWindow::scene()->shaders(res);
+  const QString& filename = s->editor->shader()->filename();
+  QList<ShaderPtr> all = MainWindow::scene()->shaders(filename);
 
   ShaderPtr shader = s->editor->shader();
   ProgramPtr prog = shader->program();
   if (!shader || !prog) return;
 
-  CheckBoxDialog dialog(QString("Remove %1 from the project.").arg(res), all.size() == 1);
+  CheckBoxDialog dialog(QString("Remove %1 from the project.").arg(filename), all.size() == 1);
   dialog.setMinimumWidth(550);
   if (dialog.exec() == QDialog::Accepted) {
     if (prog->removeShader(shader) && all.size() == 1 && dialog.checked()) {
-      Log::info("Removing file %s", res.toUtf8().data());
-      QFile::remove(res);
+      Log::info("Removing file %s", filename.toUtf8().data());
+      QFile::remove(filename);
     }
   }
 }
 
-void MultiEditor::autosize(QString res) {
-  Section s = m_sections.value(res);
+void MultiEditor::autosize(QString filename) {
+  Section s = m_sections.value(filename);
   if (s.editor) {
     QSize size = s.editor->document()->size().toSize();
     size.setWidth(size.width() + s.editor->marginWidth());
@@ -851,10 +851,9 @@ void MultiEditor::saveMaterial() {
   }
 }
 
-GLSLEditor* MultiEditor::editor(QString res) const {
+GLSLEditor* MultiEditor::editor(const QString& filename) const {
   foreach (const Section& s, m_sections) {
-    /// @todo handle other res choices too (material, shader)
-    if (s.editor && s.editor->shader()->res() == res)
+    if (s.editor && s.editor->shader()->filename() == filename)
       return s.editor;
   }
   return 0;

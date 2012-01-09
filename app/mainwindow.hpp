@@ -117,7 +117,7 @@ public slots:
   void setSceneChanged(bool status);
 
   QList<GLSLEditor*> findEditors(ShaderPtr shader);
-  QList<GLSLEditor*> findEditors(QString res);
+  QList<GLSLEditor*> findEditors(const QString& filename);
   MultiEditor* findEditor(MaterialPtr mat);
   MultiEditor* openMaterial(MaterialPtr mat);
 

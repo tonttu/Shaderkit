@@ -66,7 +66,8 @@ HEADERS += \
     object_list.hpp \
     light_list.hpp \
     camera_editor.hpp \
-    render_pass_list.hpp
+    render_pass_list.hpp \
+    file_resource.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -117,7 +118,8 @@ SOURCES += \
     object_list.cpp \
     light_list.cpp \
     camera_editor.cpp \
-    render_pass_list.cpp
+    render_pass_list.cpp \
+    file_resource.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp

@@ -96,8 +96,8 @@ void ImporterWizard::changed(int page) {
     m_import.options["find degenerates"] = m_ui->find_degenerates->isChecked();
     m_import.options["fix normals"] = m_ui->fix_normals->isChecked();
     m_import.options["optimize"] = m_ui->optimize->isChecked();
-    m_import.file = m_ui->filename->text();
-    if (m_importer.readFile(m_ui->filename->text(), m_import.options)) {
+    m_import.setFilename(m_ui->filename->text());
+    if (m_importer.readFile(m_import.filename(), m_import.options)) {
       ObjImporter::SceneInfo si = m_importer.analyze();
       load(si);
     } else {

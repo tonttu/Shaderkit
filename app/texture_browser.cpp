@@ -443,7 +443,7 @@ void TextureBrowser::selected(TextureWidget* w, bool force) {
   }
 
   if (tf) {
-    m_ui->filename->setText(tf->file());
+    m_ui->filename->setText(tf->rawFilename());
     m_ui->filename->show();
     m_ui->filename_label->show();
     m_ui->browse->show();
@@ -696,7 +696,7 @@ void TextureBrowser::load() {
     QFileInfo fi(file);
 
     TextureFile* tex = new TextureFile(fi.baseName());
-    tex->setFile(file);
+    tex->setFilename(file);
     TexturePtr texp(tex);
     m_select = texp;
     MainWindow::scene()->add(texp);
@@ -706,8 +706,8 @@ void TextureBrowser::load() {
 void TextureBrowser::filenameChanged() {
   if (!m_selected) return;
   TextureFile* tf = dynamic_cast<TextureFile*>(m_selected->tex().get());
-  if (!tf || tf->file() == m_ui->filename->text()) return;
-  tf->setFile(m_ui->filename->text());
+  if (!tf || tf->rawFilename() == m_ui->filename->text()) return;
+  tf->setFilename(m_ui->filename->text());
 }
 
 void TextureBrowser::browse() {

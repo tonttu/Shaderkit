@@ -42,7 +42,7 @@ Shader::~Shader() {
 
 bool Shader::loadFile(const QString& filename) {
   bool changed = false;
-  m_filename = filename;
+  setFilename(filename);
   QFile file(filename);
   if (file.open(QFile::ReadOnly | QFile::Text)) {
     changed = loadSrc(file.readAll());
@@ -102,8 +102,8 @@ Shader::CompileStatus Shader::compile(ShaderErrorList& errors) {
   }
 }
 
-void Shader::setFilename(QString filename) {
-  m_filename = filename;
+void Shader::setFilename(const QString& filename) {
+  FileResource::setFilename(filename);
   emit ShaderManager::instance().changed(shared_from_this());
 }
 
@@ -144,7 +144,7 @@ bool Shader::getBuiltinMacro(QString name, float& out) {
 
 ShaderPtr Shader::clone(ProgramPtr prog) const {
   ShaderPtr s(new Shader(prog, m_type));
-  s->m_filename = m_filename;
+  s->setFilename(rawFilename());
   s->m_src = m_src;
   s->m_needCompile = true;
   if (prog) prog->setIsCompiled(false);

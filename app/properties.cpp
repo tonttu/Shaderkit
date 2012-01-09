@@ -688,7 +688,7 @@ void MaterialProperties::load() {
 
     MaterialPtr m(new Material(Utils::uniqueName(fi.baseName(), s->materials().keys())));
     TextureFile* tex = new TextureFile(Utils::uniqueName(fi.baseName(), s->textures().keys()));
-    tex->setFile(file);
+    tex->setFilename(file);
 
     m->addTexture("diffuse", TexturePtr(tex));
     s->setMaterial(m->name(), m);

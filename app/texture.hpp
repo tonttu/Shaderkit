@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 #include "fbo.hpp"
+#include "file_resource.hpp"
 
 #include <QVariantMap>
 
@@ -132,13 +133,10 @@ protected:
   bool m_paramsDirty, m_dirty;
 };
 
-class TextureFile : public Texture {
+class TextureFile : public Texture, public FileResource {
 public:
   TextureFile(QString name);
   virtual ~TextureFile() {}
-
-  void setFile(QString file);
-  QString file() const { return m_file; }
 
   virtual void bind(int texture = 0);
   virtual void setInternalFormat(int format);
@@ -148,7 +146,7 @@ public:
   virtual void load(QVariantMap map);
 
 private:
-  QString m_file, m_loadedFile;
+  QString m_loadedFile;
 };
 
 #endif // TEXTURE_HPP

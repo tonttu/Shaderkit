@@ -177,7 +177,7 @@ public:
   MaterialPtr material() const { return m_material; }
   void saveMaterial();
 
-  GLSLEditor* editor(QString res) const;
+  GLSLEditor* editor(const QString& filename) const;
 
   /// Moves the focus to given error
   void focusOnError(ShaderError error);
@@ -235,7 +235,7 @@ private:
 
   QAction *m_create, *m_open, *m_duplicate, *m_destroy;
 
-  /// key is a res
+  /// key is a filename
   QMap<QString, Section> m_sections;
 
   QSignalMapper* m_mapper;

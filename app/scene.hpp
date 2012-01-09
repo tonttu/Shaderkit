@@ -23,6 +23,7 @@
 #include "obj_importer.hpp"
 #include "history.hpp"
 #include "renderpass.hpp"
+#include "file_resource.hpp"
 
 #include "Eigen/Geometry"
 
@@ -39,16 +40,15 @@
  * the JSON loading. Currently the whole JSON project-file only contains
  * stuff that are actually only in Scene.
  */
-class Scene : public QObject, public std::enable_shared_from_this<Scene> {
+class Scene : public QObject, public std::enable_shared_from_this<Scene>, public FileResource {
   Q_OBJECT
 
 public:
   typedef std::function<void(ObjectPtr, MeshPtr)> PickFunc;
   typedef QList<RenderPassPtr> RenderPasses;
-  struct Import {
+  struct Import : public FileResource {
     ObjImporter::Filter filter;
     ObjImporter::Options options;
-    QString file;
   };
 
   enum SceneState {
@@ -82,8 +82,8 @@ public:
 
   void remove(TexturePtr t);
 
-  /// Finds all the shaders with given resource name
-  QList<ShaderPtr> shaders(const QString& res);
+  /// Finds all the shaders with given filename
+  QList<ShaderPtr> shaders(const QString& filename);
 
   /// Name -> shader mapping
   QMap<QString, MaterialPtr> materials() { return m_materials; }
@@ -132,8 +132,7 @@ public:
   /// Returns absolute file path for filename, or empty string if not found
   QString search(QString filename) const;
 
-  void setFilename(QString filename);
-  QString filename() const { return m_filename; }
+  virtual void setFilename(const QString& filename);
 
   CameraPtr camera();
 
@@ -224,7 +223,6 @@ protected:
 
   QTime m_time;
 
-  QString m_filename;
   QString m_root;
 
   NodePtr m_node;
