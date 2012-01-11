@@ -23,6 +23,9 @@
 #include <QTime>
 #include <QMap>
 #include <QGLContext>
+#include <QX11Info>
+
+#include <X11/Xlib.h>
 
 #include <poll.h>
 #include <sys/wait.h>
@@ -266,7 +269,10 @@ void SandboxCompiler::killSandbox() {
 
 int SandboxCompiler::run(int readfd, int writefd) {
   Log::info("Sandbox Compiler: Running on pid %d", getpid());
-  QPixmap p(10, 10);
+  Pixmap xpixmap = XCreatePixmap(QX11Info::display(),
+                                 RootWindow(QX11Info::display(), QX11Info::appScreen()),
+                                 10, 10, 32);
+  QPixmap p = QPixmap::fromX11Pixmap(xpixmap, QPixmap::ExplicitlyShared);
   QGLContext context(QGLFormat::defaultFormat(), &p);
   context.create();
   context.makeCurrent();
