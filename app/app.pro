@@ -146,7 +146,7 @@ win32 {
 }
 PRE_TARGETDEPS += $$LIBS
 
-LIBS += -lGLU
+LIBS += -lGLU -lX11
 
 RESOURCES += \
     ../gfx/gfx.qrc
