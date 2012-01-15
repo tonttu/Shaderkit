@@ -43,9 +43,37 @@ void ResourceLocator::setPath(const QString& prefix, const QString& opath) {
   s_instance->m_paths[prefix] = path;
 }
 
-QAbstractFileEngine* ResourceLocator::create(const QString &fileName) const {
+void ResourceLocator::pushPath(const QString& prefix, const QString& opath) {
+  if (!s_instance) return;
+  s_instance->m_pathsOverride[prefix] << opath;
+}
+
+void ResourceLocator::popPath(const QString& prefix, const QString& opath) {
+  if (!s_instance) return;
+  QStringList list = s_instance->m_pathsOverride.value(prefix);
+  if (!list.isEmpty()) {
+    for (int i = list.size() - 1; i >= 0; --i) {
+      if (list[i] == opath) {
+        list.removeAt(i);
+        if (list.isEmpty())
+          s_instance->m_pathsOverride.remove(prefix);
+        else
+          s_instance->m_pathsOverride[prefix] = list;
+        return;
+      }
+    }
+  }
+  Log::error("ResourceLocator::popPath - Failed to find path %s %s",
+             prefix.toUtf8().data(), opath.toUtf8().data());
+}
+
+QAbstractFileEngine* ResourceLocator::create(const QString& fileName) const {
   QRegExp re("^\\$([^/]+)(/.*)$");
   if (re.exactMatch(fileName)) {
+    QStringList paths = m_pathsOverride.value(re.cap(1));
+    if (!paths.isEmpty()) {
+      return QAbstractFileEngine::create(paths.last() + re.cap(2));
+    }
     QString path = m_paths.value(re.cap(1));
     if (!path.isEmpty()) {
       return QAbstractFileEngine::create(path + re.cap(2));
@@ -54,10 +82,10 @@ QAbstractFileEngine* ResourceLocator::create(const QString &fileName) const {
   return 0;
 }
 
-QString ResourceLocator::ui(const QString& res) {
-  int idx = res.lastIndexOf('/');
+QString ResourceLocator::ui(const QString& filename) {
+  int idx = filename.lastIndexOf('/');
   if (idx == -1) return "";
-  return res.mid(idx+1);
+  return filename.mid(idx+1);
 }
 
 QString ResourceLocator::rename(const QString& src, const QString& new_base, const QSet<QString>& lst) {

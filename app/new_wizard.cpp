@@ -70,9 +70,7 @@ NewWizard::NewWizard(QWidget* parent)
       m_scene_names << info.name.toLower();
 
       if (info.categories.contains("built-in")) {
-        if (info.name == "Empty project") {
-          btn = m_ui->empty_scene;
-        } else if (info.name == "Default shader project") {
+        if (info.name == "Default shader project") {
           btn = m_ui->default_scene;
         } else continue;
         btn->show();
@@ -147,11 +145,6 @@ void NewWizard::create() {
   WelcomeButton* btn = dynamic_cast<WelcomeButton*>(m_group->checkedButton());
   assert(btn);
   ShaderDB& db = ShaderDB::instance();
-  /// @todo Maybe we should have a temporary location for the project until
-  ///       user saves it for the first time. Then you could start a new tmp
-  ///       project without saving anything to ShaderDB. Then we could have
-  ///       a recovery-feature if we find old tmp project on startup.
-  ///       Save maybe only the history to there?
 
   ScenePtr scene = db.newLocalScene(m_ui->name->text(), btn->filename());
   MainWindow::instance().openScene(scene);

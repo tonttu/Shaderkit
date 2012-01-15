@@ -145,6 +145,8 @@ public:
   virtual QVariantMap save() const;
   virtual void load(QVariantMap map);
 
+  QIcon icon() const;
+
 private:
   QString m_loadedFile;
 };

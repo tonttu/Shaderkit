@@ -657,7 +657,12 @@ void MultiEditor::create() {
   else if (t == Shader::Geometry) f = ".geom";
   else return;
 
-  f = ResourceLocator::unique("$scene/untitled" + f, MainWindow::scene()->filenames());
+  /// @todo these should be local filenames, right?
+  QSet<QString> files;
+  foreach (auto tmp, MainWindow::scene()->files())
+    files << tmp.name;
+
+  f = ResourceLocator::unique("$scene/untitled" + f, files);
   QFile file(f);
   file.open(QIODevice::WriteOnly | QIODevice::Append);
   file.close();
@@ -726,7 +731,13 @@ void MultiEditor::duplicate() {
   if (!shader || !prog) return;
 
   ShaderPtr cloned = shader->clone(prog);
-  cloned->setFilename(ResourceLocator::unique(cloned->filename(), MainWindow::scene()->filenames()));
+
+  /// @todo these should be local filenames
+  QSet<QString> files;
+  foreach (auto tmp, MainWindow::scene()->files())
+    files << tmp.name;
+
+  cloned->setFilename(ResourceLocator::unique(cloned->filename(), files));
   prog->addShader(cloned);
 }
 

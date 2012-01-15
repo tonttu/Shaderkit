@@ -27,6 +27,8 @@
 #include "texture_browser.hpp"
 #include "glwidget.hpp"
 #include "viewport.hpp"
+#include "new_wizard.hpp"
+#include "save_project.hpp"
 
 #include <QKeyEvent>
 #include <QFile>
@@ -85,6 +87,8 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_ui->action_savematerial, SIGNAL(triggered()), this, SLOT(saveMaterial()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(load()));
   connect(m_ui->action_savescene, SIGNAL(triggered()), this, SLOT(saveScene()));
+  connect(m_ui->action_newscene, SIGNAL(triggered()), this, SLOT(newScene()));
+  connect(m_ui->action_savescene_as, SIGNAL(triggered()), this, SLOT(saveSceneAs()));
   /*connect(m_ui->action_new, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_saveas, SIGNAL(triggered()), this, SLOT(open()));
   connect(m_ui->action_open, SIGNAL(triggered()), this, SLOT(open()));*/
@@ -334,6 +338,11 @@ void MainWindow::setSceneChanged(bool status) {
     return;
   m_sceneChanged = status;
   m_ui->action_savescene->setEnabled(status);
+
+  QFont font = m_ui->action_savescene_as->font();
+  font.setBold(status && m_scene->state() == Scene::New);
+  m_ui->action_savescene_as->setFont(font);
+
   if (status) {
     setWindowTitle(m_scene->metainfo().name + " (unsaved) - Shaderkit");
   } else {
@@ -452,6 +461,16 @@ void MainWindow::saveScene() {
   } else {
     m_ui->statusbar->showMessage("Failed to save project to " + m_scene->filename(), 5000);
   }
+}
+
+void MainWindow::saveSceneAs() {
+  SaveProject::save(m_scene);
+}
+
+void MainWindow::newScene() {
+  if(!closeScene()) return;
+  NewWizard* w = new NewWizard(this);
+  w->show();
 }
 
 bool MainWindow::load() {

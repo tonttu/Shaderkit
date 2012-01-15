@@ -22,6 +22,7 @@
 
 #include <QTimer>
 #include <QGLContext>
+#include <QIcon>
 
 #define D_(pname, param, spname, sparam) \
   s_names[pname] = spname, s_names[param] = sparam, \
@@ -841,6 +842,10 @@ QVariantMap TextureFile::save() const {
 void TextureFile::load(QVariantMap map) {
   Texture::load(map);
   if (map.contains("file")) setFilename(map["file"].toString());
+}
+
+QIcon TextureFile::icon() const {
+  return QIcon();
 }
 
 void TextureFile::bind(int texture) {

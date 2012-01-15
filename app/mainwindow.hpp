@@ -157,6 +157,9 @@ protected slots:
   void saveMaterial(int index = -1);
   /// Save the current project
   void saveScene();
+  void saveSceneAs();
+  /// Open the new scene wizard
+  void newScene();
   void closeEditor(int index);
 
   void closeEvent(QCloseEvent* event);
@@ -174,7 +177,7 @@ private:
   bool openScene(QString filename);
 
   /// Main layout generated from the .ui -file.
-  std::auto_ptr<Ui::MainWindow> m_ui;
+  std::unique_ptr<Ui::MainWindow> m_ui;
 
   /// Currently there is exactly one scene for one MainWindow.
   ScenePtr m_scene;

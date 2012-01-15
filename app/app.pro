@@ -67,7 +67,8 @@ HEADERS += \
     light_list.hpp \
     camera_editor.hpp \
     render_pass_list.hpp \
-    file_resource.hpp
+    file_resource.hpp \
+    save_project.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -119,7 +120,8 @@ SOURCES += \
     light_list.cpp \
     camera_editor.cpp \
     render_pass_list.cpp \
-    file_resource.cpp
+    file_resource.cpp \
+    save_project.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp
@@ -135,7 +137,8 @@ FORMS += \
     object_list.ui \
     light_list.ui \
     camera_editor.ui \
-    render_pass_list.ui
+    render_pass_list.ui \
+    save_project.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

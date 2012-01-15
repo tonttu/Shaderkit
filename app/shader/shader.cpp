@@ -40,10 +40,10 @@ Shader::~Shader() {
   }
 }
 
-bool Shader::loadFile(const QString& filename) {
+bool Shader::loadFile(const QString& f) {
   bool changed = false;
-  setFilename(filename);
-  QFile file(filename);
+  setFilename(f);
+  QFile file(filename());
   if (file.open(QFile::ReadOnly | QFile::Text)) {
     changed = loadSrc(file.readAll());
   }

@@ -31,6 +31,7 @@
 #include <QVariantMap>
 #include <QTime>
 #include <QPoint>
+#include <QIcon>
 
 #include <functional>
 
@@ -49,6 +50,18 @@ public:
   struct Import : public FileResource {
     ObjImporter::Filter filter;
     ObjImporter::Options options;
+    QIcon icon() const {
+      /// @todo implement
+      return QIcon();
+    }
+  };
+  struct FileInfo {
+    FileInfo(QString n, QIcon i, QString t)
+      : name(n), icon(i), type(t) {}
+    QString name;
+    QIcon icon;
+    QString type;
+    //QString status;
   };
 
   enum SceneState {
@@ -105,9 +118,9 @@ public:
 
   QList<ProgramPtr> materialPrograms() const;
 
-  QSet<QString> filenames() const;
-
   QVariantMap save() const;
+
+  QList<FileInfo> files() const;
 
   /// Finds the render pass that owns the fbo that uses the given texture as a render buffer
   RenderPassPtr findRenderer(TexturePtr tex);
@@ -129,9 +142,6 @@ public:
 
   NodePtr node() { return m_node; }
 
-  /// Returns absolute file path for filename, or empty string if not found
-  QString search(QString filename) const;
-
   virtual void setFilename(const QString& filename);
 
   CameraPtr camera();
@@ -149,6 +159,10 @@ public:
   static ScenePtr load(const QString& filename, SceneState state);
 
   //void renameFile(QString from, QString to);
+  //void rename(const QString& from, const QString& to, bool keep_old_file);
+  bool renameShaderFile(const QString& from, const QString& to, bool keep_old_file);
+  bool renameTextureFile(const QString& from, const QString& to, bool keep_old_file);
+  bool renameImportFile(const QString& from, const QString& to, bool keep_old_file);
 
   void setAutomaticSaving(bool state) { m_automaticSaving = state; }
   bool automaticSaving() const { return m_automaticSaving; }
@@ -181,6 +195,12 @@ public:
   QList<ObjectPtr> selection() const { return m_selection; }
 
   RenderPassPtr selectedRenderPass(RenderPass::Type filter) const;
+
+  QIcon icon() const;
+
+  const QMap<QString, Import>& imports() const {
+    return m_imports;
+  }
 
 signals:
   void shaderListUpdated();
@@ -223,8 +243,6 @@ protected:
 
   QTime m_time;
 
-  QString m_root;
-
   NodePtr m_node;
 
   QPair<ObjectPtr, MeshPtr> m_picked;
@@ -243,6 +261,9 @@ protected:
   bool m_changed;
 
   float m_lastTime;
+
+private:
+  bool fileRename(const QString& from, const QString& to, bool keep_old_file);
 };
 
 /// @todo these should be somewhere else

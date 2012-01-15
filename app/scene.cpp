@@ -31,6 +31,7 @@
 #include "utils.hpp"
 #include "properties.hpp"
 #include "render_pass_properties.hpp"
+#include "resource_locator.hpp"
 
 // qjson
 #include <parser.h>
@@ -157,6 +158,7 @@ Scene::Scene(/*QString filename*/)
     /*m_filename(filename), */m_node(new Node), m_picking(-1, -1),
     m_automaticSaving(false),
     //m_history(*this, filename),
+    m_state(New),
     m_changed(false), m_lastTime(0) {
   /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
@@ -260,14 +262,30 @@ QList<ProgramPtr> Scene::materialPrograms() const {
   return programs;
 }
 
-QSet<QString> Scene::filenames() const {
-  QSet<QString> names;
-  names << filename();
-  foreach (ProgramPtr p, materialPrograms()) {
+QList<Scene::FileInfo> Scene::files() const {
+  QList<FileInfo> ret;
+  ret << FileInfo(filename(), icon(), "project");
+  foreach (ProgramPtr p, materialPrograms())
     foreach (ShaderPtr s, p->shaders())
-      names << s->filename();
+      ret << FileInfo(s->filename(), s->icon(), "shader");
+
+  foreach (auto i, m_imports)
+    ret << FileInfo(i.filename(), i.icon(), "import");
+
+/*  foreach (auto m, m_models) {
+    fi.setFile(m->res());
+    if(!fi.absoluteFilePath().isEmpty())
+      ret << FileInfo(fi.absoluteFilePath(), m->icon(), "model");
+  }*/
+
+  foreach (auto t, m_textures) {
+    TextureFile* tf = dynamic_cast<TextureFile*>(t.get());
+    if (!tf) continue;
+    if(!tf->filename().isEmpty())
+      ret << FileInfo(tf->filename(), tf->icon(), "texture");
   }
-  return names;
+
+  return ret;
 }
 
 QVariantMap Scene::save() const {
@@ -284,7 +302,7 @@ QVariantMap Scene::save() const {
   foreach (QString name, m_materials.keys()) {
     MaterialPtr m = m_materials[name];
     QVariantMap t = m->save();
-    if (m->prog()) m->prog()->save(t, m_root);
+    if (m->prog()) m->prog()->save(t, root());
     tmp[name] = t;
   }
   if (!tmp.isEmpty()) map["materials"] = tmp, tmp.clear();
@@ -338,6 +356,13 @@ QVariantMap Scene::save() const {
   return map;
 }
 
+struct FileInfo {
+  QString name;
+  QIcon* icon;
+  QString type;
+  QString status;
+};
+
 RenderPassPtr Scene::findRenderer(TexturePtr tex) {
   foreach (RenderPassPtr rp, m_render_passes) {
     FBOPtr fbo = rp->fbo();
@@ -351,6 +376,7 @@ RenderPassPtr Scene::findRenderer(TexturePtr tex) {
 
 void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
   setFilename(filename);
+  ResourceLocator::Path path("scene", root());
   m_state = state;
   ObjImporter importer;
   QMap<QString, ObjImporter::Scene> imported;
@@ -398,7 +424,7 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
   loadRefs(m_imports, map["lights"], &ObjImporter::Filter::lights);
 
   for (auto it = m_imports.begin(); it != m_imports.end(); ++it) {
-    if (importer.readFile(search(it->filename()), it->options)) {
+    if (importer.readFile(it->filename(), it->options)) {
       imported[it.key()] = importer.load(it->filter);
       m_node->children << imported[it.key()].node;
     }
@@ -431,13 +457,13 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
     setMaterial(p.name, m);
 
     foreach (QString filename, p.map["fragment"].toStringList()) {
-      m->prog(true)->addShader(search(filename), Shader::Fragment);
+      m->prog(true)->addShader(filename, Shader::Fragment);
     }
     foreach (QString filename, p.map["vertex"].toStringList()) {
-      m->prog(true)->addShader(search(filename), Shader::Vertex);
+      m->prog(true)->addShader(filename, Shader::Vertex);
     }
     foreach (QString filename, p.map["geometry"].toStringList()) {
-      m->prog(true)->addShader(search(filename), Shader::Geometry);
+      m->prog(true)->addShader(filename, Shader::Geometry);
     }
 
     Log::info("Shading model: %s", m->style.shading_model.toUtf8().data());
@@ -628,6 +654,69 @@ ScenePtr Scene::load(const QString& filename, SceneState state) {
         s->setFilename(to);
 }*/
 
+bool Scene::fileRename(const QString& from, const QString& to, bool keep_old_file) {
+  /// @todo Watcher::rename(from, to);
+  ///       -> will put the renaming to queue and update stuff on next Watcher::update
+  if (!QFile::exists(from)) {
+    Log::warn("fileRename: %s -> %s, the src file doesn't exist", from.toUtf8().data(), to.toUtf8().data());
+    // there wasn't exactly an error
+    return true;
+  }
+
+  if (QFile::exists(to)) {
+    Log::error("fileRename: %s -> %s, the target file already exists", from.toUtf8().data(), to.toUtf8().data());
+    return false;
+  }
+
+  Log::info("Renaming %s -> %s", from.toUtf8().data(), to.toUtf8().data());
+  if (keep_old_file) {
+    return QFile::copy(from, to);
+  } else {
+    /// @todo this (probably?) doesn't work across filesystems!
+    if (QFile::rename(from, to)) return true;
+    if (QFile::copy(from, to)) {
+      if (QFile::remove(from)) return true;
+      Log::warn("fileRename: %s -> %s, move failed, copied instead and failed to remove the src file",
+                from.toUtf8().data(), to.toUtf8().data());
+    }
+    return false;
+  }
+}
+
+bool Scene::renameShaderFile(const QString& from, const QString& to, bool keep_old_file) {
+  if (!fileRename(from, to, keep_old_file))
+    return false;
+
+  foreach (ShaderPtr shader, shaders(from))
+    shader->setFilename(to);
+
+  return true;
+}
+
+bool Scene::renameImportFile(const QString& from, const QString& to, bool keep_old_file) {
+  if (!fileRename(from, to, keep_old_file))
+    return false;
+
+  for (auto it = m_imports.begin(); it != m_imports.end(); ++it) {
+    Import& i = *it;
+    if (i.filename() == from)
+      i.setFilename(to);
+  }
+  return true;
+}
+
+bool Scene::renameTextureFile(const QString& from, const QString& to, bool keep_old_file) {
+  if (!fileRename(from, to, keep_old_file))
+    return false;
+
+  for (auto it = m_textures.begin(); it != m_textures.end(); ++it) {
+    TextureFile* tf = dynamic_cast<TextureFile*>(it->get());
+    if (tf && tf->filename() == from)
+      tf->setFilename(to);
+  }
+  return true;
+}
+
 void Scene::syncHistory() {
   //m_history.sync();
 }
@@ -752,6 +841,11 @@ RenderPassPtr Scene::selectedRenderPass(RenderPass::Type filter) const {
   return RenderPassPtr();
 }
 
+QIcon Scene::icon() const {
+  /// @todo implement something fun
+  return QIcon();
+}
+
 void Scene::changedSlot() {
   m_changed = true;
   //m_history.changed();
@@ -788,17 +882,8 @@ bool Scene::save(const QVariantMap& map) {
 }
 
 QString Scene::root() const {
-  return filename();
-}
-
-QString Scene::search(QString filename) const {
-  if (m_root.isEmpty())
-    return QDir(filename).canonicalPath();
-  QString cwd = QDir::currentPath();
-  QDir::setCurrent(m_root);
-  QString ret = QDir(filename).canonicalPath();
-  QDir::setCurrent(cwd);
-  return ret;
+  QFileInfo fi(filename());
+  return fi.absolutePath();
 }
 
 void Scene::setFilename(const QString& filename) {

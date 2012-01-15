@@ -55,6 +55,7 @@ class FBOImage;
 typedef std::shared_ptr<FBOImage> FBOImagePtr;
 class Texture;
 typedef std::shared_ptr<Texture> TexturePtr;
+class TextureFile;
 class FrameBufferObject;
 typedef std::shared_ptr<FrameBufferObject> FBOPtr;
 

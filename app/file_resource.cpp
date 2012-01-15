@@ -10,9 +10,12 @@ FileResource::~FileResource() {
 
 void FileResource::setFilename(const QString& filename) {
   m_rawFilename = filename;
-  /// @todo solve this right
   QFileInfo fi(filename);
   m_filenameAbsolute = fi.canonicalFilePath();
+  if (m_filenameAbsolute.isEmpty()) {
+    QFileInfo fi2("$scene/"+filename);
+    m_filenameAbsolute = fi2.canonicalFilePath();
+  }
   if (m_filenameAbsolute.isEmpty())
     m_filenameAbsolute = fi.absoluteFilePath();
 }
