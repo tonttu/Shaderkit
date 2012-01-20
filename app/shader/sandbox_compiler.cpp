@@ -20,12 +20,10 @@
 #include "opengl.hpp"
 #include "wrap_glext.h"
 
+#include <QApplication>
 #include <QTime>
 #include <QMap>
 #include <QGLContext>
-#include <QX11Info>
-
-#include <X11/Xlib.h>
 
 #include <poll.h>
 #include <sys/wait.h>
@@ -267,12 +265,17 @@ void SandboxCompiler::killSandbox() {
   m_pid = -1;
 }
 
-int SandboxCompiler::run(int readfd, int writefd) {
+int SandboxCompiler::run(int& argc, char* argv[]) {
+  int readfd = QString(argv[2]).toInt();
+  int writefd = QString(argv[3]).toInt();
+
+  QApplication::setGraphicsSystem("native");
+  QApplication app(argc, argv);
+  Log log;
+
   Log::info("Sandbox Compiler: Running on pid %d", getpid());
-  Pixmap xpixmap = XCreatePixmap(QX11Info::display(),
-                                 RootWindow(QX11Info::display(), QX11Info::appScreen()),
-                                 10, 10, 32);
-  QPixmap p = QPixmap::fromX11Pixmap(xpixmap, QPixmap::ExplicitlyShared);
+
+  QPixmap p(10, 10);
   QGLContext context(QGLFormat::defaultFormat(), &p);
   context.create();
   context.makeCurrent();

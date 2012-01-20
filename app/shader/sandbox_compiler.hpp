@@ -31,7 +31,7 @@ public:
   static void close();
 
   static void init(const char* argv0);
-  static int run(int readfd, int writefd);
+  static int run(int& argc, char* argv[]);
 
 private:
   static SandboxCompiler* s_instance;

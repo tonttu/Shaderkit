@@ -45,16 +45,18 @@ public:
 };*/
 
 int main(int argc, char* argv[]) {
+#ifndef _WIN32
+  if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {
+    return SandboxCompiler::run(argc, argv);
+  }
+#endif
+
   QApplication app(argc, argv);
   //App app(argc, argv);
   // glutInit(&argc, argv);
   Log log;
 
 #ifndef _WIN32
-  if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {
-    return SandboxCompiler::run(QString(argv[2]).toInt(), QString(argv[3]).toInt());
-  }
-
   SandboxCompiler init(argv[0]);
 #endif
 

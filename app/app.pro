@@ -68,7 +68,8 @@ HEADERS += \
     camera_editor.hpp \
     render_pass_list.hpp \
     file_resource.hpp \
-    save_project.hpp
+    save_project.hpp \
+    scene_saver.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -121,7 +122,8 @@ SOURCES += \
     camera_editor.cpp \
     render_pass_list.cpp \
     file_resource.cpp \
-    save_project.cpp
+    save_project.cpp \
+    scene_saver.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp
@@ -149,7 +151,7 @@ win32 {
 }
 PRE_TARGETDEPS += $$LIBS
 
-LIBS += -lGLU -lX11
+LIBS += -lGLU
 
 RESOURCES += \
     ../gfx/gfx.qrc
