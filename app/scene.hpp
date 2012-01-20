@@ -24,6 +24,7 @@
 #include "history.hpp"
 #include "renderpass.hpp"
 #include "file_resource.hpp"
+#include "scene_saver.hpp"
 
 #include "Eigen/Geometry"
 
@@ -164,11 +165,11 @@ public:
   bool renameTextureFile(const QString& from, const QString& to, bool keep_old_file);
   bool renameImportFile(const QString& from, const QString& to, bool keep_old_file);
 
-  void setAutomaticSaving(bool state) { m_automaticSaving = state; }
+  void setAutomaticSaving(bool state);
   bool automaticSaving() const { return m_automaticSaving; }
 
   SceneState state() const { return m_state; }
-  void setState(SceneState state) { m_state = state; }
+  void setState(SceneState state);
 
   bool isChanged() const { return m_changed; }
   void syncHistory();
@@ -212,6 +213,7 @@ signals:
   void renderPassesListUpdated(QList<RenderPassPtr>);
 
   void changed();
+  void stateChanged();
   void saved();
 
 protected slots:
@@ -251,6 +253,7 @@ protected:
   bool m_pickEmpty;
   PickFunc m_pickFunc;
 
+  SceneSaver m_saver;
   bool m_automaticSaving;
   //History m_history;
 

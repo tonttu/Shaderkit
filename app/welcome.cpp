@@ -32,6 +32,7 @@ WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
   : QCommandLinkButton(parent), m_filename(filename) {
   connect(this, SIGNAL(clicked()), SLOT(receiveClick()));
   setMinimumHeight(sizeHint().height());
+  setToolTip(filename);
 }
 
 void WelcomeButton::setFilename(QString filename) {

@@ -156,6 +156,7 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
 Scene::Scene(/*QString filename*/)
   : m_width(-1), m_height(-1),
     /*m_filename(filename), */m_node(new Node), m_picking(-1, -1),
+    m_saver(*this),
     m_automaticSaving(false),
     //m_history(*this, filename),
     m_state(New),
@@ -164,6 +165,10 @@ Scene::Scene(/*QString filename*/)
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
   m_time.start();
+
+  connect(this, SIGNAL(changed()), &m_saver, SLOT(sceneChanged()));
+  connect(this, SIGNAL(stateChanged()), &m_saver, SLOT(stateChanged()));
+  m_saver.sceneChanged();
 }
 
 void Scene::resize(int width, int height) {
@@ -515,6 +520,8 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
     pass->load(map);
     m_render_passes << pass;
   }
+
+  emit stateChanged();
 }
 
 void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
@@ -705,6 +712,11 @@ bool Scene::renameImportFile(const QString& from, const QString& to, bool keep_o
   return true;
 }
 
+void Scene::setAutomaticSaving(bool state) {
+  m_automaticSaving = state;
+  emit stateChanged();
+}
+
 bool Scene::renameTextureFile(const QString& from, const QString& to, bool keep_old_file) {
   if (!fileRename(from, to, keep_old_file))
     return false;
@@ -715,6 +727,12 @@ bool Scene::renameTextureFile(const QString& from, const QString& to, bool keep_
       tf->setFilename(to);
   }
   return true;
+}
+
+void Scene::setState(SceneState state) {
+  if (m_state == state) return;
+  m_state = state;
+  emit stateChanged();
 }
 
 void Scene::syncHistory() {
