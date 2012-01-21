@@ -122,6 +122,7 @@ public:
   QVariantMap save() const;
 
   QList<FileInfo> files() const;
+  QSet<QString> filenames() const;
 
   /// Finds the render pass that owns the fbo that uses the given texture as a render buffer
   RenderPassPtr findRenderer(TexturePtr tex);

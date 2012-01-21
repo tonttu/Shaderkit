@@ -294,6 +294,13 @@ QList<Scene::FileInfo> Scene::files() const {
   return ret;
 }
 
+QSet<QString> Scene::filenames() const {
+  QSet<QString> set;
+  foreach (auto tmp, files())
+    set << tmp.name;
+  return set;
+}
+
 QVariantMap Scene::save() const {
   QVariantMap map, tmp;
 

@@ -37,7 +37,7 @@ class QCheckBox;
 
 class CheckBoxDialog : public QDialog {
 public:
-  CheckBoxDialog(QString text, bool show_checkbox);
+  CheckBoxDialog(const QString& text, bool show_checkbox);
   bool checked() const;
 
 private:
@@ -207,6 +207,7 @@ private slots:
   void itemChanged(QListWidgetItem*);
   void shaderChanged(ShaderPtr);
   void selectionChanged();
+  void docModificationChanged(bool);
 
   void create();
   void load();

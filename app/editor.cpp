@@ -59,7 +59,7 @@ void EditorMargin::paintEvent(QPaintEvent* event) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CheckBoxDialog::CheckBoxDialog(QString text, bool show_checkbox)
+CheckBoxDialog::CheckBoxDialog(const QString& text, bool show_checkbox)
   : m_checkbox(0) {
   QVBoxLayout* layout = new QVBoxLayout(this);
 
@@ -422,7 +422,7 @@ FileListWidget::FileListWidget(QWidget* parent)
   : QListWidget(parent) {}
 
 int FileListWidget::preferredWidth() {
-  return contentsSize().width() + 10;
+  return std::max(contentsSize().width() + 10, 150);
 }
 
 MultiEditor::MultiEditor(QWidget* parent, MaterialPtr material)
@@ -548,6 +548,8 @@ void MultiEditor::addShader(ShaderPtr shader) {
 
   if (!doc) {
     s.editor->setText(src);
+    connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
+            this, SLOT(docModificationChanged(bool)));
   } else {
     /// @todo this is not enough, maybe using a timer?
     /// @todo ensurePolished?
@@ -605,10 +607,9 @@ void MultiEditor::itemChanged(QListWidgetItem* item) {
   foreach (const Section& s, m_sections) {
     if (s.item != item) continue;
     QString from = s.editor->shader()->filename();
-    /// @todo implement rename
-    /*
-    QString res = ResourceLocator::rename(from, item->text(), MainWindow::scene()->filenames());
-    MainWindow::scene()->renameFile(from, res);*/
+    if (ResourceLocator::ui(from) == item->text()) continue;
+    QString to = ResourceLocator::rename(from, item->text(), MainWindow::scene()->filenames());
+    MainWindow::scene()->renameShaderFile(from, to, false);
     break;
   }
 }
@@ -622,9 +623,15 @@ void MultiEditor::shaderChanged(ShaderPtr shader) {
       // again. if the endless recursion won't kill us, then the invalidated it will
       // do that later
       m_sections.erase(it);
+      const QString e = s.editor->document()->isModified() ? "*" : "";
+      QFont font = s.item->font();
+      font.setItalic(s.editor->document()->isModified());
+      s.item->setFont(font);
+      /// @todo can't do this because of the file renaming
+      // s.item->setText(ResourceLocator::ui(shader->filename()) + e);
       s.item->setText(ResourceLocator::ui(shader->filename()));
       s.item->setData(Qt::UserRole, shader->filename());
-      s.label->setText("<b>"+ResourceLocator::ui(shader->filename())+"</b>");
+      s.label->setText("<b>"+ResourceLocator::ui(shader->filename())+e+"</b>");
       m_sections[shader->filename()] = s;
       break;
     }
@@ -639,6 +646,23 @@ void MultiEditor::selectionChanged() {
   } else {
     m_duplicate->setEnabled(false);
     m_destroy->setEnabled(false);
+  }
+}
+
+void MultiEditor::docModificationChanged(bool m) {
+  QTextDocument* doc = dynamic_cast<QTextDocument*>(sender());
+  if (!doc) return;
+
+  for (auto it = m_sections.begin(); it != m_sections.end(); ++it) {
+    if (it->editor->document() == doc) {
+      Section& s = *it;
+      const QString e = m ? "*" : "";
+      s.label->setText("<b>"+ResourceLocator::ui(s.editor->shader()->filename())+e+"</b>");
+      QFont font = s.item->font();
+      font.setItalic(m);
+      s.item->setFont(font);
+      //s.item->setText(ResourceLocator::ui(s.editor->shader()->filename()) + e);
+    }
   }
 }
 
@@ -657,16 +681,9 @@ void MultiEditor::create() {
   else if (t == Shader::Geometry) f = ".geom";
   else return;
 
-  /// @todo these should be local filenames, right?
-  QSet<QString> files;
-  foreach (auto tmp, MainWindow::scene()->files())
-    files << tmp.name;
-
-  f = ResourceLocator::unique("$scene/untitled" + f, files);
-  QFile file(f);
-  file.open(QIODevice::WriteOnly | QIODevice::Append);
-  file.close();
-  m_material->prog(true)->addShader(f, (Shader::Type)t);
+  f = ResourceLocator::unique("$scene/untitled" + f, MainWindow::scene()->filenames());
+  ShaderPtr shader = m_material->prog(true)->addShaderSrc("", (Shader::Type)t);
+  if (shader) shader->setFilename(f);
 }
 
 void MultiEditor::load() {
@@ -732,12 +749,7 @@ void MultiEditor::duplicate() {
 
   ShaderPtr cloned = shader->clone(prog);
 
-  /// @todo these should be local filenames
-  QSet<QString> files;
-  foreach (auto tmp, MainWindow::scene()->files())
-    files << tmp.name;
-
-  cloned->setFilename(ResourceLocator::unique(cloned->filename(), files));
+  cloned->setFilename(ResourceLocator::unique(cloned->filename(), MainWindow::scene()->filenames()));
   prog->addShader(cloned);
 }
 
