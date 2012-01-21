@@ -42,14 +42,14 @@ private slots:
 private:
   void updateTimer();
 
+  Scene& m_scene;
+
   /// "how long should be idle before triggering the saving process" (secs)
   float m_timeout;
   /// "how long minimum interval should be between two consecutive saves" (secs)
   float m_min_interval;
   /// "How long can we wait before forcing saving" (secs)
   float m_max_wait;
-
-  Scene& m_scene;
 
   QTimer* m_timer;
 

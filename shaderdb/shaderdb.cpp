@@ -123,6 +123,22 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   return scene;
 }
 
+bool ShaderDB::openNewLimbo(QFile& file, const QString& name) {
+  QString out = name;
+  out.replace('/', '-');
+  if(out.isEmpty()) out = "empty";
+  for (int i = 0; i < 10; ++i) {
+    QString d = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+    QString path = instance().defaultPath() + "/limbo-" + d + "-" + QString::number(i);
+    if (QFile::exists(path)) continue;
+    if (!QDir().mkpath(path)) continue;
+    QString filename = path + "/" + out + ".shaderkit";
+    file.setFileName(filename);
+    if (file.open(QFile::WriteOnly))
+      return true;
+  }
+  return false;
+}
 
 ShaderDB & ShaderDB::instance() {
   if (!s_instance)

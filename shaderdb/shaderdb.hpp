@@ -23,6 +23,8 @@
 #include <QStringList>
 #include <QSet>
 
+class QFile;
+
 class ShaderDB {
 public:
   ShaderDB();
@@ -34,6 +36,8 @@ public:
   ScenePtr newLocalScene(QString name, QString srcfile);
 
   QString defaultPath() const { return m_defaultPath; }
+
+  static bool openNewLimbo(QFile& file, const QString &name);
 
   static ShaderDB & instance();
 

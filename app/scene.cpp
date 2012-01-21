@@ -33,6 +33,8 @@
 #include "render_pass_properties.hpp"
 #include "resource_locator.hpp"
 
+#include "shaderdb/shaderdb.hpp"
+
 // qjson
 #include <parser.h>
 #include <serializer.h>
@@ -168,7 +170,6 @@ Scene::Scene(/*QString filename*/)
 
   connect(this, SIGNAL(changed()), &m_saver, SLOT(sceneChanged()));
   connect(this, SIGNAL(stateChanged()), &m_saver, SLOT(stateChanged()));
-  m_saver.sceneChanged();
 }
 
 void Scene::resize(int width, int height) {
@@ -870,6 +871,7 @@ void Scene::changedSlot() {
   emit changed();
 }
 
+/// @todo what state use after this?
 bool Scene::save(const QString& filename) {
   QJson::Serializer serializer;
   QFile file(filename);
@@ -887,10 +889,30 @@ bool Scene::save(const QString& filename) {
 }
 
 bool Scene::save(const QVariantMap& map) {
-  QJson::Serializer serializer;
   QFile file(filename());
+
+  if (m_state == New) {
+    assert(file.fileName().isEmpty());
+    if (ShaderDB::openNewLimbo(file, metainfo().name)) {
+      setFilename(file.fileName());
+      m_state = Limbo;
+    } else {
+      return false;
+    }
+  } else if (m_state == ReadOnly) {
+    // We should use save(string) -version with read-only files!
+    assert(m_state != New);
+    assert(m_state != ReadOnly);
+    return false;
+  } else {
+    assert(!file.fileName().isEmpty());
+    if (!file.open(QIODevice::WriteOnly))
+      return false;
+  }
+
+  QJson::Serializer serializer;
   const QByteArray str = serializer.serialize(map);
-  if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
+  if (!str.isNull()) {
     file.write(str);
     m_changed = false;
     emit saved();

@@ -10,6 +10,10 @@ FileResource::~FileResource() {
 
 void FileResource::setFilename(const QString& filename) {
   m_rawFilename = filename;
+  if (filename.isEmpty()) {
+    m_filenameAbsolute = filename;
+    return;
+  }
   QFileInfo fi(filename);
   m_filenameAbsolute = fi.canonicalFilePath();
   if (m_filenameAbsolute.isEmpty()) {
