@@ -98,6 +98,7 @@ public:
 
   /// Finds all the shaders with given filename
   QList<ShaderPtr> shaders(const QString& filename);
+  QSet<ShaderPtr> shaders();
 
   /// Name -> shader mapping
   QMap<QString, MaterialPtr> materials() { return m_materials; }

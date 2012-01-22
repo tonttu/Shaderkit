@@ -123,13 +123,31 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   return scene;
 }
 
+bool ShaderDB::findLimbo(MetaInfo& info, QString& filename) {
+  QString limbo_path = instance().defaultPath() + "/limbo";
+  foreach (const QString& dir, QDir(limbo_path).entryList(
+             QStringList(), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time)) {
+    foreach (const QString& name, QDir(limbo_path + "/" + dir).entryList(
+               QStringList() << "*.shaderkit", QDir::Files | QDir::Readable, QDir::Time)) {
+      QString tmp = QString("%1/%2/%3").arg(limbo_path, dir, name);
+      MetaInfo info_tmp;
+      if (MetaInfo::ping(tmp, info_tmp)) {
+        info = info_tmp;
+        filename = tmp;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool ShaderDB::openNewLimbo(QFile& file, const QString& name) {
   QString out = name;
   out.replace('/', '-');
   if(out.isEmpty()) out = "empty";
   for (int i = 0; i < 10; ++i) {
     QString d = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
-    QString path = instance().defaultPath() + "/limbo-" + d + "-" + QString::number(i);
+    QString path = instance().defaultPath() + "/limbo/" + d + "-" + QString::number(i);
     if (QFile::exists(path)) continue;
     if (!QDir().mkpath(path)) continue;
     QString filename = path + "/" + out + ".shaderkit";

@@ -96,6 +96,8 @@ class GLWidget;
 class TextureWidgetGL;
 class Viewport;
 
+class MetaInfo;
+
 class QColor;
 class QVector3D;
 class QVector4D;

@@ -37,7 +37,8 @@ public:
 
   QString defaultPath() const { return m_defaultPath; }
 
-  static bool openNewLimbo(QFile& file, const QString &name);
+  static bool findLimbo(MetaInfo& info, QString& filename);
+  static bool openNewLimbo(QFile& file, const QString& name);
 
   static ShaderDB & instance();
 

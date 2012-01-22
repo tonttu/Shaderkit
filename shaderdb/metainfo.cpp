@@ -101,14 +101,13 @@ void MetaInfo::load(QVariantMap map) {
   }
 }
 
-MetaInfo MetaInfo::ping(QString filename) {
-  MetaInfo info;
+bool MetaInfo::ping(const QString& filename, MetaInfo& info) {
   QJson::Parser parser;
-  bool ok;
+  bool ok = false;
   QFile file(filename);
   QVariant data = parser.parse(&file, &ok);
   if (ok) {
     info.load(data.toMap()["shaderkit"].toMap());
   }
-  return info;
+  return ok;
 }

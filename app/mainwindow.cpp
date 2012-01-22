@@ -61,7 +61,7 @@ MainWindow * MainWindow::s_instance = 0;
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent), m_ui(new Ui::MainWindow), m_context(0), m_sync(0),
-    m_sceneChanged(false) {
+    m_sceneChanged(false), m_loadedScenes(0) {
   if (!s_instance)
     s_instance = this;
 
@@ -307,6 +307,8 @@ bool MainWindow::openScene(ScenePtr scene) {
 
   m_ui->statusbar->showMessage("Opened scene " + scene->filename(), 5000);
   show();
+
+  ++m_loadedScenes;
 
   return true;
 }

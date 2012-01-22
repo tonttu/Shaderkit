@@ -254,10 +254,17 @@ void Scene::remove(TexturePtr t) {
 }
 
 QList<ShaderPtr> Scene::shaders(const QString& filename) {
-  QList<ShaderPtr> ret;
+  QSet<ShaderPtr> ret;
   foreach (ProgramPtr p, materialPrograms())
     foreach (ShaderPtr s, p->shaders())
       if (s->filename() == filename) ret << s;
+  return ret.toList();
+}
+
+QSet<ShaderPtr> Scene::shaders() {
+  QSet<ShaderPtr> ret;
+  foreach (ProgramPtr p, materialPrograms())
+    ret += p->shaders();
   return ret;
 }
 

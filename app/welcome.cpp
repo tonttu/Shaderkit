@@ -56,8 +56,8 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   std::priority_queue<V, std::vector<V>> recent;
 
   foreach (QString file, files) {
-    MetaInfo info = MetaInfo::ping(file);
-    if (info.name.isEmpty()) continue;
+    MetaInfo info;
+    if (!MetaInfo::ping(file, info)) continue;
 
     if (info.categories.contains("example") && count++ < 4) {
       WelcomeButton * btn = new WelcomeButton(m_ui->example_frame, file);
@@ -77,7 +77,11 @@ Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   for (count = 0; count < 4 && !recent.empty(); ++count) {
     const V& v = recent.top();
 
-    MetaInfo info = MetaInfo::ping(v.second);
+    MetaInfo info;
+    if (!MetaInfo::ping(v.second, info)) {
+      recent.pop();
+      continue;
+    }
     WelcomeButton * btn = new WelcomeButton(m_ui->recent_frame, v.second);
     btn->setIcon(QIcon(":/icons/project_hl.png"));
     m_ui->recent_layout->insertWidget(count, btn);

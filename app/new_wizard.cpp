@@ -63,30 +63,29 @@ NewWizard::NewWizard(QWidget* parent)
 
   QStringList files = ShaderDB::instance().localScenes();
   foreach (QString file, files) {
-    MetaInfo info = MetaInfo::ping(file);
+    MetaInfo info;
+    if (!MetaInfo::ping(file, info)) continue;
 
-    if (!info.name.isEmpty()) {
-      WelcomeButton* btn = 0;
-      m_scene_names << info.name.toLower();
+    WelcomeButton* btn = 0;
+    m_scene_names << info.name.toLower();
 
-      if (info.categories.contains("built-in")) {
-        if (info.name == "Default shader project") {
-          btn = m_ui->default_scene;
-        } else continue;
-        btn->show();
-        btn->setFilename(file);
-      } else {
-        btn = new WelcomeButton(m_ui->list, file);
-        m_ui->list_layout->insertWidget(0, btn);
-      }
-
-      btn->setCheckable(true);
-      m_group->addButton(btn);
-      btn->setIcon(m_ui->default_scene->icon());
-      btn->setText(info.name);
-      btn->setDescription(info.description);
-      connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
+    if (info.categories.contains("built-in")) {
+      if (info.name == "Default shader project") {
+        btn = m_ui->default_scene;
+      } else continue;
+      btn->show();
+      btn->setFilename(file);
+    } else {
+      btn = new WelcomeButton(m_ui->list, file);
+      m_ui->list_layout->insertWidget(0, btn);
     }
+
+    btn->setCheckable(true);
+    m_group->addButton(btn);
+    btn->setIcon(m_ui->default_scene->icon());
+    btn->setText(info.name);
+    btn->setDescription(info.description);
+    connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
   }
 
   m_ui->name->setText(getUniqName("My Project"));

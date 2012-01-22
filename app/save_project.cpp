@@ -1,6 +1,5 @@
 #include "save_project.hpp"
 #include "ui_save_project.h"
-#include "mainwindow.hpp"
 #include "scene.hpp"
 #include "shader/program.hpp"
 #include "texture.hpp"

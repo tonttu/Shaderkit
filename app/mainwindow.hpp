@@ -103,6 +103,8 @@ public:
 
   QGLFormat formatGL() const;
 
+  int loadedScenes() const { return m_loadedScenes; }
+
 public slots:
   /// Updates the error list
   void updateErrors(ShaderErrorList errors);
@@ -194,6 +196,7 @@ private:
   QAction* m_sync;
 
   bool m_sceneChanged;
+  int m_loadedScenes;
   static MainWindow * s_instance;
 };
 

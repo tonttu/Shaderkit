@@ -29,7 +29,7 @@ public:
   QVariantMap save() const;
   void load(QVariantMap map);
 
-  static MetaInfo ping(QString filename);
+  static bool ping(const QString& filename, MetaInfo& info);
 
   QString shaderkit_version;
   QString name;

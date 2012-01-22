@@ -18,7 +18,10 @@
 #include "mainwindow.hpp"
 #include "welcome.hpp"
 #include "resource_locator.hpp"
+#include "limbo_dialog.hpp"
+#include "scene.hpp"
 #include "shaderdb/shaderdb.hpp"
+#include "shaderdb/metainfo.hpp"
 #ifndef _WIN32
 #include "shader/sandbox_compiler.hpp"
 #endif
@@ -85,10 +88,23 @@ int main(int argc, char* argv[]) {
   int ret = 0;
   {
     MainWindow window;
-    Welcome* welcome = new Welcome;
-    welcome->show();
 
-    ret = app.exec();
+    MetaInfo limbo_info;
+    QString filename;
+    bool cont = true;
+    while (cont && ShaderDB::findLimbo(limbo_info, filename)) {
+      ScenePtr scene = Scene::load(filename, Scene::Limbo);
+      if (!scene) continue;
+      LimboDialog* limbo = new LimboDialog(filename, scene, limbo_info, cont);
+      limbo->show();
+      app.exec();
+    }
+
+    if (window.loadedScenes() == 0) {
+      Welcome* welcome = new Welcome;
+      welcome->show();
+      ret = app.exec();
+    }
   }
   MainWindow::cleanup();
   return ret;

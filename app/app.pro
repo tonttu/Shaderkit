@@ -69,7 +69,8 @@ HEADERS += \
     render_pass_list.hpp \
     file_resource.hpp \
     save_project.hpp \
-    scene_saver.hpp
+    scene_saver.hpp \
+    limbo_dialog.hpp
 
 SOURCES += \
     highlighter.cpp \
@@ -123,7 +124,8 @@ SOURCES += \
     render_pass_list.cpp \
     file_resource.cpp \
     save_project.cpp \
-    scene_saver.cpp
+    scene_saver.cpp \
+    limbo_dialog.cpp
 
 unix {
   HEADERS += shader/sandbox_compiler.hpp
@@ -140,7 +142,8 @@ FORMS += \
     light_list.ui \
     camera_editor.ui \
     render_pass_list.ui \
-    save_project.ui
+    save_project.ui \
+    limbo_dialog.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib
