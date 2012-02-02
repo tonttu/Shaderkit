@@ -362,11 +362,11 @@
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
    </property>
-  </action>
-  <action name="action_quit">
-   <property name="enabled">
+   <property name="visible">
     <bool>false</bool>
    </property>
+  </action>
+  <action name="action_quit">
    <property name="text">
     <string>&amp;Quit</string>
    </property>
@@ -399,6 +399,9 @@
    <property name="text">
     <string>Export...</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="action_libexample">
    <property name="enabled">
@@ -414,6 +417,9 @@
    </property>
    <property name="text">
     <string>Open Library</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_autosave">
@@ -549,6 +555,9 @@
   <action name="action_savefile">
    <property name="text">
     <string>Save Active File</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_autosave_scene">

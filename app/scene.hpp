@@ -120,7 +120,7 @@ public:
 
   QList<ProgramPtr> materialPrograms() const;
 
-  QVariantMap save() const;
+  QVariantMap toMap() const;
 
   QList<FileInfo> files() const;
   QSet<QString> filenames() const;
@@ -214,7 +214,7 @@ signals:
   void materialListUpdated(ScenePtr);
   void renderPassesListUpdated(QList<RenderPassPtr>);
 
-  void changed();
+  void changed(bool wasChangedBefore);
   void stateChanged();
   void saved();
 
@@ -264,6 +264,7 @@ protected:
   SceneState m_state;
 
   bool m_changed;
+  bool m_loading;
 
   float m_lastTime;
 

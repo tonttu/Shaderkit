@@ -116,7 +116,7 @@ public slots:
   /// Reloads the project file, basically just loads the same file again,
   /// but tries to keep the same state
   bool reload();
-  void setSceneChanged(bool status);
+  void setSceneChanged(bool isChanged);
 
   QList<GLSLEditor*> findEditors(ShaderPtr shader);
   QList<GLSLEditor*> findEditors(const QString& filename);
@@ -165,7 +165,7 @@ protected slots:
   void closeEditor(int index);
 
   void closeEvent(QCloseEvent* event);
-  void changed();
+  void changed(bool wasChangedBefore);
   void setSandboxCompiler(bool);
 
   void compileAll();
@@ -195,7 +195,6 @@ private:
 
   QAction* m_sync;
 
-  bool m_sceneChanged;
   int m_loadedScenes;
   static MainWindow * s_instance;
 };

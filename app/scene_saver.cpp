@@ -29,13 +29,13 @@ void SceneSaver::stateChanged() {
 }
 
 bool SceneSaver::enabled() const {
-  return m_scene.isChanged() && (m_scene.automaticSaving() || m_scene.state() != Scene::ReadOnly);
+  return m_scene.isChanged() && m_scene.automaticSaving() && m_scene.state() != Scene::ReadOnly;
 }
 
 void SceneSaver::trigger() {
   if (!enabled()) return;
 
-  QVariantMap scene = m_scene.save();
+  QVariantMap scene = m_scene.toMap();
   if (m_scene.automaticSaving())
     m_scene.save(scene);
 

@@ -150,6 +150,22 @@ std::shared_ptr<T> clone(QMap<QString, ObjImporter::Scene>& imported, const P& p
   return Ptr(create ? new T(p.name) : 0);
 }
 
+template <typename T>
+class AutoVar {
+public:
+  AutoVar(T & var, T val) : m_var(var), m_orig(var) {
+    m_var = val;
+  }
+  ~AutoVar() {
+    m_var = m_orig;
+  }
+
+private:
+  T & m_var;
+  T m_orig;
+};
+
+
 } // namespace
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,13 +178,13 @@ Scene::Scene(/*QString filename*/)
     m_automaticSaving(false),
     //m_history(*this, filename),
     m_state(New),
-    m_changed(false), m_lastTime(0) {
+    m_changed(false), m_loading(false), m_lastTime(0) {
   /// @todo remove this, this non-gui class shouldn't call gui stuff
   connect(this, SIGNAL(materialListUpdated(ScenePtr)),
           &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
   m_time.start();
 
-  connect(this, SIGNAL(changed()), &m_saver, SLOT(sceneChanged()));
+  connect(this, SIGNAL(changed(bool)), &m_saver, SLOT(sceneChanged()));
   connect(this, SIGNAL(stateChanged()), &m_saver, SLOT(stateChanged()));
 }
 
@@ -308,7 +324,7 @@ QSet<QString> Scene::filenames() const {
   return set;
 }
 
-QVariantMap Scene::save() const {
+QVariantMap Scene::toMap() const {
   QVariantMap map, tmp;
 
   foreach (QString name, m_models.keys())
@@ -395,6 +411,7 @@ RenderPassPtr Scene::findRenderer(TexturePtr tex) {
 }
 
 void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
+  AutoVar<bool> loading(m_loading, true);
   setFilename(filename);
   ResourceLocator::Path path("scene", root());
   m_state = state;
@@ -880,9 +897,11 @@ QIcon Scene::icon() const {
 }
 
 void Scene::changedSlot() {
+  if (m_loading) return;
+  bool prev = m_changed;
   m_changed = true;
   //m_history.changed();
-  emit changed();
+  emit changed(prev);
 }
 
 /// @todo what state use after this?
@@ -891,7 +910,7 @@ bool Scene::save(const QString& filename) {
   QFile file(filename);
   // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
   // that isn't what we want.
-  const QByteArray str = serializer.serialize(save());
+  const QByteArray str = serializer.serialize(toMap());
   if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
     file.write(str);
     setFilename(filename);
@@ -905,6 +924,10 @@ bool Scene::save(const QString& filename) {
 bool Scene::save(const QVariantMap& map) {
   QFile file(filename());
 
+  // We should use save(string) -version with read-only files!
+  assert(m_state != New);
+  assert(m_state != ReadOnly);
+
   if (m_state == New) {
     assert(file.fileName().isEmpty());
     if (ShaderDB::openNewLimbo(file, metainfo().name)) {
@@ -913,11 +936,6 @@ bool Scene::save(const QVariantMap& map) {
     } else {
       return false;
     }
-  } else if (m_state == ReadOnly) {
-    // We should use save(string) -version with read-only files!
-    assert(m_state != New);
-    assert(m_state != ReadOnly);
-    return false;
   } else {
     assert(!file.fileName().isEmpty());
     if (!file.open(QIODevice::WriteOnly))

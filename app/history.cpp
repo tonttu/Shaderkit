@@ -40,7 +40,7 @@ void History::sync() {
 
   if (!automatic && !m_historyEnabled) return;
 
-  QVariantMap scene = m_scene.save();
+  QVariantMap scene = m_scene.toMap();
 
   if (automatic) {
     m_scene.save(scene);
@@ -65,7 +65,7 @@ void History::save() {
 
   if (!automatic && !m_historyEnabled) return;
 
-  QVariantMap scene = m_scene.save();
+  QVariantMap scene = m_scene.toMap();
 
   if (automatic) {
     m_scene.save(scene);

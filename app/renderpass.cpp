@@ -106,7 +106,8 @@ void RenderPass::resize(int w, int h) {
 
   m_width = w;
   m_height = h;
-  emit changed(shared_from_this());
+  if(!m_autosize)
+    emit changed(shared_from_this());
 }
 
 void RenderPass::setClearBits(GLbitfield bits) {

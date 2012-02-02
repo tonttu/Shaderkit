@@ -61,7 +61,7 @@ MainWindow * MainWindow::s_instance = 0;
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent), m_ui(new Ui::MainWindow), m_context(0), m_sync(0),
-    m_sceneChanged(false), m_loadedScenes(0) {
+    m_loadedScenes(0) {
   if (!s_instance)
     s_instance = this;
 
@@ -268,14 +268,14 @@ bool MainWindow::openScene(ScenePtr scene) {
   if (m_scene) {
     if (!closeScene()) return false;
 
-    disconnect(m_scene.get(), SIGNAL(changed()), this, SLOT(changed()));
+    disconnect(m_scene.get(), SIGNAL(changed(bool)), this, SLOT(changed(bool)));
     disconnect(m_scene.get(), SIGNAL(saved()), this, SLOT(saved()));
 
     disconnect(m_scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
                &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr> passes)));
   }
 
-  connect(scene.get(), SIGNAL(changed()), this, SLOT(changed()));
+  connect(scene.get(), SIGNAL(changed(bool)), this, SLOT(changed(bool)));
   connect(scene.get(), SIGNAL(saved()), this, SLOT(saved()));
 
   connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
@@ -300,7 +300,7 @@ bool MainWindow::openScene(ScenePtr scene) {
 
   resize(sizeHint());
 
-  setSceneChanged(false);
+  setSceneChanged(m_scene->isChanged());
   RenderPassProperties::instance().listUpdated(m_scene->renderPasses());
 
   m_scene->setAutomaticSaving(m_ui->action_autosave_scene->isChecked());
@@ -335,17 +335,17 @@ bool MainWindow::reload() {
   }*/
 }
 
-void MainWindow::setSceneChanged(bool status) {
+void MainWindow::setSceneChanged(bool isChanged) {
   if (!m_scene)
     return;
-  m_sceneChanged = status;
-  m_ui->action_savescene->setEnabled(status);
+  // you need to use "save as" instead of just "save" when the scene is in any weird state
+  m_ui->action_savescene->setEnabled(isChanged && m_scene->state() == Scene::Ok);
 
   QFont font = m_ui->action_savescene_as->font();
-  font.setBold(status && m_scene->state() == Scene::New);
+  font.setBold(isChanged && m_scene->state() == Scene::New);
   m_ui->action_savescene_as->setFont(font);
 
-  if (status) {
+  if (isChanged) {
     setWindowTitle(m_scene->metainfo().name + " (unsaved) - Shaderkit");
   } else {
     setWindowTitle(m_scene->metainfo().name + " - Shaderkit");
@@ -458,7 +458,6 @@ void MainWindow::saveMaterial(int index) {
 
 void MainWindow::saveScene() {
   if (m_scene->save(m_scene->filename())) {
-    setSceneChanged(false);
     m_ui->statusbar->showMessage("Saved project to " + m_scene->filename(), 5000);
   } else {
     m_ui->statusbar->showMessage("Failed to save project to " + m_scene->filename(), 5000);
@@ -555,8 +554,8 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   QMainWindow::closeEvent(event);
 }
 
-void MainWindow::changed() {
-  if (!m_sceneChanged)
+void MainWindow::changed(bool wasChangedBefore) {
+  if (!wasChangedBefore)
     setSceneChanged(true);
 }
 
