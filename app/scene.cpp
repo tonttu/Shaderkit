@@ -907,6 +907,7 @@ void Scene::changedSlot() {
 /// @todo what state use after this?
 bool Scene::save(const QString& filename) {
   QJson::Serializer serializer;
+  serializer.allowSpecialNumbers(true);
   QFile file(filename);
   // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
   // that isn't what we want.
@@ -942,6 +943,7 @@ bool Scene::save(const QVariantMap& map) {
   }
 
   QJson::Serializer serializer;
+  serializer.allowSpecialNumbers(true);
   const QByteArray str = serializer.serialize(map);
   if (!str.isNull()) {
     file.write(str);

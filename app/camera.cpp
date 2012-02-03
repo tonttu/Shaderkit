@@ -28,11 +28,13 @@
 Camera::Camera(const QString &name)
   : SceneObject(name), m_type(Perspective),
     m_target(0, 0, 0), m_up(0, 1, 0),
-    m_dx(0), m_dy(0),
+    m_dx(0), m_dy(0), m_dist(0.0f),
     m_projection(Eigen::Projective3f::Identity()),
     m_view(Eigen::Affine3f::Identity()),
     m_width(-1), m_height(-1),
-    m_fov(45), m_near(0.1f), m_far(1000.0f) {}
+    m_fov(45), m_near(0.1f), m_far(1000.0f) {
+  updateVectors();
+}
 
 void Camera::prepare(int width, int height) {
   glCheck("Camera::prepare");
