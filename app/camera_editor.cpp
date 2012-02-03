@@ -15,6 +15,8 @@ CameraEditor::CameraEditor(QWidget* parent, RenderPassPtr render_pass)
 
   setAttribute(Qt::WA_DeleteOnClose);
 
+  m_ui->toolbar->addAction(QIcon(":/icons/new2.png"), "Create a new camera",
+                           this, SLOT(create()));
   Viewport* view = MainWindow::instance().mainViewport();
   if (view) {
     /// @todo should somehow force this to use this render pass
@@ -63,6 +65,8 @@ CameraEditor::CameraEditor(QWidget* parent, RenderPassPtr render_pass)
   m_ui->targetz->setValidator(new QDoubleValidator(this));
   m_ui->fov->setValidator(new QDoubleValidator(this));
 
+  connect(MainWindow::scene().get(), SIGNAL(cameraListUpdated()),
+          this, SLOT(cameraListUpdated()));
   updatePanel();
 }
 
@@ -70,40 +74,61 @@ CameraEditor::~CameraEditor() {
   delete m_ui;
 }
 
+void CameraEditor::create() {
+  CameraPtr cam(new Camera("Camera"));
+  MainWindow::scene()->add(cam);
+  foreach (QListWidgetItem* item, m_ui->list->findItems(cam->name(), Qt::MatchExactly)) {
+    item->setSelected(true);
+    break;
+  }
+}
+
 void CameraEditor::duplicate() {
-  /// @todo implement
+  if (!m_camera) return;
+  CameraPtr cam = m_camera->clone();
+  MainWindow::scene()->add(cam);
+  foreach (QListWidgetItem* item, m_ui->list->findItems(cam->name(), Qt::MatchExactly)) {
+    item->setSelected(true);
+    break;
+  }
 }
 
 void CameraEditor::remove() {
-  /// @todo implement
+  if (!m_camera) return;
+  MainWindow::scene()->remove(m_camera);
 }
 
 void CameraEditor::updated(RenderPassPtr pass) {
   assert(m_render_pass == pass);
 
-  CameraPtr my_camera = pass->view();
-
   if (pass)
     disconnect(pass.get(), SIGNAL(changed(RenderPassPtr)),
               this, SLOT(updated(RenderPassPtr)));
+
+  cameraListUpdated();
+
+  if (pass)
+    connect(pass.get(), SIGNAL(changed(RenderPassPtr)),
+            this, SLOT(updated(RenderPassPtr)));
+}
+
+void CameraEditor::cameraListUpdated() {
+  CameraPtr my_camera = m_render_pass ? m_render_pass->view() : CameraPtr();
 
   m_ui->list->clear();
   foreach (CameraPtr camera, MainWindow::scene()->cameras()) {
     /// @todo icon
     QListWidgetItem* item = new QListWidgetItem(camera->name(), m_ui->list);
     Qt::ItemFlags flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-    if (pass) flags |= Qt::ItemIsUserCheckable;
+    if (m_render_pass) flags |= Qt::ItemIsUserCheckable;
     item->setFlags(flags);
-    if (pass) {
+    if (m_render_pass) {
       if (my_camera == camera)
         item->setCheckState(Qt::Checked);
       else
         item->setCheckState(Qt::Unchecked);
     }
   }
-  if (pass)
-    connect(pass.get(), SIGNAL(changed(RenderPassPtr)),
-            this, SLOT(updated(RenderPassPtr)));
 }
 
 void CameraEditor::selectionChanged() {

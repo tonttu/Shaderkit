@@ -925,7 +925,6 @@ bool Scene::save(const QVariantMap& map) {
   QFile file(filename());
 
   // We should use save(string) -version with read-only files!
-  assert(m_state != New);
   assert(m_state != ReadOnly);
 
   if (m_state == New) {

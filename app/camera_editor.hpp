@@ -19,11 +19,13 @@ public:
   ~CameraEditor();
 
 private slots:
+  void create();
   void duplicate();
   void remove();
   void selectionChanged();
   void itemChanged(QListWidgetItem*);
   void updated(RenderPassPtr pass);
+  void cameraListUpdated();
 
   void nameChanged();
   void typeChanged();
