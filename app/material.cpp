@@ -117,8 +117,8 @@ void Material::setScene(ScenePtr scene) {
   m_scene = scene;
 }
 
-QVariantMap Material::save() const {
-  QVariantMap map = SceneObject::save();
+QVariantMap Material::toMap() const {
+  QVariantMap map = SceneObject::toMap();
 
   QVariantMap textures;
   for (auto it = m_textures.begin(); it != m_textures.end(); ++it) {
@@ -144,10 +144,11 @@ QVariantMap Material::save() const {
   map["shininess_strength"] = style.shininess_strength;
   map["refracti"] = style.refracti;
 
+  if (prog()) prog()->toMap(scene(), map);
   return map;
 }
 
-void Material::load(QVariantMap map) {
+void Material::load(Scene& scene, QVariantMap map) {
   SceneObject::load(map);
 
   if (map.contains("diffuse")) colors.diffuse = toVector(map["diffuse"]);
@@ -166,6 +167,22 @@ void Material::load(QVariantMap map) {
   if (map.contains("shininess")) style.shininess = map["shininess"].toFloat();
   if (map.contains("shininess_strength")) style.shininess_strength = map["shininess_strength"].toFloat();
   if (map.contains("refracti")) style.refracti = map["refracti"].toFloat();
+
+
+  foreach (QString filename, map["fragment"].toStringList())
+    prog(true)->addShader(filename, Shader::Fragment);
+  foreach (QString filename, map["vertex"].toStringList())
+    prog(true)->addShader(filename, Shader::Vertex);
+  foreach (QString filename, map["geometry"].toStringList())
+    prog(true)->addShader(filename, Shader::Geometry);
+
+  Log::info("Shading model: %s", style.shading_model.toUtf8().data());
+  /// @todo add a default shader if the material has shader hint
+  ///       and prog is null
+
+  QVariantMap tmp = map["textures"].toMap();
+  for (auto it = tmp.begin(); it != tmp.end(); ++it)
+    addTexture(it.key(), scene.genTexture(it.value().toString()));
 }
 
 MaterialPtr Material::clone() const {

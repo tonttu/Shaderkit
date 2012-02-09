@@ -40,7 +40,7 @@ public:
   /// Disables the light
   void deactivate(State& state);
 
-  virtual QVariantMap save() const;
+  virtual QVariantMap toMap() const;
 
   /// Load the light from map
   virtual void load(QVariantMap map);

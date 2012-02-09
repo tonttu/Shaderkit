@@ -24,7 +24,7 @@ void SceneObject::setName(QString name) {
   m_name = name;
 }
 
-QVariantMap SceneObject::save() const {
+QVariantMap SceneObject::toMap() const {
   QVariantMap map;
   if (!m_ref.isEmpty()) {
     QStringList tmp;

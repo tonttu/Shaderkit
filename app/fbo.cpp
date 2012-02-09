@@ -66,8 +66,8 @@ void RenderBuffer::setup(unsigned int fbo, int width, int height) {
   if (fbo_changed) m_fbo_num = fbo;
 }
 
-QVariantMap FBOImage::save() const {
-  QVariantMap map = SceneObject::save();
+QVariantMap FBOImage::toMap() const {
+  QVariantMap map = SceneObject::toMap();
   if (!m_role.isEmpty()) map["role"] = m_role;
   return map;
 }

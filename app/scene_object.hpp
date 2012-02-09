@@ -30,7 +30,7 @@ public:
   QString name() const { return m_name; }
   void setName(QString name);
 
-  virtual QVariantMap save() const;
+  virtual QVariantMap toMap() const;
   virtual void load(QVariantMap map);
 
   void setRef(QString import, QString refname);

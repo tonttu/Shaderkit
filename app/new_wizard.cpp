@@ -45,12 +45,10 @@ NewWizard::NewWizard(QWidget* parent)
     m_group(new QButtonGroup(this)) {
   m_ui->setupUi(this);
 
-  m_ui->default_scene->hide();
   m_ui->advanced->hide();
 
   m_ui->empty_scene->setCheckable(true);
   m_group->addButton(m_ui->empty_scene);
-  m_ui->empty_scene->setIcon(m_ui->default_scene->icon());
   m_ui->empty_scene->setText("Empty project");
   m_ui->empty_scene->setDescription("Empty project");
   connect(m_ui->empty_scene, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
@@ -65,24 +63,17 @@ NewWizard::NewWizard(QWidget* parent)
   foreach (QString file, files) {
     MetaInfo info;
     if (!MetaInfo::ping(file, info)) continue;
+    if (!info.categories.contains("template")) continue;
 
     WelcomeButton* btn = 0;
     m_scene_names << info.name.toLower();
 
-    if (info.categories.contains("built-in")) {
-      if (info.name == "Default shader project") {
-        btn = m_ui->default_scene;
-      } else continue;
-      btn->show();
-      btn->setFilename(file);
-    } else {
-      btn = new WelcomeButton(m_ui->list, file);
-      m_ui->list_layout->insertWidget(0, btn);
-    }
+    btn = new WelcomeButton(m_ui->list, file);
+    m_ui->list_layout->insertWidget(1, btn);
 
     btn->setCheckable(true);
     m_group->addButton(btn);
-    btn->setIcon(m_ui->default_scene->icon());
+    btn->setIcon(m_ui->empty_scene->icon());
     btn->setText(info.name);
     btn->setDescription(info.description);
     connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));

@@ -274,14 +274,15 @@ bool ShaderCompilerOutputParser::parse(Shader& shader, ShaderErrorList& errors) 
         // original line/column numbers
         int l = lexer.tokens();
         if (l) {
-          if (e.line() > l || l == 0) {
+          if (e.line() >= l) {
             Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
                        e.line(), l, &log[0], lexer.toLines().c_str(), shader.src().toUtf8().data());
+          } else {
+            const ShaderLexer::Token& token = lexer.transform(e.line());
+            e.setLine(token.line);
+            e.setColumn(token.column);
+            e.setLength(token.len);
           }
-          const ShaderLexer::Token& token = lexer.transform(e.line());
-          e.setLine(token.line);
-          e.setColumn(token.column);
-          e.setLength(token.len);
         }
         errors << e;
       }

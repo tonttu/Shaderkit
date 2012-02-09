@@ -42,7 +42,7 @@ public:
   /// Set the camera with screen size width x height
   void prepare(int width, int height);
 
-  QVariantMap save() const;
+  QVariantMap toMap() const;
 
   /// Load the camera from map
   void load(QVariantMap map);

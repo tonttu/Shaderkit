@@ -68,10 +68,10 @@ public:
   ProgramPtr prog(bool create_if_not_found);
 
   void setScene(ScenePtr scene);
-  ScenePtr scene() { return m_scene; }
+  ScenePtr scene() const { return m_scene; }
 
-  QVariantMap save() const;
-  void load(QVariantMap map);
+  QVariantMap toMap() const;
+  void load(Scene & scene, QVariantMap map);
   /// Does not clone textures!
   MaterialPtr clone() const;
   MaterialPtr clone(bool clone_textures) const;
@@ -97,6 +97,7 @@ private:
   ProgramPtr m_program;
   UniformVar::List m_uniform_list, m_uniform_list_prev;
 
+  /// Uniform name => texture
   QMap<QString, TexturePtr> m_textures;
   bool m_prog_binded;
 

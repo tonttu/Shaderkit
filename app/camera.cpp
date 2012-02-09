@@ -98,8 +98,8 @@ void Camera::setFov(float fov) {
   m_fov = fov;
 }
 
-QVariantMap Camera::save() const {
-  QVariantMap map = SceneObject::save();
+QVariantMap Camera::toMap() const {
+  QVariantMap map = SceneObject::toMap();
   if (m_type == Perspective)
     map["type"] = "perspective";
   else if (m_type == Ortho)

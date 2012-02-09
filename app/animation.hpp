@@ -24,7 +24,7 @@ class Animation : public SceneObject {
 public:
   Animation(QString name);
 
-  QVariantMap save() const;
+  QVariantMap toMap() const;
   void load(QVariantMap map);
 };
 

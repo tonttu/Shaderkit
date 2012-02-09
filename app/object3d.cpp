@@ -88,8 +88,8 @@ void Object3D::remove(MaterialPtr mat) {
   }
 }
 
-QVariantMap Object3D::save() const {
-  QVariantMap map = SceneObject::save();
+QVariantMap Object3D::toMap() const {
+  QVariantMap map = SceneObject::toMap();
 
   if (m_default_material) map["material"] = m_default_material->name();
   if (m_model) map["model"] = m_model->name();

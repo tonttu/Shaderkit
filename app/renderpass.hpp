@@ -84,7 +84,7 @@ public:
   /// Render the pass
   void render(State& state, const RenderOptions& render_opts);
 
-  QVariantMap save() const;
+  QVariantMap toMap() const;
 
   /// Load the render pass from map
   void load(QVariantMap map);

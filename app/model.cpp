@@ -280,9 +280,9 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
   state.popModel();
 }
 
-QVariantMap Model::save() const {
+QVariantMap Model::toMap() const {
   QVariantMap map = m_map;
-  map.unite(SceneObject::save());
+  map.unite(SceneObject::toMap());
   if (m_builtin)
     map["built-in"] = m_node->name;
   return map;

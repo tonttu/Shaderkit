@@ -328,35 +328,31 @@ QVariantMap Scene::toMap() const {
   QVariantMap map, tmp;
 
   foreach (QString name, m_models.keys())
-    tmp[name] = m_models[name]->save();
+    tmp[name] = m_models[name]->toMap();
   if (!tmp.isEmpty()) map["models"] = tmp, tmp.clear();
 
   foreach (QString name, m_textures.keys())
-    tmp[name] = m_textures[name]->save();
+    tmp[name] = m_textures[name]->toMap();
   if (!tmp.isEmpty()) map["textures"] = tmp, tmp.clear();
 
-  foreach (QString name, m_materials.keys()) {
-    MaterialPtr m = m_materials[name];
-    QVariantMap t = m->save();
-    if (m->prog()) m->prog()->save(t, root());
-    tmp[name] = t;
-  }
+  foreach (QString name, m_materials.keys())
+    tmp[name] = m_materials[name]->toMap();
   if (!tmp.isEmpty()) map["materials"] = tmp, tmp.clear();
 
   foreach (QString name, m_objects.keys())
-    tmp[name] = m_objects[name]->save();
+    tmp[name] = m_objects[name]->toMap();
   if (!tmp.isEmpty()) map["objects"] = tmp, tmp.clear();
 
   foreach (QString name, m_lights.keys())
-    tmp[name] = m_lights[name]->save();
+    tmp[name] = m_lights[name]->toMap();
   if (!tmp.isEmpty()) map["lights"] = tmp, tmp.clear();
 
   foreach (QString name, m_cameras.keys())
-    tmp[name] = m_cameras[name]->save();
+    tmp[name] = m_cameras[name]->toMap();
   if (!tmp.isEmpty()) map["cameras"] = tmp, tmp.clear();
 
   /*foreach (QString name, m_animations.keys())
-    tmp[name] = m_animations[name]->save();
+    tmp[name] = m_animations[name]->toMap();
   if (!tmp.isEmpty()) map["animations"] = tmp, tmp.clear();*/
 
   QSet<QString> imports;
@@ -381,12 +377,12 @@ QVariantMap Scene::toMap() const {
   }
   if (!tmp.isEmpty()) map["import"] = tmp, tmp.clear();
 
-  tmp = m_metainfo.save();
+  tmp = m_metainfo.toMap();
   if (!tmp.isEmpty()) map["shaderkit"] = tmp, tmp.clear();
 
   QVariantList render_passes;
   foreach (RenderPassPtr p, m_render_passes)
-    render_passes << p->save();
+    render_passes << p->toMap();
   if (!render_passes.isEmpty()) map["render passes"] = render_passes;
 
   return map;
@@ -490,27 +486,8 @@ void Scene::load(const QString& filename, SceneState state, QVariantMap map) {
 
   foreach (P p, iterate(map["materials"])) {
     MaterialPtr m = clone(imported, p, &ObjImporter::Scene::materials);
-    m->load(p.map);
+    m->load(*this, p.map);
     setMaterial(p.name, m);
-
-    foreach (QString filename, p.map["fragment"].toStringList()) {
-      m->prog(true)->addShader(filename, Shader::Fragment);
-    }
-    foreach (QString filename, p.map["vertex"].toStringList()) {
-      m->prog(true)->addShader(filename, Shader::Vertex);
-    }
-    foreach (QString filename, p.map["geometry"].toStringList()) {
-      m->prog(true)->addShader(filename, Shader::Geometry);
-    }
-
-    Log::info("Shading model: %s", m->style.shading_model.toUtf8().data());
-    /// @todo add a default shader if the material has shader hint
-    ///       and prog is null
-
-    QVariantMap tmp = p.map["textures"].toMap();
-    /// @todo is the texture name always unique and correct?
-    for (auto it = tmp.begin(); it != tmp.end(); ++it)
-      m->addTexture(it.key(), genTexture(it.value().toString()));
   }
 
   foreach (P p, iterate(map["objects"])) {

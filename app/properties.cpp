@@ -567,7 +567,7 @@ void MaterialProperties::update(MaterialPtr mat) {
     const ShaderTypeInfo& type = var.typeinfo();
     names << var.name();
 
-    UniformEditor* editor = item.uniform_editors[var.name()];
+    UniformEditor* editor = item.uniform_editors.value(var.name());
     if (!editor) {
       editor = createEditor(mat, var, type, item.last_index.row() + 1);
       if (editor) {
@@ -583,7 +583,7 @@ void MaterialProperties::update(MaterialPtr mat) {
 
   foreach (QString name, item.uniform_editors.keys().toSet() - names) {
     UniformEditor* editor = item.uniform_editors[name];
-    if (indexWidget(item.last_index) == editor->label()) {
+    if (item.last_index.row() == editor->index().row()) {
       item.last_index = item.last_index.sibling(item.last_index.row()-1, 0);
     }
     removeRow(editor->index().row());

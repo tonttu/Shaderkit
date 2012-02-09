@@ -280,6 +280,7 @@ void TextureChangeManager::listen(TexturePtr texture, QObject* listener, std::fu
 
 void TextureChangeManager::forget(TexturePtr texture, QObject* listener) {
   if (!s_instance) return;
+  disconnect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
   auto it = s_instance->m_callbacks.find(texture.get());
   for (auto it2 = it->begin(); it2 != it->end(); ) {
     if (it2->obj == listener) it2 = it->erase(it2);
@@ -571,8 +572,8 @@ TexturePtr Texture::clone() const {
   return t;
 }
 
-QVariantMap Texture::save() const {
-  QVariantMap map = FBOImage::save();
+QVariantMap Texture::toMap() const {
+  QVariantMap map = FBOImage::toMap();
   map["blend"] = m_blend;
   map["uv"] = m_uv;
 
@@ -833,8 +834,8 @@ TexturePtr TextureFile::clone() const {
   return TexturePtr(t);
 }
 
-QVariantMap TextureFile::save() const {
-  QVariantMap map = Texture::save();
+QVariantMap TextureFile::toMap() const {
+  QVariantMap map = Texture::toMap();
   if (!rawFilename().isEmpty()) map["file"] = rawFilename();
   return map;
 }

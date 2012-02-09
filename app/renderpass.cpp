@@ -29,6 +29,7 @@
 #include "state.hpp"
 #include "gizmos.hpp"
 #include "object_creator.hpp"
+#include "material.hpp"
 
 #define SHADER(x) #x
 
@@ -395,7 +396,7 @@ void RenderPass::renderUI(State& state, const RenderOptions& render_opts) {
     render_opts.gizmo->render(QSize(width(), height()), state, render_opts);
 }
 
-QVariantMap RenderPass::save() const {
+QVariantMap RenderPass::toMap() const {
   QVariantMap map;
 
   QVariantList tmp;
@@ -407,9 +408,8 @@ QVariantMap RenderPass::save() const {
 
   map["name"] = m_name;
   map["background"] = toList(m_clearColor);
-
-  /// @todo material here
-  ///if (m_shader) map["shader"] = m_shader->name();
+  if (m_defaultMaterial)
+    map["material"] = m_defaultMaterial->name();
 
   tmp.clear();
   foreach (ObjectPtr obj, m_objects)
@@ -496,7 +496,7 @@ void RenderPass::load(QVariantMap map) {
 
   m_clearColor = toColor(map["background"]);
 
-  QVariantMap out = map["render"].toMap();
+  QVariantMap out = map["out"].toMap();
 
   m_width = out["width"].toInt();
   m_height = out["height"].toInt();

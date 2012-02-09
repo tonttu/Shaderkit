@@ -227,7 +227,7 @@ GLuint GLProgram::id() const {
   return m_prog;
 }
 
-QVariantMap GLProgram::save(QVariantMap& map, QString root, bool pack) const {
+QVariantMap GLProgram::toMap(ScenePtr scene, QVariantMap& map, bool pack) const {
   assert(!pack && "not implemented");
 
   QMap<Shader::Type, QStringList> shaders;

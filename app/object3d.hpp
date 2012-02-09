@@ -52,7 +52,7 @@ public:
   void setDefaultMaterial(MaterialPtr mat);
   void remove(MaterialPtr mat);
 
-  virtual QVariantMap save() const;
+  virtual QVariantMap toMap() const;
   virtual void load(QVariantMap map);
   /// Doesn't clone materials or model
   ObjectPtr clone();

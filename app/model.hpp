@@ -60,7 +60,7 @@ public:
 
   bool builtin() const { return m_builtin; }
 
-  QVariantMap save() const;
+  QVariantMap toMap() const;
   void load(QVariantMap map);
   ModelPtr clone();
 

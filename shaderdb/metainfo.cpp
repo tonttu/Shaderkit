@@ -44,7 +44,7 @@ QVariant putList(QStringList lst) {
 MetaInfo::MetaInfo() {
 }
 
-QVariantMap MetaInfo::save() const {
+QVariantMap MetaInfo::toMap() const {
   QVariantMap map;
 
   map["shaderkit version"] = ShaderKit::STR;

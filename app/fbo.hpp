@@ -42,7 +42,7 @@ public:
   /// Is this a "texture", "renderbuffer" or what
   virtual QString imageClass() const = 0;
 
-  virtual QVariantMap save() const;
+  virtual QVariantMap toMap() const;
   virtual void load(QVariantMap);
 
   unsigned int id() const { return m_id; }

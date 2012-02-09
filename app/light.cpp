@@ -73,8 +73,8 @@ void Light::deactivate(State& state) {
   m_id = -1;
 }
 
-QVariantMap Light::save() const {
-  QVariantMap map = SceneObject::save();
+QVariantMap Light::toMap() const {
+  QVariantMap map = SceneObject::toMap();
   if (m_type == Spot) {
     map["type"] = "spot";
     map["location"] = toList(m_location);

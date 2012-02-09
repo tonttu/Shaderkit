@@ -100,7 +100,7 @@ public:
   QString imageClass() const { return "texture"; }
 
   virtual TexturePtr clone() const;
-  virtual QVariantMap save() const;
+  virtual QVariantMap toMap() const;
   virtual void load(QVariantMap map);
 
   int internalFormat() const { return m_internalFormat; }
@@ -142,7 +142,7 @@ public:
   virtual void setInternalFormat(int format);
 
   virtual TexturePtr clone() const;
-  virtual QVariantMap save() const;
+  virtual QVariantMap toMap() const;
   virtual void load(QVariantMap map);
 
   QIcon icon() const;

@@ -20,8 +20,8 @@
 Animation::Animation(QString name) : SceneObject(name) {
 }
 
-QVariantMap Animation::save() const {
-  QVariantMap map = SceneObject::save();
+QVariantMap Animation::toMap() const {
+  QVariantMap map = SceneObject::toMap();
   return map;
 }
 
