@@ -16,6 +16,7 @@
  */
 
 #include "metainfo.hpp"
+#include "version.hpp"
 
 #include "parser.h"
 
@@ -46,8 +47,7 @@ MetaInfo::MetaInfo() {
 QVariantMap MetaInfo::save() const {
   QVariantMap map;
 
-  /// @todo replace shaderkit_version with real version!
-  //if (!shaderkit_version.isEmpty()) map["shaderkit version"] = shaderkit_version;
+  map["shaderkit version"] = ShaderKit::STR;
   if (!name.isEmpty()) map["name"] = name;
   if (!description.isEmpty()) map["description"] = description;
   //if (!id.isEmpty()) map["id"] = id;

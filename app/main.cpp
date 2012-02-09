@@ -20,6 +20,7 @@
 #include "resource_locator.hpp"
 #include "limbo_dialog.hpp"
 #include "scene.hpp"
+#include "version.hpp"
 #include "shaderdb/shaderdb.hpp"
 #include "shaderdb/metainfo.hpp"
 #ifndef _WIN32
@@ -58,6 +59,7 @@ int main(int argc, char* argv[]) {
   //App app(argc, argv);
   // glutInit(&argc, argv);
   Log log;
+  Log::info("ShaderKit %s", ShaderKit::STR_HASH);
 
 #ifndef _WIN32
   SandboxCompiler init(argv[0]);

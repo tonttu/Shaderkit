@@ -63,10 +63,8 @@ namespace {
 Log* Log::s_log = 0;
 
 Log::Log() : level(LOG_INFO), target(stderr) {
-  if (!s_log) {
+  if (!s_log)
     s_log = this;
-    info("Starting");
-  }
 }
 
 Log::~Log() {

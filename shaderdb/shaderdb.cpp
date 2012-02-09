@@ -18,6 +18,7 @@
 #include "shaderdb.hpp"
 #include "metainfo.hpp"
 #include "scene.hpp"
+#include "version.hpp"
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 
@@ -83,9 +84,7 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   scene->setFilename("");
   MetaInfo& info = scene->metainfo();
 
-  /// @todo use the real version. And shouldn't we use this version to parse
-  ///       and interpret everything correctly?
-  info.shaderkit_version = "0.0.1";
+  info.shaderkit_version = ShaderKit::STR;
   if (!info.name.isEmpty())
     info.description = "Based on " + info.name;
   info.name = name;
