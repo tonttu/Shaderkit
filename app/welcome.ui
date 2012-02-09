@@ -272,14 +272,14 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="version_label">
            <property name="font">
             <font>
              <italic>true</italic>
             </font>
            </property>
            <property name="text">
-            <string>Shaderkit &lt;a href=&quot;http://www.shaderkit.org/&quot;&gt;www.shaderkit.org&lt;/a&gt;</string>
+            <string>Shaderkit %1 &lt;a href=&quot;http://www.shaderkit.org/&quot;&gt;www.shaderkit.org&lt;/a&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -296,12 +296,6 @@
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
            </property>
           </spacer>
          </item>
