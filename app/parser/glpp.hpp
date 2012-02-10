@@ -24,6 +24,8 @@
 #include <map>
 #include <list>
 #include <vector>
+#include <set>
+#include <stack>
 
 #include "pp_yacc.h"
 
@@ -34,8 +36,42 @@ int ppparse(GLpp&);
 
 class GLpp {
 public:
+  GLpp();
   void scan(QByteArray data);
   const std::string & out() { return m_out; }
+
+  /// GLSL version used, default is 0 (no version given)
+  /// example: 150
+  int version() const { return m_version; }
+  /// GLSL version profile, for example "compatibility" or ""
+  const std::string& profile() const { return m_profile; }
+
+  enum ExtensionBehavior {
+    Require,
+    Enable,
+    Warn,
+    Disable
+  };
+
+  /// Extension name (case sensitive) -> behavior
+  /// @todo are extensions really case sensitive?
+  const std::map<std::string, ExtensionBehavior>& extensions() const { return m_extensions; }
+
+  /// List of pragmas (content as string, line number)
+  const std::list<std::pair<std::string, int>>& pragmas() const { return m_pragmas; }
+
+  const std::set<std::string>& possibleUnknownMacros() const { return m_require; }
+
+  struct MacroValue {
+    MacroValue(const std::string& name_, const std::string& src_)
+      : name(name_), src(src_) {}
+    std::string name;
+    std::string src;
+    std::string value;
+    std::list<MacroValue> children;
+  };
+
+  const std::map<int, std::list<MacroValue>>& macros() const { return m_macros; }
 
 private:
   std::string m_out;
@@ -51,12 +87,29 @@ private:
   Funcs m_funcs;
   std::list<std::string> m_stack;
 
+  int m_version;
+  std::string m_profile;
+
+  std::map<std::string, ExtensionBehavior> m_extensions;
+  std::list<std::pair<std::string, int>> m_pragmas;
+  std::map<int, std::list<MacroValue>> m_macros;
+
+  MacroValue m_current_macro;
+  int m_macro_line;
+  std::stack<std::pair<MacroValue*, int>> m_macro_stack;
+
+  std::set<std::string> m_undefs;
+  std::set<std::string> m_require;
+
   int lex(YYSTYPE* lvalp);
   void error(GLpp& parser, const char* str);
   void pp_return(bool push, bool b);
   void push_string(const char* name, const char* str);
   void pop();
 
+  int line() const;
+  int column() const;
+  void newline();
 
   friend int ppparse(GLpp&);
 };

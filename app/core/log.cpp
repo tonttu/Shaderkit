@@ -40,8 +40,8 @@ namespace {
 
     QByteArray str(prefixes[l]);
     int p = str.size();
-    str.resize(p + 513);
-    p += vsnprintf(str.data() + p, 512, fmt, ap);
+    str.resize(p + 1024*2);
+    p += vsnprintf(str.data() + p, 1024*2, fmt, ap);
 
     str.resize(p);
     while (p > 0 && (str[p-1] == '\n' || str[p-1] == '\r'))

@@ -19,6 +19,15 @@
 #include "parser/glpp.hpp"
 #include "pp_lex.hpp"
 
+namespace {
+  std::string trim(const std::string& str) {
+    const char* sep = " \r\n\t";
+    std::size_t idx = str.find_first_not_of(sep);
+    return idx == std::string::npos ? "" :
+      str.substr(idx, str.find_last_not_of(sep) - idx + 1);
+  }
+}
+
 %}
 
 // Create a header
@@ -53,17 +62,18 @@ typedef std::list<Token> TokenList;
 %}
 
 %token <string> HASH_ERROR DEFINE_OBJ DEFINE_FUNC DATA IDENTIFIER EXPAND_FUNC ARG CHUNK PASTE UNDEF
+%token <string> HASH_PRAGMA
 %token <integer> DECIMAL
 %token NL
 
-%token HASH_VERSION HASH_EXTENSION HASH_PRAGMA HASH_INCLUDE HASH_LINE
+%token HASH_VERSION HASH_EXTENSION HASH_INCLUDE HASH_LINE
 %token HASH_IFNDEF HASH_IFDEF HASH_IF HASH_ELIF
 %token REQUIRE DISABLE WARN ENABLE
 
 %type <tokenmap> identifier_list identifier_list2
 %type <strlst> list
 %type <tokenlst> data
-%type <stdstr> arg arg2 parg obj_data obj_data2
+%type <stdstr> arg arg2 parg obj_data obj_data2 raw
 %type <integer> expression
 
 %left OR
@@ -87,20 +97,31 @@ input
 
 stuff
   : HASH_VERSION DECIMAL IDENTIFIER NL {
-    fprintf(stderr, "Got version %ld with profile %s\n", $2, $3);
+    // fprintf(stderr, "Got version %ld with profile %s\n", $2, $3);
+    parser.m_version = $2;
+    parser.m_profile = $3;
   }
   | HASH_VERSION DECIMAL NL {
-    fprintf(stderr, "Got version %ld with no profile info\n", $2);
+    // fprintf(stderr, "Got version %ld with no profile info\n", $2);
+    parser.m_version = $2;
+    parser.m_profile = "";
   }
   | HASH_EXTENSION IDENTIFIER ':' REQUIRE NL {
+    parser.m_extensions[$2] = GLpp::Require;
   }
   | HASH_EXTENSION IDENTIFIER ':' ENABLE NL {
+    parser.m_extensions[$2] = GLpp::Enable;
   }
   | HASH_EXTENSION IDENTIFIER ':' WARN NL {
+    parser.m_extensions[$2] = GLpp::Warn;
   }
   | HASH_EXTENSION IDENTIFIER ':' DISABLE NL {
+    parser.m_extensions[$2] = GLpp::Disable;
   }
-  | HASH_PRAGMA
+  | HASH_PRAGMA raw NL {
+    parser.m_pragmas.push_back(std::make_pair($2 ? trim(*$2) : "", parser.line()));
+    delete $2;
+  }
   | HASH_INCLUDE
   | HASH_LINE
   | HASH_IF expression NL {
@@ -110,10 +131,14 @@ stuff
     parser.pp_return(false, $2);
   }
   | HASH_IFDEF IDENTIFIER NL {
-    parser.pp_return(true, parser.m_objs.count($2) > 0 || parser.m_funcs.count($2) > 0);
+    bool found = parser.m_objs.count($2) > 0 || parser.m_funcs.count($2) > 0;
+    if (!found && parser.m_undefs.count($2) == 0) parser.m_require.insert($2);
+    parser.pp_return(true, found);
   }
   | HASH_IFNDEF IDENTIFIER NL {
-    parser.pp_return(true, parser.m_objs.count($2) == 0 && parser.m_funcs.count($2) == 0);
+    bool found = parser.m_objs.count($2) > 0 || parser.m_funcs.count($2) > 0;
+    if (!found && parser.m_undefs.count($2) == 0) parser.m_require.insert($2);
+    parser.pp_return(true, !found);
   }
   | HASH_ERROR {
     fprintf(stderr, "ERROR: %s\n", $1);
@@ -165,6 +190,7 @@ stuff
     delete $3;
   }
   | UNDEF {
+    parser.m_undefs.insert($1);
     parser.m_funcs.erase($1);
     parser.m_objs.erase($1);
   }
@@ -243,6 +269,18 @@ obj_data2
     (*$$) += $3;
   }
   | IDENTIFIER { $$ = new std::string($1); }
+  ;
+
+raw
+  : /* empty */ { $$ = 0; }
+  | CHUNK raw {
+    if ($2) {
+      $$ = $2;
+      $$->insert(0, $1);
+    } else {
+      $$ = new std::string($1);
+    }
+  }
   ;
 
 /**

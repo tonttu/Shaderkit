@@ -36,13 +36,12 @@ char* copystr(const char* str);
 
 %option reentrant
 
-
 %option bison-bridge
 %option stack
 %option never-interactive
 %option header-file="pp_lex.hpp"
 
-%x OBJ FUNC CTRL CALL FOBJ IF ELSE IF_SKIP IF_SEEK ELSE_SKIP EVAL IN_COMMENT
+%x OBJ FUNC CTRL CALL FOBJ IF ELSE IF_SKIP IF_SEEK ELSE_SKIP EVAL IN_COMMENT PRAGMA
 
 NEWLINE     \n
 HSPACE      [ \t]
@@ -58,7 +57,7 @@ PASTEABLE   [_a-zA-Z0-9]+
   "*/" { yy_pop_state(yyscanner); }
   [^*\r\n]+
   "*"
-  {NEWLINE} { m_out.push_back('\n'); }
+  {NEWLINE} { newline(); }
 }
 
 <*>{
@@ -68,13 +67,13 @@ PASTEABLE   [_a-zA-Z0-9]+
 
  /* Nested #if when processing ignored block */
 <IF_SKIP,ELSE_SKIP,IF_SEEK>{
-  {HASH}if.*{NEWLINE} { yy_push_state(IF_SKIP, yyscanner); m_out.push_back('\n'); }
+  {HASH}if.*{NEWLINE} { yy_push_state(IF_SKIP, yyscanner); newline(); }
   .
-  {NEWLINE} { m_out.push_back('\n'); }
+  {NEWLINE} { newline(); }
 }
 
  /* elif when we have already found true block */
-<IF>{HASH}elif.*{NEWLINE} { BEGIN(IF_SKIP); m_out.push_back('\n'); }
+<IF>{HASH}elif.*{NEWLINE} { BEGIN(IF_SKIP); newline(); }
 
  /* elif when we are still looking for a true block */
 <IF_SEEK>{
@@ -83,7 +82,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 }
 
  /* else when we have already found true block */
-<IF>{HASH}else.*{NEWLINE} { BEGIN(ELSE_SKIP); m_out.push_back('\n'); }
+<IF>{HASH}else.*{NEWLINE} { BEGIN(ELSE_SKIP); newline(); }
 
 <IF,IF_SEEK,IF_SKIP,ELSE,ELSE_SKIP>{HASH}endif.*{NEWLINE} { yy_pop_state(yyscanner); /* m_out.push_back('\n'); */ }
 
@@ -95,11 +94,11 @@ PASTEABLE   [_a-zA-Z0-9]+
   {HASH}if { yy_push_state(EVAL, yyscanner); return HASH_IF; }
   {HASH}version { yy_push_state(EVAL, yyscanner); return HASH_VERSION; }
   {HASH}extension { yy_push_state(EVAL, yyscanner); return HASH_EXTENSION; }
-  {HASH}pragma.* { return HASH_PRAGMA; }
+  {HASH}pragma { yy_push_state(PRAGMA, yyscanner); return HASH_PRAGMA; }
   {HASH}include.* { return HASH_INCLUDE; }
-  {HASH}line{HSPACE}.*{NEWLINE} { return HASH_LINE; m_out.push_back('\n'); }
+  {HASH}line{HSPACE}.*{NEWLINE} { return HASH_LINE; newline(); }
    /* {HASH}line{HSPACE}+{DIGITS}{HSPACE}*$ { return HASH_LINE; } */
-  {HASH}{NEWLINE} { m_out.push_back('\n'); }
+  {HASH}{NEWLINE} { newline(); }
 
   {HASH}error.*{NEWLINE} {
     skip2(5, 1);
@@ -129,7 +128,7 @@ PASTEABLE   [_a-zA-Z0-9]+
   [ \t]*"##"[ \t]* { return PASTE; }
   [#/*] { yylval->string = copystr(yytext); return CHUNK; }
   {PASTEABLE} { yylval->string = copystr(yytext); return IDENTIFIER; }
-  {NEWLINE} { yy_pop_state(yyscanner); m_out.push_back('\n'); return NL; }
+  {NEWLINE} { yy_pop_state(yyscanner); newline(); return NL; }
   . { assert(false); }
 }
 
@@ -137,7 +136,7 @@ PASTEABLE   [_a-zA-Z0-9]+
   {NONID} { yylval->string = copystr(yytext); return CHUNK; }
   [/*] { yylval->string = copystr(yytext); return CHUNK; }
   {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }
-  {NEWLINE} { yy_pop_state(yyscanner); m_out.push_back('\n'); return NL; }
+  {NEWLINE} { yy_pop_state(yyscanner); newline(); return NL; }
 }
 
 <FUNC>{
@@ -162,19 +161,34 @@ PASTEABLE   [_a-zA-Z0-9]+
     Objs::iterator it = m_objs.find(yytext);
     if (it != m_objs.end()) {
       push_string(yytext, it->second.c_str());
-    } else ECHO;
+    } else {
+      if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
+      ECHO;
+    }
   /*}*/
 }
 <CTRL,INITIAL,IF,ELSE>{IDENTIFIER} {
   Objs::iterator it = m_objs.find(yytext);
   if (it != m_objs.end() /*&& std::find(m_stack.begin(), m_stack.end(), yytext) == m_stack.end()*/) {
     push_string(yytext, it->second.c_str());
-  } else ECHO;
+  } else {
+    if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
+    ECHO;
+  }
 }
 
 <CTRL>{
      /* {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; } */
-  <<EOF>> { pppop_buffer_state(yyscanner); yy_pop_state(yyscanner); /* m_stack.pop_back(); */ }
+  <<EOF>> {
+    pppop_buffer_state(yyscanner);
+    yy_pop_state(yyscanner);
+    /* m_stack.pop_back(); */
+    std::pair<MacroValue*, int> pair = m_macro_stack.top();
+    pair.first->value = m_out.substr(pair.second);
+    m_macro_stack.pop();
+    if (m_macro_stack.empty())
+      m_macros[m_macro_line].push_back(m_current_macro);
+  }
 }
 
 <CALL>{
@@ -211,10 +225,19 @@ PASTEABLE   [_a-zA-Z0-9]+
   {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }
 
   [ \t]+
-  {NEWLINE} { yy_pop_state(yyscanner); m_out.push_back('\n'); return NL; }
+  {NEWLINE} { yy_pop_state(yyscanner); newline(); return NL; }
   . { fprintf(stderr, "Extra garbage: '%s'\n", yytext); }
 }
 
+<PRAGMA>{
+  {NEWLINE} { yy_pop_state(yyscanner); newline(); return NL; }
+  [^\n/*]+ { yylval->string = copystr(yytext); return CHUNK; }
+  . { yylval->string = copystr(yytext); return CHUNK; }
+}
+
+<*>{
+  {NEWLINE} { newline(); }
+}
 %%
 
 char* skip_(char* str, int s, int epos) {
@@ -249,12 +272,35 @@ void GLpp::pp_return(bool push, bool b) {
 
 void GLpp::push_string(const char* name, const char* str) {
   // m_stack.push_back(name);
+  //Log::info("push: %d (%s)", line(), str);
+  if (m_macro_stack.empty()) {
+    m_current_macro = MacroValue(name, str);
+    m_macro_line = line();
+    m_macro_stack.push(std::make_pair(&m_current_macro, m_out.size()));
+  } else {
+    m_macro_stack.top().first->children.push_back(MacroValue(name, str));
+    m_macro_stack.push(std::make_pair(&m_macro_stack.top().first->children.back(), m_out.size()));
+  }
   struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
   pppush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
   pp_scan_string(str, yyscanner);
+  ppset_lineno(1, yyscanner);
   yy_push_state(CTRL, yyscanner);
 }
 
 void GLpp::pop() {
   yy_pop_state(yyscanner);
+}
+
+int GLpp::line() const {
+  return ppget_lineno(yyscanner);
+}
+
+int GLpp::column() const {
+  return ppget_column(yyscanner);
+}
+
+void GLpp::newline() {
+  m_out.push_back('\n');
+  ppset_lineno(line()+1, yyscanner);
 }
