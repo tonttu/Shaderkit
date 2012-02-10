@@ -15,18 +15,18 @@
  * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mainwindow.hpp"
-#include "welcome.hpp"
-#include "resource_locator.hpp"
-#include "limbo_dialog.hpp"
-#include "scene.hpp"
+#include "gui/mainwindow.hpp"
+#include "gui/welcome.hpp"
+#include "core/resource_locator.hpp"
+#include "gui/limbo_dialog.hpp"
+#include "core/scene.hpp"
 #include "version.hpp"
 #include "shaderdb/shaderdb.hpp"
 #include "shaderdb/metainfo.hpp"
 #ifndef _WIN32
-#include "shader/sandbox_compiler.hpp"
+#include "gl/sandbox_compiler.hpp"
 #endif
-#include "shader/program.hpp"
+#include "gl/program.hpp"
 
 #include <QApplication>
 #include <QDir>

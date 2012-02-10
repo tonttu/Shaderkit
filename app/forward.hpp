@@ -18,7 +18,7 @@
 #ifndef FORWARD_HPP
 #define FORWARD_HPP
 
-#include "log.hpp"
+#include "core/log.hpp"
 
 /// @todo move these two away from here
 #include <limits>

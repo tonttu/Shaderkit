@@ -7,8 +7,8 @@ TARGET = shaderkit
 unix {
 QMAKE_LEX = flex
 QMAKE_YACC = bison
-LEXSOURCES += shader/pp.l shader/glsl.l
-YACCSOURCES += shader/pp.y shader/glsl.y
+LEXSOURCES += parser/pp.l parser/glsl.l
+YACCSOURCES += parser/pp.y parser/glsl.y
 }
 !unix {
 DEFINES += YY_NO_UNISTD_H
@@ -18,132 +18,129 @@ SOURCES += glsl_yacc.cpp glsl_lex.cpp
 
 HEADERS += \
     forward.hpp \
-    highlighter.hpp \
-    watcher.hpp \
-    state.hpp \
-    light.hpp \
-    camera.hpp \
-    object3d.hpp \
-    editor.hpp \
-    renderpass.hpp \
-    scene.hpp \
-    glwidget.hpp \
-    properties.hpp \
-    mainwindow.hpp \
-    opengl.hpp \
-    texture.hpp \
-    fbo.hpp \
-    welcome.hpp \
-    shader/grammar.hpp \
-    shader/lexer.hpp \
-    shader/error.hpp \
-    shader/compiler_output_parser.hpp \
-    shader/uniform.hpp \
-    shader/shader.hpp \
-    shader/program.hpp \
-    render_pass_properties.hpp \
-    wrap_glext.h \
-    new_wizard.hpp \
-    log.hpp \
-    material.hpp \
-    model.hpp \
-    animation.hpp \
-    obj_importer.hpp \
-    utils.hpp \
-    buffer_object.hpp \
-    scene_object.hpp \
-    shader/glpp.hpp \
-    transform_feedback.hpp \
-    shader/query_shader.hpp \
-    importer_wizard.hpp \
-    resource_locator.hpp \
-    texture_browser.hpp \
-    history.hpp \
-    viewport.hpp \
-    gizmos.hpp \
-    object_creator.hpp \
-    mesh_manager.hpp \
-    object_list.hpp \
-    light_list.hpp \
-    camera_editor.hpp \
-    render_pass_list.hpp \
-    file_resource.hpp \
-    save_project.hpp \
-    scene_saver.hpp \
-    limbo_dialog.hpp
+    core/animation.hpp \
+    core/file_resource.hpp \
+    core/history.hpp \
+    core/log.hpp \
+    core/material.hpp \
+    core/mesh_manager.hpp \
+    core/model.hpp \
+    core/object3d.hpp \
+    core/object_creator.hpp \
+    core/obj_importer.hpp \
+    core/renderpass.hpp \
+    core/resource_locator.hpp \
+    core/scene.hpp \
+    core/scene_saver.hpp \
+    core/utils.hpp \
+    core/watcher.hpp \
+    editor/editor.hpp \
+    editor/highlighter.hpp \
+    gl/buffer_object.hpp \
+    gl/camera.hpp \
+    gl/compiler_output_parser.hpp \
+    gl/error.hpp \
+    gl/fbo.hpp \
+    gl/light.hpp \
+    gl/opengl.hpp \
+    gl/program.hpp \
+    gl/query_shader.hpp \
+    gl/sandbox_compiler.hpp \
+    gl/scene_object.hpp \
+    gl/shader.hpp \
+    gl/state.hpp \
+    gl/texture.hpp \
+    gl/transform_feedback.hpp \
+    gl/uniform.hpp \
+    gl/wrap_glext.h \
+    gui/camera_editor.hpp \
+    gui/gizmos.hpp \
+    gui/glwidget.hpp \
+    gui/importer_wizard.hpp \
+    gui/light_list.hpp \
+    gui/limbo_dialog.hpp \
+    gui/mainwindow.hpp \
+    gui/new_wizard.hpp \
+    gui/object_list.hpp \
+    gui/properties.hpp \
+    gui/render_pass_list.hpp \
+    gui/render_pass_properties.hpp \
+    gui/save_project.hpp \
+    gui/texture_browser.hpp \
+    gui/viewport.hpp \
+    gui/welcome.hpp \
+    parser/glpp.hpp \
+    parser/grammar.hpp \
+    parser/lexer.hpp
 
 SOURCES += \
-    highlighter.cpp \
-    watcher.cpp \
     main.cpp \
-    state.cpp \
-    light.cpp \
-    camera.cpp \
-    object3d.cpp \
-    editor.cpp \
-    renderpass.cpp \
-    scene.cpp \
-    glwidget.cpp \
-    properties.cpp \
-    mainwindow.cpp \
-    opengl.cpp \
-    texture.cpp \
-    fbo.cpp \
-    welcome.cpp \
-    shader/grammar.cpp \
-    shader/error.cpp \
-    shader/compiler_output_parser.cpp \
-    shader/uniform.cpp \
-    shader/shader.cpp \
-    shader/program.cpp \
-    render_pass_properties.cpp \
-    wrap_glext.c \
-    new_wizard.cpp \
-    log.cpp \
-    material.cpp \
-    model.cpp \
-    animation.cpp \
-    obj_importer.cpp \
-    utils.cpp \
-    buffer_object.cpp \
-    scene_object.cpp \
-    shader/glpp.cpp \
-    transform_feedback.cpp \
-    shader/query_shader.cpp \
-    importer_wizard.cpp \
-    resource_locator.cpp \
-    texture_browser.cpp \
-    history.cpp \
-    viewport.cpp \
-    gizmos.cpp \
-    object_creator.cpp \
-    mesh_manager.cpp \
-    object_list.cpp \
-    light_list.cpp \
-    camera_editor.cpp \
-    render_pass_list.cpp \
-    file_resource.cpp \
-    save_project.cpp \
-    scene_saver.cpp \
-    limbo_dialog.cpp
-
-unix {
-  HEADERS += shader/sandbox_compiler.hpp
-  SOURCES += shader/sandbox_compiler.cpp
-}
+    core/animation.cpp \
+    core/file_resource.cpp \
+    core/history.cpp \
+    core/log.cpp \
+    core/material.cpp \
+    core/mesh_manager.cpp \
+    core/model.cpp \
+    core/object3d.cpp \
+    core/object_creator.cpp \
+    core/obj_importer.cpp \
+    core/renderpass.cpp \
+    core/resource_locator.cpp \
+    core/scene.cpp \
+    core/scene_saver.cpp \
+    core/utils.cpp \
+    core/watcher.cpp \
+    editor/editor.cpp \
+    editor/highlighter.cpp \
+    gl/buffer_object.cpp \
+    gl/camera.cpp \
+    gl/compiler_output_parser.cpp \
+    gl/error.cpp \
+    gl/fbo.cpp \
+    gl/light.cpp \
+    gl/opengl.cpp \
+    gl/program.cpp \
+    gl/query_shader.cpp \
+    gl/sandbox_compiler.cpp \
+    gl/scene_object.cpp \
+    gl/shader.cpp \
+    gl/state.cpp \
+    gl/texture.cpp \
+    gl/transform_feedback.cpp \
+    gl/uniform.cpp \
+    gl/wrap_glext.c \
+    gui/camera_editor.cpp \
+    gui/gizmos.cpp \
+    gui/glwidget.cpp \
+    gui/importer_wizard.cpp \
+    gui/light_list.cpp \
+    gui/limbo_dialog.cpp \
+    gui/mainwindow.cpp \
+    gui/new_wizard.cpp \
+    gui/object_list.cpp \
+    gui/properties.cpp \
+    gui/render_pass_list.cpp \
+    gui/render_pass_properties.cpp \
+    gui/save_project.cpp \
+    gui/texture_browser.cpp \
+    gui/viewport.cpp \
+    gui/welcome.cpp \
+    parser/glpp.cpp \
+    parser/grammar.cpp
 
 FORMS += \
-    mainwindow.ui \
-    welcome.ui \
-    new_wizard.ui \
-    importer_wizard.ui \
-    texture_browser.ui \
-    object_list.ui \
-    light_list.ui \
-    camera_editor.ui \
-    render_pass_list.ui \
-    save_project.ui \
-    limbo_dialog.ui
+    gui/camera_editor.ui \
+    gui/importer_wizard.ui \
+    gui/light_list.ui \
+    gui/limbo_dialog.ui \
+    gui/mainwindow.ui \
+    gui/new_wizard.ui \
+    gui/object_list.ui \
+    gui/render_pass_list.ui \
+    gui/save_project.ui \
+    gui/texture_browser.ui \
+    gui/welcome.ui
 
 win32 {
     CONFIG(release, debug|release):LIBS += ../ext/release/ext.lib ../shaderdb/release/shaderdb.lib

@@ -1,5 +1,5 @@
-#include "shader/glpp.hpp"
-#include "log.hpp"
+#include "parser/glpp.hpp"
+#include "core/log.hpp"
 
 #include <QFile>
 

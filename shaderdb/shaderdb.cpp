@@ -17,10 +17,10 @@
 
 #include "shaderdb.hpp"
 #include "metainfo.hpp"
-#include "scene.hpp"
+#include "core/scene.hpp"
 #include "version.hpp"
-#include "shader/program.hpp"
-#include "shader/shader.hpp"
+#include "gl/program.hpp"
+#include "gl/shader.hpp"
 
 #include <parser.h>
 #include <serializer.h>
