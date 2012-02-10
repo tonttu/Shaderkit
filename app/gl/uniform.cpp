@@ -104,17 +104,33 @@ UniformVar::UniformVar(ProgramPtr prog, QString name, GLenum type)
 
   m_location.push_back(glRun2(glGetUniformLocation(prog->id(), name.toStdString().c_str())));
 
-  /// @todo Do we know if the array locations are in adjacent locations?
-  ///       location[n] seems to be always location[0] + n, and glUniform*v
-  ///       -functions allow changing the whole array with only the location
-  ///       of the first element.
-  for (int i = 1;; ++i) {
-    GLint l = glRun2(glGetUniformLocation(prog->id(),
-        (name + '[' + QString::number(i) + ']').toStdString().c_str()));
-    if (l >= 0) {
-      m_location.push_back(l);
-      ++m_size;
-    } else break; // the end of the array, or not an array at all
+  GLchar buf[256] = {'\0'};
+  GLsizei size = 0;
+  GLenum type_check = 0;
+  glRun(glGetActiveUniform(prog->id(), m_location[0], sizeof(buf), 0, &size, &type_check, buf));
+
+  if (type_check == type) {
+    /// @todo Do we know if the array locations are in adjacent locations?
+    ///       location[n] seems to be always location[0] + n, and glUniform*v
+    ///       -functions allow changing the whole array with only the location
+    ///       of the first element.
+    for (int i = 1; i < size; ++i) {
+      GLint l = glRun2(glGetUniformLocation(prog->id(),
+          (name + '[' + QString::number(i) + ']').toStdString().c_str()));
+      if (l >= 0) {
+        m_location.push_back(l);
+        ++m_size;
+      } else {
+        // The end of the array, or not an array at all
+        // Also drivers could optimize that "float foo[4]" in code is really
+        // only 3 items length, if only the first three values are ever used
+        // - so in theory this code works even if glGetActiveUniform has a
+        // different idea of the size of the array.
+        break;
+      }
+    }
+  } else {
+    Log::error("Type check mismatch with %s (%s), %d != %d", name.toUtf8().data(), buf, type, type_check);
   }
 
   if (info.base_type == GL_FLOAT) {
