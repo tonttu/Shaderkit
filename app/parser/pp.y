@@ -1,6 +1,5 @@
-%{
 /**
- * Copyright 2010,2011 Riku Palomäki.
+ * Copyright 2010-2012 Riku Palomäki.
  * This file is part of Shaderkit, http://www.shaderkit.org/.
  *
  * Shaderkit is free software: you can redistribute it and/or modify
@@ -16,6 +15,7 @@
  * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+%{
 #include "parser/glpp.hpp"
 #include "pp_lex.hpp"
 

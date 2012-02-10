@@ -3,7 +3,7 @@
 
 $license =<<EOL
 /**
- * Copyright 2010,2011 Riku Palomäki.
+ * Copyright 2010-2012 Riku Palomäki.
  * This file is part of Shaderkit, http://www.shaderkit.org/.
  *
  * Shaderkit is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ def auto
     len = File.expand_path('x').size-1
     lst.split.inject([]){|s,p| s += Dir[p]}.map{|d| File.expand_path(d)[len..-1]}.uniq
   end
-  files = glob '{app,app/shader,shaderdb}/*.{cpp,hpp,h} doc/*.cpp std/*.* app/shader/*.[yl]'
+  files = glob '{app,app/*,shaderdb}/*.{cpp,hpp,h} doc/*.cpp std/*.* app/*/*.[yl]'
   ignored = glob File.read('.gitignore').gsub(/^\/?/, '**/')
   (files-ignored).find_all {|f| !$exceptions.any?{|r| r =~ f}}
 end
