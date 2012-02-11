@@ -16,3 +16,8 @@ unix {
     QMAKE_CFLAGS += -O0
   }
 }
+
+unix:exists(/usr/bin/ccache) {
+  QMAKE_CXX=ccache $$QMAKE_CXX
+  QMAKE_CC=ccache $$QMAKE_CC
+}

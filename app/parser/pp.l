@@ -21,6 +21,8 @@
 #include "parser/glpp.hpp"
 #include "pp_yacc.h"
 
+// #define PP_DEBUG 1
+
 char* skip_(char* str, int s, int epos);
 char* copystr(const char* str);
 bool isTrueState(int state);
@@ -30,8 +32,8 @@ const char* tokenName(int token);
 
 void yy_push_state_debug(int state, yyscan_t scanner);
 
-#define skip(s, e) yylval->string = skip_((yytext), (s), (yyleng)-(e))
-#define skip2(s, e) yylval->string = skip_((yytext), (s), -(yyleng - (e)))
+#define skip(s, e) yylval->string = copystr(skip_((yytext), (s), (yyleng)-(e)))
+#define skip2(s, e) yylval->string = copystr(skip_((yytext), (s), -(yyleng - (e))))
 
 #define YY_DECL int GLpp::lex(YYSTYPE* yylval_param)
 #define ECHO m_out.append(yytext, yyleng)
@@ -47,7 +49,7 @@ void yy_push_state_debug(int state, yyscan_t scanner);
 %option never-interactive
 %option header-file="pp_lex.hpp"
 
-%x OBJ FUNC CTRL CALL FOBJ CTRL_EVAL
+%x OBJ FUNC CTRL CALL0 CALL1 CALL2 FOBJ CTRL_EVAL
 
  // "True" - Inside #if or #ifdef section that was evaluated to true
 %x IF
@@ -98,20 +100,28 @@ PASTEABLE   [_a-zA-Z0-9]+
 
  /* elif when we are still looking for a true block */
 <IF_SEEK>{
-  {HASH}elif { return HASH_ELIF; }
+  {HASH}elif { changeState(true, EVAL); return HASH_ELIF; }
   {HASH}else.* { changeState(false, ELSE); }
 }
 
  /* else when we have already found true block */
 <IF>{HASH}else.*{NEWLINE} { changeState(false, ELSE_SKIP); newline(); }
 
-<IF,IF_SEEK,IF_SKIP,ELSE,ELSE_SKIP>{HASH}endif.*{NEWLINE} { pop(); /* m_out.push_back('\n'); */ }
+<IF,IF_SEEK,IF_SKIP,ELSE,ELSE_SKIP>{HASH}endif.*{NEWLINE} { newline(); pop(); }
 
 <INITIAL,IF,ELSE>{
   /* Nested or top-level #if when processing normal block */
   /** @todo most of these shouldn't actually use eval state */
-  {HASH}ifndef { changeState(true, EVAL); return HASH_IFNDEF; }
-  {HASH}ifdef { changeState(true, EVAL); return HASH_IFDEF; }
+  {HASH}ifndef{HSPACE}+{IDENTIFIER}{HSPACE}*{NEWLINE} {
+    skip2(6, 1);
+    newline();
+    return HASH_IFNDEF;
+  }
+  {HASH}ifdef{HSPACE}+{IDENTIFIER}{HSPACE}*{NEWLINE} {
+    skip2(6, 1);
+    newline();
+    return HASH_IFDEF;
+  }
   {HASH}if { changeState(true, EVAL); return HASH_IF; }
   {HASH}version { changeState(true, EVAL); return HASH_VERSION; }
   {HASH}extension { changeState(true, EVAL); return HASH_EXTENSION; }
@@ -123,6 +133,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 
   {HASH}error.*{NEWLINE} {
     skip2(5, 1);
+    newline();
     return HASH_ERROR;
   }
 
@@ -140,6 +151,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 
   {HASH}undef{HSPACE}+{IDENTIFIER}{HSPACE}*{NEWLINE} {
     skip2(5, 1);
+    newline();
     return UNDEF;
   }
 }
@@ -170,38 +182,73 @@ PASTEABLE   [_a-zA-Z0-9]+
   . { fprintf(stderr, "ERROR2\n"); }
 }
 
+
+<EVAL,CTRL_EVAL>{
+  "defined"{HSPACE}*"("{HSPACE}*{IDENTIFIER}{HSPACE}*")" {
+    char* tmp = yytext + 7;
+    int i = yyleng-8;
+    while (i > 0 && (tmp[i] == ' ' || tmp[i] == '\t' || tmp[i] == ')')) --i;
+    tmp[i+1] = '\0';
+    while (*tmp == ' ' || *tmp == '\t' || *tmp == '(') ++tmp;
+    bool found = m_objs.count(tmp) > 0 || m_funcs.count(tmp) > 0;
+    if (!found && m_undefs.count(tmp) == 0) m_require.insert(tmp);
+    yylval->integer = !!found; return DECIMAL;
+  }
+  "defined"{HSPACE}*{IDENTIFIER} {
+    char* tmp = yytext + 7;
+    while (*tmp == ' ' || *tmp == '\t') ++tmp;
+    bool found = m_objs.count(tmp) > 0 || m_funcs.count(tmp) > 0;
+    if (!found && m_undefs.count(tmp) == 0) m_require.insert(tmp);
+    yylval->integer = !!found; return DECIMAL;
+  }
+  "require" { return REQUIRE; }
+  "enable" { return ENABLE; }
+  "warn" { return WARN; }
+  "disable" { return DISABLE; }
+}
+
 <CTRL,CTRL_EVAL,EVAL,INITIAL,IF,ELSE>{IDENTIFIER}/{HSPACE}*"(" {
   /*if (std::find(m_stack.begin(), m_stack.end(), yytext) != m_stack.end()) {
     printf("%s", yytext);
   } else {*/
     if (m_funcs.count(yytext) > 0) {
-      changeState(true, CALL);
-      yylval->string = copystr(yytext);
-      return EXPAND_FUNC;
-    }
-    Objs::iterator it = m_objs.find(yytext);
-    if (it != m_objs.end()) {
-      push_string(yytext, it->second.c_str());
+      changeState(true, CALL0);
+      m_func = yytext;
+      m_args.clear();
+      m_txt.clear();
     } else {
-      if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
-      assert(YY_START != CTRL_EVAL && YY_START != EVAL);
-      ECHO;
+      Objs::iterator it = m_objs.find(yytext);
+      if (it != m_objs.end()) {
+        push_string(yytext, it->second.c_str());
+      } else {
+        if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
+        if ((YY_START) == CTRL_EVAL || (YY_START) == EVAL) {
+          fprintf(stderr, "Not found: '%s' %d\n", yytext, m_macro_stack.size());
+          yylval->integer = 0; return DECIMAL;
+        } else {
+          ECHO;
+        }
+      }
     }
   /*}*/
 }
 <CTRL,CTRL_EVAL,EVAL,INITIAL,IF,ELSE>{IDENTIFIER} {
   Objs::iterator it = m_objs.find(yytext);
   if (it != m_objs.end() /*&& std::find(m_stack.begin(), m_stack.end(), yytext) == m_stack.end()*/) {
+    fprintf(stderr, "pushing %s -> %s\n", yytext, it->second.c_str());
     push_string(yytext, it->second.c_str());
   } else {
     if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
-    assert((YY_START) != CTRL_EVAL && (YY_START) != EVAL);
-    ECHO;
+    if ((YY_START) == CTRL_EVAL || (YY_START) == EVAL) {
+      fprintf(stderr, "Not found: '%s' %d\n", yytext, m_macro_stack.size());
+      yylval->integer = 0; return DECIMAL;
+    } else {
+      ECHO;
+    }
   }
 }
 
 <CTRL,CTRL_EVAL>{
-     /* {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; } */
   <<EOF>> {
     /* m_stack.pop_back(); */
     std::pair<MacroValue*, int> pair = m_macro_stack.top();
@@ -216,12 +263,46 @@ PASTEABLE   [_a-zA-Z0-9]+
   }
 }
 
-<CALL>{
-  [(),] { return yytext[0]; }
-  /** @todo comments doesn't work correctly here */
-  [^\n(),]+ { yylval->string = copystr(yytext); return ARG; }
-  \n { fprintf(stderr, "ERROR3\n"); }
-  . { fprintf(stderr, "ERROR4\n"); }
+<CALL0>{
+  {HSPACE}*"(" { changeState(false, CALL1); }
+  . { assert(false); }
+}
+
+<CALL1>{
+  "(" { m_txt += yytext; m_depth = 1; changeState(true, CALL2); }
+  "," { m_args.push_back(m_txt); m_txt = ""; }
+  ")" {
+    m_args.push_back(m_txt);
+    fprintf(stderr, "Macro call %s of %lu arguments\n", m_func.c_str(), m_args.size());
+    for (int i = 0; i < m_args.size(); ++i)
+      fprintf(stderr, "Arg %d: '%s'\n", i, m_args[i].c_str());
+    GLpp::Func& f = m_funcs[m_func];
+    std::string str;
+    str.reserve(128);
+    for (size_t i = 0; i < f.chunks.size(); ++i) {
+      std::pair<std::string, int>& p = f.chunks[i];
+      if (p.second == -1) {
+        str += p.first;
+      } else {
+        if (m_args.size() >= size_t(p.second+1)) {
+          str += m_args[p.second];
+        } else {
+          fprintf(stderr, "ERROR ERROR\n");
+        }
+      }
+    }
+    pop();
+    push_string(m_func.c_str(), str.c_str());
+  }
+  [^\n(),]+ { m_txt += yytext; }
+  \n { fprintf(stderr, "ERRERRERR\n"); }
+}
+
+<CALL2>{
+  "(" { m_txt += yytext; ++m_depth; }
+  ")" { m_txt += yytext; if (--m_depth == 0) pop(); }
+  [^\n()]+ { m_txt += yytext; }
+  \n { fprintf(stderr, "ERRERRERR 2\n"); }
 }
 
 <EVAL,CTRL_EVAL>{
@@ -238,15 +319,8 @@ PASTEABLE   [_a-zA-Z0-9]+
   "&&" { return AND; }
   "||" { return OR; }
   "##" { return PASTE; }
-  "defined" { return DEFINED; }
 
   [|^&<>+*/%!~():-] { return yytext[0]; }
-
-  "require" { return REQUIRE; }
-  "enable" { return ENABLE; }
-  "warn" { return WARN; }
-  "disable" { return DISABLE; }
-
 
   [ \t]+
   {NEWLINE} { pop(); newline(); return NL; }
@@ -278,7 +352,7 @@ char* skip_(char* str, int s, int epos) {
   str += s;
   while (*str == ' ' || *str == '\t')
     ++str;
-  return copystr(str);
+  return str;
 }
 
 char* copystr(const char* str) {
@@ -290,9 +364,9 @@ bool isTrueState(int state) {
 }
 
 const char* stateName(int state) {
-  static int lst[] = {INITIAL, OBJ, FUNC, CTRL, CALL, FOBJ, CTRL_EVAL,
+  static int lst[] = {INITIAL, OBJ, FUNC, CTRL, CALL0, CALL1, CALL2, FOBJ, CTRL_EVAL,
     IF, ELSE, IF_SKIP, IF_SEEK, ELSE_SKIP, EVAL, IN_COMMENT, PRAGMA};
-  static const char* names[] = {"INITIAL", "OBJ", "FUNC", "CTRL", "CALL", "FOBJ", "CTRL_EVAL",
+  static const char* names[] = {"INITIAL", "OBJ", "FUNC", "CTRL", "CALL0", "CALL1", "CALL2", "FOBJ", "CTRL_EVAL",
     "IF", "ELSE", "IF_SKIP", "IF_SEEK", "ELSE_SKIP", "EVAL", "IN_COMMENT", "PRAGMA"};
   int* end = lst + sizeof(lst)/sizeof(lst[0]);
   int* it = std::find(lst, end, state);
@@ -301,31 +375,34 @@ const char* stateName(int state) {
 
 const char* tokenName(int token) {
   static int lst[] = {HASH_ERROR, DEFINE_OBJ, DEFINE_FUNC, DATA, IDENTIFIER,
-    EXPAND_FUNC, ARG, CHUNK, PASTE, UNDEF, HASH_PRAGMA, DECIMAL, NL,
+    ARG, CHUNK, PASTE, UNDEF, HASH_PRAGMA, DECIMAL, NL,
     HASH_VERSION, HASH_EXTENSION, HASH_INCLUDE, HASH_LINE, HASH_IFNDEF,
     HASH_IFDEF, HASH_IF, HASH_ELIF, REQUIRE, DISABLE, WARN, ENABLE, OR, AND,
     EQUAL, NOT_EQUAL, LESS_OR_EQUAL, GREATER_OR_EQUAL, LEFT_SHIFT, RIGHT_SHIFT,
-    UNARY, DEFINED};
+    UNARY};
   static const char* names[] = {"HASH_ERROR", "DEFINE_OBJ", "DEFINE_FUNC",
-    "DATA", "IDENTIFIER", "EXPAND_FUNC", "ARG", "CHUNK", "PASTE", "UNDEF",
+    "DATA", "IDENTIFIER", "ARG", "CHUNK", "PASTE", "UNDEF",
     "HASH_PRAGMA", "DECIMAL", "NL", "HASH_VERSION", "HASH_EXTENSION",
     "HASH_INCLUDE", "HASH_LINE", "HASH_IFNDEF", "HASH_IFDEF", "HASH_IF",
     "HASH_ELIF", "REQUIRE", "DISABLE", "WARN", "ENABLE", "OR", "AND", "EQUAL",
     "NOT_EQUAL", "LESS_OR_EQUAL", "GREATER_OR_EQUAL", "LEFT_SHIFT",
-    "RIGHT_SHIFT", "UNARY", "DEFINED"};
+    "RIGHT_SHIFT", "UNARY"};
   int* end = lst + sizeof(lst)/sizeof(lst[0]);
   int* it = std::find(lst, end, token);
   return it == end ? 0 : names[it - lst];
 }
 
-void yy_push_state_debug(int state, yyscan_t scanner) {
+void pp_push_state(int state, yyscan_t scanner) {
+#if PP_DEBUG
   struct yyguts_t* yyg = (struct yyguts_t*)scanner;
   fprintf(stderr, "PUSH %s -> %s\n", stateName(YY_START), stateName(state));
+#endif
   yy_push_state(state, scanner);
 }
 
 void GLpp::pp_return(bool push, bool b) {
   changeState(push, b ? IF : IF_SEEK);
+  m_line_values[line()-1] = b;
 }
 
 void GLpp::push_string(const char* name, const char* str) {
@@ -343,14 +420,16 @@ void GLpp::push_string(const char* name, const char* str) {
   pppush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
   pp_scan_string(str, yyscanner);
   ppset_lineno(1, yyscanner);
-  yy_push_state_debug(YY_START == EVAL || YY_START == CTRL_EVAL ? CTRL_EVAL : CTRL, yyscanner);
+  pp_push_state(YY_START == EVAL || YY_START == CTRL_EVAL ? CTRL_EVAL : CTRL, yyscanner);
 }
 
 void GLpp::pop() {
   struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
   int from = YY_START;
   yy_pop_state(yyscanner);
+#ifdef PP_DEBUG
   fprintf(stderr, "POP  %s -> %s\n", stateName(from), stateName(YY_START));
+#endif
   fillLineValues(YY_START);
 }
 
@@ -378,9 +457,12 @@ void GLpp::newline() {
 void GLpp::changeState(bool push, int state) {
   fillLineValues(state);
   if(push) {
-    yy_push_state_debug(state, yyscanner);
+    pp_push_state(state, yyscanner);
   } else {
     struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
+#ifdef PP_DEBUG
+    fprintf(stderr, "CHANGE %s -> %s\n", stateName(YY_START), stateName(state));
+#endif
     BEGIN(state);
   }
 }

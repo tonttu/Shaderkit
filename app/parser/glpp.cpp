@@ -24,7 +24,9 @@
 
 int ppparse(GLpp& parser);
 
-GLpp::GLpp() : yyscanner(0), m_version(0), m_current_macro("", ""), m_macro_line(0), m_last_status(true) {}
+GLpp::GLpp()
+  : yyscanner(0), m_version(0), m_current_macro("", ""),
+    m_macro_line(0), m_last_status(true), m_depth(0) {}
 
 void GLpp::scan(QByteArray data) {
   pplex_init(&yyscanner);

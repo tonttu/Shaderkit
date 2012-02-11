@@ -1,0 +1,17 @@
+#define r(a) (a|7)^3
+#define t 4 - 1
+#define z(y, x) (y)+3 * (x) / t + r(y)
+
+#if 4+z(5,32)-r(z(1,t)) == -12414
+  ok 1
+#endif
+
+#if (4+z(5,32)-r(z(1,t))) == -48
+  ok 2
+#endif
+
+#if (4+z(5,32)-r(z(1,t))) == -12414
+#error err
+#else
+  ok 3
+#endif

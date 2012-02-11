@@ -26,8 +26,13 @@ int main(int argc, char* argv[]) {
       auto& lv = p.lineValues();
       auto lines_in = in.split('\n');
       QStringList lines = QString(p.out().c_str()).split("\n");
-      for (int l = 0; l < lines.size(); ++l)
-        Log::info("%s %d\t%s\t|\t%s", lv[l] ? "true " : "false", l+1, lines[l].toUtf8().data(), lines_in[l].data());
+      int len = 0;
+      int lines_count = lines.size();
+      if (lines.last().isEmpty()) --lines_count;
+      for (int l = 0; l < lines_count; ++l)
+        len = std::max(len, lines[l].size());
+      for (int l = 0; l < lines_count; ++l)
+        Log::info("%s %d\t%*s | %s", lv[l] ? "true " : "false", l+1, -len, lines[l].toUtf8().data(), lines_in[l].data());
       auto& e = p.extensions();
       for (auto it = e.begin(); it != e.end(); ++it)
         Log::info("Extension: '%s' - %d", it->first.c_str(), it->second);

@@ -42,7 +42,6 @@ namespace {
   const char* string;
   std::string* stdstr;
   long integer;
-  std::vector<std::string>* strlst;
   /// identifier name => index
   std::map<std::string, int>* tokenmap;
   std::list<std::pair<std::string, int>>* tokenlst;
@@ -54,7 +53,8 @@ namespace {
 %{
 #undef yylex
 #undef yyerror
-#define yylex parser.lex_debug
+// #define yylex parser.lex_debug
+#define yylex parser.lex
 #define yyerror parser.error
 
 typedef std::pair<std::string, int> Token;
@@ -62,19 +62,18 @@ typedef std::list<Token> TokenList;
 
 %}
 
-%token <string> HASH_ERROR DEFINE_OBJ DEFINE_FUNC DATA IDENTIFIER EXPAND_FUNC ARG CHUNK PASTE UNDEF
-%token <string> HASH_PRAGMA
+%token <string> HASH_ERROR DEFINE_OBJ DEFINE_FUNC DATA IDENTIFIER ARG CHUNK PASTE UNDEF
+%token <string> HASH_PRAGMA HASH_IFNDEF HASH_IFDEF
 %token <integer> DECIMAL
 %token NL
 
 %token HASH_VERSION HASH_EXTENSION HASH_INCLUDE HASH_LINE
-%token HASH_IFNDEF HASH_IFDEF HASH_IF HASH_ELIF
+%token HASH_IF HASH_ELIF
 %token REQUIRE DISABLE WARN ENABLE
 
 %type <tokenmap> identifier_list identifier_list2
-%type <strlst> list
 %type <tokenlst> data
-%type <stdstr> arg arg2 parg obj_data obj_data2 raw
+%type <stdstr> obj_data obj_data2 raw
 %type <integer> expression
 
 %left OR
@@ -87,7 +86,7 @@ typedef std::list<Token> TokenList;
 %left LEFT_SHIFT RIGHT_SHIFT
 %left '+' '-'
 %left '*' '/' '%'
-%right UNARY DEFINED
+%right UNARY
 
 %%
 
@@ -131,14 +130,16 @@ stuff
   | HASH_ELIF expression NL {
     parser.pp_return(false, $2);
   }
-  | HASH_IFDEF IDENTIFIER NL {
-    bool found = parser.m_objs.count($2) > 0 || parser.m_funcs.count($2) > 0;
-    if (!found && parser.m_undefs.count($2) == 0) parser.m_require.insert($2);
+  | HASH_IFDEF {
+    bool found = parser.m_objs.count($1) > 0 || parser.m_funcs.count($1) > 0;
+    fprintf(stderr, "ifdef '%s': %s\n", $1, found ? "found" : "not found");
+    if (!found && parser.m_undefs.count($1) == 0) parser.m_require.insert($1);
     parser.pp_return(true, found);
   }
-  | HASH_IFNDEF IDENTIFIER NL {
-    bool found = parser.m_objs.count($2) > 0 || parser.m_funcs.count($2) > 0;
-    if (!found && parser.m_undefs.count($2) == 0) parser.m_require.insert($2);
+  | HASH_IFNDEF {
+    bool found = parser.m_objs.count($1) > 0 || parser.m_funcs.count($1) > 0;
+    fprintf(stderr, "ifndef '%s': %s\n", $1, found ? "found" : "not found");
+    if (!found && parser.m_undefs.count($1) == 0) parser.m_require.insert($1);
     parser.pp_return(true, !found);
   }
   | HASH_ERROR {
@@ -168,28 +169,6 @@ stuff
     delete $2;
     delete $4;
   }
-  | EXPAND_FUNC '(' list ')' {
-    parser.pop();
-    fprintf(stderr, "Macro call %s of %lu arguments\n", $1, $3->size());
-
-    GLpp::Func& f = parser.m_funcs[$1];
-    std::string str;
-    str.reserve(128);
-    for (size_t i = 0; i < f.chunks.size(); ++i) {
-      std::pair<std::string, int>& p = f.chunks[i];
-      if (p.second == -1) {
-        str += p.first;
-      } else {
-        if ($3->size() >= size_t(p.second+1)) {
-          str += (*$3)[p.second];
-        } else {
-          fprintf(stderr, "ERROR ERROR\n");
-        }
-      }
-    }
-    parser.push_string($1, str.c_str());
-    delete $3;
-  }
   | UNDEF {
     parser.m_undefs.insert($1);
     parser.m_funcs.erase($1);
@@ -212,37 +191,6 @@ identifier_list2
     int s = $$->size();
     (*$$)[$3] = s;
   }
-  ;
-
-list
-  : arg { $$ = new std::vector<std::string>(); $$->push_back(*$1); delete $1; }
-  | list ',' arg { $$ = $1; $$->push_back(*$3); delete $3; }
-  ;
-
-arg
-  : parg { $$ = $1; }
-  | ARG { $$ = new std::string($1); }
-  | arg ARG { $$ = $1; (*$$) += $2; }
-  | arg parg { $$ = $1; (*$$) += *$2; delete $2; }
-  ;
-
-parg
-  : '(' arg2 ')' {
-    $$ = new std::string;
-    (*$$) += '(';
-    (*$$) += *$2;
-    (*$$) += ')';
-    delete $2;
-  }
-  ;
-
-arg2
-  : parg { $$ = $1; }
-  | ARG { $$ = new std::string($1); }
-  | ',' { $$ = new std::string(","); }
-  | arg2 ARG { $$ = $1; (*$$) += $2; }
-  | arg2 parg { $$ = $1; (*$$) += *$2; delete $2; }
-  | arg2 ',' { $$ = $1; (*$$) += ","; }
   ;
 
 data

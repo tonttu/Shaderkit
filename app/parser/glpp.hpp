@@ -107,6 +107,11 @@ private:
   std::vector<bool> m_line_values;
   bool m_last_status;
 
+  std::string m_func;
+  std::vector<std::string> m_args;
+  std::string m_txt;
+  int m_depth;
+
   int lex(YYSTYPE* lvalp);
   int lex_debug(YYSTYPE* lvalp);
   void error(GLpp& parser, const char* str);
