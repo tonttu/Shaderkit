@@ -71,7 +71,10 @@ public:
     std::list<MacroValue> children;
   };
 
+  // Indexing starts from 0
   const std::map<int, std::list<MacroValue>>& macros() const { return m_macros; }
+
+  const std::vector<bool>& lineValues() const { return m_line_values; }
 
 private:
   std::string m_out;
@@ -85,7 +88,7 @@ private:
 
   Objs m_objs;
   Funcs m_funcs;
-  std::list<std::string> m_stack;
+  //std::list<std::string> m_stack;
 
   int m_version;
   std::string m_profile;
@@ -101,12 +104,18 @@ private:
   std::set<std::string> m_undefs;
   std::set<std::string> m_require;
 
+  std::vector<bool> m_line_values;
+  bool m_last_status;
+
   int lex(YYSTYPE* lvalp);
   void error(GLpp& parser, const char* str);
   void pp_return(bool push, bool b);
   void push_string(const char* name, const char* str);
+  void changeState(bool push, int state);
   void pop();
+  void fillLineValues(int new_state = -1);
 
+  // index from 0
   int line() const;
   int column() const;
   void newline();

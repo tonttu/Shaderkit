@@ -2,6 +2,7 @@
 #include "core/log.hpp"
 
 #include <QFile>
+#include <QStringList>
 
 #include <fcntl.h>
 
@@ -19,9 +20,14 @@ int main(int argc, char* argv[]) {
     QFile file(argv[2]);
     if (file.open(QFile::ReadOnly)) {
       GLpp p;
-      p.scan(file.readAll());
+      QByteArray in = file.readAll();
+      p.scan(in);
       Log::info("Version: %d '%s'", p.version(), p.profile().c_str());
-      Log::info("Output: '%s'", p.out().c_str());
+      auto& lv = p.lineValues();
+      auto lines_in = in.split('\n');
+      QStringList lines = QString(p.out().c_str()).split("\n");
+      for (int l = 0; l < lines.size(); ++l)
+        Log::info("%s %d\t%s\t|\t%s", lv[l] ? "true " : "false", l+1, lines[l].toUtf8().data(), lines_in[l].data());
       auto& e = p.extensions();
       for (auto it = e.begin(); it != e.end(); ++it)
         Log::info("Extension: '%s' - %d", it->first.c_str(), it->second);

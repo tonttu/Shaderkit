@@ -24,21 +24,17 @@
 
 int ppparse(GLpp& parser);
 
-GLpp::GLpp() : yyscanner(0), m_version(0), m_current_macro("", ""), m_macro_line(0) {}
+GLpp::GLpp() : yyscanner(0), m_version(0), m_current_macro("", ""), m_macro_line(0), m_last_status(true) {}
 
 void GLpp::scan(QByteArray data) {
-  m_version = 0;
-  m_profile = "";
-  m_extensions.clear();
-  m_pragmas.clear();
-
   pplex_init(&yyscanner);
   pp_scan_bytes(data.data(), data.length(), yyscanner);
-  ppset_lineno(1, yyscanner);
+  ppset_lineno(0, yyscanner);
   ppparse(*this);
+  fillLineValues();
   pplex_destroy(yyscanner);
 }
 
 void GLpp::error(GLpp& /*parser*/, const char* str) {
-  fprintf(stderr, "error - %s\n", str);
+  fprintf(stderr, "%d: error - %s\n", line()+1, str);
 }
