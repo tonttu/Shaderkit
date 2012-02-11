@@ -43,6 +43,7 @@ namespace {
   std::string* stdstr;
   long integer;
   std::vector<std::string>* strlst;
+  /// identifier name => index
   std::map<std::string, int>* tokenmap;
   std::list<std::pair<std::string, int>>* tokenlst;
 }
@@ -53,7 +54,7 @@ namespace {
 %{
 #undef yylex
 #undef yyerror
-#define yylex parser.lex
+#define yylex parser.lex_debug
 #define yyerror parser.error
 
 typedef std::pair<std::string, int> Token;
@@ -208,7 +209,8 @@ identifier_list2
   }
   | identifier_list ',' IDENTIFIER {
     $$ = $1;
-    (*$$)[$3] = $$->size();
+    int s = $$->size();
+    (*$$)[$3] = s;
   }
   ;
 

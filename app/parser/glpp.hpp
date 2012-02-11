@@ -108,6 +108,7 @@ private:
   bool m_last_status;
 
   int lex(YYSTYPE* lvalp);
+  int lex_debug(YYSTYPE* lvalp);
   void error(GLpp& parser, const char* str);
   void pp_return(bool push, bool b);
   void push_string(const char* name, const char* str);
