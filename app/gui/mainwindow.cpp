@@ -18,6 +18,7 @@
 #include "gui/mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "editor/editor.hpp"
+#include "editor/glsl_editor.hpp"
 #include "gl/shader.hpp"
 #include "core/scene.hpp"
 #include "gui/importer_wizard.hpp"

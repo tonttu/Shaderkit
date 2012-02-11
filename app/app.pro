@@ -71,7 +71,8 @@ HEADERS += \
     gui/welcome.hpp \
     parser/glpp.hpp \
     parser/grammar.hpp \
-    parser/lexer.hpp
+    parser/lexer.hpp \
+    editor/glsl_editor.hpp
 
 SOURCES += \
     main.cpp \
@@ -127,7 +128,8 @@ SOURCES += \
     gui/viewport.cpp \
     gui/welcome.cpp \
     parser/glpp.cpp \
-    parser/grammar.cpp
+    parser/grammar.cpp \
+    editor/glsl_editor.cpp
 
 FORMS += \
     gui/camera_editor.ui \
