@@ -20,56 +20,45 @@
 
 #include <QTimer>
 
-SceneSaver::SceneSaver(Scene& scene)
-  : m_scene(scene),
-    m_timeout(5.0f),
-    m_min_interval(15.0f),
-    m_max_wait(60.0f),
+AfterIdleOperation::AfterIdleOperation(QObject* parent, float timeout,
+                                       float min_interval, float max_wait)
+  : QObject(parent),
+    m_timeout(timeout),
+    m_min_interval(min_interval),
+    m_max_wait(max_wait),
     m_timer(new QTimer(this))
 {
   m_timer->setSingleShot(true);
   connect(m_timer, SIGNAL(timeout()), this, SLOT(trigger()));
 }
 
-SceneSaver::~SceneSaver() {
-}
-
-void SceneSaver::sceneChanged() {
+void AfterIdleOperation::action() {
   m_last_changed = QDateTime::currentDateTime();
   if (m_first_changed.isNull())
     m_first_changed = m_last_changed;
-  if (enabled()) updateTimer();
+  if (!m_enabled_func || m_enabled_func()) updateTimer();
 }
 
-void SceneSaver::stateChanged() {
-  if (enabled()) updateTimer();
+void AfterIdleOperation::stateChanged() {
+  if (!m_enabled_func || m_enabled_func()) updateTimer();
 }
 
-bool SceneSaver::enabled() const {
-  return m_scene.isChanged() && m_scene.automaticSaving() && m_scene.state() != Scene::ReadOnly;
-}
-
-void SceneSaver::trigger() {
-  if (!enabled()) return;
-
-  QVariantMap scene = m_scene.toMap();
-  if (m_scene.automaticSaving())
-    m_scene.save(scene);
-
-  /// @todo history
+void AfterIdleOperation::trigger() {
+  if (m_enabled_func && !m_enabled_func()) return;
+  emit timeout();
 
   m_last_changed = QDateTime();
-  m_last_saved = QDateTime::currentDateTime();
+  m_last_timeout = QDateTime::currentDateTime();
   m_first_changed = QDateTime();
 }
 
-void SceneSaver::updateTimer() {
+void AfterIdleOperation::updateTimer() {
   if (m_timeout <= 0 || m_last_changed.isNull()) return;
 
   QDateTime target = m_last_changed.addSecs(m_timeout);
 
-  if (m_min_interval > 0 && m_last_saved.isValid()) {
-    QDateTime min = m_last_saved.addSecs(m_min_interval);
+  if (m_min_interval > 0 && m_last_timeout.isValid()) {
+    QDateTime min = m_last_timeout.addSecs(m_min_interval);
     target = std::max(target, min);
   }
 
@@ -81,4 +70,38 @@ void SceneSaver::updateTimer() {
   int delay = QDateTime::currentDateTime().secsTo(target);
   if (delay <= 0) m_timer->start(1);
   else m_timer->start(delay * 1000);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+SceneSaver::SceneSaver(Scene& scene)
+  : m_scene(scene),
+    m_idle(new AfterIdleOperation(this))
+{
+  m_idle->setEnabled(std::bind(&SceneSaver::enabled, this));
+  connect(m_idle, SIGNAL(timeout()), this, SLOT(save()));
+}
+
+SceneSaver::~SceneSaver() {
+}
+
+bool SceneSaver::enabled() const {
+  return m_scene.isChanged() && m_scene.automaticSaving() && m_scene.state() != Scene::ReadOnly;
+}
+
+void SceneSaver::sceneChanged() {
+  m_idle->action();
+}
+
+void SceneSaver::stateChanged() {
+  m_idle->stateChanged();
+}
+
+void SceneSaver::save() {
+  QVariantMap scene = m_scene.toMap();
+  if (m_scene.automaticSaving())
+    m_scene.save(scene);
+
+  /// @todo history
 }

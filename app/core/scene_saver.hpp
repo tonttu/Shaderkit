@@ -40,6 +40,44 @@ class QTimer;
 ///            ^                                                          ^
 ///            |......................m_max_wait..........................|
 
+class AfterIdleOperation : public QObject {
+  Q_OBJECT
+
+public:
+  AfterIdleOperation(QObject* parent = 0, float timeout = 5.0f,
+                     float min_interval = 15.0f, float max_wait = 60.0f);
+
+  void setEnabled(std::function<bool ()> func) { m_enabled_func = func; }
+
+signals:
+  void timeout();
+
+public slots:
+  void action();
+  void stateChanged();
+
+private slots:
+  void trigger();
+
+private:
+  void updateTimer();
+
+  /// "how long should be idle before triggering the event" (secs)
+  float m_timeout;
+  /// "how long minimum interval should be between two consecutive events" (secs)
+  float m_min_interval;
+  /// "How long can we wait before forcing event" (secs)
+  float m_max_wait;
+
+  QTimer* m_timer;
+
+  QDateTime m_last_changed;
+  QDateTime m_last_timeout;
+  QDateTime m_first_changed;
+
+  std::function<bool ()> m_enabled_func;
+};
+
 class SceneSaver : public QObject {
   Q_OBJECT
 
@@ -52,27 +90,11 @@ public:
 public slots:
   void sceneChanged();
   void stateChanged();
-
-private slots:
-  void trigger();
+  void save();
 
 private:
-  void updateTimer();
-
   Scene& m_scene;
-
-  /// "how long should be idle before triggering the saving process" (secs)
-  float m_timeout;
-  /// "how long minimum interval should be between two consecutive saves" (secs)
-  float m_min_interval;
-  /// "How long can we wait before forcing saving" (secs)
-  float m_max_wait;
-
-  QTimer* m_timer;
-
-  QDateTime m_last_changed;
-  QDateTime m_last_saved;
-  QDateTime m_first_changed;
+  AfterIdleOperation* m_idle;
 };
 
 #endif // SCENE_SAVER_HPP
