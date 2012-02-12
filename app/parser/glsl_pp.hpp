@@ -37,8 +37,9 @@ int ppparse(GLSLpp&);
 class GLSLpp {
 public:
   GLSLpp();
-  void scan(QByteArray data);
-  const std::string & out() { return m_out; }
+  void reset();
+  bool parse(QByteArray data);
+  const std::string & out() const { return m_out; }
 
   /// GLSL version used, default is 0 (no version given)
   /// example: 150

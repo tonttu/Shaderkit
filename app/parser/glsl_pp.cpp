@@ -28,13 +28,46 @@ GLSLpp::GLSLpp()
   : yyscanner(0), m_version(0), m_current_macro("", ""),
     m_macro_line(0), m_last_status(true), m_depth(0) {}
 
-void GLSLpp::scan(QByteArray data) {
+void GLSLpp::reset() {
+  m_out.clear();
+
+  m_objs.clear();
+  m_funcs.clear();
+
+  m_version = 0;
+  m_profile.clear();
+
+  m_extensions.clear();
+  m_pragmas.clear();
+  m_macros.clear();
+
+  m_current_macro = MacroValue("", "");
+  m_macro_line = 0;
+  while (!m_macro_stack.empty())
+    m_macro_stack.pop();
+
+  m_undefs.clear();
+  m_require.clear();
+
+  m_line_values.clear();
+  m_last_status = true;
+
+  m_func.clear();
+  m_args.clear();
+  m_txt.clear();
+  m_depth = 0;
+}
+
+bool GLSLpp::parse(QByteArray data) {
   pplex_init(&yyscanner);
   pp_scan_bytes(data.data(), data.length(), yyscanner);
   ppset_lineno(0, yyscanner);
-  ppparse(*this);
+  int r = ppparse(*this);
   fillLineValues();
   pplex_destroy(yyscanner);
+  yyscanner = 0;
+
+  return r == 0;
 }
 
 void GLSLpp::error(GLSLpp& /*parser*/, const char* str) {

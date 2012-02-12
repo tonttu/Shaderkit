@@ -66,6 +66,9 @@ void yy_push_state_debug(int state, yyscan_t scanner);
 %x ELSE_SKIP
 %x EVAL IN_COMMENT PRAGMA
 
+ // No macro expansion, read identifiers, decimals etc
+%x TOKENS
+
 NEWLINE     \n
 HSPACE      [ \t]
 HASH        ^{HSPACE}*#{HSPACE}*
@@ -111,7 +114,6 @@ PASTEABLE   [_a-zA-Z0-9]+
 
 <INITIAL,IF,ELSE>{
   /* Nested or top-level #if when processing normal block */
-  /** @todo most of these shouldn't actually use eval state */
   {HASH}ifndef{HSPACE}+{IDENTIFIER}{HSPACE}*{NEWLINE} {
     skip2(6, 1);
     newline();
@@ -123,11 +125,11 @@ PASTEABLE   [_a-zA-Z0-9]+
     return HASH_IFDEF;
   }
   {HASH}if { changeState(true, EVAL); return HASH_IF; }
-  {HASH}version { changeState(true, EVAL); return HASH_VERSION; }
-  {HASH}extension { changeState(true, EVAL); return HASH_EXTENSION; }
+  {HASH}version { changeState(true, TOKENS); return HASH_VERSION; }
+  {HASH}extension { changeState(true, TOKENS); return HASH_EXTENSION; }
   {HASH}pragma { changeState(true, PRAGMA); return HASH_PRAGMA; }
   {HASH}include.* { return HASH_INCLUDE; }
-  {HASH}line{HSPACE}.*{NEWLINE} { return HASH_LINE; newline(); }
+  {HASH}line{HSPACE}.*{NEWLINE} { newline(); return HASH_LINE; }
    /* {HASH}line{HSPACE}+{DIGITS}{HSPACE}*$ { return HASH_LINE; } */
   {HASH}{NEWLINE} { newline(); }
 
@@ -201,10 +203,6 @@ PASTEABLE   [_a-zA-Z0-9]+
     if (!found && m_undefs.count(tmp) == 0) m_require.insert(tmp);
     yylval->integer = !!found; return DECIMAL;
   }
-  "require" { return REQUIRE; }
-  "enable" { return ENABLE; }
-  "warn" { return WARN; }
-  "disable" { return DISABLE; }
 }
 
 <CTRL,CTRL_EVAL,EVAL,INITIAL,IF,ELSE>{IDENTIFIER}/{HSPACE}*"(" {
@@ -305,11 +303,23 @@ PASTEABLE   [_a-zA-Z0-9]+
   \n { fprintf(stderr, "ERRERRERR 2\n"); }
 }
 
-<EVAL,CTRL_EVAL>{
+<TOKENS,EVAL,CTRL_EVAL>{
   [1-9][0-9]*[uU]? { yylval->integer = strtoll(yytext, NULL, 10); return DECIMAL; }
   0[0-7]*[uU]? { yylval->integer = strtoll(yytext, NULL, 8); return DECIMAL; }
   0[xX][0-9a-fA-F]+[uU]? { yylval->integer = strtoll(yytext + 2, NULL, 16); return DECIMAL; }
+  [ \t]+
+}
 
+<TOKENS>{
+  "require" { return REQUIRE; }
+  "enable" { return ENABLE; }
+  "warn" { return WARN; }
+  "disable" { return DISABLE; }
+  {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }
+  {NEWLINE} { pop(); newline(); return NL; }
+}
+
+<EVAL,CTRL_EVAL>{
   "<<" { return LEFT_SHIFT; }
   ">>" { return RIGHT_SHIFT; }
   "<=" { return LESS_OR_EQUAL; }
@@ -365,9 +375,9 @@ bool isTrueState(int state) {
 
 const char* stateName(int state) {
   static int lst[] = {INITIAL, OBJ, FUNC, CTRL, CALL0, CALL1, CALL2, FOBJ, CTRL_EVAL,
-    IF, ELSE, IF_SKIP, IF_SEEK, ELSE_SKIP, EVAL, IN_COMMENT, PRAGMA};
+    IF, ELSE, IF_SKIP, IF_SEEK, ELSE_SKIP, EVAL, IN_COMMENT, PRAGMA, TOKENS};
   static const char* names[] = {"INITIAL", "OBJ", "FUNC", "CTRL", "CALL0", "CALL1", "CALL2", "FOBJ", "CTRL_EVAL",
-    "IF", "ELSE", "IF_SKIP", "IF_SEEK", "ELSE_SKIP", "EVAL", "IN_COMMENT", "PRAGMA"};
+    "IF", "ELSE", "IF_SKIP", "IF_SEEK", "ELSE_SKIP", "EVAL", "IN_COMMENT", "PRAGMA", "TOKENS"};
   int* end = lst + sizeof(lst)/sizeof(lst[0]);
   int* it = std::find(lst, end, state);
   return it == end ? "<?>" : names[it - lst];

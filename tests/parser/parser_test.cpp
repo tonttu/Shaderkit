@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     if (file.open(QFile::ReadOnly)) {
       GLSLpp p;
       QByteArray in = file.readAll();
-      p.scan(in);
+      p.parse(in);
       Log::info("Version: %d '%s'", p.version(), p.profile().c_str());
       auto& lv = p.lineValues();
       auto lines_in = in.split('\n');
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
   QFile file(argv[1]);
   if (file.open(QFile::ReadOnly)) {
     GLSLpp p;
-    p.scan(file.readAll());
+    p.parse(file.readAll());
     write(out, p.out().c_str(), p.out().size());
   } else {
     Log::error("Failed to open %s", argv[1]);
