@@ -16,7 +16,7 @@
  */
 
 %{
-#include "parser/glpp.hpp"
+#include "parser/glsl_pp.hpp"
 #include "pp_lex.hpp"
 
 namespace {
@@ -36,7 +36,7 @@ namespace {
 // Do not use global variables (reentrant parser)
 %define api.pure
 
-%parse-param { GLpp& parser }
+%parse-param { GLSLpp& parser }
 
 %union {
   const char* string;
@@ -107,16 +107,16 @@ stuff
     parser.m_profile = "";
   }
   | HASH_EXTENSION IDENTIFIER ':' REQUIRE NL {
-    parser.m_extensions[$2] = GLpp::Require;
+    parser.m_extensions[$2] = GLSLpp::Require;
   }
   | HASH_EXTENSION IDENTIFIER ':' ENABLE NL {
-    parser.m_extensions[$2] = GLpp::Enable;
+    parser.m_extensions[$2] = GLSLpp::Enable;
   }
   | HASH_EXTENSION IDENTIFIER ':' WARN NL {
-    parser.m_extensions[$2] = GLpp::Warn;
+    parser.m_extensions[$2] = GLSLpp::Warn;
   }
   | HASH_EXTENSION IDENTIFIER ':' DISABLE NL {
-    parser.m_extensions[$2] = GLpp::Disable;
+    parser.m_extensions[$2] = GLSLpp::Disable;
   }
   | HASH_PRAGMA raw NL {
     parser.m_pragmas.push_back(std::make_pair($2 ? trim(*$2) : "", parser.line()));
@@ -151,7 +151,7 @@ stuff
     fprintf(stderr, "Defined '%s' as '%s'\n", $1, $2 ? $2->c_str() : 0);
   }
   | DEFINE_FUNC identifier_list ')' data NL {
-    GLpp::Func& f = parser.m_funcs[$1];
+    GLSLpp::Func& f = parser.m_funcs[$1];
     f.chunks.reserve($4->size());
     for (TokenList::iterator it = $4->begin(); it != $4->end(); ++it) {
       if ($2 && it->second == IDENTIFIER) {

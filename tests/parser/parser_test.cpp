@@ -1,4 +1,4 @@
-#include "parser/glpp.hpp"
+#include "parser/glsl_pp.hpp"
 #include "core/log.hpp"
 
 #include <QFile>
@@ -6,7 +6,7 @@
 
 #include <fcntl.h>
 
-void macroChildren(const GLpp::MacroValue& v, std::string ind = "  ") {
+void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ") {
   for (auto it = v.children.begin(); it != v.children.end(); ++it) {
     Log::info("%s'%s' -> '%s' = '%s'", ind.c_str(), it->name.c_str(), it->src.c_str(), it->value.c_str());
     macroChildren(*it, ind + "  ");
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   if (argc == 3 && std::string(argv[1]) == "--debug") {
     QFile file(argv[2]);
     if (file.open(QFile::ReadOnly)) {
-      GLpp p;
+      GLSLpp p;
       QByteArray in = file.readAll();
       p.scan(in);
       Log::info("Version: %d '%s'", p.version(), p.profile().c_str());
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
       auto& ma = p.macros();
       for (auto it = ma.begin(); it != ma.end(); ++it) {
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-          const GLpp::MacroValue& v = *it2;
+          const GLSLpp::MacroValue& v = *it2;
           Log::info("Macro: '%s' -> '%s' = '%s' (line %d)", v.name.c_str(), v.src.c_str(), v.value.c_str(), it->first);
           macroChildren(v);
         }
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
   QFile file(argv[1]);
   if (file.open(QFile::ReadOnly)) {
-    GLpp p;
+    GLSLpp p;
     p.scan(file.readAll());
     write(out, p.out().c_str(), p.out().size());
   } else {

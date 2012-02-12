@@ -15,8 +15,8 @@
  * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GLPP_HPP
-#define GLPP_HPP
+#ifndef GLSL_PP_HPP
+#define GLSL_PP_HPP
 
 #include <QByteArray>
 
@@ -31,12 +31,12 @@
 
 typedef void* yyscan_t;
 
-class GLpp;
-int ppparse(GLpp&);
+class GLSLpp;
+int ppparse(GLSLpp&);
 
-class GLpp {
+class GLSLpp {
 public:
-  GLpp();
+  GLSLpp();
   void scan(QByteArray data);
   const std::string & out() { return m_out; }
 
@@ -114,7 +114,7 @@ private:
 
   int lex(YYSTYPE* lvalp);
   int lex_debug(YYSTYPE* lvalp);
-  void error(GLpp& parser, const char* str);
+  void error(GLSLpp& parser, const char* str);
   void pp_return(bool push, bool b);
   void push_string(const char* name, const char* str);
   void changeState(bool push, int state);
@@ -126,7 +126,7 @@ private:
   int column() const;
   void newline();
 
-  friend int ppparse(GLpp&);
+  friend int ppparse(GLSLpp&);
 };
 
-#endif // GLPP_HPP
+#endif // GLSL_PP_HPP

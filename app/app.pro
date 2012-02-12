@@ -69,10 +69,10 @@ HEADERS += \
     gui/texture_browser.hpp \
     gui/viewport.hpp \
     gui/welcome.hpp \
-    parser/glpp.hpp \
     parser/grammar.hpp \
     parser/lexer.hpp \
-    editor/glsl_editor.hpp
+    editor/glsl_editor.hpp \
+    parser/glsl_pp.hpp
 
 SOURCES += \
     main.cpp \
@@ -127,9 +127,9 @@ SOURCES += \
     gui/texture_browser.cpp \
     gui/viewport.cpp \
     gui/welcome.cpp \
-    parser/glpp.cpp \
     parser/grammar.cpp \
-    editor/glsl_editor.cpp
+    editor/glsl_editor.cpp \
+    parser/glsl_pp.cpp
 
 FORMS += \
     gui/camera_editor.ui \

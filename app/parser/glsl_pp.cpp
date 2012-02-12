@@ -15,20 +15,20 @@
  * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "parser/glpp.hpp"
+#include "parser/glsl_pp.hpp"
 
 #include <list>
 
 #include "pp_yacc.h"
 #include "pp_lex.hpp"
 
-int ppparse(GLpp& parser);
+int ppparse(GLSLpp& parser);
 
-GLpp::GLpp()
+GLSLpp::GLSLpp()
   : yyscanner(0), m_version(0), m_current_macro("", ""),
     m_macro_line(0), m_last_status(true), m_depth(0) {}
 
-void GLpp::scan(QByteArray data) {
+void GLSLpp::scan(QByteArray data) {
   pplex_init(&yyscanner);
   pp_scan_bytes(data.data(), data.length(), yyscanner);
   ppset_lineno(0, yyscanner);
@@ -37,6 +37,6 @@ void GLpp::scan(QByteArray data) {
   pplex_destroy(yyscanner);
 }
 
-void GLpp::error(GLpp& /*parser*/, const char* str) {
+void GLSLpp::error(GLSLpp& /*parser*/, const char* str) {
   fprintf(stderr, "%d: error - %s\n", line()+1, str);
 }

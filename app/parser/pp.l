@@ -18,7 +18,7 @@
 %{
 #include <cassert>
 
-#include "parser/glpp.hpp"
+#include "parser/glsl_pp.hpp"
 #include "pp_yacc.h"
 
 // #define PP_DEBUG 1
@@ -35,7 +35,7 @@ void yy_push_state_debug(int state, yyscan_t scanner);
 #define skip(s, e) yylval->string = copystr(skip_((yytext), (s), (yyleng)-(e)))
 #define skip2(s, e) yylval->string = copystr(skip_((yytext), (s), -(yyleng - (e))))
 
-#define YY_DECL int GLpp::lex(YYSTYPE* yylval_param)
+#define YY_DECL int GLSLpp::lex(YYSTYPE* yylval_param)
 #define ECHO m_out.append(yytext, yyleng)
 %}
  /* Do not call ppwrap() at the EOF
@@ -276,7 +276,7 @@ PASTEABLE   [_a-zA-Z0-9]+
     fprintf(stderr, "Macro call %s of %lu arguments\n", m_func.c_str(), m_args.size());
     for (int i = 0; i < m_args.size(); ++i)
       fprintf(stderr, "Arg %d: '%s'\n", i, m_args[i].c_str());
-    GLpp::Func& f = m_funcs[m_func];
+    GLSLpp::Func& f = m_funcs[m_func];
     std::string str;
     str.reserve(128);
     for (size_t i = 0; i < f.chunks.size(); ++i) {
@@ -400,12 +400,12 @@ void pp_push_state(int state, yyscan_t scanner) {
   yy_push_state(state, scanner);
 }
 
-void GLpp::pp_return(bool push, bool b) {
+void GLSLpp::pp_return(bool push, bool b) {
   changeState(push, b ? IF : IF_SEEK);
   m_line_values[line()-1] = b;
 }
 
-void GLpp::push_string(const char* name, const char* str) {
+void GLSLpp::push_string(const char* name, const char* str) {
   // m_stack.push_back(name);
   //Log::info("push: %d (%s)", line(), str);
   if (m_macro_stack.empty()) {
@@ -423,7 +423,7 @@ void GLpp::push_string(const char* name, const char* str) {
   pp_push_state(YY_START == EVAL || YY_START == CTRL_EVAL ? CTRL_EVAL : CTRL, yyscanner);
 }
 
-void GLpp::pop() {
+void GLSLpp::pop() {
   struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
   int from = YY_START;
   yy_pop_state(yyscanner);
@@ -433,15 +433,15 @@ void GLpp::pop() {
   fillLineValues(YY_START);
 }
 
-int GLpp::line() const {
+int GLSLpp::line() const {
   return ppget_lineno(yyscanner);
 }
 
-int GLpp::column() const {
+int GLSLpp::column() const {
   return ppget_column(yyscanner);
 }
 
-int GLpp::lex_debug(YYSTYPE* lvalp) {
+int GLSLpp::lex_debug(YYSTYPE* lvalp) {
   int token = lex(lvalp);
   const char* t = tokenName(token);
   if (t) fprintf(stderr, "Token: %s\n", t);
@@ -449,12 +449,12 @@ int GLpp::lex_debug(YYSTYPE* lvalp) {
   return token;
 }
 
-void GLpp::newline() {
+void GLSLpp::newline() {
   m_out.push_back('\n');
   ppset_lineno(line()+1, yyscanner);
 }
 
-void GLpp::changeState(bool push, int state) {
+void GLSLpp::changeState(bool push, int state) {
   fillLineValues(state);
   if(push) {
     pp_push_state(state, yyscanner);
@@ -467,7 +467,7 @@ void GLpp::changeState(bool push, int state) {
   }
 }
 
-void GLpp::fillLineValues(int new_state) {
+void GLSLpp::fillLineValues(int new_state) {
   if (new_state == -1) new_state = INITIAL;
   if (m_macro_stack.empty()) {
     for (int i = m_line_values.size(), l = line(); i < l; ++i)
