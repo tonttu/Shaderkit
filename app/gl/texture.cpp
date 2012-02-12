@@ -300,7 +300,10 @@ void TextureChangeManager::changed(Texture* tex, bool data) {
 
 void TextureChangeManager::removed(Texture* tex) {
   if (!s_instance) return;
-  s_instance->m_callbacks.remove(tex);
+  auto lst = s_instance->m_callbacks.take(tex);
+  foreach (const Listener& l, lst)
+    if (l.obj)
+      disconnect(l.obj, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
   if (s_instance->m_callbacks.isEmpty()) {
     s_instance->deleteLater();
     s_instance = 0;
