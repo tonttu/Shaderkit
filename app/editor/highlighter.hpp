@@ -18,6 +18,8 @@
 #ifndef HIGHLIGHTER_H
 #define HIGHLIGHTER_H
 
+#include "forward.hpp"
+
 #include <QSyntaxHighlighter>
 
 /**
@@ -31,7 +33,7 @@ class Highlighter : public QSyntaxHighlighter {
   Q_OBJECT
 
 public:
-  Highlighter(QTextDocument* parent = 0);
+  Highlighter(QTextDocument* parent, GLSLParser& parser);
   virtual ~Highlighter();
 
 protected:
@@ -44,6 +46,9 @@ protected:
   QTextCharFormat m_errorFormat, m_commentFormat, m_ppFormat, m_typeFormat,
     m_qualifierFormat, m_keywordFormat, m_constantFormat, m_operatorFormat,
     m_parenthesesFormat, m_buildinVarFormat, m_idFormat;
+
+private:
+  GLSLParser& m_parser;
 };
 
 #endif // HIGHLIGHTER_H

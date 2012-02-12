@@ -18,7 +18,11 @@ GLSLEditor::GLSLEditor(MultiEditor& me, QWidget* parent, ShaderPtr shader, QText
 
   if (doc) setDocument(doc);
 
-  m_highlighter = new Highlighter(document());
+  m_highlighter = new Highlighter(document(), m_parser);
+
+  m_process_timeout = new AfterIdleOperation(this, 0.4f, 1.0f, 120.0f);
+  connect(this, SIGNAL(textChanged()), m_process_timeout, SLOT(action()));
+  connect(m_process_timeout, SIGNAL(timeout()), this, SLOT(process()));
 
   setObjectName("editor");
 
@@ -231,6 +235,7 @@ void GLSLEditor::updateExtraSelections() {
     extraSelections.append(m_currentLineSelection);
   extraSelections.append(m_warningSelections);
   extraSelections.append(m_errorSelections);
+  extraSelections.append(m_commentedSelections);
 
   setExtraSelections(extraSelections);
 }
@@ -244,9 +249,28 @@ void GLSLEditor::highlightCurrentLine() {
   updateExtraSelections();
 }
 
+void GLSLEditor::process() {
+  m_commentedSelections.clear();
+  if (m_parser.parse(toPlainText().toUtf8())) {
+    QTextEdit::ExtraSelection in_comment;
+
+    in_comment.format.setBackground(QColor(235, 235, 235));
+    in_comment.format.setProperty(QTextFormat::FullWidthSelection, true);
+    in_comment.cursor = QTextCursor(document());
+
+    const std::vector<bool>& ln = m_parser.pp().lineValues();
+    for (int i = 0; i < ln.size(); ++i) {
+      if (ln[i]) continue;
+      const int anchor = document()->findBlockByLineNumber(i).position();
+      in_comment.cursor.setPosition(anchor);
+      m_commentedSelections.append(in_comment);
+    }
+  }
+  updateExtraSelections();
+}
+
 void GLSLEditor::compileError(const ShaderError& e) {
   if (isReadOnly()) return;
-
   bool warning = e.type() == "warning";
   QSet<int>& lines = warning ? m_warningLines : m_errorLines;
   QList<QTextEdit::ExtraSelection>& sel = warning ? m_warningSelections : m_errorSelections;

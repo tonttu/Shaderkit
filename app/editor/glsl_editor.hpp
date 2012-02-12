@@ -3,6 +3,8 @@
 
 #include "forward.hpp"
 
+#include "parser/glsl_parser.hpp"
+
 #include <QPlainTextEdit>
 
 /**
@@ -66,12 +68,17 @@ private slots:
   void updateMarginWidth(int blockCount);
   /// When the text cursor moves, this is called and the line is highlighted
   void highlightCurrentLine();
+  /// Called when we should use m_parser to update stuff
+  void process();
 
 private:
   MultiEditor& m_multiEditor;
   EditorMargin* m_margin;
   /// Syntax Highlight provider
   Highlighter* m_highlighter;
+
+  AfterIdleOperation* m_process_timeout;
+  GLSLParser m_parser;
 
   ShaderPtr m_shader;
 
@@ -83,6 +90,7 @@ private:
   QTextEdit::ExtraSelection m_currentLineSelection;
   QList<QTextEdit::ExtraSelection> m_errorSelections;
   QList<QTextEdit::ExtraSelection> m_warningSelections;
+  QList<QTextEdit::ExtraSelection> m_commentedSelections;
 
   /// All lines that have an error, starting from zero
   QSet<int> m_errorLines;

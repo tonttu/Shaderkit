@@ -17,6 +17,7 @@
 
 #include "editor/highlighter.hpp"
 #include "parser/lexer.hpp"
+#include "parser/glsl_parser.hpp"
 #include "core/log.hpp"
 
 #define YY_HEADER_EXPORT_START_CONDITIONS
@@ -97,7 +98,8 @@ SyntaxType getSyntaxType(int token) {
   return tokens[token];
 }
 
-Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
+Highlighter::Highlighter(QTextDocument* parent, GLSLParser& parser)
+  : QSyntaxHighlighter(parent), m_parser(parser) {
   loadConfig();
 }
 

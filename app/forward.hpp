@@ -81,6 +81,10 @@ class GLSLEditor;
 class MultiEditor;
 class EditorMargin;
 class Highlighter;
+class AfterIdleOperation;
+
+class GLSLParser;
+class GLSLpp;
 
 class Gizmo;
 typedef std::shared_ptr<Gizmo> GizmoPtr;

@@ -108,9 +108,9 @@ PASTEABLE   [_a-zA-Z0-9]+
 }
 
  /* else when we have already found true block */
-<IF>{HASH}else.*{NEWLINE} { changeState(false, ELSE_SKIP); newline(); }
+<IF>{HASH}else.*{NEWLINE} { newline(); changeState(false, ELSE_SKIP); }
 
-<IF,IF_SEEK,IF_SKIP,ELSE,ELSE_SKIP>{HASH}endif.*{NEWLINE} { newline(); pop(); }
+<IF,IF_SEEK,IF_SKIP,ELSE,ELSE_SKIP>{HASH}endif.*{NEWLINE} { pop(); newline(); }
 
 <INITIAL,IF,ELSE>{
   /* Nested or top-level #if when processing normal block */
@@ -412,7 +412,8 @@ void pp_push_state(int state, yyscan_t scanner) {
 
 void GLSLpp::pp_return(bool push, bool b) {
   changeState(push, b ? IF : IF_SEEK);
-  m_line_values[line()-1] = b;
+  if (b)
+    m_line_values[line()-1] = b;
 }
 
 void GLSLpp::push_string(const char* name, const char* str) {
