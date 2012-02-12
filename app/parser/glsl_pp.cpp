@@ -25,7 +25,7 @@
 int ppparse(GLSLpp& parser);
 
 GLSLpp::GLSLpp()
-  : yyscanner(0), m_version(0), m_current_macro("", ""),
+  : yyscanner(0), m_version(0), m_current_macro("", "", ""),
     m_macro_line(0), m_last_status(true), m_depth(0) {}
 
 void GLSLpp::reset() {
@@ -41,7 +41,7 @@ void GLSLpp::reset() {
   m_pragmas.clear();
   m_macros.clear();
 
-  m_current_macro = MacroValue("", "");
+  m_current_macro = MacroValue("", "", "");
   m_macro_line = 0;
   while (!m_macro_stack.empty())
     m_macro_stack.pop();

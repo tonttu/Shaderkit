@@ -217,7 +217,7 @@ PASTEABLE   [_a-zA-Z0-9]+
     } else {
       Objs::iterator it = m_objs.find(yytext);
       if (it != m_objs.end()) {
-        push_string(yytext, it->second.c_str());
+        push_string(yytext, it->second, it->second);
       } else {
         if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
         if ((YY_START) == CTRL_EVAL || (YY_START) == EVAL) {
@@ -234,7 +234,7 @@ PASTEABLE   [_a-zA-Z0-9]+
   Objs::iterator it = m_objs.find(yytext);
   if (it != m_objs.end() /*&& std::find(m_stack.begin(), m_stack.end(), yytext) == m_stack.end()*/) {
     fprintf(stderr, "pushing %s -> %s\n", yytext, it->second.c_str());
-    push_string(yytext, it->second.c_str());
+    push_string(yytext, it->second, it->second);
   } else {
     if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
     if ((YY_START) == CTRL_EVAL || (YY_START) == EVAL) {
@@ -290,7 +290,7 @@ PASTEABLE   [_a-zA-Z0-9]+
       }
     }
     pop();
-    push_string(m_func.c_str(), str.c_str());
+    push_string(m_func.c_str(), f.src, str, f.params);
   }
   [^\n(),]+ { m_txt += yytext; }
   \n { fprintf(stderr, "ERRERRERR\n"); }
@@ -317,6 +317,7 @@ PASTEABLE   [_a-zA-Z0-9]+
   "disable" { return DISABLE; }
   {IDENTIFIER} { yylval->string = copystr(yytext); return IDENTIFIER; }
   {NEWLINE} { pop(); newline(); return NL; }
+  . { return *yytext; }
 }
 
 <EVAL,CTRL_EVAL>{
@@ -416,20 +417,21 @@ void GLSLpp::pp_return(bool push, bool b) {
     m_line_values[line()-1] = b;
 }
 
-void GLSLpp::push_string(const char* name, const char* str) {
+void GLSLpp::push_string(const char* name, const std::string& src, const std::string& str,
+    const std::vector<std::string>& params) {
   // m_stack.push_back(name);
   //Log::info("push: %d (%s)", line(), str);
   if (m_macro_stack.empty()) {
-    m_current_macro = MacroValue(name, str);
+    m_current_macro = MacroValue(name, src, str, params);
     m_macro_line = line();
     m_macro_stack.push(std::make_pair(&m_current_macro, m_out.size()));
   } else {
-    m_macro_stack.top().first->children.push_back(MacroValue(name, str));
+    m_macro_stack.top().first->children.push_back(MacroValue(name, src, str, params));
     m_macro_stack.push(std::make_pair(&m_macro_stack.top().first->children.back(), m_out.size()));
   }
   struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
   pppush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-  pp_scan_string(str, yyscanner);
+  pp_scan_string(str.c_str(), yyscanner);
   ppset_lineno(1, yyscanner);
   pp_push_state(YY_START == EVAL || YY_START == CTRL_EVAL ? CTRL_EVAL : CTRL, yyscanner);
 }

@@ -8,7 +8,8 @@
 
 void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ") {
   for (auto it = v.children.begin(); it != v.children.end(); ++it) {
-    Log::info("%s'%s' -> '%s' = '%s'", ind.c_str(), it->name.c_str(), it->src.c_str(), it->value.c_str());
+    Log::info("%s'%s' src:'%s' partial:'%s', value:'%s'", ind.c_str(),
+              it->name.c_str(), it->src.c_str(), it->partially_expanded.c_str(), it->value.c_str());
     macroChildren(*it, ind + "  ");
   }
 }
@@ -46,7 +47,8 @@ int main(int argc, char* argv[]) {
       for (auto it = ma.begin(); it != ma.end(); ++it) {
         for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
           const GLSLpp::MacroValue& v = *it2;
-          Log::info("Macro: '%s' -> '%s' = '%s' (line %d)", v.name.c_str(), v.src.c_str(), v.value.c_str(), it->first);
+          Log::info("Macro '%s' src:'%s' partial:'%s', value:'%s' (line %d)", v.name.c_str(),
+                    v.src.c_str(), v.partially_expanded.c_str(), v.value.c_str(), it->first);
           macroChildren(v);
         }
       }

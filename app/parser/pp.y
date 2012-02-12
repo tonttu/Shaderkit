@@ -42,8 +42,7 @@ namespace {
   const char* string;
   std::string* stdstr;
   long integer;
-  /// identifier name => index
-  std::map<std::string, int>* tokenmap;
+  std::vector<std::string>* tokenvec;
   std::list<std::pair<std::string, int>>* tokenlst;
 }
 
@@ -71,7 +70,7 @@ typedef std::list<Token> TokenList;
 %token HASH_IF HASH_ELIF
 %token REQUIRE DISABLE WARN ENABLE
 
-%type <tokenmap> identifier_list identifier_list2
+%type <tokenvec> identifier_list identifier_list2
 %type <tokenlst> data
 %type <stdstr> obj_data obj_data2 raw
 %type <integer> expression
@@ -132,13 +131,13 @@ stuff
   }
   | HASH_IFDEF {
     bool found = parser.m_objs.count($1) > 0 || parser.m_funcs.count($1) > 0;
-    fprintf(stderr, "ifdef '%s': %s\n", $1, found ? "found" : "not found");
+    // fprintf(stderr, "ifdef '%s': %s\n", $1, found ? "found" : "not found");
     if (!found && parser.m_undefs.count($1) == 0) parser.m_require.insert($1);
     parser.pp_return(true, found);
   }
   | HASH_IFNDEF {
     bool found = parser.m_objs.count($1) > 0 || parser.m_funcs.count($1) > 0;
-    fprintf(stderr, "ifndef '%s': %s\n", $1, found ? "found" : "not found");
+    // fprintf(stderr, "ifndef '%s': %s\n", $1, found ? "found" : "not found");
     if (!found && parser.m_undefs.count($1) == 0) parser.m_require.insert($1);
     parser.pp_return(true, !found);
   }
@@ -148,24 +147,28 @@ stuff
   }
   | DEFINE_OBJ obj_data NL {
     parser.m_objs[$1] = $2 ? *$2 : "";
-    fprintf(stderr, "Defined '%s' as '%s'\n", $1, $2 ? $2->c_str() : 0);
+    // fprintf(stderr, "Defined '%s' as '%s'\n", $1, $2 ? $2->c_str() : 0);
   }
   | DEFINE_FUNC identifier_list ')' data NL {
     GLSLpp::Func& f = parser.m_funcs[$1];
+    f.chunks.clear();
+    f.src.clear();
     f.chunks.reserve($4->size());
+    if ($2) f.params = *$2;
+    else f.params.clear();
     for (TokenList::iterator it = $4->begin(); it != $4->end(); ++it) {
+      f.src += it->first;
       if ($2 && it->second == IDENTIFIER) {
-        std::map<std::string, int>::iterator it2 = $2->find(it->first);
+        std::vector<std::string>::const_iterator it2 = std::find($2->begin(), $2->end(), it->first);
         if (it2 != $2->end()) {
-          fprintf(stderr, "ID #%d: '%s'\n", it2->second, it->first.c_str());
-          f.chunks.push_back(std::make_pair(it->first, it2->second));
+          // fprintf(stderr, "ID #%d: '%s'\n", it2->second, it->first.c_str());
+          f.chunks.push_back(std::make_pair(it->first, it2 - $2->begin()));
           continue;
         }
       }
-      fprintf(stderr, "Chunk: '%s'\n", it->first.c_str());
       f.chunks.push_back(std::make_pair(it->first, -1));
     }
-    fprintf(stderr, "Defined '%s', %lu parameters, %lu chunks\n", $1, $2 ? $2->size() : 0, f.chunks.size());
+    // fprintf(stderr, "Defined '%s', %lu parameters, %lu chunks\n", $1, $2 ? $2->size() : 0, f.chunks.size());
     delete $2;
     delete $4;
   }
@@ -183,13 +186,12 @@ identifier_list
 
 identifier_list2
   : IDENTIFIER {
-    $$ = new std::map<std::string, int>();
-    (*$$)[$1] = 0;
+    $$ = new std::vector<std::string>();
+    $$->push_back($1);
   }
   | identifier_list ',' IDENTIFIER {
     $$ = $1;
-    int s = $$->size();
-    (*$$)[$3] = s;
+    $$->push_back($3);
   }
   ;
 

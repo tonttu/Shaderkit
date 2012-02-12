@@ -183,6 +183,41 @@ bool GLSLEditor::viewportEvent(QEvent* event) {
     QTextCursor c = cursorForPosition(he->pos());
     int pos = c.position();
 
+    c.select(QTextCursor::WordUnderCursor);
+    std::string token = c.selectedText().toStdString();
+    if(!token.empty()) {
+      auto& macros = m_parser.pp().macros();
+      auto map_it = macros.find(c.blockNumber());
+      if (map_it != macros.end()) {
+        const std::list<GLSLpp::MacroValue>& list = map_it->second;
+        for (auto it = list.begin(); it != list.end(); ++it) {
+          if (it->name == token) {
+            const GLSLpp::MacroValue& value = *it;
+            QString txt;
+            if (value.params.empty()) {
+              txt = QString("#define %1 <b>%2</b>").arg(Qt::escape(value.name.c_str()),
+                                                        Qt::escape(value.src.c_str()));
+            } else {
+              QStringList tmp;
+              for (int i = 0; i < value.params.size(); ++i)
+                tmp << value.params[i].c_str();
+              if (value.value.empty()) {
+                txt = QString("#define %1(%2) %3").arg(
+                      Qt::escape(value.name.c_str()), Qt::escape(tmp.join(", ")),
+                      Qt::escape(value.src.c_str()));
+              } else {
+                txt = QString("#define %1(%2) %3\n\n &raquo; <b>%4</b>").arg(
+                      Qt::escape(value.name.c_str()), Qt::escape(tmp.join(", ")),
+                      Qt::escape(value.src.c_str()), Qt::escape(value.value.c_str()));
+              }
+            }
+            QToolTip::showText(he->globalPos(), "<p style=\"white-space:pre\">"+txt+"</p>");
+            return true;
+          }
+        }
+      }
+    }
+
     /// @todo Implement this somehow more generic
     for (int i = 0; i < m_errorSelections.size(); ++i) {
       const QTextEdit::ExtraSelection& s = m_errorSelections.at(i);

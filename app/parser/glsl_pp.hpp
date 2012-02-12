@@ -64,11 +64,15 @@ public:
   const std::set<std::string>& possibleUnknownMacros() const { return m_require; }
 
   struct MacroValue {
-    MacroValue(const std::string& name_, const std::string& src_)
-      : name(name_), src(src_) {}
+    MacroValue(const std::string& name_, const std::string& src_,
+               const std::string& partially_expanded_,
+               const std::vector<std::string>& params_ = std::vector<std::string>())
+      : name(name_), src(src_), partially_expanded(partially_expanded_), params(params_) {}
     std::string name;
     std::string src;
+    std::string partially_expanded;
     std::string value;
+    std::vector<std::string> params;
     std::list<MacroValue> children;
   };
 
@@ -84,6 +88,8 @@ private:
   typedef std::map<std::string, std::string> Objs;
   struct Func {
     std::vector<std::pair<std::string, int>> chunks;
+    std::string src;
+    std::vector<std::string> params;
   };
   typedef std::map<std::string, Func> Funcs;
 
@@ -117,7 +123,8 @@ private:
   int lex_debug(YYSTYPE* lvalp);
   void error(GLSLpp& parser, const char* str);
   void pp_return(bool push, bool b);
-  void push_string(const char* name, const char* str);
+  void push_string(const char* name, const std::string& src, const std::string& str,
+                   const std::vector<std::string>& params = std::vector<std::string>());
   void changeState(bool push, int state);
   void pop();
   void fillLineValues(int new_state = -1);
