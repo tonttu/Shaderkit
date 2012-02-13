@@ -100,14 +100,16 @@ MainWindow::MainWindow(QWidget* parent)
 
   connect(m_ui->action_reload, SIGNAL(triggered()), this, SLOT(reload()));
 
-  /// @todo
-  /*QAction* actions[] = {m_ui->action_glwidget, m_ui->action_material_properties,
-      m_ui->action_render_properties, m_ui->action_error_log};
-  QDockWidget* widgets[] = {m_ui->gldock, m_ui->shaderdock, m_ui->renderdock, m_ui->errordock};
+  QAction* actions[] = {m_ui->action_toggle_materials,
+      m_ui->action_toggle_render_passes, m_ui->action_toggle_error_log};
+  QDockWidget* widgets[] = {m_ui->materials_dock, m_ui->render_passes_dock, m_ui->error_dock};
   for (size_t i = 0; i < sizeof(actions)/sizeof(*actions); ++i) {
     connect(actions[i], SIGNAL(triggered(bool)), widgets[i], SLOT(setVisible(bool)));
     connect(widgets[i], SIGNAL(visibilityChanged(bool)), actions[i], SLOT(setChecked(bool)));
-  }*/
+  }
+
+  connect(m_ui->action_reset_layout, SIGNAL(triggered()),
+          this, SLOT(resetLayout()));
 
   connect(m_ui->action_about, SIGNAL(triggered()),
           this, SLOT(about()));
@@ -571,6 +573,10 @@ void MainWindow::import() {
   w->show();
 }
 
+void MainWindow::resetLayout() {
+  /// @todo implement
+}
+
 void MainWindow::compileAll() {
   foreach (MultiEditor* me, m_editors.keys()) {
     foreach (GLSLEditor* e, me->editors()) {
@@ -613,6 +619,8 @@ void MainWindow::createViewport() {
   gldock->setWidget(new Viewport);
 
   addDockWidget(Qt::TopDockWidgetArea, gldock);
+  connect(m_ui->action_toggle_viewport, SIGNAL(triggered(bool)), gldock, SLOT(setVisible(bool)));
+  connect(gldock, SIGNAL(visibilityChanged(bool)), m_ui->action_toggle_viewport, SLOT(setChecked(bool)));
 }
 
 Viewport* MainWindow::mainViewport() const {

@@ -105,6 +105,8 @@ public:
 
   int loadedScenes() const { return m_loadedScenes; }
 
+  Viewport* mainViewport() const;
+
 public slots:
   /// Updates the error list
   void updateErrors(ShaderErrorList errors);
@@ -139,7 +141,7 @@ public slots:
   /// Open import wizard
   void import();
 
-  Viewport* mainViewport() const;
+  void resetLayout();
 
 signals:
   void newScene(ScenePtr);

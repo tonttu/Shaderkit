@@ -107,7 +107,6 @@
     </property>
     <addaction name="action_sandbox_compiler"/>
     <addaction name="action_autosave_layout"/>
-    <addaction name="action_reset_layout"/>
     <addaction name="separator"/>
     <addaction name="action_reload"/>
    </widget>
@@ -115,11 +114,12 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
-    <addaction name="action_glwidget"/>
-    <addaction name="action_material_properties"/>
-    <addaction name="action_render_properties"/>
-    <addaction name="action_file_list"/>
-    <addaction name="action_error_log"/>
+    <addaction name="action_toggle_viewport"/>
+    <addaction name="action_toggle_materials"/>
+    <addaction name="action_toggle_render_passes"/>
+    <addaction name="action_toggle_error_log"/>
+    <addaction name="separator"/>
+    <addaction name="action_reset_layout"/>
    </widget>
    <widget class="QMenu" name="menu_edit">
     <property name="title">
@@ -135,7 +135,7 @@
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="errordock">
+  <widget class="QDockWidget" name="error_dock">
    <property name="minimumSize">
     <size>
      <width>79</width>
@@ -217,7 +217,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="shaderdock">
+  <widget class="QDockWidget" name="materials_dock">
    <property name="minimumSize">
     <size>
      <width>79</width>
@@ -269,7 +269,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="renderdock">
+  <widget class="QDockWidget" name="render_passes_dock">
    <property name="minimumSize">
     <size>
      <width>79</width>
@@ -306,8 +306,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="RenderPassProperties" name="renderpass_properties">
-      </widget>
+      <widget class="RenderPassProperties" name="renderpass_properties"/>
      </item>
      <item>
       <widget class="QToolBar" name="rp_prop_menu">
@@ -436,7 +435,7 @@
     <string>Autosave Project</string>
    </property>
   </action>
-  <action name="action_glwidget">
+  <action name="action_toggle_viewport">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -444,10 +443,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>OpenGL Render Window</string>
+    <string>OpenGL viewport</string>
    </property>
   </action>
-  <action name="action_material_properties">
+  <action name="action_toggle_materials">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -455,13 +454,16 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Material Properties</string>
+    <string>Materials</string>
+   </property>
+   <property name="iconText">
+    <string>Materials</string>
    </property>
    <property name="toolTip">
-    <string>Material Property Manager</string>
+    <string>Materials</string>
    </property>
   </action>
-  <action name="action_error_log">
+  <action name="action_toggle_error_log">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -469,7 +471,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Error Log</string>
+    <string>Error log</string>
    </property>
   </action>
   <action name="action_autosave_layout">
@@ -484,14 +486,11 @@
    </property>
   </action>
   <action name="action_reset_layout">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
     <string>Reset Layout</string>
    </property>
   </action>
-  <action name="action_render_properties">
+  <action name="action_toggle_render_passes">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -499,21 +498,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Render Properties</string>
+    <string>Render passes</string>
    </property>
    <property name="toolTip">
-    <string>Render Properties</string>
-   </property>
-  </action>
-  <action name="action_file_list">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>File List</string>
+    <string>Render passes</string>
    </property>
   </action>
   <action name="action_reload">
