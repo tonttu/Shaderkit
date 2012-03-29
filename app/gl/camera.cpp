@@ -15,7 +15,6 @@
  * along with Shaderkit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gl/camera.hpp"
 #include "gl/opengl.hpp"
 
 #include "core/utils.hpp"
@@ -25,6 +24,9 @@
 #include <cassert>
 
 #include <QIcon>
+
+// this include last because of near/far undefs
+#include "gl/camera.hpp"
 
 Camera::Camera(const QString &name)
   : SceneObject(name), m_type(Perspective),

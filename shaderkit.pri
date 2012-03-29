@@ -23,3 +23,4 @@ unix:exists(/usr/bin/ccache) {
 }
 
 *g++*: QMAKE_CXXFLAGS += -std=c++0x
+*msvc*: QMAKE_CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS

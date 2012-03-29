@@ -18,7 +18,9 @@
 #include "gl/shader.hpp"
 #include "gl/program.hpp"
 #include "gl/compiler_output_parser.hpp"
+#ifndef _WIN32
 #include "gl/sandbox_compiler.hpp"
+#endif
 #include "gl/query_shader.hpp"
 #include "gl/opengl.hpp"
 

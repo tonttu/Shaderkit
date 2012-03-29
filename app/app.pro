@@ -43,7 +43,6 @@ HEADERS += \
     gl/opengl.hpp \
     gl/program.hpp \
     gl/query_shader.hpp \
-    gl/sandbox_compiler.hpp \
     gl/scene_object.hpp \
     gl/shader.hpp \
     gl/state.hpp \
@@ -72,6 +71,7 @@ HEADERS += \
     editor/glsl_editor.hpp \
     parser/glsl_pp.hpp \
     parser/glsl_parser.hpp
+!win32:HEADERS += gl/sandbox_compiler.hpp
 
 SOURCES += \
     main.cpp \
@@ -102,7 +102,6 @@ SOURCES += \
     gl/opengl.cpp \
     gl/program.cpp \
     gl/query_shader.cpp \
-    gl/sandbox_compiler.cpp \
     gl/scene_object.cpp \
     gl/shader.cpp \
     gl/state.cpp \
@@ -130,6 +129,7 @@ SOURCES += \
     editor/glsl_editor.cpp \
     parser/glsl_pp.cpp \
     parser/glsl_parser.cpp
+!win32:SOURCES += gl/sandbox_compiler.cpp
 
 FORMS += \
     gui/camera_editor.ui \
@@ -153,7 +153,9 @@ win32 {
 }
 PRE_TARGETDEPS += $$LIBS pp_lex.cpp glsl_lex.cpp
 
-LIBS += -lGLU
+# TODO: Get rid of GLU, we don't really need it anyway
+unix:LIBS += -lGLU
+win32:LIBS += -lGLU32
 
 RESOURCES += \
     ../gfx/gfx.qrc

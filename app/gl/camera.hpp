@@ -25,7 +25,7 @@
 
 #include <QVariant>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #undef near
 #undef far
 #endif

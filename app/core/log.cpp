@@ -26,6 +26,10 @@
 
 #include <QTime>
 
+#ifdef _MSC_VER
+#define fileno _fileno
+#endif
+
 namespace {
   void writelog(Log::Level l, FILE* target, const char* fmt, va_list ap) {
     static QByteArray last;
