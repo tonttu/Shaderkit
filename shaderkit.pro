@@ -27,3 +27,14 @@ OTHER_FILES += \
 
 QMAKE_EXTRA_TARGETS += license
 license.commands = ./update_license.rb -a
+
+docs.files = COPYING README
+docs.path = /docs
+
+examples.files = examples/*
+examples.path = /examples
+
+std.files = std/*
+std.path = /std
+
+INSTALLS += docs examples std

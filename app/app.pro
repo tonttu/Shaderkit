@@ -162,3 +162,6 @@ win32:LIBS += -lGLU32
 
 RESOURCES += \
     ../gfx/gfx.qrc
+
+target.path = /bin
+INSTALLS += target
