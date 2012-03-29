@@ -1,9 +1,17 @@
 TEMPLATE = app
-TARGET = 
+TARGET =
+CONFIG += link_prl
 DEPENDPATH += .
-LIBS += -L../../lib -lqjson
+win32 {
+  LIBS += -L../../lib -lqjson0
+} macx {
+  QMAKE_LFLAGS += -F../../lib
+  LIBS += -framework qjson
+} unix:!macx {
+  LIBS += -L../../lib -lqjson
+}
 INCLUDEPATH +=  . \
-                ../../src
+                ../../include
 
 # Input
-SOURCES += cmdline_tester.cpp
+SOURCES += cmdline_tester.cpp cmdlineparser.cpp

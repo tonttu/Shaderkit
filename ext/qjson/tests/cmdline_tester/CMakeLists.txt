@@ -7,13 +7,14 @@ INCLUDE(AddFileDependencies)
 
 # Include the library include directories, and the current build directory (moc)
 INCLUDE_DIRECTORIES(
-  ../../src
+  ../../include
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 ADD_EXECUTABLE(
   cmdline_tester
   cmdline_tester.cpp
+  cmdlineparser.cpp
 )
 
 TARGET_LINK_LIBRARIES(

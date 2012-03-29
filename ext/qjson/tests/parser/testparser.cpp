@@ -3,27 +3,30 @@
  * Copyright (C) 2008 Flavio Castelli <flavio.castelli@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public
+ * License version 2.1, as published by the Free Software Foundation.
+ * 
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
  */
 
-#include <QtTest/QtTest>
-
-#include "parser.h"
+#include <cmath>
 
 #include <QtCore/QVariant>
-#include <cmath>
+
+#include <QtTest/QtTest>
+
+#include <QJson/Parser>
+#include <QJson/Serializer>
+
 
 class TestParser: public QObject
 {
@@ -49,6 +52,8 @@ class TestParser: public QObject
     void testTopLevelValues_data();
     void testSpecialNumbers();
     void testSpecialNumbers_data();
+    void testReadWrite();
+    void testReadWrite_data();
 };
 
 Q_DECLARE_METATYPE(QVariant)
@@ -104,7 +109,7 @@ void TestParser::parseInvalidObject() {
 
   Parser parser;
   bool ok;
-  QVariant result = parser.parse (json, &ok);
+  parser.parse (json, &ok);
   QVERIFY (!ok);
 }
 
@@ -125,7 +130,7 @@ void TestParser::parseNonAsciiString() {
   QString unicode_string;
   unicode_string.setUnicode(&unicode_char, 1);
   unicode_string = QLatin1String("Queensr") + unicode_string + QLatin1String("che");
-  
+
   map.insert (QLatin1String("artist"), unicode_string);
   QVariant expected (map);
 
@@ -194,7 +199,7 @@ void TestParser::parseMultipleArray() {
   QVariantList array;
   array.append (QLatin1String("item1"));
   array.append (123);
-  
+
   QVariantList list;
   list.append (map);
   list.append (QLatin1String("number"));
@@ -256,7 +261,7 @@ void TestParser::testNumbers() {
 
   Parser parser;
   bool ok;
-  QVariant result = parser.parse ("[" + input +"]", &ok);
+  QVariant result = parser.parse ('[' + input + ']', &ok);
   QVERIFY (ok);
 
   QVariant value = result.toList().at(0);
@@ -367,7 +372,7 @@ void TestParser::testTopLevelValues_data() {
 
   // string
   input = QByteArray("\"foo bar\"");
-  output = QVariant(QLatin1String("foo bar")); 
+  output = QVariant(QLatin1String("foo bar"));
   QTest::newRow("string") << input << output << QVariant::String;
 
   // number
@@ -421,9 +426,23 @@ void TestParser::testSpecialNumbers() {
   QVERIFY(value.type() == QVariant::Double);
   if (ok) {
     double v = value.toDouble();
+#ifdef Q_OS_SYMBIAN
+    QCOMPARE(bool(isinf(v)), isInfinity);
+#else
+// skip this test for MSVC, because there is no "isinf" function.
+#ifndef Q_CC_MSVC
     QCOMPARE(bool(std::isinf(v)), isInfinity);
+#endif
+#endif
     QCOMPARE(v<0, isNegative);
+#ifdef Q_OS_SYMBIAN
+    QCOMPARE(bool(isnan(v)), isNan);
+#else
+// skip this test for MSVC, because there is no "isinf" function.
+#ifndef Q_CC_MSVC
     QCOMPARE(bool(std::isnan(v)), isNan);
+#endif
+#endif
   }
 }
 void TestParser::testSpecialNumbers_data() {
@@ -439,6 +458,40 @@ void TestParser::testSpecialNumbers_data() {
   QTest::newRow("Infinity") << QByteArray("Infinity") << true << true << false << false;
   QTest::newRow("-Infinity") << QByteArray("-Infinity") << true << true << true << false;
   QTest::newRow("NaN") << QByteArray("NaN") << true << false << false << true;
+}
+
+void TestParser::testReadWrite()
+{
+  QFETCH( QVariant, variant );
+  Serializer serializer;
+  bool ok;
+  
+  QByteArray json = serializer.serialize(variant);
+  QVERIFY(!json.isNull());
+
+  Parser parser;
+  QVariant result = parser.parse( json, &ok );
+  QVERIFY(ok);
+  QCOMPARE( result, variant );
+}
+
+void TestParser::testReadWrite_data()
+{
+    QTest::addColumn<QVariant>( "variant" );
+
+    // array tests
+    QTest::newRow( "empty array" ) << QVariant(QVariantList());
+    
+    // basic array
+    QVariantList list;
+    list << QString(QLatin1String("hello"));
+    list << 12; 
+    QTest::newRow( "basic array" ) << QVariant(list);
+
+    // simple map 
+    QVariantMap map;
+    map[QString(QLatin1String("Name"))] = 32;
+    QTest::newRow( "complicated array" ) << QVariant(map);
 }
 
 QTEST_MAIN(TestParser)

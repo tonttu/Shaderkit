@@ -3,16 +3,16 @@
  * Copyright (C) 2008 Flavio Castelli <flavio.castelli@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public
+ * License version 2.1, as published by the Free Software Foundation.
+ * 
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
@@ -39,7 +39,7 @@ bool ishexnstring(const QString& string) {
 
 JSonScanner::JSonScanner(QIODevice* io)
   : m_allowSpecialNumbers(false),
-    m_io(io)
+    m_io (io)
 {
   m_quotmarkClosed = true;
   m_quotmarkCount = 0;
@@ -130,7 +130,7 @@ static QString unescape( const QByteArray& ba, bool* ok ) {
 int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
 {
   char ch;
-  
+
   if (!m_io->isOpen()) {
     qCritical() << "JSonScanner::yylex - io device is not open";
     return -1;
@@ -153,12 +153,10 @@ int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
     }
 
     qjsonDebug() << "JSonScanner::yylex - got |" << ch << "|";
-    
     yylloc->columns();
-    
+
     if (ch == '\n' || ch == '\r')
       yylloc->lines();
-      
   } while (m_quotmarkClosed && (isspace(ch) != 0));
 
   if (m_quotmarkClosed && ((ch == 't') || (ch == 'T'))) {
@@ -180,8 +178,8 @@ int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
     } else if (buf.startsWith("an") && m_allowSpecialNumbers) {
       m_io->read(2);
       yylloc->columns(2);
-      qjsonDebug() << "JSonScanner::yylex - NAN";
-      return yy::json_parser::token::NAN;
+      qjsonDebug() << "JSonScanner::yylex - NAN_VAL";
+      return yy::json_parser::token::NAN_VAL;
 
     }
   }
@@ -202,7 +200,7 @@ int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
     const QByteArray buf = m_io->peek(1);
     if (!buf.isEmpty()) {
       if ((buf[0] == '+' ) || (buf[0] == '-' )) {
-        ret += m_io->read (1);  
+        ret += m_io->read (1);
         yylloc->columns();
       }
     }
@@ -216,7 +214,7 @@ int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
       m_io->read(7);
       yylloc->columns(7);
       qjsonDebug() << "JSonScanner::yylex - INFINITY_VAL";
-      return yy::json_parser::token::INFINITY;
+      return yy::json_parser::token::INFINITY_VAL;
     }
   }
 
@@ -278,20 +276,34 @@ int JSonScanner::yylex(YYSTYPE* yylval, yy::location *yylloc)
     }
   }
   else if (isdigit(ch) != 0 && m_quotmarkClosed) {
-    // we have to return immediately otherwise numbers like
-    // 2.04 will be converted to 2.4
-    if (ch == '0') {
-      *yylval = QVariant(0);
+    bool ok;
+    QByteArray numArray = QByteArray::fromRawData( &ch, 1 * sizeof(char) );
+    qulonglong number = numArray.toULongLong(&ok);
+    if (!ok) {
+      //This shouldn't happen
+      qCritical() << "JSonScanner::yylex - error while converting char to ulonglong, returning -1";
+      return -1;
+    }
+    if (number == 0) {
+      // we have to return immediately otherwise numbers like
+      // 2.04 will be converted to 2.4
+      *yylval = QVariant(number);
       qjsonDebug() << "JSonScanner::yylex - yy::json_parser::token::DIGIT";
       return yy::json_parser::token::DIGIT;
     }
-    quint64 number = ch-'0';
+
     char nextCh;
     qint64 ret = m_io->peek(&nextCh, 1);
     while (ret == 1 && isdigit(nextCh)) {
       m_io->read(1); //consume
       yylloc->columns(1);
-      number = number * 10 + nextCh-'0';
+      numArray = QByteArray::fromRawData( &nextCh, 1 * sizeof(char) );
+      number = number * 10 + numArray.toULongLong(&ok);
+      if (!ok) {
+        //This shouldn't happen
+        qCritical() << "JSonScanner::yylex - error while converting char to ulonglong, returning -1";
+        return -1;
+      }
       ret = m_io->peek(&nextCh, 1);
     }
 

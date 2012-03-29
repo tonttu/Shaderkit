@@ -3,16 +3,16 @@
   * Copyright (C) 2009 Till Adam <adam@kde.org>
   *
   * This library is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU Library General Public
-  * License as published by the Free Software Foundation; either
-  * version 2 of the License, or (at your option) any later version.
+  * modify it under the terms of the GNU Lesser General Public
+  * License version 2.1, as published by the Free Software Foundation.
+  * 
   *
   * This library is distributed in the hope that it will be useful,
   * but WITHOUT ANY WARRANTY; without even the implied warranty of
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * Library General Public License for more details.
+  * Lesser General Public License for more details.
   *
-  * You should have received a copy of the GNU Library General Public License
+  * You should have received a copy of the GNU Lesser General Public License
   * along with this library; see the file COPYING.LIB.  If not, write to
   * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
   * Boston, MA 02110-1301, USA.
@@ -23,6 +23,7 @@
 
 #include <QtCore/QDate>
 #include <QtCore/QObject>
+#include <QtCore/QVariant>
 
 class Person : public QObject
 {
@@ -32,6 +33,7 @@ class Person : public QObject
   Q_PROPERTY(int phoneNumber READ phoneNumber WRITE setPhoneNumber)
   Q_PROPERTY(Gender gender READ gender WRITE setGender)
   Q_PROPERTY(QDate dob READ dob WRITE setDob)
+  Q_PROPERTY(QVariant customField READ customField WRITE setCustomField)
   Q_ENUMS(Gender)
 
  public:
@@ -51,11 +53,15 @@ class Person : public QObject
     QDate dob() const;
     void setDob(const QDate& dob);
 
+    QVariant customField() const;
+    void setCustomField(const QVariant& customField);
+
   private:
     QString m_name;
     int m_phoneNumber;
     Gender m_gender;
     QDate m_dob;
+    QVariant m_customField;
 };
 
 #endif

@@ -3,16 +3,16 @@
  * Copyright (C) 2009 Flavio Castelli <flavio.castelli@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public
+ * License version 2.1, as published by the Free Software Foundation.
+ * 
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this library; see the file COPYING.LIB.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
@@ -20,13 +20,12 @@
 
 #include <limits>
 
-#include <QtTest/QtTest>
-
-#include "parser.h"
-#include "serializer.h"
-
 #include <QtCore/QVariant>
 
+#include <QtTest/QtTest>
+
+#include <QJson/Parser>
+#include <QJson/Serializer>
 
 class TestSerializer: public QObject
 {
@@ -44,12 +43,16 @@ class TestSerializer: public QObject
     void testValueInteger_data();
     void testValueDouble();
     void testValueDouble_data();
+    void testSetDoublePrecision();
     void testValueFloat();
     void testValueFloat_data();
     void testValueBoolean();
     void testValueBoolean_data();
     void testSpecialNumbers();
     void testSpecialNumbers_data();
+    void testIndentation();
+    void testIndentation_data();
+    void testSerializetoQIODevice();
 
   private:
     void valueTest( const QVariant& value, const QString& expectedRegExp, bool errorExpected = false );
@@ -113,6 +116,71 @@ void TestSerializer::testReadWrite_data()
     QTest::newRow( "complicated array" ) << json3;
 }
 
+void TestSerializer::testIndentation()
+{
+  QFETCH( QByteArray, json );
+  QFETCH( QByteArray, expected_compact );
+  QFETCH( QByteArray, expected_min );
+  QFETCH( QByteArray, expected_med );
+  QFETCH( QByteArray, expected_full );
+
+  // parse
+  Parser parser;
+  bool ok;
+  QVariant parsed = parser.parse( json, &ok );
+  QVERIFY(ok);
+
+  Serializer serializer;
+  QVariant reparsed;
+  QByteArray serialized;
+
+  // serialize with indent compact and reparse
+  serializer.setIndentMode(QJson::IndentCompact);
+  serialized = serializer.serialize( parsed );
+  QCOMPARE( serialized, expected_compact);
+  reparsed = parser.parse( serialized, &ok );
+  QVERIFY(ok);
+  QCOMPARE( parsed, reparsed);
+
+  // serialize with indent minimum and reparse
+  serializer.setIndentMode(QJson::IndentMinimum);
+  serialized = serializer.serialize( parsed );
+  QCOMPARE( serialized, expected_min);
+  reparsed = parser.parse( serialized, &ok );
+  QVERIFY(ok);
+  QCOMPARE( parsed, reparsed);
+
+  // serialize with indent medium and reparse
+  serializer.setIndentMode(QJson::IndentMedium);
+  serialized = serializer.serialize( parsed );
+  QCOMPARE( serialized, expected_med);
+  reparsed = parser.parse( serialized, &ok );
+  QVERIFY(ok);
+  QCOMPARE( parsed, reparsed);
+
+  // serialize with indent full and reparse
+  serializer.setIndentMode(QJson::IndentFull);
+  serialized = serializer.serialize( parsed );
+  QCOMPARE( serialized, expected_full);
+  reparsed = parser.parse( serialized, &ok );
+  QVERIFY(ok);
+  QCOMPARE( parsed, reparsed);
+}
+
+void TestSerializer::testIndentation_data()
+{
+    QTest::addColumn<QByteArray>( "json" );
+    QTest::addColumn<QByteArray>( "expected_compact" );
+    QTest::addColumn<QByteArray>( "expected_min" );
+    QTest::addColumn<QByteArray>( "expected_med" );
+    QTest::addColumn<QByteArray>( "expected_full" );
+    const QByteArray json = " { \"foo\" : 0, \"foo1\" : 1, \"foo2\" : [ { \"foo3\" : 3, \"foo4\" : 4 } ] }";
+    const QByteArray ex_compact = "{\"foo\":0,\"foo1\":1,\"foo2\":[{\"foo3\":3,\"foo4\":4}]}";
+    const QByteArray ex_min = "{ \"foo\" : 0, \"foo1\" : 1, \"foo2\" : [\n  { \"foo3\" : 3, \"foo4\" : 4 }\n] }";
+    const QByteArray ex_med = "{\n \"foo\" : 0, \"foo1\" : 1, \"foo2\" : [\n  {\n   \"foo3\" : 3, \"foo4\" : 4\n  }\n ]\n}";
+    const QByteArray ex_full = "{\n \"foo\" : 0,\n \"foo1\" : 1,\n \"foo2\" : [\n  {\n   \"foo3\" : 3,\n   \"foo4\" : 4\n  }\n ]\n}";
+    QTest::newRow( "test indents" ) << json << ex_compact << ex_min << ex_med << ex_full;
+}
 
 void TestSerializer::valueTest( const QVariant& value, const QString& expectedRegExp, bool errorExpected )
 {
@@ -256,6 +324,55 @@ void TestSerializer::testValueDouble_data()
   QTest::newRow( "double NaN" ) << QVariant( std::numeric_limits< double >::quiet_NaN() ) << QString( ) << true;
 }
 
+void TestSerializer::testSetDoublePrecision()
+{
+  Serializer serializer;
+  QByteArray actual;
+  QString    expected, actualUnicode;
+
+  double num = 0.12345678;
+
+  // Set 1 as double precision
+  serializer.setDoublePrecision(1);
+  expected      = QString(QLatin1String("0.1"));
+  actual        = serializer.serialize( QVariant(num) );
+  actualUnicode = QString::fromUtf8(actual);
+
+  QVERIFY2( QString::compare(expected, actualUnicode ) == 0,
+            qPrintable( QString( QLatin1String( "Expected \"%1\" but got \"%2\"." ) )
+          .arg( expected ).arg( actualUnicode ) ) );
+
+  // Set 2 as double precision
+  serializer.setDoublePrecision(2);
+  expected      = QString(QLatin1String("0.12"));
+  actual        = serializer.serialize( QVariant(num) );
+  actualUnicode = QString::fromUtf8(actual);
+
+  QVERIFY2( QString::compare(expected, actualUnicode ) == 0,
+            qPrintable( QString( QLatin1String( "Expected \"%1\" but got \"%2\"." ) )
+          .arg( expected ).arg( actualUnicode ) ) );
+
+  // Set 4 as double precision
+  serializer.setDoublePrecision(4);
+  expected      = QString(QLatin1String("0.1235"));
+  actual        = serializer.serialize( QVariant(num) );
+  actualUnicode = QString::fromUtf8(actual);
+
+  QVERIFY2( QString::compare(expected, actualUnicode ) == 0,
+            qPrintable( QString( QLatin1String( "Expected \"%1\" but got \"%2\"." ) )
+          .arg( expected ).arg( actualUnicode ) ) );
+
+  // Set 14 as double precision
+  serializer.setDoublePrecision(14);
+  expected      = QString(QLatin1String("0.12345678"));
+  actual        = serializer.serialize( QVariant(num) );
+  actualUnicode = QString::fromUtf8(actual);
+
+  QVERIFY2( QString::compare(expected, actualUnicode ) == 0,
+            qPrintable( QString( QLatin1String( "Expected \"%1\" but got \"%2\"." ) )
+          .arg( expected ).arg( actualUnicode ) ) );
+}
+
 void TestSerializer::testValueFloat()
 {
   QFETCH( QVariant, value );
@@ -285,7 +402,7 @@ void TestSerializer::testValueFloat_data()
   v.setValue(value);
   QTest::newRow( "float -1" ) << v << QString( QLatin1String( "\\s*-1.0\\s*" ) ) << false;
 
-  value = 1.12;
+  value = 1.12f;
   v.setValue(value);
   QTest::newRow( "float 1.12" ) << v << QString( QLatin1String( "\\s*1.12\\s*" ) ) << false;
 }
@@ -329,6 +446,22 @@ void TestSerializer::testSpecialNumbers_data() {
   QTest::newRow( "Infinity" ) << QVariant( std::numeric_limits< double >::infinity() ) << QString::fromLocal8Bit("Infinity");
   QTest::newRow( "-Infinity" ) << QVariant( -std::numeric_limits< double >::infinity() ) << QString::fromLocal8Bit("-Infinity");
   QTest::newRow( "Infinity" ) <<  QVariant( std::numeric_limits< double >::quiet_NaN() ) << QString::fromLocal8Bit("NaN");
+}
+
+void TestSerializer::testSerializetoQIODevice() {
+  QBuffer buffer;
+  QVariantList variant;
+  variant << QVariant(QLatin1String("Hello"));
+  variant << QVariant(QLatin1String("world!"));
+
+  Serializer serializer;
+  bool ok;
+
+  serializer.serialize(variant, &buffer, &ok);
+
+  QCOMPARE(QString(QLatin1String(buffer.data())),
+           QString(QLatin1String("[ \"Hello\", \"world!\" ]")));
+  QVERIFY(ok);
 }
 
 QTEST_MAIN(TestSerializer)

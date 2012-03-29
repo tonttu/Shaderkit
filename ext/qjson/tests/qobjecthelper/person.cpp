@@ -2,6 +2,9 @@
 
 Person::Person(QObject* parent)
   : QObject(parent)
+  , m_name()
+  , m_phoneNumber(0)
+  , m_gender(Female)
 {
 }
 
@@ -48,3 +51,14 @@ void Person::setDob(const QDate& dob)
 {
   m_dob = dob;
 }
+
+QVariant Person::customField() const
+{
+  return m_customField;
+}
+
+void Person::setCustomField(const QVariant& customField)
+{
+  m_customField = customField;
+}
+
