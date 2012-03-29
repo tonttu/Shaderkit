@@ -5,14 +5,17 @@ TARGET = shaderkit
 unix {
 QMAKE_LEX = flex
 QMAKE_YACC = bison
+}
+win32 {
+DEFINES += YY_NO_UNISTD_H
+QMAKE_LEX = ../ext/win32/bin/flex.exe
+QMAKE_YACC = ../ext/win32/bin/bison.exe
+QMAKE_YACCFLAGS_MANGLE += -p $base -b $base
+QMAKE_YACC_HEADER = $base.tab.h
+QMAKE_YACC_SOURCE = $base.tab.c
+}
 LEXSOURCES += parser/pp.l parser/glsl.l
 YACCSOURCES += parser/pp.y parser/glsl.y
-}
-!unix {
-DEFINES += YY_NO_UNISTD_H
-HEADERS += glsl_yacc.h
-SOURCES += glsl_yacc.cpp glsl_lex.cpp
-}
 
 HEADERS += \
     forward.hpp \
