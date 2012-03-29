@@ -197,11 +197,11 @@ void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
 
   if (m_state < 2) {
     BufferObject2::BindHolder b = hover_bo.bind(m_attrib);
-    glColor4f(1,1,1,0.15);
+    glColor4f(1,1,1,0.15f);
     glDepthFunc(GL_GEQUAL);
     glDrawArrays(GL_LINES, 0, 4);
 
-    glColor4f(1,1,1,0.5);
+    glColor4f(1,1,1,0.5f);
     glDepthFunc(GL_LESS);
     glDrawArrays(GL_LINES, 0, 4);
   }
@@ -230,16 +230,16 @@ void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts) {
 
   glDepthFunc(GL_GEQUAL);
 
-  glColor4f(1,1,1,0.25);
+  glColor4f(1,1,1,0.25f);
   glDrawArrays(GL_LINE_STRIP, 0, 5);
-  glColor4f(1,1,1,0.1);
+  glColor4f(1,1,1,0.1f);
   glDrawArrays(GL_QUADS, 0, 4);
 
   glDepthFunc(GL_LESS);
 
-  glColor4f(1,1,1,0.8);
+  glColor4f(1,1,1,0.8f);
   glDrawArrays(GL_LINE_STRIP, 0, 5);
-  glColor4f(1,1,1,0.2);
+  glColor4f(1,1,1,0.2f);
   glDrawArrays(GL_QUADS, 0, 4);
 
   if (m_state > 1) {
@@ -264,21 +264,21 @@ void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts) {
 
     glDepthFunc(GL_GEQUAL);
 
-    glColor4f(1,1,1,0.25);
+    glColor4f(1,1,1,0.25f);
     glDrawArrays(GL_LINES, 0, 8);
     glDrawArrays(GL_LINE_STRIP, 10, 5);
 
-    glColor4f(1,1,1,0.1);
+    glColor4f(1,1,1,0.1f);
     glDrawArrays(GL_QUAD_STRIP, 0, 10);
     glDrawArrays(GL_QUADS, 10, 4);
 
     glDepthFunc(GL_LESS);
 
-    glColor4f(1,1,1,0.8);
+    glColor4f(1,1,1,0.8f);
     glDrawArrays(GL_LINES, 0, 8);
     glDrawArrays(GL_LINE_STRIP, 10, 5);
 
-    glColor4f(1,1,1,0.2);
+    glColor4f(1,1,1,0.2f);
     glDrawArrays(GL_QUAD_STRIP, 0, 10);
     glDrawArrays(GL_QUADS, 10, 4);
   }

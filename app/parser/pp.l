@@ -304,9 +304,9 @@ PASTEABLE   [_a-zA-Z0-9]+
 }
 
 <TOKENS,EVAL,CTRL_EVAL>{
-  [1-9][0-9]*[uU]? { yylval->integer = strtoll(yytext, NULL, 10); return DECIMAL; }
-  0[0-7]*[uU]? { yylval->integer = strtoll(yytext, NULL, 8); return DECIMAL; }
-  0[xX][0-9a-fA-F]+[uU]? { yylval->integer = strtoll(yytext + 2, NULL, 16); return DECIMAL; }
+  [1-9][0-9]*[uU]? { yylval->integer = strtol(yytext, NULL, 10); return DECIMAL; }
+  0[0-7]*[uU]? { yylval->integer = strtol(yytext, NULL, 8); return DECIMAL; }
+  0[xX][0-9a-fA-F]+[uU]? { yylval->integer = strtol(yytext + 2, NULL, 16); return DECIMAL; }
   [ \t]+
 }
 

@@ -162,7 +162,10 @@ namespace ObjectRenderer {
           data->uv3d = uv3;
           data->normal = normal;
           if (layer > 0 && layer < stripes) {
-            data[vertices_in_stripe - 1] = {point, uv2, uv3, normal};
+            // waiting for c++11 support..
+            // data[vertices_in_stripe - 1] = {point, uv2, uv3, normal};
+            Vertex& v = data[vertices_in_stripe - 1];
+            v.point = point, v.uv2d = uv2, v.uv3d = uv3, v.normal = normal;
           }
           data += 2;
         }

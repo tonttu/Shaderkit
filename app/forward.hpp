@@ -48,7 +48,7 @@ typedef std::shared_ptr<Scene> ScenePtr;
 class RenderPass;
 typedef std::shared_ptr<RenderPass> RenderPassPtr;
 class SceneObject;
-class RenderOptions;
+struct RenderOptions;
 
 class State;
 class FBOImage;
@@ -73,7 +73,7 @@ class Material;
 typedef std::shared_ptr<Material> MaterialPtr;
 class Model;
 typedef std::shared_ptr<Model> ModelPtr;
-class Node;
+struct Node;
 typedef std::shared_ptr<Node> NodePtr;
 
 class MaterialProperties;

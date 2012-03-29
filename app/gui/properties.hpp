@@ -176,8 +176,6 @@ protected:
   QIcon m_inactive;
 };
 
-class PropertyLayoutData;
-
 /**
  * Real-time property editor for shader properties, like uniform variables.
  *

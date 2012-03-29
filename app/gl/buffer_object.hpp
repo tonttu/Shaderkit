@@ -22,6 +22,7 @@
 #include "forward.hpp"
 
 #include <cassert>
+#include <vector>
 
 #include <QSet>
 #include <QMap>

@@ -565,10 +565,10 @@ parameter_type_specifier
 
 init_declarator_list
   : single_declaration
-  | init_declarator_list ',' IDENTIFIER { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); }
-  | init_declarator_list ',' IDENTIFIER '[' ']' { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); $$->setIsArray(); }
-  | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); $$->setArray($5); }
-  | init_declarator_list ',' IDENTIFIER '[' ']' '=' initializer { $$ = link($1, new Parser::Type(*$1)); $$->setName($3); $$->setInitializer($7); }
+  | init_declarator_list ',' IDENTIFIER { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); }
+  | init_declarator_list ',' IDENTIFIER '[' ']' { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setIsArray(); }
+  | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setArray($5); }
+  | init_declarator_list ',' IDENTIFIER '[' ']' '=' initializer { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setInitializer($7); }
   | init_declarator_list ',' IDENTIFIER '[' constant_expression ']' '=' initializer { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setArray($5); $$->setInitializer($8); }
   | init_declarator_list ',' IDENTIFIER '=' initializer { $$ = Parser::link($1, new Parser::Type(*$1)); $$->setName($3); $$->setInitializer($5); }
   ;

@@ -21,3 +21,5 @@ unix:exists(/usr/bin/ccache) {
   QMAKE_CXX=ccache $$QMAKE_CXX
   QMAKE_CC=ccache $$QMAKE_CC
 }
+
+*g++*: QMAKE_CXXFLAGS += -std=c++0x

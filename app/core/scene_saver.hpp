@@ -22,6 +22,8 @@
 
 #include <QDateTime>
 
+#include <functional>
+
 class QTimer;
 
 /// Saving happens after a timeout (m_timeout), but is also restricted by

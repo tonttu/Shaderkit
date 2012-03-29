@@ -1,7 +1,5 @@
 include(../shaderkit.pri)
 
-QMAKE_CXXFLAGS += -std=c++0x
-
 TARGET = shaderkit
 
 unix {

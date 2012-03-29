@@ -27,8 +27,7 @@
 #include <set>
 #include <stack>
 
-#include "pp_yacc.h"
-
+union YYSTYPE;
 typedef void* yyscan_t;
 
 class GLSLpp;
