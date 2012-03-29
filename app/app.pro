@@ -163,5 +163,7 @@ win32:LIBS += -lGLU32
 RESOURCES += \
     ../gfx/gfx.qrc
 
+INCLUDEPATH += $$OUT_PWD/..
+
 target.path = /bin
 INSTALLS += target

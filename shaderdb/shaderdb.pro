@@ -13,10 +13,10 @@ win32:RUBY=../ext/win32/bin/ruby.exe
 
 VERSION_SOURCES = ../version
 version.input = VERSION_SOURCES
-version.depend_command = $$RUBY ../update_version.rb --dep
-version.commands = $$RUBY ../update_version.rb
-version.output = ../version.hpp
+version.depend_command = $$RUBY $$IN_PWD/../update_version.rb $$IN_PWD/../version --dep
+version.commands = $$RUBY $$IN_PWD/../update_version.rb $$IN_PWD/../version $$OUT_PWD/../version.hpp
+version.output = $$OUT_PWD/../version.hpp
 version.variable_out = HEADERS
 QMAKE_EXTRA_COMPILERS += version
 
-INCLUDEPATH += ../app
+INCLUDEPATH += ../app $$OUT_PWD/..

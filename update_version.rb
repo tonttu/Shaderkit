@@ -1,6 +1,8 @@
 #!/usr/bin/ruby
 
-dir = File.dirname(__FILE__)
+input_file = ARGV.shift
+
+dir = File.dirname(input_file)
 hash = ''
 ref = ''
 begin
@@ -11,17 +13,22 @@ begin
 rescue
 end
 
+ref = File.expand_path ref if File.exists?(ref)
+
 if ARGV.first == '--dep'
   puts ref
-  puts "#{dir}/.git/HEAD"
+	head = "#{dir}/.git/HEAD"
+	head = File.expand_path head if File.exists?(head)
+	puts head
   exit 0
 end
 
-version = File.read("#{dir}/version").strip
+output_file = ARGV.shift
+version = File.read(input_file).strip
 lst = version.split('.', 3)
 lst[2], lst[3] = lst[2].scan(/^(\d+)(.*)/)[0]
 
-File.open("#{dir}/version.hpp", 'w') do |f|
+File.open(output_file, 'w') do |f|
   f.puts "#ifndef VERSION_HPP"
   f.puts "#define VERSION_HPP"
   f.puts
