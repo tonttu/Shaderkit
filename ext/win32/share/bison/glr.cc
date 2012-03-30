@@ -1,7 +1,8 @@
                                                                     -*- C -*-
 
 # C++ GLR skeleton for Bison
-# Copyright (C) 2002-2010 Free Software Foundation, Inc.
+
+# Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,7 +54,8 @@ b4_defines_if([],
               [b4_fatal([b4_skeleton[: using %%defines is mandatory]])])
 
 m4_include(b4_pkgdatadir/[c++.m4])
-m4_include(b4_pkgdatadir/[location.cc])
+b4_percent_define_ifdef([[location_type]], [],
+                        [m4_include(b4_pkgdatadir/[location.cc])])
 
 m4_define([b4_parser_class_name],
           [b4_percent_define_get([[parser_class_name]])])
@@ -218,7 +220,7 @@ m4_popdef([b4_parse_param])
 m4_divert_push(0)
 @output(b4_spec_defines_file@)@
 b4_copyright([Skeleton interface for Bison GLR parsers in C++],
-             [2002-2006, 2009-2010])[
+             [2002-2006, 2009-2011])[
 
 /* C++ GLR parser skeleton written by Akim Demaille.  */
 
@@ -229,16 +231,11 @@ b4_copyright([Skeleton interface for Bison GLR parsers in C++],
 
 #include <string>
 #include <iostream>
+]b4_percent_define_ifdef([[location_type]], [],
+                         [[#include "location.hh"]])[
 
 /* Using locations.  */
 #define YYLSP_NEEDED ]b4_locations_flag[
-
-]b4_namespace_open[
-  class position;
-  class location;
-]b4_namespace_close[
-
-#include "location.hh"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -283,7 +280,8 @@ b4_user_stype
     typedef YYSTYPE semantic_type;
 #endif
     /// Symbol locations.
-    typedef ]b4_percent_define_get([[location_type]])[ location_type;
+    typedef ]b4_percent_define_get([[location_type]],
+                                   [[location]])[ location_type;
     /// Tokens.
     struct token
     {

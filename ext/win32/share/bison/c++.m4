@@ -2,7 +2,7 @@
 
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2010 Free Software Foundation, Inc.
+# Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,7 +25,12 @@ m4_include(b4_pkgdatadir/[c.m4])
 
 # Default parser class name.
 b4_percent_define_default([[parser_class_name]], [[parser]])
-b4_percent_define_default([[location_type]], [[location]])
+
+# Don't do that so that we remember whether we're using a user
+# request, or the default value.
+#
+# b4_percent_define_default([[location_type]], [[location]])
+
 b4_percent_define_default([[filename_type]], [[std::string]])
 b4_percent_define_default([[namespace]], m4_defn([b4_prefix]))
 b4_percent_define_default([[global_tokens_and_yystype]], [[false]])
@@ -74,9 +79,9 @@ m4_define([b4_namespace_open],
 m4_define([b4_namespace_close],
 [b4_user_code([b4_percent_define_get_syncline([[namespace]])
 m4_bpatsubst(m4_dquote(m4_bpatsubst(m4_dquote(b4_namespace_ref[ ]),
-                                    [^\(.\)[	 ]*\(::\)?\([^][:]\|:[^][:]\)*],
+                                    [^\(.\)[	 ]*\(::\)?\([^][:]\|:[^:]\)*],
                                     [\1])),
-             [::\([^][:]\|:[^][:]\)*], [} ])[} // ]b4_namespace_ref])])
+             [::\([^][:]\|:[^:]\)*], [} ])[} // ]b4_namespace_ref])])
 
 
 # b4_token_enums(LIST-OF-PAIRS-TOKEN-NAME-TOKEN-NUMBER)

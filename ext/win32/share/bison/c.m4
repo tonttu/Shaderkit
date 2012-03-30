@@ -1,7 +1,8 @@
                                                             -*- Autoconf -*-
 
 # C M4 Macros for Bison.
-# Copyright (C) 2002, 2004-2010 Free Software Foundation, Inc.
+
+# Copyright (C) 2002, 2004-2011 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +31,7 @@ m4_define([b4_comment], [/* m4_bpatsubst([$1], [
 # -----------------
 # Depends on individual skeletons to define b4_pure_flag, b4_push_flag, or
 # b4_pull_flag if they use the values of the %define variables api.pure or
-# api.push_pull.
+# api.push-pull.
 m4_define([b4_identification],
 [[/* Identify Bison output.  */
 #define YYBISON 1
@@ -133,6 +134,17 @@ m4_define([b4_int_type_for],
 [b4_int_type($1_min, $1_max)])
 
 
+# b4_table_value_equals(TABLE, VALUE, LITERAL)
+# --------------------------------------------
+# Without inducing a comparison warning from the compiler, check if the
+# literal value LITERAL equals VALUE from table TABLE, which must have
+# TABLE_min and TABLE_max defined.  YYID must be defined as an identity
+# function that suppresses warnings about constant conditions.
+m4_define([b4_table_value_equals],
+[m4_if(m4_eval($3 < m4_indir([b4_]$1[_min])
+               || m4_indir([b4_]$1[_max]) < $3), [1],
+       [[YYID (0)]],
+       [[((]$2[) == (]$3[))]])])
 
 ## ---------##
 ## Values.  ##
