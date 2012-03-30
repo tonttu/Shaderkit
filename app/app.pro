@@ -8,8 +8,8 @@ QMAKE_YACC = bison
 }
 win32 {
 DEFINES += YY_NO_UNISTD_H
-QMAKE_LEX = ../ext/win32/bin/flex.exe
-QMAKE_YACC = ../ext/win32/bin/bison.exe
+QMAKE_LEX = $$IN_PWD/../ext/win32/bin/ruby.exe $$IN_PWD/parser/abs-wrapper.rb $$IN_PWD/../ext/win32/bin/flex.exe
+QMAKE_YACC = $$IN_PWD/../ext/win32/bin/ruby.exe $$IN_PWD/parser/abs-wrapper.rb $$IN_PWD/../ext/win32/bin/bison.exe
 QMAKE_YACCFLAGS_MANGLE += -p $base -b $base
 QMAKE_YACC_HEADER = $base.tab.h
 QMAKE_YACC_SOURCE = $base.tab.c

@@ -8,7 +8,7 @@ SOURCES += \
     shaderdb.cpp \
     metainfo.cpp
 
-win32:RUBY=../ext/win32/bin/ruby.exe
+win32:RUBY=$$IN_PWD/../ext/win32/bin/ruby.exe
 !win32:RUBY=ruby
 
 VERSION_SOURCES = ../version
