@@ -30,6 +30,12 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QSettings>
+#include <QTextStream>
+
+#ifdef _WIN32
+#include <QDesktopServices>
+#endif
 
 // #include <GL/glut.h>
 
@@ -48,6 +54,47 @@ public:
   }
 };*/
 
+void findPath(ShaderDB& db, const QString& root, bool add_root = true, const QString& name = "examples") {
+  QDir dir(root);
+  for (int i = 0; i < 5 && dir.exists(); ++i) {
+    if (i == 0 && add_root) db.addPath(root);
+    if (dir.exists(name)) db.addPath(dir.path() + "/" + name);
+    if (!dir.cdUp()) break;
+  }
+}
+
+// If we are developing the application and compiling it with shadow building,
+// it's tricky to try to determine the actual source directory. Let's see if
+// we can parse relevant information from Makefile
+void findSources(ShaderDB& db, const QString& root) {
+  QDir dir(root);
+  QRegExp r("# Project:\\s+([^\\s].+)[\\\\/][^\\\\/]+");
+  for (int i = 0; i < 2 && dir.exists(); ++i) {
+    if (dir.exists("Makefile")) {
+      QFile file(dir.path() + "/Makefile");
+      if (file.open(QFile::ReadOnly | QFile::Text)) {
+        QTextStream in(&file);
+        QString line = in.readLine();
+        for (int j = 0; j < 50 && !line.isNull(); ++j) {
+          if (r.exactMatch(line)) {
+            if (QDir::isRelativePath(r.cap(1))) {
+              findPath(db, dir.path() + "/" + r.cap(1), false);
+            } else {
+              findPath(db, r.cap(1), false);
+            }
+            // Stop at the first match
+            break;
+          }
+          line = in.readLine();
+        }
+      }
+      // Stop at the first Makefile
+      break;
+    }
+    if (!dir.cdUp()) break;
+  }
+}
+
 int main(int argc, char* argv[]) {
 #ifndef _WIN32
   if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {
@@ -55,7 +102,15 @@ int main(int argc, char* argv[]) {
   }
 #endif
 
+#ifdef _WIN32
+  // For installer, do not (un)install running application
+  CreateMutexA(0, false, "ShaderkitGlobalMutex");
+#endif
+
   QApplication app(argc, argv);
+  app.setApplicationName("Shaderkit");
+  app.setApplicationVersion(ShaderKit::STR);
+
   //App app(argc, argv);
   // glutInit(&argc, argv);
   Log log;
@@ -67,19 +122,36 @@ int main(int argc, char* argv[]) {
 
   ShaderDB db;
   {
-    db.addPath(QDir::currentPath());
-    db.addPath(QDir::currentPath() + "/examples");
-    db.addPath(QDir::currentPath() + "/..");
-    db.addPath(QDir::currentPath() + "/../examples");
+    findPath(db, QDir::currentPath());
+    findSources(db, QDir::currentPath());
+
     QDir dir(argv[0]);
     if (dir.cdUp()) {
-      db.addPath(dir.path());
-      db.addPath(dir.path() + "/examples");
-      db.addPath(dir.path() + "/..");
-      db.addPath(dir.path() + "/../examples");
-      db.addPath(dir.path() + "../share/shaderkit/examples");
+      findPath(db, dir.path());
+      findPath(db, dir.path() + "/../share/shaderkit");
+      findSources(db, dir.path());
     }
-    db.addPath(QDir::homePath() + "/.shaderkit/shaderdb", true);
+
+#ifdef _WIN32
+    QSettings settings("HKEY_LOCAL_MACHINE\\Software\\Shaderkit",
+                       QSettings::NativeFormat);
+    QString root = settings.value("Root").toString();
+    if (!root.isEmpty())
+      findPath(db, root);
+#endif
+
+    const char* env = getenv("SHADERKIT_EXAMPLES");
+    if (env && *env)
+      findPath(db, env);
+
+#ifdef _WIN32
+    db.addPath(QDesktopServices::storageLocation(QDesktopServices::DataLocation)
+               + "/shaderdb", true);
+#else
+    // On linux QDesktopServices returns funny ~/.local/share/data -directory,
+    // that seems to be nonstandard and weird
+    db.addPath(QDir::homePath() + "/.local/share/shaderkit/shaderdb", true);
+#endif
   }
 
   ResourceLocator rl;

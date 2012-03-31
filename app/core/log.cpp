@@ -59,6 +59,7 @@ namespace {
         count = 0;
       }
       fprintf(target, "%s%s\n", ts.data(), str.data());
+      fflush(target);
       last = str;
     }
   }

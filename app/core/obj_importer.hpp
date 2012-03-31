@@ -27,7 +27,7 @@
 #include <QSet>
 #include <QVector>
 
-class aiNode;
+struct aiNode;
 
 class ObjImporter {
 public:
