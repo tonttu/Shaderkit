@@ -32,6 +32,8 @@ File.open(output_file, 'w') do |f|
   f.puts "#ifndef VERSION_HPP"
   f.puts "#define VERSION_HPP"
   f.puts
+  f.puts "// This file is also included from app.rc, that doesn't know how to parse namespaces"
+  f.puts "#ifdef __cplusplus"
   f.puts "namespace ShaderKit {"
   f.puts "  static const int MAJOR = #{lst[0]};"
   f.puts "  static const int MINOR = #{lst[1]};"
@@ -41,6 +43,9 @@ File.open(output_file, 'w') do |f|
   f.puts "  static const char* STR = \"#{version}\";"
   f.puts "  static const char* STR_HASH = \"#{hash.empty? ? version : version+'+'+hash}\";"
   f.puts "}"
+  f.puts "#else"
+  f.puts "#define SHADERKIT_VERSION \"#{version}\""
+  f.puts "#endif"
   f.puts ""
   f.puts "#endif"
 end
