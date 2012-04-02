@@ -1,0 +1,14 @@
+Source: shaderkit
+Section: graphics
+Priority: optional
+Maintainer: Riku Palomäki <riku@palomaki.fi>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+Homepage: http://shaderkit.org/
+Vcs-Git: git://github.com/tonttu/Shaderkit.git
+Vcs-Browser: https://github.com/tonttu/Shaderkit
+
+Package: shaderkit
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: OpenGL shader editor

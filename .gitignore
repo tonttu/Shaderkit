@@ -15,6 +15,11 @@ app/*_lex.?pp
 app/*_lex.cpp
 app/*_yacc.cpp
 app/*_yacc.h
+debian/files
+debian/shaderkit.debhelper.log
+debian/shaderkit.postinst.debhelper
+debian/shaderkit.postrm.debhelper
+debian/shaderkit.substvars
 docs
 glsl.output
 glsl.tab.cpp

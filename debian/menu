@@ -1,0 +1,3 @@
+?package(shaderkit):needs="X11" section="Applications/Graphics"\
+  icon="/usr/share/pixmaps/shaderkit.xpm"\
+  title="Shaderkit" command="/usr/bin/shaderkit"
