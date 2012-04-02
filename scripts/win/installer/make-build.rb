@@ -7,7 +7,7 @@ iscc = "C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe"
 root = File.expand_path ARGV.first
 
 Dir.chdir(root) do
-  system "nmake install \"INSTALL_ROOT=#{root}/install\""
+  system "nmake install \"INSTALL_ROOT=#{root.gsub('/', '\\')}\\install\""
 end
 exit $?.exitstatus unless $?.success?
 
