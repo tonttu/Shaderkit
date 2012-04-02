@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Shaderkit
+GenericName=OpenGL Shader Editor
+Comment=Create, edit, view and debug GLSL shaders and OpenGL scenes
+Icon=shaderkit
+TryExec=shaderkit
+Exec=shaderkit %F
+Terminal=false
+MimeType=application/x-shaderkit;application/x-glsl;text/x-glsl-frag;text/x-glsl-es-frag;text/x-glsl-vert;text/x-glsl-es-vert;text/x-glsl-es-geometry;application/x-blender;model/vnd.collada+xml;application/x-3ds;
+Categories=Graphics;
+StartupNotify=true
+X-GNOME-FullName=Shaderkit OpenGL Shader Editor

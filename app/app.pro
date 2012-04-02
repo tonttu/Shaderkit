@@ -165,10 +165,10 @@ RESOURCES += \
 
 INCLUDEPATH += $$OUT_PWD/..
 
-target.path = /bin
+target.path = $$PREFIX/bin
 INSTALLS += target
 
-VERSION = $$cat(../version)
+# VERSION = $$cat(../version)
 
 win32 {
   RC_FILE = app.rc

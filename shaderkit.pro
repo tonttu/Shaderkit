@@ -28,13 +28,33 @@ OTHER_FILES += \
 QMAKE_EXTRA_TARGETS += license
 license.commands = ./update_license.rb -a
 
+QMAKE_EXTRA_TARGETS += update-icons
+update-icons.commands = ./gfx/update-icons.sh
+
 docs.files = COPYING README
-docs.path = /docs
+unix:docs.path = $$PREFIX/share/doc/shaderkit
+!unix:docs.path = $$PREFIX/docs
 
 examples.files = examples/*
-examples.path = /examples
+unix:examples.path = $$PREFIX/share/shaderkit/examples
+!unix:examples.path = $$PREFIX/examples
 
 std.files = std/*
-std.path = /std
+unix:std.path = $$PREFIX/share/shaderkit/std
+!unix:std.path = $$PREFIX/std
+
+unix {
+  desktop.files = shaderkit.desktop
+  desktop.path = $$PREFIX/share/applications
+  INSTALLS += desktop
+
+  icons.files = gfx/icons/*
+  icons.path = $$PREFIX/share/icons/hicolor
+  INSTALLS += icons
+
+  pixmaps.files = gfx/pixmaps/*
+  pixmaps.path = $$PREFIX/share/pixmaps
+  INSTALLS += pixmaps
+}
 
 INSTALLS += docs examples std
