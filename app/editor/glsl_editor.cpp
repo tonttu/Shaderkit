@@ -11,6 +11,7 @@
 #include <QScrollBar>
 #include <QToolTip>
 #include <QMessageBox>
+#include <QFile>
 
 GLSLEditor::GLSLEditor(MultiEditor& me, QWidget* parent, ShaderPtr shader, QTextDocument* doc)
   : QTextEdit(parent), m_multiEditor(me), m_margin(new EditorMargin(this)),

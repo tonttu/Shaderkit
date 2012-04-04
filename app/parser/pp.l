@@ -17,6 +17,7 @@
 
 %{
 #include <cassert>
+#include <algorithm>
 
 #include "parser/glsl_pp.hpp"
 #include "pp_yacc.h"

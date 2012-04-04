@@ -19,6 +19,8 @@
 #include "parser/glsl_pp.hpp"
 #include "pp_lex.hpp"
 
+#include <algorithm>
+
 namespace {
   std::string trim(const std::string& str) {
     const char* sep = " \r\n\t";
