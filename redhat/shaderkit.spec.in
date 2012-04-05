@@ -1,0 +1,45 @@
+Name:           shaderkit
+Version:        VERSION
+Release:        0.1.RELEASE%{?dist}
+Summary:        OpenGL shader editor
+
+License:        GPLv3
+URL:            http://shaderkit.org/
+
+BuildRequires:  qt-devel,gcc-c++,bison,flex,desktop-file-utils
+Requires:       qt
+Source0:        %{name}-%{version}-0.1.RELEASE.tar.gz
+
+%description
+Shaderkit is a cross-platform OpenGL shader editor and development environment.
+It supports real-time editing of GLSL shaders and provides helpful UI to make a
+variety of different 2D and 3D shader effects. See the Features-page for more
+information.
+
+
+%prep
+%setup -q
+
+
+%build
+qmake-qt4 -config release -r PREFIX=/usr
+find -type f -exec touch {} \;
+#make %{?_smp_mflags}
+make
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install INSTALL_ROOT=$RPM_BUILD_ROOT
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications %{buildroot}/%{_datadir}/applications/shaderkit.desktop
+
+
+%files
+%doc README COPYING
+%{_bindir}/*
+%{_datadir}/*
+
+
+%changelog
+* Tue Apr 03 2012 Riku Palomäki <riku@palomaki.fi> - 0.9.0-test0
+- First .spec file
