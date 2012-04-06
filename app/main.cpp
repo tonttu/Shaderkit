@@ -116,8 +116,10 @@ int main(int argc, char* argv[]) {
   Log log;
   Log::info("ShaderKit %s", ShaderKit::STR_HASH);
 
+  QFileInfo bin(QCoreApplication::applicationFilePath());
+
 #ifndef _WIN32
-  SandboxCompiler init(argv[0]);
+  SandboxCompiler init(bin.absoluteFilePath());
 #endif
 
   ShaderDB db;
@@ -125,12 +127,16 @@ int main(int argc, char* argv[]) {
     findPath(db, QDir::currentPath());
     findSources(db, QDir::currentPath());
 
-    QDir dir(argv[0]);
-    if (dir.cdUp()) {
-      findPath(db, dir.path());
-      findPath(db, dir.path() + "/../share/shaderkit");
-      findSources(db, dir.path());
-      app.addLibraryPath(dir.path() + "/../plugins");
+    if (QDir(bin.absolutePath()).exists()) {
+      findPath(db, bin.absolutePath());
+      findPath(db, bin.absolutePath() + "/../share/shaderkit");
+      findSources(db, bin.absolutePath());
+      app.addLibraryPath(bin.absolutePath() + "/../plugins");
+    } else {
+#ifdef INSTALL_PREFIX
+#define TO_STR(s) #s
+      findPath(db, TO_STR(INSTALL_PREFIX)"/share/shaderkit");
+#endif
     }
 
 #ifdef _WIN32

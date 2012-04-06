@@ -24,13 +24,12 @@
 /// @todo implement something on windows too
 class SandboxCompiler {
 public:
-  SandboxCompiler(const char* argv0);
+  SandboxCompiler(const QString& binary);
   ~SandboxCompiler();
 
   static bool check(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
   static void close();
 
-  static void init(const char* argv0);
   static int run(int& argc, char* argv[]);
 
 private:
@@ -39,7 +38,7 @@ private:
   int m_read, m_write;
   pid_t m_pid;
 
-  std::string m_argv0, m_cwd;
+  const QString m_binary;
 
   bool doCheck(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
   bool start();

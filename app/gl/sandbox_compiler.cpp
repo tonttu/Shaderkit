@@ -146,12 +146,8 @@ int readResponse(int fd, double timeout) {
 
 SandboxCompiler* SandboxCompiler::s_instance = 0;
 
-SandboxCompiler::SandboxCompiler(const char* argv0)
-  : m_read(-1), m_write(-1), m_pid(-1), m_argv0(argv0) {
-  char buffer[1024];
-  if (getcwd(buffer, 1024)) {
-    m_cwd = buffer;
-  }
+SandboxCompiler::SandboxCompiler(const QString& binary)
+  : m_read(-1), m_write(-1), m_pid(-1), m_binary(binary) {
   assert(!s_instance);
   s_instance = this;
 }
@@ -228,11 +224,13 @@ bool SandboxCompiler::start() {
     char a[32], b[32];
     sprintf(a, "%d", fd1[0]);
     sprintf(b, "%d", fd2[1]);
-    if (!m_argv0.empty()) chdir(m_argv0.c_str());
-    Log::error("Launching sandbox compiler");
-    execl(m_argv0.c_str(), m_argv0.c_str(), "--sandbox-compiler", a, b, NULL);
+    Log::info("Launching sandbox compiler");
+    execl(m_binary.toUtf8().data(), m_binary.toUtf8().data(), "--sandbox-compiler", a, b, NULL);
+    Log::error("Failed to start the sandbox compiler (%s): %s", m_binary.toUtf8().data(), strerror(errno));
+    Log::info("Trying searching %s from PATH...", QCoreApplication::applicationFilePath().toUtf8().data());
+    execlp(QCoreApplication::applicationFilePath().toUtf8().data(), m_binary.toUtf8().data(), "--sandbox-compiler", a, b, NULL);
     Log::error("Failed to start the sandbox compiler: %s", strerror(errno));
-    abort();
+    exit(1);
   } else {
     ::close(fd1[0]); ::close(fd2[1]);
     m_read = fd2[0];

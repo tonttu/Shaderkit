@@ -168,6 +168,8 @@ INCLUDEPATH += $$OUT_PWD/..
 target.path = $$PREFIX/bin
 INSTALLS += target
 
+!win32:DEFINES += INSTALL_PREFIX=$$PREFIX
+
 # VERSION = $$cat(../version)
 
 win32 {
