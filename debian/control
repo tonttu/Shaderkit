@@ -12,3 +12,10 @@ Package: shaderkit
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: OpenGL shader editor
+
+Package: shaderkit-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: shaderkit (= ${binary:Version}), ${misc:Depends}
+Description: Debugging symbols for shaderkit

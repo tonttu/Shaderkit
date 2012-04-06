@@ -16,6 +16,9 @@ app/*_lex.cpp
 app/*_yacc.cpp
 app/*_yacc.h
 debian/files
+debian/shaderkit-dbg.debhelper.log
+debian/shaderkit-dbg.substvars
+debian/shaderkit-dbg/
 debian/shaderkit.debhelper.log
 debian/shaderkit.postinst.debhelper
 debian/shaderkit.postrm.debhelper
