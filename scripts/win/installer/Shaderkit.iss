@@ -38,6 +38,18 @@ Source: "{#ShaderkitRoot}\examples\*"; DestDir: "{app}\examples"; Flags: ignorev
 Source: "{#QtRoot}\bin\QtCore{#QtSuffix}.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#QtRoot}\bin\QtGui{#QtSuffix}.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#QtRoot}\bin\QtOpenGL{#QtSuffix}.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+;Source: "{#QtRoot}\bin\QtWebKit{#QtSuffix}.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+
+Source: "{#QtRoot}\plugins\imageformats\qgif{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: "{#QtRoot}\plugins\imageformats\qico{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: "{#QtRoot}\plugins\imageformats\qjpeg{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: "{#QtRoot}\plugins\imageformats\qmng{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: "{#QtRoot}\plugins\imageformats\qsvg{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: "{#QtRoot}\plugins\imageformats\qtga{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: "{#QtRoot}\plugins\imageformats\qtiff{#QtSuffix}.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+;Source: "{#QtRoot}\plugins\codecs\*codecs{#QtSuffix}.dll"; DestDir: "{app}\plugins\codecs"; Flags: ignoreversion
+
+Source: "{#VCRedistPath}\{#VCRedist}"; DestDir: "{tmp}"
 
 [Icons]
 Name: "{group}\{#ShaderkitName}"; Filename: "{app}\bin\{#ShaderkitExeName}"
@@ -53,6 +65,19 @@ Root: HKCR; Subkey: "Shaderkit\DefaultIcon"; ValueType: string; ValueName: ""; V
 Root: HKCR; Subkey: "Shaderkit\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\{#ShaderkitExeName}"" ""%1"""; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Shaderkit"; ValueType: string; ValueName: "Root"; ValueData: "{app}"; Flags: uninsdeletekey
 
+[Code]
+function NeedCVRedist(): Boolean;
+var
+  V: Cardinal;
+begin
+  Result := TRUE;
+  if RegQueryDWordValue(HKLM, 'SOFTWARE\Microsoft\VisualStudio\10.0\VC\VCRedist\{#ShaderkitArch}', 'Installed', V) then
+  begin
+    Result := V <> 1;
+  end;
+end;
+
 [Run]
+Filename: "{tmp}\{#VCRedist}"; Parameters: "/passive /showfinalerror"; Check: NeedCVRedist
 Filename: "{app}\bin\{#ShaderkitExeName}"; Description: "{cm:LaunchProgram,{#StringChange(ShaderkitName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 

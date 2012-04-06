@@ -19,7 +19,7 @@ qmake = File.read("#{root}/Makefile").scan(/^QMAKE\s+=\s+(.+)$/)[0][0]
 qt = File.expand_path "#{qmake}/../.."
 x64 = qt.include?('x64')
 
-src = File.expand_path "#{project}/.."
+src = Dir.chdir(root) { File.expand_path "#{project}/.." }
 
 File.open("#{root}/install/local.iss", 'w') do |local|
   local.puts "#define ShaderkitVersion \"#{version}\""
@@ -27,6 +27,9 @@ File.open("#{root}/install/local.iss", 'w') do |local|
   local.puts "#define QtRoot \"#{qt}\""
   local.puts "#define QtSuffix \"#{'d' unless release}4\""
   local.puts "#define ShaderkitArchUI \"#{x64 ? '64' : '32'}-bit\""
+  local.puts "#define ShaderkitArch \"#{x64 ? 'x64' : 'x86'}\""
+  local.puts "#define VCRedistPath \"#{ENV['HOME']}\\Downloads\""
+  local.puts "#define VCRedist \"vcredist_x#{x64 ? '64' : '86'}.exe\""
 end
 
 local = File.expand_path "#{root}/install"

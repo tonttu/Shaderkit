@@ -130,14 +130,17 @@ int main(int argc, char* argv[]) {
       findPath(db, dir.path());
       findPath(db, dir.path() + "/../share/shaderkit");
       findSources(db, dir.path());
+      app.addLibraryPath(dir.path() + "/../plugins");
     }
 
 #ifdef _WIN32
     QSettings settings("HKEY_LOCAL_MACHINE\\Software\\Shaderkit",
                        QSettings::NativeFormat);
     QString root = settings.value("Root").toString();
-    if (!root.isEmpty())
+    if (!root.isEmpty()) {
       findPath(db, root);
+      app.addLibraryPath(root + "/plugins");
+    }
 #endif
 
     const char* env = getenv("SHADERKIT_EXAMPLES");
