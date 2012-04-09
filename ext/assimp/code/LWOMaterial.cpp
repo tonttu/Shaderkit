@@ -1,9 +1,9 @@
 /*
 ---------------------------------------------------------------------------
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 
 All rights reserved.
 
@@ -20,10 +20,10 @@ conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -47,7 +47,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // internal headers
 #include "LWOLoader.h"
-#include "MaterialSystem.h"
 #include "ByteSwap.h"
 
 using namespace Assimp;
@@ -82,7 +81,7 @@ inline aiTextureMapMode GetMapMode(LWO::Texture::Wrap in)
 }
 
 // ------------------------------------------------------------------------------------------------
-bool LWOImporter::HandleTextures(MaterialHelper* pcMat, const TextureList& in, aiTextureType type)
+bool LWOImporter::HandleTextures(aiMaterial* pcMat, const TextureList& in, aiTextureType type)
 {
 	ai_assert(NULL != pcMat);
 
@@ -265,7 +264,7 @@ bool LWOImporter::HandleTextures(MaterialHelper* pcMat, const TextureList& in, a
 }
 
 // ------------------------------------------------------------------------------------------------
-void LWOImporter::ConvertMaterial(const LWO::Surface& surf,MaterialHelper* pcMat)
+void LWOImporter::ConvertMaterial(const LWO::Surface& surf,aiMaterial* pcMat)
 {
 	// copy the name of the surface
 	aiString st;
@@ -376,7 +375,7 @@ void LWOImporter::ConvertMaterial(const LWO::Surface& surf,MaterialHelper* pcMat
 
 // ------------------------------------------------------------------------------------------------
 char LWOImporter::FindUVChannels(LWO::TextureList& list,
-	LWO::Layer& layer,LWO::UVChannel& uv, unsigned int next)
+	LWO::Layer& /*layer*/,LWO::UVChannel& uv, unsigned int next)
 {
 	char ret = 0;
 	for (TextureList::iterator it = list.begin(), end = list.end();it != end;++it)	{
@@ -562,7 +561,7 @@ void LWOImporter::LoadLWO2ImageMap(unsigned int size, LWO::Texture& tex )
 }
 
 // ------------------------------------------------------------------------------------------------
-void LWOImporter::LoadLWO2Procedural(unsigned int size, LWO::Texture& tex )
+void LWOImporter::LoadLWO2Procedural(unsigned int /*size*/, LWO::Texture& tex )
 {
 	// --- not supported at the moment
 	DefaultLogger::get()->error("LWO2: Found procedural texture, this is not supported");
@@ -570,7 +569,7 @@ void LWOImporter::LoadLWO2Procedural(unsigned int size, LWO::Texture& tex )
 }
 
 // ------------------------------------------------------------------------------------------------
-void LWOImporter::LoadLWO2Gradient(unsigned int size, LWO::Texture& tex  )
+void LWOImporter::LoadLWO2Gradient(unsigned int /*size*/, LWO::Texture& tex  )
 {
 	// --- not supported at the moment
 	DefaultLogger::get()->error("LWO2: Found gradient texture, this is not supported");
@@ -675,7 +674,7 @@ void LWOImporter::LoadLWO2TextureBlock(LE_NCONST IFF::SubChunkHeader* head, unsi
 }
 
 // ------------------------------------------------------------------------------------------------
-void LWOImporter::LoadLWO2ShaderBlock(LE_NCONST IFF::SubChunkHeader* head, unsigned int size )
+void LWOImporter::LoadLWO2ShaderBlock(LE_NCONST IFF::SubChunkHeader* /*head*/, unsigned int size )
 {
 	LE_NCONST uint8_t* const end = mFileBuffer + size;
 

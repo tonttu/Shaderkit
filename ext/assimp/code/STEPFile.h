@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <typeinfo>
 
 //
-#if _MSC_VER >= 1500 || (defined __GNUC___)
+#if _MSC_VER > 1500 || (defined __GNUC___)
 #	define ASSIMP_STEP_USE_UNORDERED_MULTIMAP
 #	else
 #	define step_unordered_map map
@@ -281,8 +281,8 @@ namespace STEP {
 		};
 
 		typedef PrimitiveDataType<int64_t>			INTEGER; 
-		typedef PrimitiveDataType<float>			REAL; 
-		typedef PrimitiveDataType<float>			NUMBER; 
+		typedef PrimitiveDataType<double>			REAL; 
+		typedef PrimitiveDataType<double>			NUMBER; 
 		typedef PrimitiveDataType<std::string>		STRING; 
 		
 
@@ -683,6 +683,10 @@ namespace STEP {
 		typedef Lazy Out;
 		Lazy(const LazyObject* obj = NULL) : obj(obj) {
 		}
+
+		operator const T*() const {
+			return obj->ToPtr<T>();
+		}
 		
 		operator const T&() const {
 			return obj->To<T>();
@@ -732,7 +736,7 @@ namespace STEP {
 	// ------------------------------------------------------------------------------
 	template <typename T>
 	struct InternGenericConvert {
-		void operator()(T& out, const boost::shared_ptr< const EXPRESS::DataType >& in, const STEP::DB& db) {
+		void operator()(T& out, const boost::shared_ptr< const EXPRESS::DataType >& in, const STEP::DB& /*db*/) {
 			try{
 				out = dynamic_cast< const typename PickBaseType<T>::Type& > ( *in );
 			}
@@ -744,7 +748,7 @@ namespace STEP {
 
 	template <>
 	struct InternGenericConvert< boost::shared_ptr< const EXPRESS::DataType > > {
-		void operator()(boost::shared_ptr< const EXPRESS::DataType >& out, const boost::shared_ptr< const EXPRESS::DataType >& in, const STEP::DB& db) {
+		void operator()(boost::shared_ptr< const EXPRESS::DataType >& out, const boost::shared_ptr< const EXPRESS::DataType >& in, const STEP::DB& /*db*/) {
 			out = in;
 		}
 	};

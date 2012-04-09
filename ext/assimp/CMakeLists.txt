@@ -17,6 +17,8 @@ set(CPACK_COMPONENTS_ALL assimp-bin libassimp${ASSIMP_VERSION_MAJOR} assimp-dev)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   add_definitions(-fPIC) # this is a very important switch and some libraries seem now to have it....
+  ## hide all not-exported symbols
+  add_definitions( -fvisibility=hidden )
 endif()
 
 INCLUDE (FindPkgConfig)
@@ -28,6 +30,7 @@ INCLUDE_DIRECTORIES( include )
 # directory, since that is probably what the user wanted to avoid.
 IF ( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR )
 	SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib )
+	SET( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib )
 	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin )
 ENDIF ( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR )
 
@@ -39,9 +42,16 @@ SET( INCLUDE_INSTALL_DIR "include" CACHE PATH
 SET( BIN_INSTALL_DIR "bin" CACHE PATH
 	"Path the tool executables are installed to." )
 
+SET(DEBUG_POSTFIX "D" CACHE STRING "Debug Postfitx for lib, samples and tools")
+
 # Generate a pkg-config .pc for the Assimp library.
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/assimp.pc.in" "${PROJECT_BINARY_DIR}/assimp.pc" @ONLY )
 INSTALL( FILES "${PROJECT_BINARY_DIR}/assimp.pc" DESTINATION ${LIB_INSTALL_DIR}/pkgconfig/ COMPONENT assimp-dev)
+
+# Allow the user to build a static library
+SET ( BUILD_STATIC_LIB OFF CACHE BOOL
+	"Build a static (.a) version of the library"
+)
 
 # Globally enbale Boost resp. the Boost workaround – it is also needed by the
 # tools which include the Assimp headers.
@@ -54,8 +64,8 @@ IF ( ENABLE_BOOST_WORKAROUND )
 	MESSAGE( STATUS "Building a non-boost version of Assimp." )
 ELSE ( ENABLE_BOOST_WORKAROUND )
 	SET( Boost_DETAILED_FAILURE_MSG ON )
-	FIND_PACKAGE( Boost 1.35 )
-
+	SET( Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48.0" "1.48" "1.49" "1.49.0")	
+	FIND_PACKAGE( Boost )
 	IF ( NOT Boost_FOUND )
 		MESSAGE( FATAL_ERROR
 			"Boost libraries (http://www.boost.org/) not found. "
@@ -100,6 +110,26 @@ IF ( NO_EXPORT )
 	MESSAGE( STATUS "Build an import-only version of Assimp." )
 ENDIF( NO_EXPORT )
 
+
+SET ( ASSIMP_BUILD_ARCHITECTURE "" CACHE STRING 
+	"describe the current architecture."
+)
+IF    ( ASSIMP_BUILD_ARCHITECTURE STREQUAL "")
+ELSE  ( ASSIMP_BUILD_ARCHITECTURE STREQUAL "")
+	ADD_DEFINITIONS ( -D'ASSIMP_BUILD_ARCHITECTURE="${ASSIMP_BUILD_ARCHITECTURE}"' )
+ENDIF ( ASSIMP_BUILD_ARCHITECTURE STREQUAL "")
+
+SET ( ASSIMP_BUILD_COMPILER "" CACHE STRING 
+	"describe the current compiler."
+)
+IF    ( ASSIMP_BUILD_COMPILER STREQUAL "")
+ELSE  ( ASSIMP_BUILD_COMPILER STREQUAL "")
+	ADD_DEFINITIONS ( -D'ASSIMP_BUILD_COMPILER="${ASSIMP_BUILD_COMPILER}"' )
+ENDIF ( ASSIMP_BUILD_COMPILER STREQUAL "")
+
+MARK_AS_ADVANCED ( ASSIMP_BUILD_ARCHITECTURE ASSIMP_BUILD_COMPILER )
+
+
 ADD_SUBDIRECTORY( code/ )
 SET ( BUILD_ASSIMP_TOOLS ON CACHE BOOL
 	"If the supplementary tools for Assimp are built in addition to the library."
@@ -107,11 +137,20 @@ SET ( BUILD_ASSIMP_TOOLS ON CACHE BOOL
 IF ( BUILD_ASSIMP_TOOLS )
 	IF ( WIN32 )
 		ADD_SUBDIRECTORY( tools/assimp_view/ )
-		ADD_SUBDIRECTORY( samples/SimpleOpenGL/ )
-		ADD_SUBDIRECTORY( samples/SimpleTexturedOpenGL/ )
 	ENDIF ( WIN32 )
 	ADD_SUBDIRECTORY( tools/assimp_cmd/ )
 ENDIF ( BUILD_ASSIMP_TOOLS )
+
+SET ( BUILD_ASSIMP_SAMPLES ON CACHE BOOL
+	"If the official samples are built as well (needs Glut)."
+)
+
+IF ( BUILD_ASSIMP_SAMPLES)
+	IF ( WIN32 )
+		ADD_SUBDIRECTORY( samples/SimpleTexturedOpenGL/ )
+	ENDIF ( WIN32 )
+	ADD_SUBDIRECTORY( samples/SimpleOpenGL/ )
+ENDIF ( BUILD_ASSIMP_SAMPLES )
 
 SET ( BUILD_TESTS OFF CACHE BOOL
 	"If the test suite for Assimp is built in addition to the library."

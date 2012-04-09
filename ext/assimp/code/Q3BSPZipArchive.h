@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2008, ASSIMP Development Team
+Copyright (c) 2006-2008, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -40,9 +40,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_Q3BSP_ZIPARCHIVE_H_INC
 #define AI_Q3BSP_ZIPARCHIVE_H_INC
 
-#include "unzip.h"
-#include "../include/IOStream.h"
-#include "../include/IOSystem.h"
+#include "../contrib/unzip/unzip.h"
+#include "../include/assimp/IOStream.hpp"
+#include "../include/assimp/IOSystem.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -93,18 +93,19 @@ public:
 			// you need to mark the last character with '\0', so add 
 			// another character
 			unzOpenCurrentFile( m_zipFile );
-			bytes_read = unzReadCurrentFile( m_zipFile, pvBuffer, fileInfo.uncompressed_size);
+			const int ret = unzReadCurrentFile( m_zipFile, pvBuffer, fileInfo.uncompressed_size);
 			size_t filesize = fileInfo.uncompressed_size;
-			if ( bytes_read < 0 || bytes_read != filesize )
+			if ( ret < 0 || size_t(ret) != filesize )
 			{
 				return 0;
 			}
+			bytes_read = ret;
 			unzCloseCurrentFile( m_zipFile );
 		}
 		return bytes_read;
 	}
 
-    size_t Write(const void* pvBuffer, size_t pSize, size_t pCount)
+	size_t Write(const void* /*pvBuffer*/, size_t /*pSize*/, size_t /*pCount*/)
 	{
 		return 0;
 	}
@@ -122,7 +123,7 @@ public:
 		return 0;
 	}
 
-	aiReturn Seek(size_t pOffset, aiOrigin pOrigin) 
+	aiReturn Seek(size_t /*pOffset*/, aiOrigin /*pOrigin*/)
 	{
 		return aiReturn_FAILURE;
 	}

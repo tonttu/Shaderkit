@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -376,7 +376,7 @@ template <>  struct Structure :: _defaultInitializer<ErrorPolicy_Warn> {
 template <> struct Structure :: _defaultInitializer<ErrorPolicy_Fail> {
 
 	template <typename T>
-	void operator ()(T& out,const char* = "") {
+	void operator ()(T& /*out*/,const char* = "") {
 		// obviously, it is crucial that _DefaultInitializer is used 
 		// only from within a catch clause.
 		throw;
@@ -681,7 +681,7 @@ public:
 
 	ObjectCache(const FileDatabase&) {}
 
-	template <typename T> void get(const Structure&, vector<T>&t, const Pointer&) {}
+	template <typename T> void get(const Structure&, vector<T>&, const Pointer&) {}
 	template <typename T> void set(const Structure&, const vector<T>&, const Pointer&) {}
 };
 
@@ -727,12 +727,12 @@ public:
 	// arrays of objects are never cached because we can't easily 
 	// ensure their proper destruction.
 	template <typename T>
-	ObjectCache<boost::shared_ptr>& cache(boost::shared_ptr<T>& in) const {
+	ObjectCache<boost::shared_ptr>& cache(boost::shared_ptr<T>& /*in*/) const {
 		return _cache;
 	}
 
 	template <typename T>
-	ObjectCache<vector>& cache(vector<T>& in) const {
+	ObjectCache<vector>& cache(vector<T>& /*in*/) const {
 		return _cacheArrays;
 	}
 

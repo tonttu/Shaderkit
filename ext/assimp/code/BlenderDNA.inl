@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -348,7 +348,7 @@ void Structure :: ResolvePointer(TOUT<T>& out, const Pointer & ptrval, const Fil
 }
 
 //--------------------------------------------------------------------------------
-inline void Structure :: ResolvePointer( boost::shared_ptr< FileOffset >& out, const Pointer & ptrval, const FileDatabase& db, const Field& f) const
+inline void Structure :: ResolvePointer( boost::shared_ptr< FileOffset >& out, const Pointer & ptrval, const FileDatabase& db, const Field& /*f*/) const
 {
 	// Currently used exclusively by PackedFile::data to represent
 	// a simple offset into the mapped BLEND file. 
@@ -402,7 +402,7 @@ void Structure :: ResolvePointer(vector< TOUT<T> >& out, const Pointer & ptrval,
 template <> void Structure :: ResolvePointer<boost::shared_ptr,ElemBase>(boost::shared_ptr<ElemBase>& out, 
 	const Pointer & ptrval, 
 	const FileDatabase& db, 
-	const Field& f
+	const Field& /*f*/
 ) const 
 {
 	// Special case when the data type needs to be determined at runtime.

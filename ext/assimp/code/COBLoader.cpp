@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -108,7 +108,7 @@ void COBImporter::GetExtensionList(std::set<std::string>& app)
 
 // ------------------------------------------------------------------------------------------------
 // Setup configuration properties for the loader
-void COBImporter::SetupProperties(const Importer* pImp)
+void COBImporter::SetupProperties(const Importer* /*pImp*/)
 {
 	// nothing to be done for the moment
 }
@@ -207,7 +207,7 @@ void COBImporter::InternReadFile( const std::string& pFile,
 }
 
 // ------------------------------------------------------------------------------------------------
-void ConvertTexture(boost::shared_ptr< Texture > tex, MaterialHelper* out, aiTextureType type)
+void ConvertTexture(boost::shared_ptr< Texture > tex, aiMaterial* out, aiTextureType type)
 {
 	const aiString path( tex->path );
 	out->AddProperty(&path,AI_MATKEY_TEXTURE(type,0));
@@ -286,7 +286,7 @@ aiNode* COBImporter::BuildNodes(const Node& root,const Scene& scin,aiScene* fill
 						defmat.reset(min=new Material());
 					}
 
-					MaterialHelper* mat = new MaterialHelper();
+					aiMaterial* mat = new aiMaterial();
 					fill->mMaterials[fill->mNumMaterials++] = mat;
 
 					const aiString s(format("#mat_")<<fill->mNumMeshes<<"_"<<min->matnum);
@@ -387,7 +387,7 @@ void COBImporter::ReadAsciiFile(Scene& out, StreamReaderLE* stream)
 	ChunkInfo ci;
 	for(LineSplitter splitter(*stream);splitter;++splitter) {
 
-		// add all chunks to be recognized here. /else ../ ommitted intentionally.
+		// add all chunks to be recognized here. /else ../ omitted intentionally.
 		if (splitter.match_start("PolH ")) {
 			ReadChunkInfo_Ascii(ci,splitter);
 			ReadPolH_Ascii(out,splitter,ci);
@@ -505,7 +505,7 @@ void COBImporter::LogDebug_Ascii(const Formatter::format& message)	{
 }
 
 // ------------------------------------------------------------------------------------------------
-void COBImporter::ReadBasicNodeInfo_Ascii(Node& msh, LineSplitter& splitter, const ChunkInfo& nfo)
+void COBImporter::ReadBasicNodeInfo_Ascii(Node& msh, LineSplitter& splitter, const ChunkInfo& /*nfo*/)
 {
 	for(;splitter;++splitter) {
 		if (splitter.match_start("Name")) {
@@ -639,7 +639,7 @@ void COBImporter::ReadUnit_Ascii(Scene& out, LineSplitter& splitter, const Chunk
 }
 
 // ------------------------------------------------------------------------------------------------
-void COBImporter::ReadChan_Ascii(Scene& out, LineSplitter& splitter, const ChunkInfo& nfo)
+void COBImporter::ReadChan_Ascii(Scene& /*out*/, LineSplitter& splitter, const ChunkInfo& nfo)
 {
 	if(nfo.version > 8) {
 		return UnsupportedChunk_Ascii(splitter,nfo,"Chan");
@@ -850,7 +850,7 @@ void COBImporter::ReadPolH_Ascii(Scene& out, LineSplitter& splitter, const Chunk
 }
 
 // ------------------------------------------------------------------------------------------------
-void COBImporter::ReadBitM_Ascii(Scene& out, LineSplitter& splitter, const ChunkInfo& nfo)
+void COBImporter::ReadBitM_Ascii(Scene& /*out*/, LineSplitter& splitter, const ChunkInfo& nfo)
 {
 	if(nfo.version > 1) {
 		return UnsupportedChunk_Ascii(splitter,nfo,"BitM");
@@ -886,7 +886,7 @@ void COBImporter::ReadString_Binary(std::string& out, StreamReaderLE& reader)
 }
 
 // ------------------------------------------------------------------------------------------------
-void COBImporter::ReadBasicNodeInfo_Binary(Node& msh, StreamReaderLE& reader, const ChunkInfo& nfo)
+void COBImporter::ReadBasicNodeInfo_Binary(Node& msh, StreamReaderLE& reader, const ChunkInfo& /*nfo*/)
 {
 	const unsigned int dupes = reader.GetI2();
 	ReadString_Binary(msh.name,reader);
@@ -1077,7 +1077,7 @@ void COBImporter::ReadPolH_Binary(COB::Scene& out, StreamReaderLE& reader, const
 }
 
 // ------------------------------------------------------------------------------------------------
-void COBImporter::ReadBitM_Binary(COB::Scene& out, StreamReaderLE& reader, const ChunkInfo& nfo)
+void COBImporter::ReadBitM_Binary(COB::Scene& /*out*/, StreamReaderLE& reader, const ChunkInfo& nfo)
 {
 	if(nfo.version > 1) {
 		return UnsupportedChunk_Binary(reader,nfo,"BitM");

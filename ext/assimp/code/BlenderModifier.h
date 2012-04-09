@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -64,7 +64,7 @@ public:
 
 	// --------------------
 	/** Check if *this* modifier is active, given a ModifierData& block.*/
-	virtual bool IsActive( const ModifierData& modin) {
+	virtual bool IsActive( const ModifierData& /*modin*/) {
 		return false;
 	}
 
@@ -72,11 +72,11 @@ public:
 	/** Apply the modifier to a given output node. The original data used
 	 *  to construct the node is given as well. Not called unless IsActive()
 	 *  was called and gave positive response. */
-	virtual void DoIt(aiNode& out, 
-		ConversionData& conv_data,  
+	virtual void DoIt(aiNode& /*out*/,
+		ConversionData& /*conv_data*/,
 		const ElemBase& orig_modifier, 
-		const Scene& in, 
-		const Object& orig_object 
+		const Scene& /*in*/,
+		const Object& /*orig_object*/
 	) {
 		DefaultLogger::get()->warn((Formatter::format("This modifier is not supported, skipping: "),orig_modifier.dna_type));
 		return;

@@ -1,8 +1,8 @@
 /*
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms, 
@@ -18,10 +18,10 @@ following conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -74,7 +74,7 @@ public:
 
 	// -------------------------------------------------------------------
 	// Write to stream
-    size_t Write(const void* pvBuffer, size_t pSize,size_t pCount)	{
+	size_t Write(const void* /*pvBuffer*/, size_t /*pSize*/,size_t /*pCount*/)	{
 		ai_assert(false); // won't be needed
 		return 0;
 	}
@@ -154,7 +154,7 @@ public:
 
 	// -------------------------------------------------------------------
 	/** Open a new file with a given path. */
-	IOStream* Open( const char* pFile, const char* pMode = "rb") {
+	IOStream* Open( const char* pFile, const char* /*pMode*/ = "rb") {
 		if (strncmp(pFile,AI_MEMORYIO_MAGIC_FILENAME,AI_MEMORYIO_MAGIC_FILENAME_LENGTH)) {
 			return NULL;
 		}
@@ -163,12 +163,12 @@ public:
 
 	// -------------------------------------------------------------------
 	/** Closes the given file and releases all resources associated with it. */
-	void Close( IOStream* pFile) {
+	void Close( IOStream* /*pFile*/) {
 	}
 
 	// -------------------------------------------------------------------
 	/** Compare two paths */
-	bool ComparePaths (const char* one, const char* second) const {
+	bool ComparePaths (const char* /*one*/, const char* /*second*/) const {
 		return false;
 	}
 

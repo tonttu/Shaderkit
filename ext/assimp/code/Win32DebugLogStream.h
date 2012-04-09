@@ -3,8 +3,8 @@
 
 #ifdef WIN32
 
-#include "../include/LogStream.h"
-#include "Windows.h"
+#include "../include/assimp/LogStream.hpp"
+#include "windows.h"
 
 namespace Assimp	{
 

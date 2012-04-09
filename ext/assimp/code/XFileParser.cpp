@@ -1,9 +1,9 @@
 /*
 ---------------------------------------------------------------------------
-Open Asset Import Library (ASSIMP)
+Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2010, ASSIMP Development Team
+Copyright (c) 2006-2012, assimp team
 
 All rights reserved.
 
@@ -20,10 +20,10 @@ conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the ASSIMP team, nor the names of its
+* Neither the name of the assimp team, nor the names of its
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the ASSIMP Development Team.
+  written permission of the assimp team.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -200,10 +200,6 @@ XFileParser::XFileParser( const std::vector<char>& pBuffer)
 			// and advance to the next offset
 			P1 += ofs;
 			est_out += MSZIP_BLOCK; // one decompressed block is 32786 in size
-
-			// this block would continue past the file end, abort
-			if (P1 > End)
-				throw DeadlyImportError("X: Unexpected end of file while uncompressing");
 		}
 		
 		// Allocate storage and terminating zero and do the actual uncompressing
@@ -1372,7 +1368,7 @@ float XFileParser::ReadFloat()
 	}
 
 	float result = 0.0f;
-	P = fast_atof_move( P, result);
+	P = fast_atoreal_move<float>( P, result);
 
 	CheckForSeparator();
 
@@ -1445,7 +1441,7 @@ void XFileParser::FilterHierarchy( XFile::Node* pNode)
 	// if the node has just a single unnamed child containing a mesh, remove
 	// the anonymous node inbetween. The 3DSMax kwXport plugin seems to produce this
 	// mess in some cases
-	if( pNode->mChildren.size() == 1)
+	if( pNode->mChildren.size() == 1 && pNode->mMeshes.empty() )
 	{
 		XFile::Node* child = pNode->mChildren.front();
 		if( child->mName.length() == 0 && child->mMeshes.size() > 0)
@@ -1454,6 +1450,9 @@ void XFileParser::FilterHierarchy( XFile::Node* pNode)
 			for( unsigned int a = 0; a < child->mMeshes.size(); a++)
 				pNode->mMeshes.push_back( child->mMeshes[a]);
 			child->mMeshes.clear();
+
+			// transfer the transform as well
+			pNode->mTrafoMatrix = pNode->mTrafoMatrix * child->mTrafoMatrix;
 
 			// then kill it
 			delete child;
