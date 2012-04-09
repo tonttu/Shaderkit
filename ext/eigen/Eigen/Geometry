@@ -13,11 +13,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#ifdef EIGEN_QT_SUPPORT
-#include <QMatrix>
-#include <QTransform>
-#endif
-
 namespace Eigen {
 
 /** \defgroup Geometry_Module Geometry module

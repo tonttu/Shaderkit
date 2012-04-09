@@ -569,7 +569,7 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
               "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
               "Use the ColPivHouseholderQR preconditioner instead.");
   }
-  m_diagSize = std::min(m_rows, m_cols);
+  m_diagSize = (std::min)(m_rows, m_cols);
   m_singularValues.resize(m_diagSize);
   m_matrixU.resize(m_rows, m_computeFullU ? m_rows
                           : m_computeThinU ? m_diagSize
@@ -589,6 +589,9 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   // currently we stop when we reach precision 2*epsilon as the last bit of precision can require an unreasonable number of iterations,
   // only worsening the precision of U and V as we accumulate more rotations
   const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();
+
+  // limit for very small denormal numbers to be considered zero in order to avoid infinite loops (see bug 286)
+  const RealScalar considerAsZero = RealScalar(2) * std::numeric_limits<RealScalar>::denorm_min();
 
   /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */
 
@@ -617,10 +620,11 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
       {
         // if this 2x2 sub-matrix is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
-        // keep us iterating forever.
+        // keep us iterating forever. Similarly, small denormal numbers are considered zero.
         using std::max;
-        if(max(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p)))
-            > max(internal::abs(m_workMatrix.coeff(p,p)),internal::abs(m_workMatrix.coeff(q,q)))*precision)
+        RealScalar threshold = (max)(considerAsZero, precision * (max)(internal::abs(m_workMatrix.coeff(p,p)),
+                                                                       internal::abs(m_workMatrix.coeff(q,q))));
+        if((max)(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p))) > threshold)
         {
           finished = false;
 
@@ -689,7 +693,7 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
     // A = U S V^*
     // So A^{-1} = V S^{-1} U^*
 
-    Index diagSize = std::min(dec().rows(), dec().cols());
+    Index diagSize = (std::min)(dec().rows(), dec().cols());
     typename JacobiSVDType::SingularValuesType invertedSingVals(diagSize);
 
     Index nonzeroSingVals = dec().nonzeroSingularValues();
@@ -704,6 +708,13 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
 };
 } // end namespace internal
 
+/** \svd_module
+  *
+  * \return the singular value decomposition of \c *this computed by two-sided
+  * Jacobi transformations.
+  *
+  * \sa class JacobiSVD
+  */
 template<typename Derived>
 JacobiSVD<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const

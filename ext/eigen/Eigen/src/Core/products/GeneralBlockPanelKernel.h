@@ -30,19 +30,16 @@ namespace internal {
 template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
 class gebp_traits;
 
+inline std::ptrdiff_t manage_caching_sizes_second_if_negative(std::ptrdiff_t a, std::ptrdiff_t b)
+{
+  return a<=0 ? b : a;
+}
+
 /** \internal */
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdiff_t* l2=0)
 {
-  static std::ptrdiff_t m_l1CacheSize = 0;
-  static std::ptrdiff_t m_l2CacheSize = 0;
-  if(m_l1CacheSize==0)
-  {
-    m_l1CacheSize = queryL1CacheSize();
-    m_l2CacheSize = queryTopLevelCacheSize();
-
-    if(m_l1CacheSize<=0) m_l1CacheSize = 8 * 1024;
-    if(m_l2CacheSize<=0) m_l2CacheSize = 1 * 1024 * 1024;
-  }
+  static std::ptrdiff_t m_l1CacheSize = manage_caching_sizes_second_if_negative(queryL1CacheSize(),8 * 1024);
+  static std::ptrdiff_t m_l2CacheSize = manage_caching_sizes_second_if_negative(queryTopLevelCacheSize(),1*1024*1024);
 
   if(action==SetAction)
   {
@@ -81,6 +78,7 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdi
 template<typename LhsScalar, typename RhsScalar, int KcFactor>
 void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrdiff_t& n)
 {
+  EIGEN_UNUSED_VARIABLE(n);
   // Explanations:
   // Let's recall the product algorithms form kc x nc horizontal panels B' on the rhs and
   // mc x kc blocks A' on the lhs. A' has to fit into L2 cache. Moreover, B' is processed
@@ -102,7 +100,6 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   k = std::min<std::ptrdiff_t>(k, l1/kdiv);
   std::ptrdiff_t _m = k>0 ? l2/(4 * sizeof(LhsScalar) * k) : 0;
   if(_m<m) m = _m & mr_mask;
-  n = n;
 }
 
 template<typename LhsScalar, typename RhsScalar>
@@ -118,14 +115,14 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
   // FIXME (a bit overkill maybe ?)
 
   template<typename CJ, typename A, typename B, typename C, typename T> struct gebp_madd_selector {
-    EIGEN_STRONG_INLINE EIGEN_ALWAYS_INLINE_ATTRIB static void run(const CJ& cj, A& a, B& b, C& c, T& /*t*/)
+    EIGEN_ALWAYS_INLINE static void run(const CJ& cj, A& a, B& b, C& c, T& /*t*/)
     {
       c = cj.pmadd(a,b,c);
     }
   };
 
   template<typename CJ, typename T> struct gebp_madd_selector<CJ,T,T,T,T> {
-    EIGEN_STRONG_INLINE EIGEN_ALWAYS_INLINE_ATTRIB static void run(const CJ& cj, T& a, T& b, T& c, T& t)
+    EIGEN_ALWAYS_INLINE static void run(const CJ& cj, T& a, T& b, T& c, T& t)
     {
       t = b; t = cj.pmul(a,t); c = padd(c,t);
     }

@@ -189,7 +189,7 @@ public:
     *
     * \note If \a other is approximately parallel to *this, this method will return any point on *this.
     */
-  VectorType intersection(const Hyperplane& other)
+  VectorType intersection(const Hyperplane& other) const
   {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2)
     Scalar det = coeffs().coeff(0) * other.coeffs().coeff(1) - coeffs().coeff(1) * other.coeffs().coeff(0);
@@ -225,7 +225,7 @@ public:
       normal() = mat * normal();
     else
     {
-      eigen_assert("invalid traits value in Hyperplane::transform()");
+      eigen_assert(0 && "invalid traits value in Hyperplane::transform()");
     }
     return *this;
   }
