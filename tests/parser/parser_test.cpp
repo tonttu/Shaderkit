@@ -5,6 +5,7 @@
 #include <QStringList>
 
 #include <fcntl.h>
+#include <unistd.h>
 
 void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ") {
   for (auto it = v.children.begin(); it != v.children.end(); ++it) {

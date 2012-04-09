@@ -20,7 +20,7 @@
 
 #include "forward.hpp"
 
-#include "assimp.hpp"
+#include "assimp/Importer.hpp"
 
 #include <QString>
 #include <QMap>

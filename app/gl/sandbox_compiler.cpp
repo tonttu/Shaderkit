@@ -32,6 +32,8 @@
 #include <cassert>
 #include <cstring>
 
+#include <unistd.h>
+
 namespace {
 
 struct Header {
