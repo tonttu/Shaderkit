@@ -121,6 +121,40 @@ public:
   void setUniform(GLint loc, const Eigen::Vector3f& v) { glRun(glUniform3fv(loc, 1, v.data())); }
   void setUniform(GLint loc, const Eigen::Vector4f& v) { glRun(glUniform4fv(loc, 1, v.data())); }
 
+  void setUniform(GLint loc, const Eigen::Projective3f& m) { glRun(glUniformMatrix4fv(loc, 1, false, m.data())); }
+  void setUniform(GLint loc, const Eigen::Affine3f& m) { glRun(glUniformMatrix3fv(loc, 1, false, m.data())); }
+
+  template <typename T>
+  void setUniform(State* state, QString name, int vector_dimension, const T& t, bool restore = false) {
+    glCheck("setUniform");
+    GLint prog = 0;
+    glRun(glGetIntegerv(GL_CURRENT_PROGRAM, &prog));
+    if (!prog != m_prog)
+      bind(state);
+
+    GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
+    if(loc == -1) {
+      //Log::error("Failed to query uniform variable %s location", name.toAscii().data());
+    } else {
+      setUniform(loc, vector_dimension, t);
+    }
+
+    // restore the old state
+    if (restore && prog != (GLint)m_prog)
+      glRun(glUseProgram(prog));
+  }
+
+  void setUniform(GLint loc, int vector_dimension, const std::vector<float>& v) {
+    if (vector_dimension == 1)
+      glUniform1fv(loc, v.size(), v.data());
+    else if (vector_dimension == 2)
+      glUniform2fv(loc, v.size()/2, v.data());
+    else if (vector_dimension == 3)
+      glUniform3fv(loc, v.size()/3, v.data());
+    else if (vector_dimension == 4)
+      glUniform4fv(loc, v.size()/4, v.data());
+    else assert(false);
+  }
 
   /// Restore the uniform state stored in list.
   void setUniform(UniformVar::List list, bool relocate = true);

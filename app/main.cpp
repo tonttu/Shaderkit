@@ -315,6 +315,7 @@ int main(int argc, char* argv[]) {
         w->import(i);
       }
 
+      MainWindow::instance().openScene(scene);
       app.exec();
     }
 

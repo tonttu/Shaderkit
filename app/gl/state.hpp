@@ -97,6 +97,9 @@ public:
 
   unsigned int pickingQuery();
 
+  void applyAutoUniforms();
+  void setUniform(GLProgram& prog, const QString& name, const Eigen::Affine3f& m);
+
 protected:
   struct Data {
     QMap<QPair<void*, QString>, int> m_texunits;

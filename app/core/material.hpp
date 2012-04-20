@@ -26,8 +26,52 @@
 #include "gl/uniform.hpp"
 #include "gl/scene_object.hpp"
 
-#include <QVector3D>
 #include <QString>
+
+/**
+ * This is used to make a mapping between uniform variables / attributes
+ * and Shaderkit variables. This class doesn't hold the uniform / attribute name,
+ * only the part that exactly defines one Shaderkit variable.
+ *
+ * For example the configuration file could have:
+ * "uniforms" : {
+ *   "color" : {
+ *     "map" : "material.diffuse"
+ *   }
+ * }
+ * that would mean that the uniform variable named color is automatically
+ * set to active Material::Colors::diffuse.
+ */
+class MappableValue {
+public:
+  MappableValue(const QString& src, const QString& var, int index, const QString& selection);
+  MappableValue() : m_index(-1) {}
+
+  /// Variable category, for example "camera" or "material"
+  /// This is the name before .
+  const QString& src() const { return m_src; }
+
+  /// Variable name, for example "diffuse"
+  /// This is the name after .
+  const QString& var() const { return m_var; }
+
+  /// When using syntax "light[2].location", this is the index of the category
+  /// (2 in the example). Normally this is just -1
+  int index() const { return m_index; }
+
+  /// It's possible to use GLSL-like one to four component selection syntax
+  /// For example "material.emissive.rr" (vec2) or "material.ambient.argb" (vec4)
+  /// The supported names are xyzw / rgba / stpq
+  /// @return The list of indices or empty vector if no selection syntax was used
+  const std::vector<int>& select() const { return m_select; }
+
+  static MappableValue parse(const QString& input);
+
+private:
+  QString m_src, m_var;
+  int m_index;
+  std::vector<int> m_select;
+};
 
 class Material : public QObject, public std::enable_shared_from_this<Material>,
                  public SceneObject {
@@ -39,6 +83,9 @@ public:
   void addTexture(QString name, TexturePtr tex);
   void setTexture(QString name, TexturePtr tex);
   void removeTexture(TexturePtr tex);
+
+  void setAttributeMapping(const QString& name, const QString& attr);
+  void setUniformMapping(const QString& name, const QString& attr);
 
   struct Colors {
     Colors();
@@ -82,6 +129,9 @@ public:
   TexturePtr texture(QString key) { return m_textures.value(key); }
 //  QMap<QString, TexturePtr> in() const { return m_in; }
 
+  const QMap<QString, MappableValue>& attributeMap() const { return m_attributeMap; }
+  const QMap<QString, MappableValue>& uniformMap() const { return m_uniformMap; }
+
 signals:
   void changed(MaterialPtr);
 
@@ -102,6 +152,9 @@ private:
   /// Uniform name => texture
   QMap<QString, TexturePtr> m_textures;
   bool m_prog_binded;
+
+  QMap<QString, MappableValue> m_attributeMap;
+  QMap<QString, MappableValue> m_uniformMap;
 
   ScenePtr m_scene;
 };

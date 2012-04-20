@@ -24,6 +24,30 @@
 #include "gl/camera.hpp"
 #include "gui/properties.hpp"
 
+MappableValue::MappableValue(const QString& src, const QString& var, int index, const QString& selection)
+  : m_src(src), m_var(var), m_index(index), m_select(selection.size()) {
+  const QString tst = "xrsygtzbpwaq";
+  for (int i = 0; i < selection.size(); ++i) {
+    m_select[i] = tst.indexOf(selection[i].toAscii()) / 3;
+  }
+}
+
+MappableValue MappableValue::parse(const QString& input) {
+  QRegExp re("([a-z]+)"                     // src ("scene")
+             "(?:\\[(\\d+)\\])?"            // optional: [4]
+             "\\."                          // .
+             "([a-z]+)"                     // variable ("width")
+             "(?:\\.([xyzwrgbastpq]{1,4}))?"); // optional .abgr
+  if (re.exactMatch(input)) {
+    return MappableValue(re.cap(1), re.cap(3),
+                   re.cap(2).isEmpty() ? -1 : re.cap(2).toInt(),
+                   re.cap(4));
+  } else {
+    Log::error("Failed to parse %s", input.toUtf8().data());
+  }
+  return MappableValue();
+}
+
 Material::Material(QString name) : SceneObject(name), m_prog_binded(false) {
 }
 
@@ -43,6 +67,20 @@ void Material::removeTexture(TexturePtr tex) {
     else ++it;
   }
   emit changed(shared_from_this());
+}
+
+void Material::setAttributeMapping(const QString& name, const QString& attr) {
+  MappableValue var = MappableValue::parse(attr);
+  if (!var.src().isEmpty()) {
+    m_attributeMap[name] = var;
+  }
+}
+
+void Material::setUniformMapping(const QString& name, const QString& attr) {
+  MappableValue var = MappableValue::parse(attr);
+  if (!var.src().isEmpty()) {
+    m_uniformMap[name] = var;
+  }
 }
 
 Material::Colors::Colors()
@@ -180,7 +218,21 @@ void Material::load(Scene& scene, QVariantMap map) {
   /// @todo add a default shader if the material has shader hint
   ///       and prog is null
 
-  QVariantMap tmp = map["textures"].toMap();
+  QVariantMap tmp = map["attributes"].toMap();
+  for (auto it = tmp.begin(); it != tmp.end(); ++it) {
+    QVariantMap attrMap = it.value().toMap();
+    if (attrMap.contains("map"))
+      setAttributeMapping(it.key(), attrMap["map"].toString());
+  }
+
+  tmp = map["uniforms"].toMap();
+  for (auto it = tmp.begin(); it != tmp.end(); ++it) {
+    QVariantMap uniformMap = it.value().toMap();
+    if (uniformMap.contains("map"))
+      setUniformMapping(it.key(), uniformMap["map"].toString());
+  }
+
+  tmp = map["textures"].toMap();
   for (auto it = tmp.begin(); it != tmp.end(); ++it)
     addTexture(it.key(), scene.genTexture(it.value().toString()));
 }

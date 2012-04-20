@@ -235,6 +235,8 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
 
       if (res > 0) state.setPicked(o, m);
     }
+
+    state.applyAutoUniforms();
     m->render(state);
 
     if (material) state.popMaterial();
