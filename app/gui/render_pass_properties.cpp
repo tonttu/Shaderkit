@@ -656,12 +656,12 @@ void RenderPassProperties::openClearColorPicker() {
   RenderPassPtr pass = getSender();
   if (!pass) return;
 
-  QColor orig = pass->clearColor();
+  Color orig = pass->clearColor();
 
   QColorDialog dialog(this);
   dialog.setWindowTitle("Select background color for render pass " + pass->name());
   dialog.setOptions(QColorDialog::ShowAlphaChannel);
-  dialog.setCurrentColor(orig);
+  dialog.setCurrentColor(orig.clampToQRgb());
 
   connect(&dialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(setClearColor(QColor)));
 

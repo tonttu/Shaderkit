@@ -18,6 +18,8 @@
 #include "gl/buffer_object.hpp"
 #include "gl/state.hpp"
 
+#include "core/scene.hpp"
+
 BufferObject::BufferObject() : m_id(0), m_target(0), m_cache_size(0), m_use_cache(true) {
 }
 
@@ -82,7 +84,9 @@ void BufferObject::bind(State& state, GLenum target, const void* data, size_t le
 }
 
 void BufferObject::bind(/*State& state, */ GLenum target, GLenum hint, size_t len) {
-  State state(0, 0);
+  /// @todo fix this
+  Scene s;
+  State state(s, 0, 0);
   bind(state, target);
   if (len > 0 && (!m_use_cache || m_cache_size != len)) {
     glRun(glBufferData(target, len, 0, hint));
@@ -98,13 +102,16 @@ void BufferObject::unbind(/*State& state, */) {
 }
 
 const float* BufferObject::map() {
-  State state(0, 0);
+  /// @todo fix
+  Scene s;
+  State state(s, 0, 0);
   bind(state, m_target);
   return reinterpret_cast<const float*>(glRun2(glMapBuffer(m_target, GL_READ_ONLY)));
 }
 
 float* BufferObject::mapRW() {
-  State state(0, 0);
+  Scene s;
+  State state(s, 0, 0);
   bind(state, m_target);
   return reinterpret_cast<float*>(glRun2(glMapBuffer(m_target, GL_READ_WRITE)));
 }

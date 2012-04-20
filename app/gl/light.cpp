@@ -27,25 +27,22 @@ Light::Light(const QString& name)
 
 void Light::activate(State& state) {
   if (m_id < 0) m_id = state.nextFreeLight();
-  state.setLight(m_id, true);
+  state.setLight(m_id, this);
 
   GLfloat tmp[4];
 
-  Utils::getColor(m_ambient, tmp);
-  glRun(glLightfv(GL_LIGHT0+m_id, GL_AMBIENT, tmp));
+  glRun(glLightfv(GL_LIGHT0+m_id, GL_AMBIENT, m_ambient.data()));
 
-  Utils::getColor(m_diffuse, tmp);
-  glRun(glLightfv(GL_LIGHT0+m_id, GL_DIFFUSE, tmp));
+  glRun(glLightfv(GL_LIGHT0+m_id, GL_DIFFUSE, m_diffuse.data()));
 
-  Utils::getColor(m_specular, tmp);
-  glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, tmp));
+  glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, m_specular.data()));
 
   if (m_type == Spot) {
     tmp[0] = m_location.x(); tmp[1] = m_location.y(); tmp[2] = m_location.z();
     tmp[3] = 1.0f;
     glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
 
-    QVector3D n = m_target - m_location;
+    Eigen::Vector3f n = m_target - m_location;
     n.normalize();
 
     tmp[0] = n.x(); tmp[1] = n.y(); tmp[2] = n.z();
@@ -60,7 +57,7 @@ void Light::activate(State& state) {
 }
 
 void Light::deactivate(State& state) {
-  state.setLight(m_id, false);
+  state.setLight(m_id, 0);
   m_id = -1;
 }
 
@@ -76,9 +73,9 @@ QVariantMap Light::toMap() const {
     map["direction"] = Utils::toList(m_direction);
   }
 
-  map["ambient"] = Utils::toList(m_ambient);
-  map["diffuse"] = Utils::toList(m_diffuse);
-  map["specular"] = Utils::toList(m_specular);
+  map["ambient"] = m_ambient.toQVariant();
+  map["diffuse"] = m_diffuse.toQVariant();
+  map["specular"] = m_specular.toQVariant();
 
   return map;
 }
@@ -91,12 +88,12 @@ void Light::load(QVariantMap map) {
 
   // At least Qt 4.7 saves color as "#RRGGBB" without alpha,
   // so we don't use native implementation.
-  m_ambient = Utils::toColor(map["ambient"]);
-  m_diffuse = Utils::toColor(map["diffuse"]);
-  m_specular = Utils::toColor(map["specular"]);
-  m_location = Utils::toVector(map["location"]);
-  m_target = Utils::toVector(map["target"]);
-  m_direction = Utils::toVector(map["direction"]);
+  m_ambient = Color::fromQVariant(map["ambient"]);
+  m_diffuse = Color::fromQVariant(map["diffuse"]);
+  m_specular = Color::fromQVariant(map["specular"]);
+  m_location = Utils::toVector3(map["location"]);
+  m_target = Utils::toVector3(map["target"]);
+  m_direction = Utils::toVector3(map["direction"]);
   m_spot_cutoff = map["spot cutoff"].toFloat();
 }
 
@@ -108,29 +105,29 @@ void Light::setType(Type t) {
   m_type = t;
 }
 
-void Light::setAmbient(const QColor& color) {
+void Light::setAmbient(const Color& color) {
   m_ambient = color;
 }
 
-void Light::setDiffuse(const QColor& color) {
+void Light::setDiffuse(const Color& color) {
   m_diffuse = color;
 }
 
-void Light::setSpecular(const QColor& color) {
+void Light::setSpecular(const Color& color) {
   m_specular = color;
 }
 
-void Light::setLocation(const QVector3D& loc) {
+void Light::setLocation(const Eigen::Vector3f& loc) {
   m_location = loc;
   //m_type = Spot;
 }
 
-void Light::setTarget(const QVector3D& target) {
+void Light::setTarget(const Eigen::Vector3f& target) {
   m_target = target;
   //m_type = Spot;
 }
 
-void Light::setDirection(const QVector3D& dir) {
+void Light::setDirection(const Eigen::Vector3f& dir) {
   m_direction = dir;
   m_type = Direction;
 }

@@ -19,10 +19,8 @@
 #define LIGHT_HPP
 
 #include "forward.hpp"
+#include "core/color.hpp"
 #include "gl/scene_object.hpp"
-
-#include <QColor>
-#include <QVector3D>
 #include <QVariant>
 
 /**
@@ -50,21 +48,21 @@ public:
   void setType(Type t);
   Type type() const { return m_type; }
 
-  void setAmbient(const QColor& color);
-  void setDiffuse(const QColor& color);
-  void setSpecular(const QColor& color);
-  const QColor& ambient() const { return m_ambient; }
-  const QColor& diffuse() const { return m_diffuse; }
-  const QColor& specular() const { return m_specular; }
+  void setAmbient(const Color& color);
+  void setDiffuse(const Color& color);
+  void setSpecular(const Color& color);
+  const Color& ambient() const { return m_ambient; }
+  const Color& diffuse() const { return m_diffuse; }
+  const Color& specular() const { return m_specular; }
 
-  const QVector3D location() const { return m_location; }
-  void setLocation(const QVector3D& loc);
+  const Eigen::Vector3f& location() const { return m_location; }
+  void setLocation(const Eigen::Vector3f& loc);
 
-  const QVector3D target() const { return m_target; }
-  void setTarget(const QVector3D& target);
+  const Eigen::Vector3f& target() const { return m_target; }
+  void setTarget(const Eigen::Vector3f& target);
 
-  void setDirection(const QVector3D& dir);
-  const QVector3D direction() const { return m_direction; }
+  void setDirection(const Eigen::Vector3f& dir);
+  const Eigen::Vector3f& direction() const { return m_direction; }
 
   float spotCutoff() const { return m_spot_cutoff; }
   void setSpotCutoff(float v);
@@ -77,13 +75,13 @@ protected:
   int m_id;
 
   /// Light colors
-  QColor m_ambient, m_diffuse, m_specular;
+  Color m_ambient, m_diffuse, m_specular;
 
   /// if m_type == Spot, we control the light with location and the target vectors
-  QVector3D m_location, m_target;
+  Eigen::Vector3f m_location, m_target;
 
   /// With direction lights (m_type == Direction) there is only direction vector
-  QVector3D m_direction;
+  Eigen::Vector3f m_direction;
 
   /// The maximum spread angle of a light source, if m_type == Spot.
   float m_spot_cutoff;

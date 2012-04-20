@@ -19,6 +19,7 @@
 #define RENDERPASS_HPP
 
 #include "forward.hpp"
+#include "core/color.hpp"
 #include "gl/opengl.hpp"
 #include "gl/uniform.hpp"
 #include "gl/buffer_object.hpp"
@@ -99,8 +100,8 @@ public:
   GLbitfield clearBits() const { return m_clear; }
   void setClearBits(GLbitfield bits);
 
-  QColor clearColor() const { return m_clearColor; }
-  void setClearColor(QColor color);
+  const Color& clearColor() const { return m_clearColor; }
+  void setClearColor(const Color& color);
 
   QStringList out() const;
   FBOImagePtr out(const QString& name) const;
@@ -161,7 +162,7 @@ protected:
   /// Bitwise OR of GL_{COLOR,DEPTH,STENCIL}_BUFFER_BIT, or zero if we don't
   /// want to clear the buffer before rendering.
   GLbitfield m_clear;
-  QColor m_clearColor;
+  Color m_clearColor;
 
   int m_width, m_height; /// Output size, if zero, use scene size.
   bool m_autosize;

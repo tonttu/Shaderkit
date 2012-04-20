@@ -34,14 +34,6 @@ namespace Utils {
     return name;
   }
 
-  QVector3D toVector(QVariant in) {
-    QVariantList lst = in.toList();
-    if (lst.size() == 3) {
-      return QVector3D(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
-    }
-    return QVector3D();
-  }
-
   Eigen::Vector3f toVector3(QVariant in) {
     QVariantList lst = in.toList();
     if (lst.size() == 3) {
@@ -50,37 +42,15 @@ namespace Utils {
     return Eigen::Vector3f(0, 0, 0);
   }
 
-  QColor toColor(QVariant in) {
-    QVariantList lst = in.toList();
-    if (lst.size() == 4) {
-      return QColor::fromRgbF(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat(), lst[3].toFloat());
-    }
-    return QColor();
-  }
-
-  QVariantList toList(QVector3D in) {
-    QVariantList ret;
-    ret << in.x() << in.y() << in.z();
-    return ret;
-  }
-
-  QVariantList toList(Eigen::Vector3f in) {
+  QVariantList toList(const Eigen::Vector3f& in) {
     QVariantList ret;
     ret << in[0] << in[1] << in[2];
     return ret;
   }
 
-  QVariantList toList(QColor in) {
+  QVariantList toList(const Eigen::Vector4f& in) {
     QVariantList ret;
-    ret << in.redF() << in.greenF() << in.blueF() << in.alphaF();
+    ret << in[0] << in[1] << in[2] << in[3];
     return ret;
-  }
-
-  void getColor(const QColor& color, float *tmp) {
-    // color.getRgbF(tmp+0, tmp+1, tmp+2, tmp+3);
-    tmp[0] = color.redF();
-    tmp[1] = color.greenF();
-    tmp[2] = color.blueF();
-    tmp[3] = color.alphaF();
   }
 }

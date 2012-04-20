@@ -197,9 +197,28 @@ const Eigen::Vector3f Camera::location() const {
   return m_target - m_front*m_dist;
 }
 
+const Eigen::Vector3f Camera::up() const
+{
+  return m_up;
+}
+
+const Eigen::Vector3f Camera::right() const
+{
+  return m_right;
+}
+
+const Eigen::Vector3f Camera::front() const
+{
+  return m_front;
+}
+
 void Camera::setType(Type type) {
   m_type = type;
   updateVectors();
+}
+
+float Camera::dist() const {
+  return m_dist;
 }
 
 Eigen::Projective3f Camera::normToWindow(bool swap_y) const {

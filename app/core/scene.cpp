@@ -158,7 +158,7 @@ void Scene::resize(int width, int height) {
 void Scene::render(RenderOptions& opts_in) {
   float t = m_time.elapsed()/1000.0f;
   float dt = t - m_lastTime;
-  State state(t, dt);
+  State state(*this, t, dt);
   state.setSelection(m_selection);
   RenderOptions opts = opts_in;
   opts_in.grid_animation += dt * 1.0f;
@@ -543,22 +543,22 @@ void Scene::merge(const Import& import, const ObjImporter::Scene& s) {
 
     if (pass->lights().isEmpty() && s.lights.isEmpty()) {
       LightPtr light(new Light("back"));
-      light->setAmbient(QColor::fromRgbF(0, 0, 0));
-      light->setDiffuse(QColor::fromRgbF(0.8f, 0.8f, 1.0f));
-      light->setSpecular(QColor::fromRgbF(0.8f, 0.8f, 1.0f));
-      light->setDirection(QVector3D(0, 0.5f, 1.0f));
+      light->setAmbient(Color(0, 0, 0));
+      light->setDiffuse(Color(0.8f, 0.8f, 1.0f));
+      light->setSpecular(Color(0.8f, 0.8f, 1.0f));
+      light->setDirection(Eigen::Vector3f(0, 0.5f, 1.0f));
 
       LightPtr light1(new Light("light 1"));
-      light1->setAmbient(QColor::fromRgbF(0.2f, 0.2f, 0.2f));
-      light1->setDiffuse(QColor::fromRgbF(1.0f, 0.8f, 1.0f));
-      light1->setSpecular(QColor::fromRgbF(1.0f, 0.8f, 1.0f));
-      light1->setDirection(QVector3D(0.3f, 0.4f, -1.0f));
+      light1->setAmbient(Color(0.2f, 0.2f, 0.2f));
+      light1->setDiffuse(Color(1.0f, 0.8f, 1.0f));
+      light1->setSpecular(Color(1.0f, 0.8f, 1.0f));
+      light1->setDirection(Eigen::Vector3f(0.3f, 0.4f, -1.0f));
 
       LightPtr light2(new Light("light 2"));
-      light2->setAmbient(QColor::fromRgbF(0, 0, 0));
-      light2->setDiffuse(QColor::fromRgbF(1.0f, 1.0f, 0.8f));
-      light2->setSpecular(QColor::fromRgbF(1.0f, 1.0f, 0.8f));
-      light2->setDirection(QVector3D(-0.2f, 0.2f, -1.0f));
+      light2->setAmbient(Color(0, 0, 0));
+      light2->setDiffuse(Color(1.0f, 1.0f, 0.8f));
+      light2->setSpecular(Color(1.0f, 1.0f, 0.8f));
+      light2->setDirection(Eigen::Vector3f(-0.2f, 0.2f, -1.0f));
 
       add(light);
       add(light1);
@@ -845,6 +845,7 @@ void Scene::changedSlot() {
 bool Scene::save(const QString& filename) {
   QJson::Serializer serializer;
   serializer.allowSpecialNumbers(true);
+  serializer.setIndentMode(QJson::IndentFull);
   QFile file(filename);
   // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
   // that isn't what we want.
@@ -881,6 +882,7 @@ bool Scene::save(const QVariantMap& map) {
 
   QJson::Serializer serializer;
   serializer.allowSpecialNumbers(true);
+  serializer.setIndentMode(QJson::IndentFull);
   const QByteArray str = serializer.serialize(map);
   if (!str.isNull()) {
     file.write(str);

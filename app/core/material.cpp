@@ -46,11 +46,11 @@ void Material::removeTexture(TexturePtr tex) {
 }
 
 Material::Colors::Colors()
-  : diffuse(0.8f, 0.8f, 0.8f),
-    specular(1.0f, 1.0f, 1.0f),
-    ambient(1.0f, 1.0f, 1.0f),
-    emissive(0.0f, 0.0f, 0.0f),
-    transparent(0.0f, 0.0f, 0.0f) {}
+  : diffuse(0.8f, 0.8f, 0.8f, 1.0f),
+    specular(1.0f, 1.0f, 1.0f, 1.0f),
+    ambient(1.0f, 1.0f, 1.0f, 1.0f),
+    emissive(0.0f, 0.0f, 0.0f, 0.0f),
+    transparent(0.0f, 0.0f, 0.0f, 0.0f) {}
 
 Material::Style::Style()
   : wireframe(false),
@@ -127,11 +127,11 @@ QVariantMap Material::toMap() const {
   }
   if (!textures.isEmpty()) map["textures"] = textures;
 
-  map["diffuse"] = Utils::toList(colors.diffuse);
-  map["specular"] = Utils::toList(colors.specular);
-  map["ambient"] = Utils::toList(colors.ambient);
-  map["emissive"] = Utils::toList(colors.emissive);
-  map["transparent"] = Utils::toList(colors.transparent);
+  map["diffuse"] = colors.diffuse.toQVariant();
+  map["specular"] = colors.specular.toQVariant();
+  map["ambient"] = colors.ambient.toQVariant();
+  map["emissive"] = colors.emissive.toQVariant();
+  map["transparent"] = colors.transparent.toQVariant();
 
   map["wireframe"] = style.wireframe;
   map["twosided"] = style.twosided;
@@ -151,11 +151,11 @@ QVariantMap Material::toMap() const {
 void Material::load(Scene& scene, QVariantMap map) {
   SceneObject::load(map);
 
-  if (map.contains("diffuse")) colors.diffuse = Utils::toVector(map["diffuse"]);
-  if (map.contains("specular")) colors.specular = Utils::toVector(map["specular"]);
-  if (map.contains("ambient")) colors.ambient = Utils::toVector(map["ambient"]);
-  if (map.contains("emissive")) colors.emissive = Utils::toVector(map["emissive"]);
-  if (map.contains("transparent")) colors.transparent = Utils::toVector(map["transparent"]);
+  if (map.contains("diffuse")) colors.diffuse = Color::fromQVariant(map["diffuse"]);
+  if (map.contains("specular")) colors.specular = Color::fromQVariant(map["specular"]);
+  if (map.contains("ambient")) colors.ambient = Color::fromQVariant(map["ambient"]);
+  if (map.contains("emissive")) colors.emissive = Color::fromQVariant(map["emissive"]);
+  if (map.contains("transparent")) colors.transparent = Color::fromQVariant(map["transparent"]);
 
   if (map.contains("wireframe")) style.wireframe = map["wireframe"].toBool();
   if (map.contains("twosided")) style.twosided = map["twosided"].toBool();

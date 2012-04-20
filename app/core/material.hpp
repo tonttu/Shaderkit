@@ -40,11 +40,11 @@ public:
 
   struct Colors {
     Colors();
-    QVector3D diffuse;
-    QVector3D specular;
-    QVector3D ambient;
-    QVector3D emissive;
-    QVector3D transparent;
+    Color diffuse;
+    Color specular;
+    Color ambient;
+    Color emissive;
+    Color transparent;
   } colors;
 
   struct Style {

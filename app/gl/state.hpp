@@ -42,12 +42,12 @@
  */
 class State {
 public:
-  State(float time, float dt);
+  State(Scene& scene, float time, float dt);
 
   /// Returns the next available light id, can be used like GL_LIGHT0 + id
   int nextFreeLight() const;
   /// Reserve/Release a light id
-  void setLight(int light_id, bool in_use);
+  void setLight(int light_id, Light* light);
 
   /// Set GL capability
   void enable(GLenum cap);
@@ -100,9 +100,11 @@ public:
 protected:
   struct Data {
     QMap<QPair<void*, QString>, int> m_texunits;
-    QSet<int> m_lights;
+    QMap<int, Light*> m_lights;
     CameraPtr m_camera;
   };
+
+  Scene& m_scene;
 
   QList<Data> m_data;
   QList<MaterialPtr> m_materials;

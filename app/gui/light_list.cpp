@@ -26,39 +26,26 @@
 
 #include <QColorDialog>
 
-QString alphaName(const QColor& color) {
-  QRgb argb = color.rgba();
-  return QString("#%1").arg(((argb & 0xFFFFFF) << 8) | qAlpha(argb), 8, 16, QLatin1Char('0')).toUpper();
-}
-
-QColor fromAlphaName(const QString& name) {
-  if (name.length() == 9) {
-    QColor c(name.left(7));
-    c.setAlpha(name.right(2).toInt(0, 16));
-    return c;
-  } else {
-    return QColor(name);
-  }
-}
-
-void updatePreview(QPushButton& btn, QColor& color) {
+void updatePreview(QPushButton& btn, Color& color) {
   QImage img(16, 16, QImage::Format_RGB32);
 
-  int a = 0x66, b = 0x99;
-  QRgb src = color.rgb();
-  float mix = color.alphaF();
-  QRgb colora = qRgb(a * (1.0f - mix) + mix * qRed(src),
-                     a * (1.0f - mix) + mix * qGreen(src),
-                     a * (1.0f - mix) + mix * qBlue(src));
-  QRgb colorb = qRgb(b * (1.0f - mix) + mix * qRed(src),
-                     b * (1.0f - mix) + mix * qGreen(src),
-                     b * (1.0f - mix) + mix * qBlue(src));
+  float a = 0x66/255.0f, b = 0x99/255.0f;
+  float mix = color[3];
+  Color colora(a * (1.0f - mix) + mix * color[0],
+               a * (1.0f - mix) + mix * color[1],
+               a * (1.0f - mix) + mix * color[2]);
+  Color colorb(b * (1.0f - mix) + mix * color[0],
+               b * (1.0f - mix) + mix * color[1],
+               b * (1.0f - mix) + mix * color[2]);
+
+  QRgb qcolora = colora.clampToQRgb();
+  QRgb qcolorb = colorb.clampToQRgb();
 
   for (int x = 0; x < 16; ++x) {
     int i = (x >> 2) % 2;
     for (int y = 0; y < 16; ++y) {
       int j = (y >> 2) % 2;
-      img.setPixel(x, y, i == j ? colora : colorb);
+      img.setPixel(x, y, i == j ? qcolora : qcolorb);
     }
   }
 
@@ -200,9 +187,9 @@ void LightList::updatePanel() {
     m_ui->name->setText(m_light->name());
     bool spot = m_light->type() == Light::Spot;
     m_ui->type->setCurrentIndex(spot ? 0 : 1);
-    m_ui->ambient->setText(alphaName(m_light->ambient()));
-    m_ui->diffuse->setText(alphaName(m_light->diffuse()));
-    m_ui->specular->setText(alphaName(m_light->specular()));
+    m_ui->ambient->setText(m_light->ambient().name());
+    m_ui->diffuse->setText(m_light->diffuse().name());
+    m_ui->specular->setText(m_light->specular().name());
     if (spot) {
       m_ui->locx->setText(QString::number(m_light->location().x()));
       m_ui->locy->setText(QString::number(m_light->location().y()));
@@ -268,7 +255,7 @@ void LightList::colorChanged() {
   QLineEdit* edit = dynamic_cast<QLineEdit*>(sender());
   if (!edit) return;
 
-  QColor color = fromAlphaName(edit->text());
+  Color color = Color::fromName(edit->text());
   if (edit == m_ui->ambient) {
     m_light->setAmbient(color);
     updatePreview(*m_ui->ambient_color, color);
@@ -283,18 +270,18 @@ void LightList::colorChanged() {
 
 void LightList::locChanged() {
   if (!m_light) return;
-  QVector3D loc(m_ui->locx->text().toFloat(),
-                m_ui->locy->text().toFloat(),
-                m_ui->locz->text().toFloat());
+  Eigen::Vector3f loc(m_ui->locx->text().toFloat(),
+                      m_ui->locy->text().toFloat(),
+                      m_ui->locz->text().toFloat());
   m_light->setLocation(loc);
 
 }
 
 void LightList::targetChanged() {
   if (!m_light) return;
-  QVector3D target(m_ui->targetx->text().toFloat(),
-                   m_ui->targety->text().toFloat(),
-                   m_ui->targetz->text().toFloat());
+  Eigen::Vector3f target(m_ui->targetx->text().toFloat(),
+                         m_ui->targety->text().toFloat(),
+                         m_ui->targetz->text().toFloat());
   m_light->setTarget(target);
 
 }
@@ -306,9 +293,9 @@ void LightList::cutoffChanged() {
 
 void LightList::dirChanged() {
   if (!m_light) return;
-  QVector3D dir(m_ui->dirx->text().toFloat(),
-                m_ui->diry->text().toFloat(),
-                m_ui->dirz->text().toFloat());
+  Eigen::Vector3f dir(m_ui->dirx->text().toFloat(),
+                      m_ui->diry->text().toFloat(),
+                      m_ui->dirz->text().toFloat());
   m_light->setDirection(dir);
 }
 
@@ -338,7 +325,7 @@ void LightList::colorDialog() {
   QColorDialog dialog(this);
   dialog.setWindowTitle("Select " + name + " color for Light " + m_light->name());
   dialog.setOptions(QColorDialog::ShowAlphaChannel);
-  dialog.setCurrentColor(fromAlphaName(orig));
+  dialog.setCurrentColor(Color::fromName(orig).clampToQRgb());
 
   if (btn == m_ui->ambient_color) {
     connect(&dialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(setAmbient(QColor)));
@@ -356,13 +343,13 @@ void LightList::colorDialog() {
 }
 
 void LightList::setAmbient(QColor color) {
-  m_ui->ambient->setText(alphaName(color));
+  m_ui->ambient->setText(Color(color).name());
 }
 
 void LightList::setDiffuse(QColor color) {
-  m_ui->diffuse->setText(alphaName(color));
+  m_ui->diffuse->setText(Color(color).name());
 }
 
 void LightList::setSpecular(QColor color) {
-  m_ui->specular->setText(alphaName(color));
+  m_ui->specular->setText(Color(color).name());
 }

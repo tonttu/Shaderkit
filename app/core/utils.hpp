@@ -20,7 +20,6 @@
 
 #include <QString>
 #include <QList>
-#include <QVector3D>
 #include <QVariantList>
 
 #include "Eigen/Geometry"
@@ -30,13 +29,10 @@ namespace Utils
   QString uniqueName(QString name, const QList<QString>& lst, QString def = "Untitled");
 
   /// Convert array of three doubles to vector
-  QVector3D toVector(QVariant in);
   Eigen::Vector3f toVector3(QVariant in);
-  /// Convert array of four doubles to color
-  QColor toColor(QVariant in);
-  QVariantList toList(QVector3D in);
-  QVariantList toList(Eigen::Vector3f in);
-  QVariantList toList(QColor in);
+  Eigen::Vector4f toVector34(const QVariant& in);
+  QVariantList toList(const Eigen::Vector3f& in);
+  QVariantList toList(const Eigen::Vector4f& in);
 
   /// helper method to convert QColor to 4 element GLfloat array
   void getColor(const QColor& color, float* tmp);

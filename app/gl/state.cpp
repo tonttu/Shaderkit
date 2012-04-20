@@ -22,18 +22,19 @@
 
 /// @todo maybe this should be in core, because of this uses material
 
-State::State(float time, float dt) : m_time(time), m_dt(dt), m_picking(false) {
+State::State(Scene& scene, float time, float dt)
+  : m_scene(scene), m_time(time), m_dt(dt), m_picking(false) {
   m_data.push_back(Data());
   m_transforms.push_back(Eigen::Affine3f::Identity());
 }
 
 int State::nextFreeLight() const {
-  return nextFree(m_data.back().m_lights);
+  return nextFree(m_data.back().m_lights.keys().toSet());
 }
 
-void State::setLight(int light_id, bool in_use) {
-  if (in_use) {
-    m_data.back().m_lights.insert(light_id);
+void State::setLight(int light_id, Light* light) {
+  if (light) {
+    m_data.back().m_lights[light_id] = light;
     enable(GL_LIGHTING);
     enable(GL_LIGHT0 + light_id);
   } else {

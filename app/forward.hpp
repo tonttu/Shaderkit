@@ -103,8 +103,6 @@ class Viewport;
 class MetaInfo;
 
 class QColor;
-class QVector3D;
-class QVector4D;
 
 class MeshManager;
 class BufferObject;

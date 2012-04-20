@@ -76,8 +76,14 @@ public:
   void setLocation(const Eigen::Vector3f& location);
   const Eigen::Vector3f location() const;
 
+  const Eigen::Vector3f up() const;
+  const Eigen::Vector3f right() const;
+  const Eigen::Vector3f front() const;
+
   Type type() const { return m_type; }
   void setType(Type type);
+
+  float dist() const;
 
   //void setPickDisplay(float x, float y);
 

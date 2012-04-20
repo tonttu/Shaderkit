@@ -42,11 +42,11 @@ namespace {
 
   /// Reads color from material src to target.
   /// Example: getColor(target, material, AI_MATKEY_COLOR_DIFFUSE);
-  void getColor(QVector3D& target, aiMaterial& src, const char * pKey,
+  void getColor(Color& target, aiMaterial& src, const char * pKey,
                 unsigned int type, unsigned int idx) {
     aiColor3D color;
     if (src.Get(pKey, type, idx, color) == AI_SUCCESS)
-      target = QVector3D(color.r, color.g, color.b);
+      target = Color(color.r, color.g, color.b);
   }
   void getBool(bool& target, aiMaterial& src, const char * pKey,
                unsigned int type, unsigned int idx) {

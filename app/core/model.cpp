@@ -217,6 +217,7 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
 
   foreach (MeshPtr m, node.meshes) {
     MaterialPtr material = o->materialForMesh(m->name);
+    /// @todo should use raii
     if (material) state.pushMaterial(material);
 
     if (state.picking()) {

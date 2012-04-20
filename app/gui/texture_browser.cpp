@@ -74,7 +74,7 @@ void TextureWidgetGL::paintGL() {
     return;
   }
 
-  State state(0, 0);
+  State state(*MainWindow::scene(), 0, 0);
 
   float ww = width(), wh = height();
   float tex_ar = m_tex->width() / float(m_tex->height());
