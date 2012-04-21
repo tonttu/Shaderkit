@@ -6,7 +6,7 @@ Summary:        OpenGL shader editor
 License:        GPLv3
 URL:            http://shaderkit.org/
 
-BuildRequires:  qt-devel,gcc-c++,bison,flex,desktop-file-utils
+BuildRequires:  qt-devel,gcc-c++,bison,flex,desktop-file-utils,ruby
 Requires:       qt
 Source0:        %{name}-%{version}-0.1.RELEASE.tar.gz
 

@@ -84,7 +84,7 @@ ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
   scene->setFilename("");
   MetaInfo& info = scene->metainfo();
 
-  info.shaderkit_version = ShaderKit::STR;
+  info.shaderkit_version = Shaderkit::STR;
   if (!info.name.isEmpty())
     info.description = "Based on " + info.name;
   info.name = name;

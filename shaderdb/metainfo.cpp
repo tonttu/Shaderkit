@@ -47,7 +47,7 @@ MetaInfo::MetaInfo() {
 QVariantMap MetaInfo::toMap() const {
   QVariantMap map;
 
-  map["shaderkit version"] = ShaderKit::STR;
+  map["shaderkit version"] = Shaderkit::STR;
   if (!name.isEmpty()) map["name"] = name;
   if (!description.isEmpty()) map["description"] = description;
   //if (!id.isEmpty()) map["id"] = id;

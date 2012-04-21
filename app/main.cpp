@@ -109,12 +109,12 @@ int main(int argc, char* argv[]) {
 
   QApplication app(argc, argv);
   app.setApplicationName("Shaderkit");
-  app.setApplicationVersion(ShaderKit::STR);
+  app.setApplicationVersion(Shaderkit::STR);
 
   //App app(argc, argv);
   // glutInit(&argc, argv);
   Log log;
-  Log::info("ShaderKit %s", ShaderKit::STR_HASH);
+  Log::info("Shaderkit %s", Shaderkit::STR_HASH);
 
   QFileInfo bin(QCoreApplication::applicationFilePath());
 

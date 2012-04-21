@@ -47,7 +47,7 @@ void WelcomeButton::receiveClick() {
 
 Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
   m_ui->setupUi(this);
-  m_ui->version_label->setText(m_ui->version_label->text().arg(ShaderKit::STR));
+  m_ui->version_label->setText(m_ui->version_label->text().arg(Shaderkit::STR));
 
   connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
   connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newScene()));

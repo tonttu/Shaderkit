@@ -34,7 +34,7 @@ File.open(output_file, 'w') do |f|
   f.puts
   f.puts "// This file is also included from app.rc, that doesn't know how to parse namespaces"
   f.puts "#ifdef __cplusplus"
-  f.puts "namespace ShaderKit {"
+  f.puts "namespace Shaderkit {"
   f.puts "  static const int MAJOR = #{lst[0]};"
   f.puts "  static const int MINOR = #{lst[1]};"
   f.puts "  static const int REVISION = #{lst[2]};"
