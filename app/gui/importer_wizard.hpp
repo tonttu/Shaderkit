@@ -37,6 +37,8 @@ public:
 
   void setVisible(bool visible);
 
+  void import(const QString& filename);
+
 protected slots:
   void browse();
   void changed(int);

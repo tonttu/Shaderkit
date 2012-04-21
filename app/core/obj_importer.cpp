@@ -289,6 +289,12 @@ QString ObjImporter::extensionList() const {
   return str(lst).replace(';', ' ');
 }
 
+bool ObjImporter::ping(const QString& file) {
+  const aiScene* scene = m_importer->ReadFile(file.toUtf8().data(), 0);
+  m_importer->FreeScene();
+  return scene != 0;
+}
+
 MaterialPtr ObjImporter::loadMaterial(int idx) {
   if (m_materialIndex[idx]) return m_materialIndex[idx];
   if (!m_aiscene->mMaterials[idx]) return MaterialPtr();

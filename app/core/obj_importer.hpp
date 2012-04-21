@@ -89,6 +89,8 @@ public:
   /// format: "*.3ds *.obj *.dae".
   QString extensionList() const;
 
+  bool ping(const QString& file);
+
 private:
   MaterialPtr loadMaterial(int idx);
   MeshPtr loadMesh(ObjectPtr obj, int idx);

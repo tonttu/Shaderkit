@@ -134,9 +134,8 @@ void NewWizard::preview(QString file) {
 void NewWizard::create() {
   WelcomeButton* btn = dynamic_cast<WelcomeButton*>(m_group->checkedButton());
   assert(btn);
-  ShaderDB& db = ShaderDB::instance();
 
-  ScenePtr scene = db.newLocalScene(m_ui->name->text(), btn->filename());
+  ScenePtr scene = ShaderDB::newLocalScene(m_ui->name->text(), btn->filename());
   MainWindow::instance().openScene(scene);
 }
 

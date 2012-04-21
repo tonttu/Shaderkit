@@ -33,7 +33,7 @@ public:
   void addPath(QString path, bool make_primary = false);
   QStringList localScenes();
 
-  ScenePtr newLocalScene(QString name, QString srcfile);
+  static ScenePtr newLocalScene(QString name, QString srcfile = "");
 
   QString defaultPath() const { return m_defaultPath; }
 

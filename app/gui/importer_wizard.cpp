@@ -71,8 +71,14 @@ void ImporterWizard::setVisible(bool visible) {
   QWizard::setVisible(visible);
   if (visible && m_first) {
     m_first = false;
-    browse();
+    if (m_ui->filename->text().isEmpty())
+      browse();
   }
+}
+
+void ImporterWizard::import(const QString& filename) {
+  m_ui->filename->setText(filename);
+  show();
 }
 
 void ImporterWizard::browse() {

@@ -19,6 +19,8 @@
 #define MATERIAL_HPP
 
 #include "forward.hpp"
+#include "color.hpp"
+
 #include "gl/fbo.hpp"
 #include "gl/state.hpp"
 #include "gl/uniform.hpp"
