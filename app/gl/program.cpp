@@ -213,6 +213,27 @@ UniformVar::List GLProgram::getUniformList() {
   return list;
 }
 
+AttributeVar::List GLProgram::getAttributeList() {
+  glCheck("GLProgram::getAttributeList");
+  AttributeVar::List list;
+
+  GLint num = 0, buffer_size = 0;
+  glRun(glGetProgramiv(m_prog, GL_ACTIVE_ATTRIBUTES, &num));
+  glRun(glGetProgramiv(m_prog, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &buffer_size));
+
+  std::vector<GLchar> name(buffer_size);
+  for (GLint i = 0; i < num; i++) {
+    GLsizei length;
+    GLint size;
+    GLenum type;
+    glRun(glGetActiveAttrib(m_prog, i, buffer_size,
+                            &length, &size, &type, name.data()));
+
+    list.push_back(AttributeVar(shared_from_this(), name.data(), type));
+  }
+  return list;
+}
+
 bool GLProgram::isLinked() {
   glCheck("GLProgram::isLinked");
   if (!m_prog) return false;

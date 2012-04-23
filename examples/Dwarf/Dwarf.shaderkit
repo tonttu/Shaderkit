@@ -67,6 +67,13 @@
       "textures" : {
         "diffuse_tex" : "axe"
       },
+      "attributes" : {
+        "vertex" : { "map" : "mesh.vertex" },
+        "normal" : { "map" : "mesh.normal" },
+        "uv0" : { "map" : "mesh.uv" }
+      },
+      "uniforms" : {
+      },
       "fragment" : ["phong.frag"],
       "vertex" : ["phong.vert"]
     },

@@ -26,6 +26,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QLayout>
+#include <QComboBox>
 
 /**
  * This line editor updates its size hints automatically based on the content.
@@ -46,6 +47,7 @@ private slots:
 class HeaderWidget;
 class MaterialProperties;
 class UniformEditor;
+class AttributeEditor;
 
 struct MaterialItem {
   MaterialPtr material;
@@ -55,13 +57,13 @@ struct MaterialItem {
   QPersistentModelIndex last_index;
 
   QMap<QString, UniformEditor*> uniform_editors;
+  QMap<QString, AttributeEditor*> attribute_mappers;
 };
 
-class UniformEditor : public QObject {
+class VarEditor : public QObject {
 public:
-  UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
-  virtual ~UniformEditor() {}
-  virtual void updateUI(UniformVar& var) = 0;
+  VarEditor(MaterialProperties& prop, int row, MaterialPtr mat, const QString& name);
+  virtual ~VarEditor() {}
 
   QLabel* label() const { return m_label; }
   QPersistentModelIndex index() const { return m_index; }
@@ -73,6 +75,32 @@ protected:
   QLabel* m_label;
 
   QPersistentModelIndex m_index;
+};
+
+class AttributeEditor : public VarEditor {
+  Q_OBJECT
+
+public:
+  AttributeEditor(MaterialProperties& prop, int row, MaterialPtr mat, AttributeVar& var);
+
+  void updateUI(AttributeVar& var);
+
+private slots:
+  void editingFinished();
+
+private:
+  void clear();
+
+private:
+  QComboBox* m_combo;
+};
+
+class UniformEditor : public VarEditor {
+public:
+  UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
+  virtual void updateUI(UniformVar& var) = 0;
+
+protected:
   UniformVar* getVar();
 };
 
@@ -210,6 +238,10 @@ protected slots:
   void toggleMode();
 
   void materialChanged(MaterialPtr);
+
+private:
+  void updateUniforms(MaterialItem& item, MaterialPtr mat);
+  void updateAttributes(MaterialItem& item, MaterialPtr mat);
 
 protected:
   QMap<MaterialPtr, MaterialItem> m_materials;

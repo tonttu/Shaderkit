@@ -20,6 +20,7 @@
 
 #include "app/forward.hpp"
 #include "gl/uniform.hpp"
+#include "gl/attribute_var.hpp"
 #include "gl/shader.hpp"
 #include "gl/error.hpp"
 #include "gl/opengl.hpp"
@@ -181,6 +182,7 @@ public:
 
   /// Returns the current state of all uniform variables
   UniformVar::List getUniformList();
+  AttributeVar::List getAttributeList();
 
   /// Returns the actual OpenGL program id, or 0 if there is no program created yet.
   GLuint id() const;

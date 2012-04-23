@@ -82,7 +82,6 @@ PropertyLayout::~PropertyLayout() {
   }
 }
 
-
 QSize PropertyLayout::minimumSize() const {
   return m_data->min_size;
 }
@@ -279,8 +278,8 @@ void HeaderWidget::paintEvent(QPaintEvent* ev) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-UniformEditor::UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
- : m_mat(mat), m_name(var.name()) {
+VarEditor::VarEditor(MaterialProperties& prop, int row, MaterialPtr mat, const QString& name)
+ : m_mat(mat), m_name(name) {
   QWidget* container = new QWidget;
   QHBoxLayout* l = new QHBoxLayout(container);
   l->setMargin(0);
@@ -293,6 +292,62 @@ UniformEditor::UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat,
   prop.setRowHeight(row, 24);
   m_index = prop.model()->index(row, 0);
   prop.setIndexWidget(m_index, container);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+AttributeEditor::AttributeEditor(MaterialProperties& prop, int row,
+                                 MaterialPtr mat, AttributeVar& var)
+  : VarEditor(prop, row, mat, var.name())
+  , m_combo(new QComboBox()) {
+  prop.setCellWidget(row, 1, m_combo);
+
+  clear();
+  m_combo->setEditable(true);
+
+  connect(m_combo, SIGNAL(currentIndexChanged(QString)),
+          this, SLOT(editingFinished()));
+}
+
+void AttributeEditor::updateUI(AttributeVar&) {
+  QString selection = "";
+  if (m_mat) {
+    const QMap<QString, MappableValue>& attrs = m_mat->attributeMap();
+    if (attrs.contains(m_name))
+      selection = attrs.value(m_name).toString();
+  }
+  if (selection != m_combo->currentText()) {
+    for (int i = 0; i < m_combo->count(); ++i) {
+      if (m_combo->itemText(i) == selection) {
+        m_combo->setCurrentIndex(i);
+        return;
+      }
+    }
+    m_combo->addItem(selection);
+    m_combo->setCurrentIndex(m_combo->count()-1);
+  }
+}
+
+void AttributeEditor::editingFinished() {
+  if (m_mat)
+    m_mat->setAttributeMapping(m_name, m_combo->currentText());
+}
+
+void AttributeEditor::clear() {
+  /// @todo better way to define these, with some type information
+  QStringList choices;
+  choices << "" << "mesh.vertex" << "mesh.normal" << "mesh.tangent" <<
+             "mesh.bitangent" << "mesh.color" << "mesh.uv";
+  m_combo->clear();
+  m_combo->addItems(choices);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+UniformEditor::UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
+  : VarEditor(prop, row, mat, var.name()) {
 }
 
 UniformVar* UniformEditor::getVar() {
@@ -531,8 +586,6 @@ void MaterialProperties::init() {
 }
 
 void MaterialProperties::update(MaterialPtr mat) {
-  UniformVar::List list = mat->uniformList();
-
   MaterialItem& item = m_materials[mat];
   if (!item.material) {
     item.material = mat;
@@ -562,7 +615,13 @@ void MaterialProperties::update(MaterialPtr mat) {
 
   item.header->setText(mat->name());
 
+  updateUniforms(item, mat);
+  updateAttributes(item, mat);
+}
+
+void MaterialProperties::updateUniforms(MaterialItem& item, MaterialPtr mat) {
   QSet<QString> names;
+  UniformVar::List list = mat->uniformList();
   foreach (UniformVar var, list) {
     const ShaderTypeInfo& type = var.typeinfo();
     names << var.name();
@@ -589,6 +648,34 @@ void MaterialProperties::update(MaterialPtr mat) {
     removeRow(editor->index().row());
     editor->deleteLater();
     item.uniform_editors.remove(name);
+  }
+}
+
+void MaterialProperties::updateAttributes(MaterialItem& item, MaterialPtr mat) {
+  QSet<QString> names;
+  AttributeVar::List list = mat->attributeList();
+  foreach (AttributeVar var, list) {
+    //const ShaderTypeInfo& type = var.typeinfo();
+    names << var.name();
+    AttributeEditor* editor = item.attribute_mappers.value(var.name());
+    if (!editor) {
+      editor = new AttributeEditor(*this, item.last_index.row() + 1, mat, var);
+      item.last_index = editor->index();
+      model()->setData(item.last_index, mat->name(), Qt::UserRole);
+      item.attribute_mappers[var.name()] = editor;
+    }
+
+    if (editor)
+      editor->updateUI(var);
+  }
+  foreach (QString name, item.attribute_mappers.keys().toSet() - names) {
+    AttributeEditor* editor = item.attribute_mappers[name];
+    if (item.last_index.row() == editor->index().row()) {
+      item.last_index = item.last_index.sibling(item.last_index.row()-1, 0);
+    }
+    removeRow(editor->index().row());
+    editor->deleteLater();
+    item.attribute_mappers.remove(name);
   }
 }
 

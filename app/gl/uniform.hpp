@@ -83,6 +83,10 @@ struct ShaderTypeInfo {
  *
  * Constructor reads the current value from given shader, and set() method
  * restores the variable state to (another) shader.
+ *
+ * @todo The design of this class is braindead. This class should just work
+ *       as a pointer to actual program when modifying values. This should
+ *       be freely copyable, maybe with some generation number.
  */
 class UniformVar {
 public:

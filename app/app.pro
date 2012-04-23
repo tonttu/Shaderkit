@@ -74,7 +74,8 @@ HEADERS += \
     editor/glsl_editor.hpp \
     parser/glsl_pp.hpp \
     parser/glsl_parser.hpp \
-    core/color.hpp
+    core/color.hpp \
+    gl/attribute_var.hpp
 !win32:HEADERS += gl/sandbox_compiler.hpp
 
 SOURCES += \
@@ -133,7 +134,8 @@ SOURCES += \
     editor/glsl_editor.cpp \
     parser/glsl_pp.cpp \
     parser/glsl_parser.cpp \
-    core/color.cpp
+    core/color.cpp \
+    gl/attribute_var.cpp
 !win32:SOURCES += gl/sandbox_compiler.cpp
 
 FORMS += \

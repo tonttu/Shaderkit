@@ -24,6 +24,7 @@
 #include "gl/fbo.hpp"
 #include "gl/state.hpp"
 #include "gl/uniform.hpp"
+#include "gl/attribute_var.hpp"
 #include "gl/scene_object.hpp"
 
 #include <QString>
@@ -54,7 +55,7 @@
 class MappableValue {
 public:
   MappableValue(const QString& src, const QString& var, int srcindex, int varindex,
-                const QString& selection);
+                const QString& selection, const QString& orig);
   MappableValue() : m_srcindex(-1), m_varindex(-1) {}
 
   /// Variable category, for example "camera" or "material"
@@ -80,7 +81,10 @@ public:
 
   static MappableValue parse(const QString& input);
 
+  QString toString() const { return m_orig; }
+
 private:
+  QString m_orig;
   QString m_src, m_var;
   int m_srcindex;
   int m_varindex;
@@ -125,7 +129,8 @@ public:
     float refracti;
   } style;
 
-  UniformVar::List & uniformList() { return m_uniform_list; }
+  UniformVar::List& uniformList() { return m_uniform_list; }
+  AttributeVar::List& attributeList() { return m_attribute_list; }
 
   ProgramPtr prog() const { return m_program; }
   ProgramPtr prog(bool create_if_not_found);
@@ -162,6 +167,7 @@ private:
   /// @see m_uniform_list
   ProgramPtr m_program;
   UniformVar::List m_uniform_list, m_uniform_list_prev;
+  AttributeVar::List m_attribute_list;
 
   /// Uniform name => texture
   QMap<QString, TexturePtr> m_textures;

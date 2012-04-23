@@ -25,8 +25,8 @@
 #include "gui/properties.hpp"
 
 MappableValue::MappableValue(const QString& src, const QString& var, int srcindex,
-                             int varindex, const QString& selection)
-  : m_src(src), m_var(var), m_srcindex(srcindex), m_varindex(varindex),
+                             int varindex, const QString& selection, const QString& orig)
+  : m_orig(orig), m_src(src), m_var(var), m_srcindex(srcindex), m_varindex(varindex),
     m_select(selection.size()) {
   const QString tst = "xrsygtzbpwaq";
   for (int i = 0; i < selection.size(); ++i) {
@@ -45,7 +45,7 @@ MappableValue MappableValue::parse(const QString& input) {
     return MappableValue(re.cap(1), re.cap(3),
                    re.cap(2).isEmpty() ? -1 : re.cap(2).toInt(),
                    re.cap(4).isEmpty() ? -1 : re.cap(4).toInt(),
-                   re.cap(5));
+                   re.cap(5), input);
   } else {
     Log::error("Failed to parse %s", input.toUtf8().data());
   }
@@ -74,6 +74,10 @@ void Material::removeTexture(TexturePtr tex) {
 }
 
 void Material::setAttributeMapping(const QString& name, const QString& attr) {
+  if (attr.isEmpty()) {
+    m_attributeMap.remove(name);
+    return;
+  }
   MappableValue var = MappableValue::parse(attr);
   if (!var.src().isEmpty()) {
     m_attributeMap[name] = var;
@@ -81,6 +85,10 @@ void Material::setAttributeMapping(const QString& name, const QString& attr) {
 }
 
 void Material::setUniformMapping(const QString& name, const QString& attr) {
+  if (attr.isEmpty()) {
+    m_uniformMap.remove(name);
+    return;
+  }
   MappableValue var = MappableValue::parse(attr);
   if (!var.src().isEmpty()) {
     m_uniformMap[name] = var;
@@ -132,17 +140,27 @@ void Material::unbind() {
     tex->unbind();
 
   if (m_prog_binded) {
-    UniformVar::List list = m_program->getUniformList();
+    UniformVar::List ulist = m_program->getUniformList();
+    AttributeVar::List alist = m_program->getAttributeList();
     m_program->unbind();
 
-    if(list != m_uniform_list)
-      m_uniform_list = list;
+    bool changed = false;
+    if (ulist != m_uniform_list)
+      m_uniform_list = ulist;
+
+    if (alist != m_attribute_list) {
+      changed = true;
+      m_attribute_list = alist;
+    }
 
     /// @todo why do we need three lists? I bet there was a good reason originally..
-    if(list != m_uniform_list_prev) {
-      m_uniform_list_prev = list;
-      MaterialProperties::instance().update(shared_from_this());
+    if (ulist != m_uniform_list_prev) {
+      m_uniform_list_prev = ulist;
+      changed = true;
     }
+
+    if (changed)
+      MaterialProperties::instance().update(shared_from_this());
   }
 }
 
@@ -162,12 +180,29 @@ void Material::setScene(ScenePtr scene) {
 QVariantMap Material::toMap() const {
   QVariantMap map = SceneObject::toMap();
 
-  QVariantMap textures;
+  QVariantMap tmp;
   for (auto it = m_textures.begin(); it != m_textures.end(); ++it) {
     if (!*it) continue;
-    textures[it.key()] = (*it)->name();
+    tmp[it.key()] = (*it)->name();
   }
-  if (!textures.isEmpty()) map["textures"] = textures;
+  if (!tmp.isEmpty()) map["textures"] = tmp;
+  tmp.clear();
+
+  for (auto it = m_attributeMap.begin(); it != m_attributeMap.end(); ++it) {
+    QVariantMap attrMap;
+    attrMap["map"] = it.value().toString();
+    tmp[it.key()] = attrMap;
+  }
+  if (!tmp.isEmpty()) map["attributes"] = tmp;
+  tmp.clear();
+
+  for (auto it = m_uniformMap.begin(); it != m_uniformMap.end(); ++it) {
+    QVariantMap uniformMap;
+    uniformMap["map"] = it.value().toString();
+    tmp[it.key()] = uniformMap;
+  }
+  if (!tmp.isEmpty()) map["uniforms"] = tmp;
+  tmp.clear();
 
   map["diffuse"] = colors.diffuse.toQVariant();
   map["specular"] = colors.specular.toQVariant();
