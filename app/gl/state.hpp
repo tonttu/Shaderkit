@@ -19,6 +19,7 @@
 #define STATE_HPP
 
 #include "gl/opengl.hpp"
+#include "gl/buffer_object.hpp"
 
 #include "Eigen/Geometry"
 
@@ -72,6 +73,9 @@ public:
   /// Return model matrix
   const Eigen::Affine3f& model() const;
 
+  /// Vertex attributes of the currently bind program
+  VertexAttrib& attr();
+
   /// Matrix from model coordinates to window coordinates
   /// @param swap_y enable if you want to project to Qt coordinates
   Eigen::Projective3f transform(bool swap_y = false) const;
@@ -97,7 +101,7 @@ public:
 
   unsigned int pickingQuery();
 
-  void applyAutoUniforms();
+  void applyUniformsMappings();
   void setUniform(GLProgram& prog, const QString& name, const Eigen::Affine3f& m);
 
 protected:
@@ -105,6 +109,7 @@ protected:
     QMap<QPair<void*, QString>, int> m_texunits;
     QMap<int, Light*> m_lights;
     CameraPtr m_camera;
+    VertexAttrib m_attr;
   };
 
   Scene& m_scene;

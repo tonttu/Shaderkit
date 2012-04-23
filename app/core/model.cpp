@@ -20,6 +20,8 @@
 #include "core/mesh_manager.hpp"
 #include "core/scene.hpp"
 #include "core/utils.hpp"
+#include "core/material.hpp"
+
 #include "gl/opengl.hpp"
 #include "gl/state.hpp"
 
@@ -81,7 +83,7 @@ namespace ObjectRenderer {
   };
 
   /// Renders a rectangular box.
-  void drawBox(float x, float y, float z, const VertexAttrib& attrib) {
+  void drawBox(float x, float y, float z, State& state) {
 #define N(a, b, c) for (int j=0;j<4;++j) data[j].normal = Eigen::Vector3f(a, b, c)
 #define V(a, b, c) data->point = Eigen::Vector3f((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
   data->uv3d = Eigen::Vector3f(a,b,c), \
@@ -112,7 +114,7 @@ namespace ObjectRenderer {
       N(0,-1,0); V(0,0,0), V(1,0,0), V(1,0,1), V(0,0,1);
     }
 
-    BufferObject2::BindHolder b = bo.bind(attrib);
+    BufferObject2::BindHolder b = bo.bind(state);
 
     glDrawArrays(GL_QUADS, 0, 4*6);
 
@@ -120,7 +122,7 @@ namespace ObjectRenderer {
 #undef N
   }
 
-  void drawSphere(float radius, int segments, int stripes, const VertexAttrib& attrib) {
+  void drawSphere(float radius, int segments, int stripes, State& state) {
     assert(sizeof(Vertex) == sizeof(float)*(3*3+2));
     BufferObject2 & bo = MeshManager::fetch("drawSphere", radius, segments, stripes);
 
@@ -172,7 +174,7 @@ namespace ObjectRenderer {
       }
     }
 
-    BufferObject2::BindHolder b = bo.bind(attrib);
+    BufferObject2::BindHolder b = bo.bind(state);
 
     for (int stripe = 0; stripe < stripes; ++stripe) {
       glRun(glDrawArrays(GL_TRIANGLE_STRIP, vertices_in_stripe*stripe, vertices_in_stripe));
@@ -236,7 +238,7 @@ void Model::render(ObjectPtr o, State& state, const Node& node) {
       if (res > 0) state.setPicked(o, m);
     }
 
-    state.applyAutoUniforms();
+    state.applyUniformsMappings();
     m->render(state);
 
     if (material) state.popMaterial();
@@ -367,11 +369,15 @@ void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float,
 }
 
 void Sphere::renderObj(State&) {
-  VertexAttrib attrib;
+/*  VertexAttrib attrib;
   attrib[VertexAttrib::Vertex0] = 0;
   attrib[VertexAttrib::UV0] = 8;
   attrib[VertexAttrib::Normal] = 2;
-  ObjectRenderer::drawSphere(m_size/2, 32, 32, attrib);
+  ObjectRenderer::drawSphere(m_size/2, 32, 32, attrib);*/
+}
+
+TriMesh::TriMesh()
+  : m_indices(GL_ELEMENT_ARRAY_BUFFER) {
 }
 
 void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const {
@@ -382,7 +388,88 @@ void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float
 void TriMesh::renderObj(State& state) {
   state.push();
 
-  if (!vertices.empty())
+  /*bool handledVertices = false, handledNormals = false, handledUvs = false,
+      handledColors = false;*/
+
+  std::vector<BufferObject2::BindHolder> binds;
+
+  MaterialPtr mat = state.material();
+  if (mat && mat->prog()) {
+    const QMap<QString, MappableValue>& attrs = mat->attributeMap();
+    GLProgram& prog = *mat->prog();
+    for (auto it = attrs.begin(); it != attrs.end(); ++it) {
+      const MappableValue& map = *it;
+      if (map.src() == "mesh" && map.srcindex() == -1 && map.select().empty()) {
+        if ((map.var() == "vertex" || map.var() == "vertices") &&
+            (map.varindex() == -1 || map.varindex() == 0) &&
+            !vertices.empty()) {
+          BufferObject2& bo = m_buffers[VertexAttrib::Vertex0];
+          bo.set<GL_FLOAT>(VertexAttrib::Vertex0, 3, 0, 0);
+          bo.sync(vertices);
+          state.attr()[VertexAttrib::Vertex0] = it.key();
+          binds.push_back(bo.bind(state));
+        }
+
+        else if ((map.var() == "normal" || map.var() == "normals") &&
+                 (map.varindex() == -1 || map.varindex() == 0) &&
+                 !normals.empty()) {
+          BufferObject2& bo = m_buffers[VertexAttrib::Normal];
+          bo.set<GL_FLOAT>(VertexAttrib::Normal, 3);
+          bo.sync(normals);
+          state.attr()[VertexAttrib::Normal] = it.key();
+          binds.push_back(bo.bind(state));
+        }
+
+        else if ((map.var() == "tangent" || map.var() == "tangents") &&
+                 (map.varindex() == -1 || map.varindex() == 0) &&
+                 !tangents.empty()) {
+          BufferObject2& bo = m_buffers[VertexAttrib::Tangent];
+          bo.set<GL_FLOAT>(VertexAttrib::Tangent, 3);
+          bo.sync(tangents);
+          state.attr()[VertexAttrib::Tangent] = it.key();
+          binds.push_back(bo.bind(state));
+        }
+
+        else if ((map.var() == "bitangent" || map.var() == "bitangents") &&
+                 (map.varindex() == -1 || map.varindex() == 0) &&
+                 !bitangents.empty()) {
+          BufferObject2& bo = m_buffers[VertexAttrib::Bitangent];
+          bo.set<GL_FLOAT>(VertexAttrib::Bitangent, 3);
+          bo.sync(bitangents);
+          state.attr()[VertexAttrib::Bitangent] = it.key();
+          binds.push_back(bo.bind(state));
+        }
+
+        else if ((map.var() == "color" || map.var() == "colors") &&
+                 (std::max(0, map.varindex()) < colors.size())) {
+          int idx = std::max(0, map.varindex());
+          assert(idx < 8);
+          VertexAttrib::Target target = (VertexAttrib::Target)(VertexAttrib::Color0 + idx);
+          BufferObject2& bo = m_buffers[target];
+          bo.set<GL_FLOAT>(target, 3);
+          bo.sync(colors[idx]);
+          state.attr()[target] = it.key();
+          binds.push_back(bo.bind(state));
+        }
+
+        else if ((map.var() == "uv" || map.var() == "uvs") &&
+                 (std::max(0, map.varindex()) < uvs.size())) {
+          int idx = std::max(0, map.varindex());
+          assert(idx < 8);
+          VertexAttrib::Target target = (VertexAttrib::Target)(VertexAttrib::UV0 + idx);
+          BufferObject2& bo = m_buffers[target];
+          bo.set<GL_FLOAT>(target, uv_components[idx]);
+          bo.sync(uvs[idx]);
+          state.attr()[target] = it.key();
+          binds.push_back(bo.bind(state));
+        }
+
+        else assert(false);
+      } else assert(false);
+    }
+  }
+
+/*  if (!vertices.empty())
     m_vertices.enableArray(state, GL_VERTEX_ARRAY, 3, vertices);
   if (!normals.empty())
     m_normals.enableArray(state, GL_NORMAL_ARRAY, 3, normals);
@@ -390,8 +477,12 @@ void TriMesh::renderObj(State& state) {
     m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, uv_sizes[0], uvs[0]);
   if (!colors.empty())
     m_color0.enableArray(state, GL_COLOR_ARRAY, 3, colors[0]);
+    */
   if (!indices.empty()) {
-    m_indices.bind(state, GL_ELEMENT_ARRAY_BUFFER, indices);
+    m_indices.set<GL_UNSIGNED_INT>(VertexAttrib::Index, 1);
+    m_indices.sync(indices);
+    BufferObject2::BindHolder b = m_indices.bind(state);
+
     glRun(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0));
   }
   state.pop();

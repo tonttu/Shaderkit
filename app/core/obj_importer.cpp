@@ -469,25 +469,25 @@ MeshPtr ObjImporter::loadMesh(ObjectPtr obj, int idx) {
   num = src.GetNumUVChannels();
   if (num > 0) {
     mesh->uvs.resize(num);
-    mesh->uv_sizes.resize(num);
+    mesh->uv_components.resize(num);
     for (unsigned int i = 0; i < num; ++i) {
       assert((char*)&src.mTextureCoords[i][1].x - (char*)&src.mTextureCoords[i][0].x == sizeof(float)*3);
-      mesh->uv_sizes[i] = src.mNumUVComponents[i];
-      mesh->uvs[i].resize(src.mNumVertices*mesh->uv_sizes[i]);
+      mesh->uv_components[i] = src.mNumUVComponents[i];
+      mesh->uvs[i].resize(src.mNumVertices*mesh->uv_components[i]);
 
-      if (mesh->uv_sizes[i] == 3) {
+      if (mesh->uv_components[i] == 3) {
         std::copy(&src.mTextureCoords[i]->x, &(src.mTextureCoords[i] + src.mNumVertices)->x, &mesh->uvs[i][0]);
       } else {
         float* b = &src.mTextureCoords[i]->x;
         float* e = b + src.mNumVertices * 3;
         float* o = &mesh->uvs[i][0];
-        if (mesh->uv_sizes[i] == 1) {
+        if (mesh->uv_components[i] == 1) {
           while(b < e) {
             *o++ = *b;
             b += 3;
           }
         } else {
-          assert(mesh->uv_sizes[i] == 2);
+          assert(mesh->uv_components[i] == 2);
           while(b < e) {
             *o++ = *b++;
             *o++ = *b;

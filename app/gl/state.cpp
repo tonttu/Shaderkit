@@ -79,7 +79,7 @@ namespace {
   template <typename T>
   void assignVector(State* state, GLProgram& prog, const QString& name,
                     const MappableValue& map, const QMap<int, Light*>& lights, T f) {
-    if (map.index() < 0) {
+    if (map.srcindex() < 0) {
       int vector_dimension = map.select().size() ? map.select().size() : 4;
       std::vector<float> values(vector_dimension * lights.size());
       auto output = values.begin();
@@ -89,8 +89,8 @@ namespace {
         assignValues(output, v, map.select());
       }
       prog.setUniform(state, name, vector_dimension, values);
-    } else if (lights.contains(map.index())) {
-      const Light& l = *lights[map.index()];
+    } else if (lights.contains(map.srcindex())) {
+      const Light& l = *lights[map.srcindex()];
       const auto& v = (l.*f)();
       setUniformSel(state, prog, name, v, map.select());
     }
@@ -207,6 +207,10 @@ const Eigen::Affine3f& State::model() const {
   return m_transforms.back();
 }
 
+VertexAttrib& State::attr() {
+  return m_data.back().m_attr;
+}
+
 Eigen::Projective3f State::transform(bool swap_y) const {
   CameraPtr c = camera();
   if (!c) {
@@ -266,7 +270,7 @@ unsigned int State::pickingQuery() {
   return s_picking_query;
 }
 
-void State::applyAutoUniforms() {
+void State::applyUniformsMappings() {
   if (m_materials.isEmpty()) return;
   Material& mat = *m_materials.back();
   /// @todo should work without shaders
@@ -276,49 +280,49 @@ void State::applyAutoUniforms() {
   for (auto it = mat.uniformMap().begin(); it != mat.uniformMap().end(); ++it) {
     const MappableValue& map = *it;
     if (map.src() == "model") {
-      if (map.var() == "transform") {
+      if (map.var() == "transform")
         setUniform(prog, it.key(), model());
-      } else if (map.var() == "modelview" && c) {
+      else if (map.var() == "modelview" && c)
         setUniform(prog, it.key(), c->view() * model());
-      } else assert(false);
+      else assert(false);
     }
 
     else if (map.src() == "material") {
-      if (map.var() == "diffuse") {
+      if (map.var() == "diffuse")
         setUniformSel(this, prog, it.key(), mat.colors.diffuse, map.select());
-      } else if (map.var() == "ambient") {
+      else if (map.var() == "ambient")
         setUniformSel(this, prog, it.key(), mat.colors.ambient, map.select());
-      } else if (map.var() == "specular") {
+      else if (map.var() == "specular")
         setUniformSel(this, prog, it.key(), mat.colors.specular, map.select());
-      } else if (map.var() == "transparent") {
+      else if (map.var() == "transparent")
         setUniformSel(this, prog, it.key(), mat.colors.transparent, map.select());
-      } else if (map.var() == "emissive") {
+      else if (map.var() == "emissive")
         setUniformSel(this, prog, it.key(), mat.colors.emissive, map.select());
 
-      } else if (map.var() == "wireframe") {
+      else if (map.var() == "wireframe")
         prog.setUniform(this, it.key(), mat.style.wireframe);
-      } else if (map.var() == "twosided") {
+      else if (map.var() == "twosided")
         prog.setUniform(this, it.key(), mat.style.twosided);
 
-      } else if (map.var() == "opacity") {
+      else if (map.var() == "opacity")
         prog.setUniform(this, it.key(), mat.style.opacity);
-      } else if (map.var() == "shininess") {
+      else if (map.var() == "shininess")
         prog.setUniform(this, it.key(), mat.style.shininess);
-      } else if (map.var() == "shininess_strength") {
+      else if (map.var() == "shininess_strength")
         prog.setUniform(this, it.key(), mat.style.shininess_strength);
-      } else if (map.var() == "refracti") {
+      else if (map.var() == "refracti")
         prog.setUniform(this, it.key(), mat.style.refracti);
-      } else assert(false);
+      else assert(false);
     }
 
     else if (map.src() == "scene") {
-      if (map.var() == "width") {
+      if (map.var() == "width")
         prog.setUniform(this, it.key(), m_scene.width());
-      } else if (map.var() == "height") {
+      else if (map.var() == "height")
         prog.setUniform(this, it.key(), m_scene.width());
-      } else if (map.var() == "time") {
+      else if (map.var() == "time")
         prog.setUniform(this, it.key(), m_time);
-      } else assert(false);
+      else assert(false);
     }
 
     else if (map.src() == "camera" && c) {

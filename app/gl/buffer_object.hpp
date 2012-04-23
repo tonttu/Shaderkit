@@ -29,46 +29,6 @@
 
 class BufferObject {
 public:
-  /**
-   * ARRAY_BUFFER               Vertex attributes
-   * COPY_READ_BUFFER           Buffer copy source (for copying between buffers)
-   * COPY_WRITE_BUFFER          Buffer copy destination
-   * DRAW_INDIRECT_BUFFER       Indirect command arguments
-   * ELEMENT_ARRAY_BUFFER       Vertex array indices (DrawElements)
-   * PIXEL_PACK_BUFFER          ReadPixels(), reading data from frame buffer
-   * PIXEL_UNPACK_BUFFER        TexImage-functions, buffer object -> texture
-   * TEXTURE_BUFFER             Buffer texture data backend
-   * TRANSFORM_FEEDBACK_BUFFER  Transform feedback target buffer
-   * UNIFORM_BUFFER             Values of uniforms in named uniform blocks read their values from here
-   */
-
-  /**
-   * STREAM_DRAW The data store contents will be specified once by the application,
-   *     and used at most a few times as the source for GL drawing and image speci-
-   *     fication commands.
-   * STREAM_READ The data store contents will be specified once by reading data from
-   *     the GL, and queried at most a few times by the application.
-   * STREAM_COPY The data store contents will be specified once by reading data from
-   *     the GL, and used at most a few times as the source for GL drawing and image
-   *     specification commands.
-   * STATIC_DRAW The data store contents will be specified once by the application,
-   *     and used many times as the source for GL drawing and image specification
-   *     commands.
-   * STATIC_READ The data store contents will be specified once by reading data from
-   *     the GL, and queried many times by the application.
-   * STATIC_COPY The data store contents will be specified once by reading data from
-   *     the GL, and used many times as the source for GL drawing and image spec-
-   *     ification commands.
-   * DYNAMIC_DRAW The data store contents will be respecified repeatedly by the ap-
-   *     plication, and used many times as the source for GL drawing and image
-   *     specification commands.
-   * DYNAMIC_READ The data store contents will be respecified repeatedly by reading
-   *     data from the GL, and queried many times by the application.
-   * DYNAMIC_COPY The data store contents will be respecified repeatedly by reading
-   *     data from the GL, and used many times as the source for GL drawing and
-   *     image specification commands.
-   */
-
   BufferObject();
   BufferObject(const BufferObject& obj);
   virtual ~BufferObject();
@@ -122,30 +82,83 @@ class VertexAttrib {
 public:
   enum Target {
     Vertex0, Vertex1, Vertex2,
-    UV0, UV1, UV3,
-    Normal,
-    Color1
+    UV0, UV1, UV2, UV3, UV4, UV5, UV6, UV7,
+    Normal, Tangent, Bitangent,
+    Color0, Color1, Color2, Color3, Color4, Color5, Color6, Color7,
+    Index
   };
 
-  QMap<Target, int>* operator->() { return &m_mapping; }
-  const QMap<Target, int>* operator->() const { return &m_mapping; }
+  QMap<Target, QString>* operator->() { return &m_mapping; }
+  const QMap<Target, QString>* operator->() const { return &m_mapping; }
 
-  QMap<Target, int>& operator*() { return m_mapping; }
-  const QMap<Target, int>& operator*() const { return m_mapping; }
+  QMap<Target, QString>& operator*() { return m_mapping; }
+  const QMap<Target, QString>& operator*() const { return m_mapping; }
 
-  int& operator[](Target t) { return m_mapping[t]; }
+  QString& operator[](Target t) { return m_mapping[t]; }
 
 private:
-  // map from logical channel to one specific shader attribute location
-  QMap<Target, int> m_mapping;
+  // map from logical channel to one specific shader attribute
+  QMap<Target, QString> m_mapping;
 };
 
+/// OpenGL Buffer Object
 class BufferObject2 {
 public:
-  BufferObject2(GLenum target, GLenum usage = GL_STATIC_DRAW);
+  /**
+   * Creates a new Buffer Object with given target and usage.
+   *
+   * Constructor doesn't require an OpenGL context, since it's created lazily
+   *
+   * @param target ARRAY_BUFFER          Vertex attributes
+   *               COPY_READ_BUFFER      Buffer copy source (for copying between buffers)
+   *               COPY_WRITE_BUFFER     Buffer copy destination
+   *               DRAW_INDIRECT_BUFFER  Indirect command arguments
+   *               ELEMENT_ARRAY_BUFFER  Vertex array indices (DrawElements)
+   *               PIXEL_PACK_BUFFER     ReadPixels(), reading data from frame buffer
+   *               PIXEL_UNPACK_BUFFER   TexImage-functions, buffer object -> texture
+   *               TEXTURE_BUFFER        Buffer texture data backend
+   *               TRANSFORM_FEEDBACK_BUFFER
+   *                                     Transform feedback target buffer
+   *               UNIFORM_BUFFER        Values of uniforms in named uniform blocks read
+   *                                     their values from here
+   *
+   * @param usage  STREAM_DRAW   The data store contents will be specified once by the application,
+   *                             and used at most a few times as the source for GL drawing and image
+   *                             specification commands.
+   *               STREAM_READ   The data store contents will be specified once by reading data from
+   *                             the GL, and queried at most a few times by the application.
+   *               STREAM_COPY   The data store contents will be specified once by reading data from
+   *                             the GL, and used at most a few times as the source for GL drawing
+   *                             and image specification commands.
+   *               STATIC_DRAW   The data store contents will be specified once by the application,
+   *                             and used many times as the source for GL drawing and image
+   *                             specification commands.
+   *               STATIC_READ   The data store contents will be specified once by reading data from
+   *                             the GL, and queried many times by the application.
+   *               STATIC_COPY   The data store contents will be specified once by reading data from
+   *                             the GL, and used many times as the source for GL drawing and image
+   *                             specification commands.
+   *               DYNAMIC_DRAW  The data store contents will be respecified repeatedly by the
+   *                             application, and used many times as the source for GL drawing and
+   *                             image specification commands.
+   *               DYNAMIC_READ  The data store contents will be respecified repeatedly by reading
+   *                             data from the GL, and queried many times by the application.
+   *               DYNAMIC_COPY  The data store contents will be respecified repeatedly by reading
+   *                             data from the GL, and used many times as the source for GL drawing
+   *                             and image specification commands.
+   */
+  BufferObject2(GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
+
+  BufferObject2(const BufferObject2&) = delete;
+
+  BufferObject2(BufferObject2&&);
+  BufferObject2& operator=(BufferObject2&&);
+
+  /// Deletes the buffer, requires a working OpenGL context, unless this is a
+  /// null buffer (never used)
   virtual ~BufferObject2();
 
-  int size() const { return m_size; }
+  int size() const { return m_sizeBytes; }
   void setUsage(GLenum usage) { m_usage = usage; }
 
   // BaseType could be generated automatically from ValueType and N, but it's
@@ -155,7 +168,7 @@ public:
     int offset = (char*)&(((Struct*)0)->*member) - (char*)((Struct*)0);
     AttribInfo & attr = m_attribs[target];
     attr.offset = offset;
-    attr.size = size == 0 ? N * sizeof(ValueType) / gl_sizes<BaseType>::Size : size;
+    attr.components = size == 0 ? N * sizeof(ValueType) / gl_sizes<BaseType>::Size : size;
     attr.type = BaseType;
     assert(m_stride == 0 || m_stride == sizeof(Struct));
     m_stride = sizeof(Struct);
@@ -166,17 +179,17 @@ public:
     int offset = (char*)&(((Struct*)0)->*member) - (char*)((Struct*)0);
     AttribInfo & attr = m_attribs[target];
     attr.offset = offset;
-    attr.size = size == 0 ? sizeof(ValueType) / gl_sizes<BaseType>::Size : size;
+    attr.components = size == 0 ? sizeof(ValueType) / gl_sizes<BaseType>::Size : size;
     attr.type = BaseType;
     assert(m_stride == 0 || m_stride == sizeof(Struct));
     m_stride = sizeof(Struct);
   }
 
   template <GLenum BaseType>
-  void set(VertexAttrib::Target target, int size, int stride = 0, int offset = 0) {
+  void set(VertexAttrib::Target target, int components, int stride = 0, int offset = 0) {
     AttribInfo & attr = m_attribs[target];
     attr.offset = offset;
-    attr.size = size;
+    attr.components = components;
     attr.type = BaseType;
     assert(m_stride == 0 || m_stride == stride);
     m_stride = stride;
@@ -186,7 +199,7 @@ public:
   class Array {
   public:
     Array(BufferObject2 & bo, void * data, int size) : m_bo(bo),
-        m_data(reinterpret_cast<T*>(data)), m_begin(m_data), m_size(size) {
+        m_data(reinterpret_cast<T*>(data)), m_begin(m_data), m_sizeBytes(size) {
       assert(data);
     }
     ~Array() { if (m_data) m_bo.unmap(); }
@@ -207,38 +220,54 @@ public:
 
     //Array(const Array&& other);
     Array(const Array& other) : m_bo(other.m_bo), m_data(other.m_data),
-      m_begin(other.m_begin), m_size(other.m_size) { assert(false); }
+      m_begin(other.m_begin), m_sizeBytes(other.m_sizeBytes) { assert(false); }
   private:
     //Array(const Array&);
 
      inline void assert_deref(int d = 0) {
        assert(m_data + d >= m_begin);
-       assert((const char*)(m_data + d) < (const char*)m_begin + m_size);
+       assert((const char*)(m_data + d) < (const char*)m_begin + m_sizeBytes);
      }
 
     BufferObject2 & m_bo;
     T* m_data;
     T* const m_begin;
-    int m_size;
+    int m_sizeBytes;
   };
 
   class BindHolder {
   public:
-    BindHolder(BufferObject2 & bo) : m_bo(bo) { bo.bind(*this); }
-    ~BindHolder() { m_bo.unbind(*this); }
+    BindHolder(BufferObject2& bo) : m_bo(&bo) { bo.bind(*this); }
+    ~BindHolder() { if(m_bo) m_bo->unbind(*this); }
 
-    BindHolder(const BindHolder& other) : m_bo(other.m_bo) { assert(false); }
-    //BindHolder(const BindHolder&&);
+    /// This class is only movable, not copyable
+    BindHolder(const BindHolder&) = delete;
+    BindHolder& operator=(const BindHolder&) = delete;
+
+    BindHolder(BindHolder&& other) : m_bo(0) {
+      std::swap(m_bo, other.m_bo);
+      std::swap(m_active, other.m_active);
+    }
+
+    BindHolder& operator=(BindHolder&& other) {
+      if(m_bo) m_bo->unbind(*this);
+      m_bo = other.m_bo;
+      m_active = other.m_active;
+
+      other.m_bo = 0;
+      other.m_active.clear();
+      return *this;
+    }
+
   private:
     friend class BufferObject2;
-    //BindHolder(const BindHolder&);
-    BufferObject2 & m_bo;
+    BufferObject2* m_bo;
     QSet<int> m_active;
   };
 
   void bind(const BindHolder& holder);
   void unbind(const BindHolder& holder);
-  BindHolder bind(const VertexAttrib& attr);
+  BindHolder bind(State &state);
 
   template <typename T>
   Array<const T> mapRead(int offset, int size) {
@@ -256,33 +285,64 @@ public:
   }
 
   template <typename T>
-  void upload(const T* t, int offset, int size) {
-    uploadData(t, offset*sizeof(T), size*sizeof(T));
+  void upload(const T* t, int offsetItems, int numberOfItems) {
+    uploadData(t, offsetItems*sizeof(T), numberOfItems*sizeof(T));
+  }
+
+  template <typename T>
+  void upload(const std::vector<T>& t, int offsetItems = 0) {
+    upload(t.data(), offsetItems, t.size());
+  }
+
+  /// Like upload(), but only uploads data if it's size is different from
+  /// what we already have.
+  template <typename T>
+  void sync(const std::vector<T>& t) {
+    if (t.size() * sizeof(T) != m_sizeBytes)
+      upload(t.data(), 0, t.size());
   }
 
 private:
-  BufferObject2(const BufferObject2&);
+  BufferObject2& operator=(const BufferObject2&) = default;
 
-  void* map(int offset, int size, int access);
+  /**
+   * Maps the Buffer Object to client memory space
+   *
+   * Binds and creates the object automatically if necessary
+   *
+   * @param bytes The size of the mapped memory region (in bytes)
+   * @param access MAP_READ_BIT / MAP_WRITE_BIT +
+   *               MAP_INVALIDATE_RANGE_BIT
+   *               MAP_INVALIDATE_BUFFER_BIT
+   *               MAP_FLUSH_EXPLICIT_BIT
+   *               MAP_UNSYNCHRONIZED_BIT
+   */
+  void* map(int offsetBytes, int bytes, int access);
   void unmap();
+
   void bind();
   void unbind();
-  void uploadData(const void* data, int offset, int size);
+  void uploadData(const void* data, int offsetBytes, int sizeBytes);
 
+  /// Buffer object name
   unsigned int m_id;
+
+  /// @see BufferObject()
   GLenum m_target;
+  /// @see BufferObject()
   GLenum m_usage;
 
   struct AttribInfo {
     int offset;
-    int size;
+    /// 1, 2, 3 or 4
+    int components;
     GLenum type;
   };
 
   QMap<VertexAttrib::Target, AttribInfo> m_attribs;
 
   int m_stride;
-  int m_size;
+  int m_sizeBytes;
 
   QMap<int, int> m_active_vertex_attribs;
   int m_bind_stack;

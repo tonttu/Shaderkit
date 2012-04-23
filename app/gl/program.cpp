@@ -83,10 +83,11 @@ bool GLProgram::bind(State* state) {
       link(state);
   }
   if (isLinked()) {
-    glRun(glUseProgram(m_prog));
+    /*if (state) state->useProgram(shared_from_this());
+    else */glRun(glUseProgram(m_prog));
     return true;
-  } else
-    return false;
+  }
+  return false;
 }
 
 void GLProgram::unbind() {

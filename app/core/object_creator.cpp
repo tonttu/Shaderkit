@@ -193,10 +193,10 @@ void ObjectCreator::render(State& state, const RenderOptions& render_opts) {
   glLineWidth(1.2f);
 
   m_prog->bind(&state);
-  m_attrib[VertexAttrib::Vertex0] = m_prog->attribLocation("vertex");
+  state.attr()[VertexAttrib::Vertex0] = "vertex";
 
   if (m_state < 2) {
-    BufferObject2::BindHolder b = hover_bo.bind(m_attrib);
+    BufferObject2::BindHolder b = hover_bo.bind(state);
     glColor4f(1,1,1,0.15f);
     glDepthFunc(GL_GEQUAL);
     glDrawArrays(GL_LINES, 0, 4);
@@ -226,7 +226,7 @@ void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts) {
     points << p << v3(p2[0], p[1], p[2]) << p2 << v3(p[0], p[1], p2[2]) << p;
   }
 
-  BufferObject2::BindHolder b = box_bo.bind(m_attrib);
+  BufferObject2::BindHolder b = box_bo.bind(state);
 
   glDepthFunc(GL_GEQUAL);
 
@@ -289,8 +289,8 @@ void ObjectCreator::renderSphere(State& state, const RenderOptions& render_opts)
   const float r = (m_hover - p).norm();
 
   m_prog2->bind(&state);
-  m_attrib[VertexAttrib::Vertex0] = m_prog2->attribLocation("vertex");
-  m_attrib[VertexAttrib::Normal] = m_prog2->attribLocation("normal");
+  state.attr()[VertexAttrib::Vertex0] = "vertex";
+  state.attr()[VertexAttrib::Normal] = "normal";
 
   p[1] += r;
 
@@ -298,9 +298,9 @@ void ObjectCreator::renderSphere(State& state, const RenderOptions& render_opts)
   glMultMatrix(Eigen::Projective3f(Eigen::Translation3f(p)));
 
   if (r > 0.05f) {
-    ObjectRenderer::drawSphere(r, 32, 32, m_attrib);
+    ObjectRenderer::drawSphere(r, 32, 32, state);
     glColor4f(0.2f, 0.4f, 0.8f, 0.1f);
-    ObjectRenderer::drawBox(r, r, r, m_attrib);
+    ObjectRenderer::drawBox(r, r, r, state);
   }
 
   glPopMatrix();

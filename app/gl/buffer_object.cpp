@@ -17,8 +17,10 @@
 
 #include "gl/buffer_object.hpp"
 #include "gl/state.hpp"
+#include "gl/program.hpp"
 
 #include "core/scene.hpp"
+#include "core/material.hpp"
 
 BufferObject::BufferObject() : m_id(0), m_target(0), m_cache_size(0), m_use_cache(true) {
 }
@@ -131,8 +133,23 @@ BufferObject2::BufferObject2(GLenum target, GLenum usage)
     m_target(target),
     m_usage(usage),
     m_stride(0),
-    m_size(0),
+    m_sizeBytes(0),
     m_bind_stack(0) {}
+
+BufferObject2::BufferObject2(BufferObject2&& bo) {
+  *this = bo;
+  bo.m_id = 0;
+  bo.m_active_vertex_attribs.clear();
+  bo.m_bind_stack = 0;
+}
+
+BufferObject2& BufferObject2::operator=(BufferObject2&& bo) {
+  *this = bo;
+  bo.m_id = 0;
+  bo.m_active_vertex_attribs.clear();
+  bo.m_bind_stack = 0;
+  return *this;
+}
 
 BufferObject2::~BufferObject2() {
   assert(m_bind_stack == 0);
@@ -140,13 +157,13 @@ BufferObject2::~BufferObject2() {
     glRun(glDeleteBuffers(1, &m_id));
 }
 
-void* BufferObject2::map(int offset, int size, int access) {
+void* BufferObject2::map(int offsetBytes, int bytes, int access) {
   bind();
-  if (m_size < offset + size) {
-    glRun(glBufferData(m_target, offset + size, 0, m_usage));
-    m_size = offset + size;
+  if (m_sizeBytes < offsetBytes + bytes) {
+    glRun(glBufferData(m_target, offsetBytes + bytes, 0, m_usage));
+    m_sizeBytes = offsetBytes + bytes;
   }
-  return glRun2(glMapBufferRange(m_target, offset, size, access));
+  return glRun2(glMapBufferRange(m_target, offsetBytes, bytes, access));
 }
 
 void BufferObject2::unmap() {
@@ -170,7 +187,7 @@ void BufferObject2::unbind(const BindHolder& holder) {
   }
 }
 
-BufferObject2::BindHolder BufferObject2::bind(const VertexAttrib& attr) {
+BufferObject2::BindHolder BufferObject2::bind(State& state) {
   // * m_attribs will map logical channel (like Vertex0 or UV1) to specific
   //   offset to the actual struct
   // * attr will give the list of logical channels that are asked to bind
@@ -178,14 +195,19 @@ BufferObject2::BindHolder BufferObject2::bind(const VertexAttrib& attr) {
 
   BufferObject2::BindHolder ret(*this);
 
-  for (auto it = attr->begin(), end = attr->end(); it != end; ++it) {
+  if (!state.material() || !state.material()->prog())
+    return ret;
+
+  GLProgram& prog = *state.material()->prog();
+  for (auto it = state.attr()->begin(), end = state.attr()->end(); it != end; ++it) {
     if (!m_attribs.contains(it.key())) continue;
     const AttribInfo & info = m_attribs[it.key()];
-    glRun(glVertexAttribPointer(it.value(), info.size, info.type, false,
+    int loc = prog.attribLocation(it.value());
+    glRun(glVertexAttribPointer(loc, info.components, info.type, false,
                                 m_stride, (char *)0 + info.offset));
-    glRun(glEnableVertexAttribArray(it.value()));
-    ret.m_active << it.value();
-    ++m_active_vertex_attribs[it.value()];
+    glRun(glEnableVertexAttribArray(loc));
+    ret.m_active << loc;
+    ++m_active_vertex_attribs[loc];
   }
 
   return ret;
@@ -212,13 +234,13 @@ void BufferObject2::unbind() {
     glRun(glBindBuffer(m_target, 0));
 }
 
-void BufferObject2::uploadData(const void* data, int offset, int size) {
+void BufferObject2::uploadData(const void* data, int offsetBytes, int sizeBytes) {
   bind();
-  if (m_size < offset + size) {
-    glRun(glBufferData(m_target, offset + size, 0, m_usage));
-    m_size = offset + size;
+  if (m_sizeBytes < offsetBytes + sizeBytes) {
+    glRun(glBufferData(m_target, offsetBytes + sizeBytes, 0, m_usage));
+    m_sizeBytes = offsetBytes + sizeBytes;
   }
 
-  glRun(glBufferSubData(m_target, offset, size, data));
+  glRun(glBufferSubData(m_target, offsetBytes, sizeBytes, data));
   unbind();
 }

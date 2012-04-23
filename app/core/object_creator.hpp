@@ -50,7 +50,6 @@ private:
   Eigen::Vector3f m_points[5];
   Eigen::Vector3f m_hover;
 
-  VertexAttrib m_attrib;
   ProgramPtr m_prog;
   ProgramPtr m_prog2;
 

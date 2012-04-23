@@ -170,7 +170,11 @@ void SandboxCompiler::close() {
 }
 
 bool SandboxCompiler::doCheck(ShaderPtr shader, QByteArray src, ShaderErrorList& errors) {
-  Header header = {0, 0};
+  Header header;
+  // Use memset instead of more c++ way of initializing the Header, since Header
+  // isn't tightly packed, and there are some parts of Header that are left
+  // uinitialized if we don't do this manually, and then valgrind will cry.
+  memset(&header, 0, sizeof(header));
   header.length = src.length();
   header.type = shader->type();
 

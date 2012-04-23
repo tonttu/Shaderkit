@@ -45,8 +45,8 @@ struct Node {
 namespace ObjectRenderer {
   /// Renders a rectangular box.
   void drawBox(float x, float y, float z);
-  void drawBox(float x, float y, float z, const VertexAttrib& attrib);
-  void drawSphere(float radius, int segments, int rings, const VertexAttrib& attr);
+  void drawBox(float x, float y, float z, State& state);
+  void drawSphere(float radius, int segments, int rings, State& state);
 }
 
 class Model : public SceneObject {
@@ -127,7 +127,8 @@ class Sphere : public BuiltIn {
 public:
   Sphere(float size) : m_size(size) {}
   virtual ~Sphere() {}
-  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
+  virtual void calcBbox(const Eigen::Affine3f& transform,
+                        Eigen::AlignedBox<float, 3>& bbox) const;
 
 protected:
   void renderObj(State& state);
@@ -137,8 +138,10 @@ protected:
 
 class TriMesh : public Mesh {
 public:
+  TriMesh();
   virtual ~TriMesh() {}
-  virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
+  virtual void calcBbox(const Eigen::Affine3f& transform,
+                        Eigen::AlignedBox<float, 3>& bbox) const;
 
   std::vector<float> vertices;
   std::vector<float> normals;
@@ -146,15 +149,12 @@ public:
   std::vector<float> bitangents;
   std::vector<std::vector<float>> colors;
   std::vector<std::vector<float>> uvs;
-  std::vector<int> uv_sizes;
+  std::vector<int> uv_components;
   std::vector<unsigned int> indices;
 
-protected:
-  BufferObject m_color0;
-  BufferObject m_uv0;
-  BufferObject m_normals;
-  BufferObject m_vertices;
-  BufferObject m_indices;
+private:
+  std::map<VertexAttrib::Target, BufferObject2> m_buffers;
+  BufferObject2 m_indices;
   void renderObj(State& state);
 };
 
