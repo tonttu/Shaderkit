@@ -24,8 +24,10 @@
 #include "gl/camera.hpp"
 #include "gui/properties.hpp"
 
-MappableValue::MappableValue(const QString& src, const QString& var, int index, const QString& selection)
-  : m_src(src), m_var(var), m_index(index), m_select(selection.size()) {
+MappableValue::MappableValue(const QString& src, const QString& var, int srcindex,
+                             int varindex, const QString& selection)
+  : m_src(src), m_var(var), m_srcindex(srcindex), m_varindex(varindex),
+    m_select(selection.size()) {
   const QString tst = "xrsygtzbpwaq";
   for (int i = 0; i < selection.size(); ++i) {
     m_select[i] = tst.indexOf(selection[i].toAscii()) / 3;
@@ -37,11 +39,13 @@ MappableValue MappableValue::parse(const QString& input) {
              "(?:\\[(\\d+)\\])?"            // optional: [4]
              "\\."                          // .
              "([a-z]+)"                     // variable ("width")
+             "(?:\\[(\\d+)\\])?"            // optional: [2]
              "(?:\\.([xyzwrgbastpq]{1,4}))?"); // optional .abgr
   if (re.exactMatch(input)) {
     return MappableValue(re.cap(1), re.cap(3),
                    re.cap(2).isEmpty() ? -1 : re.cap(2).toInt(),
-                   re.cap(4));
+                   re.cap(4).isEmpty() ? -1 : re.cap(4).toInt(),
+                   re.cap(5));
   } else {
     Log::error("Failed to parse %s", input.toUtf8().data());
   }

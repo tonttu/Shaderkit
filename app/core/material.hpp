@@ -33,7 +33,16 @@
  * and Shaderkit variables. This class doesn't hold the uniform / attribute name,
  * only the part that exactly defines one Shaderkit variable.
  *
- * For example the configuration file could have:
+ * Format:
+ * src[srcindex].var[varindex].select
+ *
+ * Examples:
+ * lights[2].location.xy
+ * light.location.xyz
+ * light.location
+ * mesh.color[2].r
+ *
+ * Configuration file example:
  * "uniforms" : {
  *   "color" : {
  *     "map" : "material.diffuse"
@@ -44,8 +53,9 @@
  */
 class MappableValue {
 public:
-  MappableValue(const QString& src, const QString& var, int index, const QString& selection);
-  MappableValue() : m_index(-1) {}
+  MappableValue(const QString& src, const QString& var, int srcindex, int varindex,
+                const QString& selection);
+  MappableValue() : m_srcindex(-1), m_varindex(-1) {}
 
   /// Variable category, for example "camera" or "material"
   /// This is the name before .
@@ -57,7 +67,10 @@ public:
 
   /// When using syntax "light[2].location", this is the index of the category
   /// (2 in the example). Normally this is just -1
-  int index() const { return m_index; }
+  int srcindex() const { return m_srcindex; }
+
+  /// 2 in "mesh.color[2].r"
+  int varindex() const { return m_varindex; }
 
   /// It's possible to use GLSL-like one to four component selection syntax
   /// For example "material.emissive.rr" (vec2) or "material.ambient.argb" (vec4)
@@ -69,7 +82,8 @@ public:
 
 private:
   QString m_src, m_var;
-  int m_index;
+  int m_srcindex;
+  int m_varindex;
   std::vector<int> m_select;
 };
 
