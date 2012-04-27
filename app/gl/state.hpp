@@ -26,110 +26,112 @@
 #include <QSet>
 #include <QMap>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-/**
- * Represents OpenGL state.
- *
- * This class is meant to work as a replacement for plain OpenGL 2 API. It is
- * faster to keep track of all server-side GL capabilities and only
- * enable/disable minimal set of those when needed. Also some things that were
- * just some magical built-in global variables in shaders are replaced in
- * newer OpenGL versions for example with custom uniform variables, and setting
- * those correctly is a job for this class.
- * 
- * Currently the apply() method doesn't actually do anything, and for example
- * all glEnable/glDisable calls are made directly in the enable/disable methods.
- *
- * @todo Actually store the OpenGL state and do those things documented.
- */
-class State {
-public:
-  State(Scene& scene, float time, float dt);
+  /**
+   * Represents OpenGL state.
+   *
+   * This class is meant to work as a replacement for plain OpenGL 2 API. It is
+   * faster to keep track of all server-side GL capabilities and only
+   * enable/disable minimal set of those when needed. Also some things that were
+   * just some magical built-in global variables in shaders are replaced in
+   * newer OpenGL versions for example with custom uniform variables, and setting
+   * those correctly is a job for this class.
+   *
+   * Currently the apply() method doesn't actually do anything, and for example
+   * all glEnable/glDisable calls are made directly in the enable/disable methods.
+   *
+   * @todo Actually store the OpenGL state and do those things documented.
+   */
+  class State
+  {
+  public:
+    State(Scene& scene, float time, float dt);
 
-  /// Returns the next available light id, can be used like GL_LIGHT0 + id
-  int nextFreeLight() const;
-  /// Reserve/Release a light id
-  void setLight(int light_id, Light* light);
+    /// Returns the next available light id, can be used like GL_LIGHT0 + id
+    int nextFreeLight() const;
+    /// Reserve/Release a light id
+    void setLight(int light_id, Light* light);
 
-  /// Set GL capability
-  void enable(GLenum cap);
-  /// Get GL capability
-  void disable(GLenum cap);
+    /// Set GL capability
+    void enable(GLenum cap);
+    /// Get GL capability
+    void disable(GLenum cap);
 
-  /// Reserves and returns next free texture unit
-  int reserveTexUnit(void* keyptr, QString keyname);
+    /// Reserves and returns next free texture unit
+    int reserveTexUnit(void* keyptr, QString keyname);
 
-  /// Saves the state
-  void push();
-  /// Restores the saved state
-  void pop();
+    /// Saves the state
+    void push();
+    /// Restores the saved state
+    void pop();
 
-  void pushMaterial(MaterialPtr);
-  void popMaterial();
+    void pushMaterial(MaterialPtr);
+    void popMaterial();
 
-  /// Multiplies the current matrix from right
-  void pushModel(const Eigen::Affine3f& model);
-  void popModel();
+    /// Multiplies the current matrix from right
+    void pushModel(const Eigen::Affine3f& model);
+    void popModel();
 
-  /// Return model matrix
-  const Eigen::Affine3f& model() const;
+    /// Return model matrix
+    const Eigen::Affine3f& model() const;
 
-  /// Vertex attributes of the currently bind program
-  VertexAttrib& attr();
+    /// Vertex attributes of the currently bind program
+    VertexAttrib& attr();
 
-  /// Matrix from model coordinates to window coordinates
-  /// @param swap_y enable if you want to project to Qt coordinates
-  Eigen::Projective3f transform(bool swap_y = false) const;
+    /// Matrix from model coordinates to window coordinates
+    /// @param swap_y enable if you want to project to Qt coordinates
+    Eigen::Projective3f transform(bool swap_y = false) const;
 
-  void setSelection(QList<ObjectPtr> objects);
-  QList<ObjectPtr> selection() const;
+    void setSelection(QList<ObjectPtr> objects);
+    QList<ObjectPtr> selection() const;
 
-  MaterialPtr material() const;
-  QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
+    MaterialPtr material() const;
+    QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
-  void setCamera(CameraPtr camera);
-  CameraPtr camera() const;
+    void setCamera(CameraPtr camera);
+    CameraPtr camera() const;
 
-  float time() const { return m_time; }
-  float dt() const { return m_dt; }
+    float time() const { return m_time; }
+    float dt() const { return m_dt; }
 
-  void setPicking(QPoint pos);
-  QPoint pickingPos() const;
-  bool picking() const;
-  void setPicked(ObjectPtr o, MeshPtr m);
-  QPair<ObjectPtr, MeshPtr> picked();
-  void disablePicking();
+    void setPicking(QPoint pos);
+    QPoint pickingPos() const;
+    bool picking() const;
+    void setPicked(ObjectPtr o, MeshPtr m);
+    QPair<ObjectPtr, MeshPtr> picked();
+    void disablePicking();
 
-  unsigned int pickingQuery();
+    unsigned int pickingQuery();
 
-  void applyUniformsMappings();
-  void setUniform(GLProgram& prog, const QString& name, const Eigen::Affine3f& m);
+    void applyUniformsMappings();
+    void setUniform(GLProgram& prog, const QString& name, const Eigen::Affine3f& m);
 
-protected:
-  struct Data {
-    QMap<QPair<void*, QString>, int> m_texunits;
-    QMap<int, Light*> m_lights;
-    CameraPtr m_camera;
-    VertexAttrib m_attr;
+  protected:
+    struct Data {
+      QMap<QPair<void*, QString>, int> m_texunits;
+      QMap<int, Light*> m_lights;
+      CameraPtr m_camera;
+      VertexAttrib m_attr;
+    };
+
+    Scene& m_scene;
+
+    QList<Data> m_data;
+    QList<MaterialPtr> m_materials;
+    QSet<MaterialPtr> m_usedMaterials;
+    QList<ObjectPtr> m_selection;
+    float m_time, m_dt;
+
+    QPoint m_picking_point;
+    bool m_picking;
+    QPair<ObjectPtr, MeshPtr> m_picked;
+
+    std::vector<Eigen::Affine3f, Eigen::aligned_allocator<Eigen::Affine3f>> m_transforms;
+
+    int nextFree(const QSet<int>& lst, int id = 0) const;
   };
-
-  Scene& m_scene;
-
-  QList<Data> m_data;
-  QList<MaterialPtr> m_materials;
-  QSet<MaterialPtr> m_usedMaterials;
-  QList<ObjectPtr> m_selection;
-  float m_time, m_dt;
-
-  QPoint m_picking_point;
-  bool m_picking;
-  QPair<ObjectPtr, MeshPtr> m_picked;
-
-  std::vector<Eigen::Affine3f, Eigen::aligned_allocator<Eigen::Affine3f>> m_transforms;
-
-  int nextFree(const QSet<int>& lst, int id = 0) const;
-};
 
 } // namespace Shaderkit
 

@@ -75,7 +75,8 @@ struct Commands {
   bool show_version;
 };
 
-void showHelp() {
+void showHelp()
+{
   printf("Usage:   shaderkit [command]... [file]...\n\n"
          "Commands:\n"
          "  --version           Print Shaderkit version (%s)\n"
@@ -87,17 +88,20 @@ void showHelp() {
          "You may optionally separate options and files with --\n", Shaderkit::STR);
 }
 
-void showVersion() {
+void showVersion()
+{
   printf("Shaderkit %s (%s)\n", Shaderkit::STR, Shaderkit::STR_HASH);
 }
 
-void showErrors(const QStringList& errors) {
+void showErrors(const QStringList& errors)
+{
   foreach (const QString& err, errors) {
     fprintf(stderr, "%s\n", err.toUtf8().data());
   }
 }
 
-Commands parseCmd(int argc, char* argv[]) {
+Commands parseCmd(int argc, char* argv[])
+{
   Commands cmds;
   for (int i = 1; i < argc; ++i) {
     QString arg(argv[i]);
@@ -120,7 +124,8 @@ Commands parseCmd(int argc, char* argv[]) {
   return cmds;
 }
 
-void findPath(ShaderDB& db, const QString& root, bool add_root = true, const QString& name = "examples") {
+void findPath(ShaderDB& db, const QString& root, bool add_root = true, const QString& name = "examples")
+{
   QDir dir(root);
   for (int i = 0; i < 5 && dir.exists(); ++i) {
     if (i == 0 && add_root) db.addPath(root);
@@ -132,7 +137,8 @@ void findPath(ShaderDB& db, const QString& root, bool add_root = true, const QSt
 // If we are developing the application and compiling it with shadow building,
 // it's tricky to try to determine the actual source directory. Let's see if
 // we can parse relevant information from Makefile
-void findSources(ShaderDB& db, const QString& root) {
+void findSources(ShaderDB& db, const QString& root)
+{
   QDir dir(root);
   QRegExp r("# Project:\\s+([^\\s].+)[\\\\/][^\\\\/]+");
   for (int i = 0; i < 2 && dir.exists(); ++i) {
@@ -161,7 +167,8 @@ void findSources(ShaderDB& db, const QString& root) {
   }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 #ifndef _WIN32
   if (argc == 4 && std::string(argv[1]) == "--sandbox-compiler") {
     return SandboxCompiler::run(argc, argv);
@@ -271,7 +278,7 @@ int main(int argc, char* argv[]) {
         }
         QFileInfo fi(filename);
 
-        if(fi.size() > 0 && fi.size() < 100000) {
+        if (fi.size() > 0 && fi.size() < 100000) {
           Shader::Type glsl_type = GLSLParser::detect(filename);
 
           if (glsl_type != Shader::Unknown) {

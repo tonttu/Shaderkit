@@ -20,15 +20,17 @@
 
 #include "gl/scene_object.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class Animation : public SceneObject {
-public:
-  Animation(QString name);
+  class Animation : public SceneObject
+  {
+  public:
+    Animation(QString name);
 
-  QVariantMap toMap() const;
-  void load(QVariantMap map);
-};
+    QVariantMap toMap() const;
+    void load(QVariantMap map);
+  };
 
 } // namespace Shaderkit
 

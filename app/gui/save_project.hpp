@@ -21,31 +21,34 @@
 #include "forward.hpp"
 #include <QDialog>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-class SaveProject;
-}
+  namespace Ui
+  {
+    class SaveProject;
+  }
 
-class SaveProject : public QDialog {
-  Q_OBJECT
+  class SaveProject : public QDialog
+  {
+    Q_OBJECT
 
-public:
-  explicit SaveProject(QWidget* parent = 0);
-  ~SaveProject();
+  public:
+    explicit SaveProject(QWidget* parent = 0);
+    ~SaveProject();
 
-  static bool save(ScenePtr scene);
+    static bool save(ScenePtr scene);
 
-protected:
-  void keyPressEvent(QKeyEvent* e);
+  protected:
+    void keyPressEvent(QKeyEvent* e);
 
-private slots:
-  void filenameChanged(QString);
-  void browse();
+  private slots:
+    void filenameChanged(QString);
+    void browse();
 
-private:
-  Ui::SaveProject* m_ui;
-};
+  private:
+    Ui::SaveProject* m_ui;
+  };
 
 } // namespace Shaderkit
 

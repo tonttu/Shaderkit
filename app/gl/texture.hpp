@@ -28,130 +28,134 @@
 
 class QTimer;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
 /// Signals when OpenGL texture was changed, so for example this isn't emitted
 /// on setParam but only on applyParams
-class TextureChangeManager : public QObject {
-  Q_OBJECT
+  class TextureChangeManager : public QObject
+  {
+    Q_OBJECT
 
-public:
-  virtual ~TextureChangeManager();
+  public:
+    virtual ~TextureChangeManager();
 
-  static void listen(TexturePtr texture, QObject* listener, std::function<void ()> func, bool data = true);
-  static void forget(TexturePtr texture, QObject* listener);
+    static void listen(TexturePtr texture, QObject* listener, std::function<void ()> func, bool data = true);
+    static void forget(TexturePtr texture, QObject* listener);
 
-  static void changed(Texture* tex, bool data = false);
-  static void removed(Texture* tex);
+    static void changed(Texture* tex, bool data = false);
+    static void removed(Texture* tex);
 
-private slots:
-  void listenerDeleted(QObject*);
-  void run();
+  private slots:
+    void listenerDeleted(QObject*);
+    void run();
 
-private:
-  struct Listener {
-    QObject* obj;
-    bool data;
-    std::function<void ()> func;
-  };
-
-  TextureChangeManager();
-  typedef QList<Listener> List;
-  QMap<Texture*, List> m_callbacks;
-  QSet<Texture*> m_queue, m_queueData;
-  QTimer* m_timer;
-};
-
-class Texture : public FBOImage {
-public:
-  enum ParamType { UNKNOWN, ENUM, INT, FLOAT };
-  struct Param {
-    Param(int v = 0) : is_float(false), i(v) {}
-    Param(float v) : is_float(true), f(v) {}
-    bool is_float;
-    union {
-      float f;
-      int i;
+  private:
+    struct Listener {
+      QObject* obj;
+      bool data;
+      std::function<void ()> func;
     };
+
+    TextureChangeManager();
+    typedef QList<Listener> List;
+    QMap<Texture*, List> m_callbacks;
+    QSet<Texture*> m_queue, m_queueData;
+    QTimer* m_timer;
   };
 
-  Texture(QString name);
-  virtual ~Texture();
+  class Texture : public FBOImage
+  {
+  public:
+    enum ParamType { UNKNOWN, ENUM, INT, FLOAT };
+    struct Param {
+      Param(int v = 0) : is_float(false), i(v) {}
+      Param(float v) : is_float(true), f(v) {}
+      bool is_float;
+      union {
+        float f;
+        int i;
+      };
+    };
 
-  void setup(unsigned int fbo, int width, int height);
+    Texture(QString name);
+    virtual ~Texture();
 
-  virtual void bind(int texture = 0);
-  virtual void unbind();
+    void setup(unsigned int fbo, int width, int height);
 
-  void setParam(unsigned int pname, int param);
-  void setParam(unsigned int pname, float param);
-  bool setParam(QString pname, Param param);
-  bool setParam(QString pname, QString param);
+    virtual void bind(int texture = 0);
+    virtual void unbind();
 
-  QMap<QString, Param> paramStrings() const;
-  Param param(QString name) const;
+    void setParam(unsigned int pname, int param);
+    void setParam(unsigned int pname, float param);
+    bool setParam(QString pname, Param param);
+    bool setParam(QString pname, QString param);
 
-  static QStringList allParams();
-  static ParamType paramType(QString name);
-  static QStringList paramChoices(QString name);
-  static QString enumToString(unsigned int value);
+    QMap<QString, Param> paramStrings() const;
+    Param param(QString name) const;
 
-  void setBlend(float value);
-  void setUV(int idx);
+    static QStringList allParams();
+    static ParamType paramType(QString name);
+    static QStringList paramChoices(QString name);
+    static QString enumToString(unsigned int value);
 
-  QString imageClass() const { return "texture"; }
+    void setBlend(float value);
+    void setUV(int idx);
 
-  virtual TexturePtr clone() const;
-  virtual QVariantMap toMap() const;
-  virtual void load(QVariantMap map);
+    QString imageClass() const { return "texture"; }
 
-  int internalFormat() const { return m_internalFormat; }
-  virtual void setInternalFormat(int format);
-  void setInternalFormat(QString format);
+    virtual TexturePtr clone() const;
+    virtual QVariantMap toMap() const;
+    virtual void load(QVariantMap map);
 
-  QString internalFormatStr() const;
+    int internalFormat() const { return m_internalFormat; }
+    virtual void setInternalFormat(int format);
+    void setInternalFormat(QString format);
 
-  static const QList<QPair<QString, QStringList>>& internalFormats(bool colorRenderableOnly);
+    QString internalFormatStr() const;
 
-  static const QSet<int>& colorRenderableInternalFormats();
-  static const QSet<QString>& colorRenderableInternalFormatsStr();
+    static const QList<QPair<QString, QStringList>>& internalFormats(bool colorRenderableOnly);
 
-  static const QSet<int>& depthRenderableInternalFormats();
-  static const QSet<QString>& depthRenderableInternalFormatsStr();
+    static const QSet<int>& colorRenderableInternalFormats();
+    static const QSet<QString>& colorRenderableInternalFormatsStr();
 
-  static const QSet<int>& stencilRenderableInternalFormats();
-  static const QSet<QString>& stencilRenderableInternalFormatsStr();
+    static const QSet<int>& depthRenderableInternalFormats();
+    static const QSet<QString>& depthRenderableInternalFormatsStr();
 
-  void dataUpdated();
+    static const QSet<int>& stencilRenderableInternalFormats();
+    static const QSet<QString>& stencilRenderableInternalFormatsStr();
 
-protected:
-  void applyParams();
+    void dataUpdated();
 
-  QMap<unsigned int, Param> m_params;
-  unsigned int m_bindedTexture;
-  int m_internalFormat;
-  float m_blend;
-  int m_uv;
-  bool m_paramsDirty, m_dirty;
-};
+  protected:
+    void applyParams();
 
-class TextureFile : public Texture, public FileResource {
-public:
-  TextureFile(QString name);
-  virtual ~TextureFile() {}
+    QMap<unsigned int, Param> m_params;
+    unsigned int m_bindedTexture;
+    int m_internalFormat;
+    float m_blend;
+    int m_uv;
+    bool m_paramsDirty, m_dirty;
+  };
 
-  virtual void bind(int texture = 0);
-  virtual void setInternalFormat(int format);
+  class TextureFile : public Texture, public FileResource
+  {
+  public:
+    TextureFile(QString name);
+    virtual ~TextureFile() {}
 
-  virtual TexturePtr clone() const;
-  virtual QVariantMap toMap() const;
-  virtual void load(QVariantMap map);
+    virtual void bind(int texture = 0);
+    virtual void setInternalFormat(int format);
 
-  QIcon icon() const;
+    virtual TexturePtr clone() const;
+    virtual QVariantMap toMap() const;
+    virtual void load(QVariantMap map);
 
-private:
-  QString m_loadedFile;
-};
+    QIcon icon() const;
+
+  private:
+    QString m_loadedFile;
+  };
 
 } // namespace Shaderkit
 

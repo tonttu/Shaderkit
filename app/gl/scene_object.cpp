@@ -17,45 +17,52 @@
 
 #include "gl/scene_object.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-SceneObject::SceneObject(const QString& name) : m_name(name) {}
-SceneObject::~SceneObject() {}
+  SceneObject::SceneObject(const QString& name) : m_name(name) {}
+  SceneObject::~SceneObject() {}
 
-void SceneObject::setName(QString name) {
-  m_name = name;
-}
-
-QVariantMap SceneObject::toMap() const {
-  QVariantMap map;
-  if (!m_ref.isEmpty()) {
-    QStringList tmp;
-    tmp << m_ref;
-    tmp += m_ref_name;
-    map["ref"] = tmp;
+  void SceneObject::setName(QString name)
+  {
+    m_name = name;
   }
-  return map;
-}
 
-void SceneObject::load(QVariantMap map) {
-  QStringList tmp = map["ref"].toStringList();
-  if (tmp.size() > 0) {
-    m_ref = tmp[0];
-    m_ref_name = tmp.mid(1);
+  QVariantMap SceneObject::toMap() const
+  {
+    QVariantMap map;
+    if (!m_ref.isEmpty()) {
+      QStringList tmp;
+      tmp << m_ref;
+      tmp += m_ref_name;
+      map["ref"] = tmp;
+    }
+    return map;
   }
-}
 
-void SceneObject::setRef(QString import, QString refname) {
-  m_ref = import;
-  m_ref_name = QStringList(refname);
-}
+  void SceneObject::load(QVariantMap map)
+  {
+    QStringList tmp = map["ref"].toStringList();
+    if (tmp.size() > 0) {
+      m_ref = tmp[0];
+      m_ref_name = tmp.mid(1);
+    }
+  }
 
-QString SceneObject::ref() {
-  return m_ref;
-}
+  void SceneObject::setRef(QString import, QString refname)
+  {
+    m_ref = import;
+    m_ref_name = QStringList(refname);
+  }
 
-QStringList SceneObject::refName() {
-  return m_ref_name;
-}
+  QString SceneObject::ref()
+  {
+    return m_ref;
+  }
+
+  QStringList SceneObject::refName()
+  {
+    return m_ref_name;
+  }
 
 } // namespace Shaderkit

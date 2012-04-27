@@ -23,42 +23,45 @@
 #include <QStringList>
 #include <QRegExp>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class ParserImpl {
-public:
-  virtual ~ParserImpl() {}
-  virtual bool parse(const QStringList& list, ShaderErrorList& errors) = 0;
-  virtual bool hasColumnInformation() const;
-};
+  class ParserImpl
+  {
+  public:
+    virtual ~ParserImpl() {}
+    virtual bool parse(const QStringList& list, ShaderErrorList& errors) = 0;
+    virtual bool hasColumnInformation() const;
+  };
 
-/**
- * Tries to parse the GLSL Compiler output. Unfortunately the output format is
- * implementation-dependent, so the parsing is not guaranteed to work.
- *
- * This class works also as an iterator to ShaderErrors that are generated
- * from the compiler output string.
- *
- * @todo In some cases, this should try to locate the correct token (which
- *       isn't usually the one got from Lexer at the point of the error, but
- *       somewhere before that) and include that information to the ShaderError.
- */
-class ShaderCompilerOutputParser {
-public:
-  /// Initializes the parser with given compiler output
-  /// @todo Implement also some other formats than "1.50 NVIDIA via Cg compiler"
-  ShaderCompilerOutputParser();
+  /**
+   * Tries to parse the GLSL Compiler output. Unfortunately the output format is
+   * implementation-dependent, so the parsing is not guaranteed to work.
+   *
+   * This class works also as an iterator to ShaderErrors that are generated
+   * from the compiler output string.
+   *
+   * @todo In some cases, this should try to locate the correct token (which
+   *       isn't usually the one got from Lexer at the point of the error, but
+   *       somewhere before that) and include that information to the ShaderError.
+   */
+  class ShaderCompilerOutputParser
+  {
+  public:
+    /// Initializes the parser with given compiler output
+    /// @todo Implement also some other formats than "1.50 NVIDIA via Cg compiler"
+    ShaderCompilerOutputParser();
 
-  bool parse(const QString & output, ShaderErrorList& errors);
-  bool parse(Shader& shader, ShaderErrorList& errors);
+    bool parse(const QString& output, ShaderErrorList& errors);
+    bool parse(Shader& shader, ShaderErrorList& errors);
 
-  QStringList split(const QString& str) const;
+    QStringList split(const QString& str) const;
 
-  static ShaderCompilerOutputParser& instance();
+    static ShaderCompilerOutputParser& instance();
 
-protected:
-  QList<std::shared_ptr<ParserImpl>> m_parsers;
-};
+  protected:
+    QList<std::shared_ptr<ParserImpl>> m_parsers;
+  };
 
 } // namespace Shaderkit
 

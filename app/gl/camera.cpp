@@ -28,216 +28,239 @@
 // this include last because of near/far undefs
 #include "gl/camera.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-Camera::Camera(const QString &name)
-  : SceneObject(name), m_type(Perspective),
-    m_target(0, 0, 0), m_up(0, 1, 0),
-    m_dx(0), m_dy(0), m_dist(0.0f),
-    m_projection(Eigen::Projective3f::Identity()),
-    m_view(Eigen::Affine3f::Identity()),
-    m_width(-1), m_height(-1),
-    m_fov(45), m_near(0.1f), m_far(1000.0f) {
-  updateVectors();
-}
-
-void Camera::prepare(int width, int height) {
-  glCheck("Camera::prepare");
-  m_width = width;
-  m_height = height;
-  glViewport(0, 0, width, height);
-  if (m_type == Perspective) {
-    float f = 1.0f / tanf(m_fov*0.5f);
-    m_projection.matrix() <<
-        f*height/width, 0.0f, 0.0f, 0.0f,
-        0.0f, f, 0.0f, 0.0f,
-        0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far*m_near/(m_near-m_far),
-        0.0f, 0.0f, -1.0f, 0.0f;
-
-    m_view.matrix() <<
-         float(m_right[0]),  float(m_right[1]),  float(m_right[2]), 0.0f,
-            float(m_up[0]),     float(m_up[1]),     float(m_up[2]), 0.0f,
-        float(-m_front[0]), float(-m_front[1]), float(-m_front[2]), 0.0f,
-                      0.0f,               0.0f,               0.0f, 1.0f;
-
-    Eigen::Vector3f eye = m_target - m_front*m_dist;
-    m_view = m_view * Eigen::Translation3f(-eye);
-  } else if (m_type == Rect) {
-    float tz = -(m_far+m_near)/(m_far-m_near);
-    m_projection.matrix() <<
-        2.0f/width,           0,                    0, -1.0f,
-                 0, 2.0f/height,                    0, -1.0f,
-                 0,           0, -2.0f/(m_far-m_near),    tz,
-                 0,           0,                    0,     1;
-
-    m_view = Eigen::Affine3f::Identity();
-  } else {
-    /// @todo implement ortho camera
-    m_projection = Eigen::Projective3f::Identity();
-    m_view = Eigen::Affine3f::Identity();
-    assert(false && "Ortho Camera not implemented");
+  Camera::Camera(const QString& name)
+    : SceneObject(name), m_type(Perspective),
+      m_target(0, 0, 0), m_up(0, 1, 0),
+      m_dx(0), m_dy(0), m_dist(0.0f),
+      m_projection(Eigen::Projective3f::Identity()),
+      m_view(Eigen::Affine3f::Identity()),
+      m_width(-1), m_height(-1),
+      m_fov(45), m_near(0.1f), m_far(1000.0f)
+  {
+    updateVectors();
   }
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadMatrix(m_projection);
+  void Camera::prepare(int width, int height)
+  {
+    glCheck("Camera::prepare");
+    m_width = width;
+    m_height = height;
+    glViewport(0, 0, width, height);
+    if (m_type == Perspective) {
+      float f = 1.0f / tanf(m_fov*0.5f);
+      m_projection.matrix() <<
+                            f* height/width, 0.0f, 0.0f, 0.0f,
+                               0.0f, f, 0.0f, 0.0f,
+                               0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far* m_near/(m_near-m_far),
+                               0.0f, 0.0f, -1.0f, 0.0f;
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadMatrix(m_view);
-}
+      m_view.matrix() <<
+                      float(m_right[0]),  float(m_right[1]),  float(m_right[2]), 0.0f,
+                            float(m_up[0]),     float(m_up[1]),     float(m_up[2]), 0.0f,
+                            float(-m_front[0]), float(-m_front[1]), float(-m_front[2]), 0.0f,
+                            0.0f,               0.0f,               0.0f, 1.0f;
 
-void Camera::setRect(float near_, float far_) {
-  m_type = Rect;
-  m_near = near_;
-  m_far = far_;
-}
+      Eigen::Vector3f eye = m_target - m_front*m_dist;
+      m_view = m_view * Eigen::Translation3f(-eye);
+    } else if (m_type == Rect) {
+      float tz = -(m_far+m_near)/(m_far-m_near);
+      m_projection.matrix() <<
+                            2.0f/width,           0,                    0, -1.0f,
+                                 0, 2.0f/height,                    0, -1.0f,
+                                 0,           0, -2.0f/(m_far-m_near),    tz,
+                                 0,           0,                    0,     1;
 
-void Camera::setNear(float near) {
-  m_near = near;
-}
+      m_view = Eigen::Affine3f::Identity();
+    } else {
+      /// @todo implement ortho camera
+      m_projection = Eigen::Projective3f::Identity();
+      m_view = Eigen::Affine3f::Identity();
+      assert(false && "Ortho Camera not implemented");
+    }
 
-void Camera::setFar(float far) {
-  m_far = far;
-}
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrix(m_projection);
 
-void Camera::setFov(float fov) {
-  m_fov = fov;
-}
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrix(m_view);
+  }
 
-QVariantMap Camera::toMap() const {
-  QVariantMap map = SceneObject::toMap();
-  if (m_type == Perspective)
-    map["type"] = "perspective";
-  else if (m_type == Ortho)
-    map["type"] = "ortho";
-  else if (m_type == Rect)
-    map["type"] = "rect";
+  void Camera::setRect(float near_, float far_)
+  {
+    m_type = Rect;
+    m_near = near_;
+    m_far = far_;
+  }
 
-  Eigen::Vector3f eye = m_target - m_front*m_dist;
-  map["location"] = Utils::toList(eye);
-  map["target"] = Utils::toList(m_target);
-  map["fov"] = m_fov;
-  map["near"] = m_near;
-  map["far"] = m_far;
+  void Camera::setNear(float near)
+  {
+    m_near = near;
+  }
 
-  return map;
-}
+  void Camera::setFar(float far)
+  {
+    m_far = far;
+  }
 
-void Camera::load(QVariantMap map) {
-  SceneObject::load(map);
+  void Camera::setFov(float fov)
+  {
+    m_fov = fov;
+  }
 
-  if (map["type"] == "perspective") m_type = Perspective;
-  if (map["type"] == "ortho") m_type = Ortho;
+  QVariantMap Camera::toMap() const
+  {
+    QVariantMap map = SceneObject::toMap();
+    if (m_type == Perspective)
+      map["type"] = "perspective";
+    else if (m_type == Ortho)
+      map["type"] = "ortho";
+    else if (m_type == Rect)
+      map["type"] = "rect";
 
-  m_target = Utils::toVector3(map["target"]);
-  m_fov = map["fov"].toFloat();
-  m_near = map["near"].toFloat();
-  m_far = map["far"].toFloat();
+    Eigen::Vector3f eye = m_target - m_front*m_dist;
+    map["location"] = Utils::toList(eye);
+    map["target"] = Utils::toList(m_target);
+    map["fov"] = m_fov;
+    map["near"] = m_near;
+    map["far"] = m_far;
 
-  setLocation(Utils::toVector3(map["location"]));
-}
+    return map;
+  }
 
-void Camera::updateVectors() {
-  float x = cosf(m_dx), z = -sinf(m_dx);
-  float c = cosf(m_dy);
-  m_front[0] =-c*x;
-  m_front[1] = -sin(m_dy);
-  m_front[2] = -c*z;
-  m_front.normalize();
-  m_right = m_front.cross(Eigen::Vector3f(0, 1, 0)).normalized();
-  m_up = m_right.cross(m_front).normalized();
-}
+  void Camera::load(QVariantMap map)
+  {
+    SceneObject::load(map);
 
-CameraPtr Camera::clone() const {
-  return CameraPtr(new Camera(*this));
-}
+    if (map["type"] == "perspective") m_type = Perspective;
+    if (map["type"] == "ortho") m_type = Ortho;
 
-QIcon Camera::icon() {
-  if (m_type == Perspective)
-    return QIcon(":/icons/3dpass.png");
-  else if (m_type == Rect)
-    return QIcon(":/icons/texture.png");
-  else
-    return QIcon(":/icons/2dpass.png");
-}
+    m_target = Utils::toVector3(map["target"]);
+    m_fov = map["fov"].toFloat();
+    m_near = map["near"].toFloat();
+    m_far = map["far"].toFloat();
 
-void Camera::rotate(QPointF diff) {
-  diff *= 5.0f;
-  m_dx -= diff.x();
-  m_dy += diff.y();
-  if (m_dy < -M_PI*0.499f) m_dy = -M_PI*0.499f;
-  if (m_dy > M_PI*0.499f) m_dy = M_PI*0.499f;
-  updateVectors();
-}
+    setLocation(Utils::toVector3(map["location"]));
+  }
 
-void Camera::translate(QPointF diff) {
-  diff *= m_dist;
-  m_target += m_up*diff.y() - m_right*diff.x();
-}
+  void Camera::updateVectors()
+  {
+    float x = cosf(m_dx), z = -sinf(m_dx);
+    float c = cosf(m_dy);
+    m_front[0] =-c*x;
+    m_front[1] = -sin(m_dy);
+    m_front[2] = -c*z;
+    m_front.normalize();
+    m_right = m_front.cross(Eigen::Vector3f(0, 1, 0)).normalized();
+    m_up = m_right.cross(m_front).normalized();
+  }
 
-void Camera::zoom(float diff) {
-  m_dist += diff*m_dist*0.01f;
-}
+  CameraPtr Camera::clone() const
+  {
+    return CameraPtr(new Camera(*this));
+  }
 
-void Camera::setTarget(const Eigen::Vector3f& target) {
-  m_target = target;
-}
+  QIcon Camera::icon()
+  {
+    if (m_type == Perspective)
+      return QIcon(":/icons/3dpass.png");
+    else if (m_type == Rect)
+      return QIcon(":/icons/texture.png");
+    else
+      return QIcon(":/icons/2dpass.png");
+  }
 
-const Eigen::Vector3f& Camera::target() const {
-  return m_target;
-}
+  void Camera::rotate(QPointF diff)
+  {
+    diff *= 5.0f;
+    m_dx -= diff.x();
+    m_dy += diff.y();
+    if (m_dy < -M_PI*0.499f) m_dy = -M_PI*0.499f;
+    if (m_dy > M_PI*0.499f) m_dy = M_PI*0.499f;
+    updateVectors();
+  }
 
-void Camera::setLocation(const Eigen::Vector3f& location) {
-  Eigen::Vector3f to = m_target - location;
-  m_dist = to.norm();
-  m_dx = atan2f(to[2], -to[0]);
-  m_dy = asinf(-to[1] / m_dist);
+  void Camera::translate(QPointF diff)
+  {
+    diff *= m_dist;
+    m_target += m_up*diff.y() - m_right*diff.x();
+  }
 
-  updateVectors();
-}
+  void Camera::zoom(float diff)
+  {
+    m_dist += diff*m_dist*0.01f;
+  }
 
-const Eigen::Vector3f Camera::location() const {
-  return m_target - m_front*m_dist;
-}
+  void Camera::setTarget(const Eigen::Vector3f& target)
+  {
+    m_target = target;
+  }
 
-const Eigen::Vector3f Camera::up() const
-{
-  return m_up;
-}
+  const Eigen::Vector3f& Camera::target() const
+  {
+    return m_target;
+  }
 
-const Eigen::Vector3f Camera::right() const
-{
-  return m_right;
-}
+  void Camera::setLocation(const Eigen::Vector3f& location)
+  {
+    Eigen::Vector3f to = m_target - location;
+    m_dist = to.norm();
+    m_dx = atan2f(to[2], -to[0]);
+    m_dy = asinf(-to[1] / m_dist);
 
-const Eigen::Vector3f Camera::front() const
-{
-  return m_front;
-}
+    updateVectors();
+  }
 
-void Camera::setType(Type type) {
-  m_type = type;
-  updateVectors();
-}
+  const Eigen::Vector3f Camera::location() const
+  {
+    return m_target - m_front*m_dist;
+  }
 
-float Camera::dist() const {
-  return m_dist;
-}
+  const Eigen::Vector3f Camera::up() const
+  {
+    return m_up;
+  }
 
-Eigen::Projective3f Camera::normToWindow(bool swap_y) const {
-  float f = swap_y ? -1.0f : 1.0f;
+  const Eigen::Vector3f Camera::right() const
+  {
+    return m_right;
+  }
 
-  Eigen::Projective3f window_scale;
-  window_scale.matrix() << m_width * 0.5f,                   0, 0, 0,
-                                        0, m_height * 0.5f * f, 0, 0,
-                                        0,                   0, 1, 0,
-                                        0,                   0, 0, 1;
+  const Eigen::Vector3f Camera::front() const
+  {
+    return m_front;
+  }
 
-  // -1..1 to window coordinates
-  return window_scale * Eigen::Translation3f(1, f, 0);
-}
+  void Camera::setType(Type type)
+  {
+    m_type = type;
+    updateVectors();
+  }
 
-Eigen::Projective3f Camera::transform(bool swap_y) const {
-  return normToWindow(swap_y) * projection() * view();
-}
+  float Camera::dist() const
+  {
+    return m_dist;
+  }
+
+  Eigen::Projective3f Camera::normToWindow(bool swap_y) const
+  {
+    float f = swap_y ? -1.0f : 1.0f;
+
+    Eigen::Projective3f window_scale;
+    window_scale.matrix() << m_width * 0.5f,                   0, 0, 0,
+                        0, m_height * 0.5f * f, 0, 0,
+                        0,                   0, 1, 0,
+                        0,                   0, 0, 1;
+
+    // -1..1 to window coordinates
+    return window_scale * Eigen::Translation3f(1, f, 0);
+  }
+
+  Eigen::Projective3f Camera::transform(bool swap_y) const
+  {
+    return normToWindow(swap_y) * projection() * view();
+  }
 
 } // namespace Shaderkit

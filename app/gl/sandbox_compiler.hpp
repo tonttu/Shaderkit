@@ -21,31 +21,33 @@
 #include "forward.hpp"
 #include "gl/error.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
 /// @todo implement something on windows too
-class SandboxCompiler {
-public:
-  SandboxCompiler(const QString& binary);
-  ~SandboxCompiler();
+  class SandboxCompiler
+  {
+  public:
+    SandboxCompiler(const QString& binary);
+    ~SandboxCompiler();
 
-  static bool check(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
-  static void close();
+    static bool check(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
+    static void close();
 
-  static int run(int& argc, char* argv[]);
+    static int run(int& argc, char* argv[]);
 
-private:
-  static SandboxCompiler* s_instance;
+  private:
+    static SandboxCompiler* s_instance;
 
-  int m_read, m_write;
-  pid_t m_pid;
+    int m_read, m_write;
+    pid_t m_pid;
 
-  const QString m_binary;
+    const QString m_binary;
 
-  bool doCheck(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
-  bool start();
-  void killSandbox();
-};
+    bool doCheck(ShaderPtr shader, QByteArray src, ShaderErrorList& errors);
+    bool start();
+    void killSandbox();
+  };
 
 } // namespace Shaderkit
 

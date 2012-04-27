@@ -23,41 +23,44 @@
 
 #include "forward.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-  class LimboDialog;
-}
+  namespace Ui
+  {
+    class LimboDialog;
+  }
 
-class LimboDialog : public QWidget {
-  Q_OBJECT
+  class LimboDialog : public QWidget
+  {
+    Q_OBJECT
 
-public:
-  LimboDialog(const QString& filename, ScenePtr scene, const MetaInfo& meta, bool& cont);
-  ~LimboDialog();
+  public:
+    LimboDialog(const QString& filename, ScenePtr scene, const MetaInfo& meta, bool& cont);
+    ~LimboDialog();
 
-protected:
-  void closeEvent(QCloseEvent*);
+  protected:
+    void closeEvent(QCloseEvent*);
 
-private slots:
-  void open();
-  void save();
-  void maybeDiscard();
-  void notNow();
-  void discard();
-  void abortDiscard();
+  private slots:
+    void open();
+    void save();
+    void maybeDiscard();
+    void notNow();
+    void discard();
+    void abortDiscard();
 
-private:
-  const QString m_filename;
-  const MetaInfo& m_meta;
-  bool m_done;
-  bool& m_cont;
+  private:
+    const QString m_filename;
+    const MetaInfo& m_meta;
+    bool m_done;
+    bool& m_cont;
 
-  QSet<QString> m_localFiles;
-  ScenePtr m_scene;
+    QSet<QString> m_localFiles;
+    ScenePtr m_scene;
 
-  Ui::LimboDialog* m_ui;
-};
+    Ui::LimboDialog* m_ui;
+  };
 
 } // namespace Shaderkit
 

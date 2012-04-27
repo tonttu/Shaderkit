@@ -28,182 +28,190 @@
 
 namespace
 {
-  bool dirHasFiles(const QString& path) {
+  bool dirHasFiles(const QString& path)
+  {
     QDir dir(path);
     if (!dir.exists()) return false;
     return !dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot).isEmpty();
   }
 }
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-SaveProject::SaveProject(QWidget* parent)
-  : QDialog(parent),
-    m_ui(new Ui::SaveProject) {
-  m_ui->setupUi(this);
-  filenameChanged("");
-  connect(m_ui->filename, SIGNAL(textChanged(QString)), this, SLOT(filenameChanged(QString)));
-  connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
-}
+  SaveProject::SaveProject(QWidget* parent)
+    : QDialog(parent),
+      m_ui(new Ui::SaveProject)
+  {
+    m_ui->setupUi(this);
+    filenameChanged("");
+    connect(m_ui->filename, SIGNAL(textChanged(QString)), this, SLOT(filenameChanged(QString)));
+    connect(m_ui->browse, SIGNAL(clicked()), this, SLOT(browse()));
+  }
 
-SaveProject::~SaveProject() {
-  delete m_ui;
-}
+  SaveProject::~SaveProject()
+  {
+    delete m_ui;
+  }
 
-void SaveProject::keyPressEvent(QKeyEvent* e) {
-  if (m_ui->filename->hasFocus() &&
-      (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)) {
+  void SaveProject::keyPressEvent(QKeyEvent* e)
+  {
+    if (m_ui->filename->hasFocus() &&
+        (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)) {
 
-    QList<QPushButton*> list = qFindChildren<QPushButton*>(this);
-    for (int i = 0; i < list.size(); ++i) {
-      QPushButton* pb = list.at(i);
-      if (pb->isDefault()) {
-        pb->setFocus();
-        break;
+      QList<QPushButton*> list = qFindChildren<QPushButton*>(this);
+      for (int i = 0; i < list.size(); ++i) {
+        QPushButton* pb = list.at(i);
+        if (pb->isDefault()) {
+          pb->setFocus();
+          break;
+        }
+      }
+      e->accept();
+    } else {
+      QDialog::keyPressEvent(e);
+    }
+  }
+
+  bool SaveProject::save(ScenePtr scene)
+  {
+    if (!scene) return false;
+
+    // type, name, path (full)
+    QList<QPair<QIcon, QStringList>> files;
+    QSet<QString> included;
+
+    QFileInfo fi;
+    foreach (ProgramPtr p, scene->materialPrograms()) {
+      foreach (ShaderPtr s, p->shaders()) {
+        fi.setFile(s->filename());
+        if (included.contains(s->filename()))
+          continue;
+        included << s->filename();
+        files << qMakePair(s->icon(), QStringList() << "Shader" << fi.fileName()
+                           << s->filename() << "shader");
       }
     }
-    e->accept();
-  } else {
-    QDialog::keyPressEvent(e);
-  }
-}
 
-bool SaveProject::save(ScenePtr scene) {
-  if (!scene) return false;
-
-  // type, name, path (full)
-  QList<QPair<QIcon, QStringList>> files;
-  QSet<QString> included;
-
-  QFileInfo fi;
-  foreach (ProgramPtr p, scene->materialPrograms()) {
-    foreach (ShaderPtr s, p->shaders()) {
-      fi.setFile(s->filename());
-      if (included.contains(s->filename()))
+    auto imp = scene->imports();
+    for (auto it = imp.begin(); it != imp.end(); ++it) {
+      fi.setFile(it->filename());
+      if (included.contains(it->filename()))
         continue;
-      included << s->filename();
-      files << qMakePair(s->icon(), QStringList() << "Shader" << fi.fileName()
-                         << s->filename() << "shader");
-    }
-  }
-
-  auto imp = scene->imports();
-  for (auto it = imp.begin(); it != imp.end(); ++it) {
-    fi.setFile(it->filename());
-    if (included.contains(it->filename()))
-      continue;
-    included << it->filename();
-    /// @todo replace "Imported file" with "Imported .3ds" etc
-    files << qMakePair(it->icon(), QStringList() << "Imported file" << fi.fileName()
-                       << it->filename() << "import");
-  }
-
-  foreach (auto t, scene->textures()) {
-    TextureFile* tf = dynamic_cast<TextureFile*>(t.get());
-    if (!tf) continue;
-    fi.setFile(tf->filename());
-    if (included.contains(tf->filename()))
-      continue;
-    included << tf->filename();
-    files << qMakePair(tf->icon(), QStringList() << "Texture" << QString("%1 (%2)").
-                       arg(tf->name(), fi.fileName()) << tf->filename() << "texture");
-  }
-
-  SaveProject save;
-  save.m_ui->list->setRowCount(files.size());
-  int r = 0;
-  foreach (auto f, files) {
-    QTableWidgetItem* item = new QTableWidgetItem(f.second[0]);
-    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-    item->setIcon(f.first);
-    item->setCheckState(Qt::Checked);
-    item->setData(Qt::UserRole, f.second[2]);
-    save.m_ui->list->setItem(r, 0, item);
-
-    item = new QTableWidgetItem(f.second[1]);
-    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-    item->setToolTip(f.second[2]);
-    item->setData(Qt::UserRole, f.second[3]);
-    save.m_ui->list->setItem(r, 1, item);
-    ++r;
-  }
-
-  save.m_ui->list->resizeColumnsToContents();
-
-  QSettings settings("Shaderkit", "Shaderkit");
-  QString dir = settings.value("history/last_projects_dir", QVariant(QDir::currentPath())).toString();
-  while (dir.endsWith("/")) dir.chop(1);
-  QString n = scene->metainfo().name;
-  n.replace("/", "-");
-  save.m_ui->filename->setText(QString("%1/%2/%2.shaderkit").arg(dir, n));
-
-  if (save.exec() == Accepted) {
-    QString file = save.m_ui->filename->text();
-    QString dir = QFileInfo(file).path();
-    if (!QDir().exists(dir) && !QDir().mkpath(dir)) {
-      Log::error("Failed to create directory %s", dir.toUtf8().data());
-      return false;
+      included << it->filename();
+      /// @todo replace "Imported file" with "Imported .3ds" etc
+      files << qMakePair(it->icon(), QStringList() << "Imported file" << fi.fileName()
+                         << it->filename() << "import");
     }
 
-    for (int r = 0; r < save.m_ui->list->rowCount(); ++r) {
-      QTableWidgetItem* item = save.m_ui->list->item(r, 0);
-      if (item->checkState() != Qt::Checked) continue;
-      QString full = item->data(Qt::UserRole).toString();
-      QString full2 = dir + "/" + QFileInfo(full).fileName();
-      QString type = save.m_ui->list->item(r, 1)->data(Qt::UserRole).toString();
+    foreach (auto t, scene->textures()) {
+      TextureFile* tf = dynamic_cast<TextureFile*>(t.get());
+      if (!tf) continue;
+      fi.setFile(tf->filename());
+      if (included.contains(tf->filename()))
+        continue;
+      included << tf->filename();
+      files << qMakePair(tf->icon(), QStringList() << "Texture" << QString("%1 (%2)").
+                         arg(tf->name(), fi.fileName()) << tf->filename() << "texture");
+    }
 
-      if (type == "shader") {
-        if (!scene->renameShaderFile(full, full2, true))
-          return false;
-      } else if (type == "texture") {
-        if (!scene->renameTextureFile(full, full2, true))
-          return false;
-      } else if (type == "import") {
-        if (!scene->renameImportFile(full, full2, true))
-          return false;
-      } else {
-        assert(false);
+    SaveProject save;
+    save.m_ui->list->setRowCount(files.size());
+    int r = 0;
+    foreach (auto f, files) {
+      QTableWidgetItem* item = new QTableWidgetItem(f.second[0]);
+      item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+      item->setIcon(f.first);
+      item->setCheckState(Qt::Checked);
+      item->setData(Qt::UserRole, f.second[2]);
+      save.m_ui->list->setItem(r, 0, item);
+
+      item = new QTableWidgetItem(f.second[1]);
+      item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+      item->setToolTip(f.second[2]);
+      item->setData(Qt::UserRole, f.second[3]);
+      save.m_ui->list->setItem(r, 1, item);
+      ++r;
+    }
+
+    save.m_ui->list->resizeColumnsToContents();
+
+    QSettings settings("Shaderkit", "Shaderkit");
+    QString dir = settings.value("history/last_projects_dir", QVariant(QDir::currentPath())).toString();
+    while (dir.endsWith("/")) dir.chop(1);
+    QString n = scene->metainfo().name;
+    n.replace("/", "-");
+    save.m_ui->filename->setText(QString("%1/%2/%2.shaderkit").arg(dir, n));
+
+    if (save.exec() == Accepted) {
+      QString file = save.m_ui->filename->text();
+      QString dir = QFileInfo(file).path();
+      if (!QDir().exists(dir) && !QDir().mkpath(dir)) {
+        Log::error("Failed to create directory %s", dir.toUtf8().data());
+        return false;
       }
+
+      for (int r = 0; r < save.m_ui->list->rowCount(); ++r) {
+        QTableWidgetItem* item = save.m_ui->list->item(r, 0);
+        if (item->checkState() != Qt::Checked) continue;
+        QString full = item->data(Qt::UserRole).toString();
+        QString full2 = dir + "/" + QFileInfo(full).fileName();
+        QString type = save.m_ui->list->item(r, 1)->data(Qt::UserRole).toString();
+
+        if (type == "shader") {
+          if (!scene->renameShaderFile(full, full2, true))
+            return false;
+        } else if (type == "texture") {
+          if (!scene->renameTextureFile(full, full2, true))
+            return false;
+        } else if (type == "import") {
+          if (!scene->renameImportFile(full, full2, true))
+            return false;
+        } else {
+          assert(false);
+        }
+      }
+
+      settings.setValue("history/last_projects_dir", QFileInfo(dir).path());
+      return scene->save(file);
     }
-
-    settings.setValue("history/last_projects_dir", QFileInfo(dir).path());
-    return scene->save(file);
+    return false;
   }
-  return false;
-}
 
-void SaveProject::filenameChanged(QString name) {
-  bool nowarn = true;
-  bool cansave = true;
-  if(!name.isEmpty()) {
-    nowarn = false;
-    QFileInfo fi(name);
-    if (fi.exists()) {
-      m_ui->warning->setText("Warning: File already exists");
-    } else if (dirHasFiles(fi.path())) {
-      m_ui->warning->setText(QString("Warning: Project directory %1 already exists and is not empty").
-                             arg(fi.path()));
-    } else if (fi.fileName().isEmpty()) {
-      m_ui->warning->setText("Error: Filename is empty");
-      cansave = false;
-    } else if (!fi.fileName().endsWith(".shaderkit")) {
-      m_ui->warning->setText(QString("Warning: Filename %1 doesn't use file extension \".shaderkit\"").
-                             arg(fi.fileName()));
-    } else nowarn = true;
+  void SaveProject::filenameChanged(QString name)
+  {
+    bool nowarn = true;
+    bool cansave = true;
+    if (!name.isEmpty()) {
+      nowarn = false;
+      QFileInfo fi(name);
+      if (fi.exists()) {
+        m_ui->warning->setText("Warning: File already exists");
+      } else if (dirHasFiles(fi.path())) {
+        m_ui->warning->setText(QString("Warning: Project directory %1 already exists and is not empty").
+                               arg(fi.path()));
+      } else if (fi.fileName().isEmpty()) {
+        m_ui->warning->setText("Error: Filename is empty");
+        cansave = false;
+      } else if (!fi.fileName().endsWith(".shaderkit")) {
+        m_ui->warning->setText(QString("Warning: Filename %1 doesn't use file extension \".shaderkit\"").
+                               arg(fi.fileName()));
+      } else nowarn = true;
+    }
+    m_ui->warning->setHidden(nowarn);
+    m_ui->warning_icon->setHidden(nowarn);
+    m_ui->buttonBox->button(QDialogButtonBox::Save)->setDisabled(!cansave || name.isEmpty());
   }
-  m_ui->warning->setHidden(nowarn);
-  m_ui->warning_icon->setHidden(nowarn);
-  m_ui->buttonBox->button(QDialogButtonBox::Save)->setDisabled(!cansave || name.isEmpty());
-}
 
-void SaveProject::browse() {
-  QFileInfo fi(m_ui->filename->text());
-  QFileDialog dialog(this, tr("Save project file as"), fi.path());
-  dialog.setAcceptMode(QFileDialog::AcceptSave);
-  dialog.setDefaultSuffix("shaderkit");
-  if (dialog.exec() == Accepted && dialog.selectedFiles().size() == 1) {
-    m_ui->filename->setText(dialog.selectedFiles()[0]);
+  void SaveProject::browse()
+  {
+    QFileInfo fi(m_ui->filename->text());
+    QFileDialog dialog(this, tr("Save project file as"), fi.path());
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setDefaultSuffix("shaderkit");
+    if (dialog.exec() == Accepted && dialog.selectedFiles().size() == 1) {
+      m_ui->filename->setText(dialog.selectedFiles()[0]);
+    }
   }
-}
 
 } // namespace Shaderkit

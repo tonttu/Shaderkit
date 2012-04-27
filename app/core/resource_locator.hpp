@@ -21,45 +21,47 @@
 #include <QAbstractFileEngineHandler>
 #include <QMap>
 
-namespace Shaderkit {
-
-class ResourceLocator : public QAbstractFileEngineHandler
+namespace Shaderkit
 {
-public:
-  ResourceLocator();
-  virtual ~ResourceLocator();
 
-  QAbstractFileEngine* create(const QString& fileName) const;
-
-  static void setPath(const QString& prefix, const QString& path);
-  static QString ui(const QString& filename);
-  static QString rename(const QString& src, const QString& new_base, const QSet<QString>& lst);
-  /// Makes sure that src is a file name that isn't included in list
-  /// and doesn't exist on file system
-  static QString unique(const QString& src, const QSet<QString>& list);
-
-  static void pushPath(const QString& prefix, const QString& opath);
-  static void popPath(const QString& prefix, const QString& opath);
-
-  class Path {
+  class ResourceLocator : public QAbstractFileEngineHandler
+  {
   public:
-    Path(const QString& prefix, const QString& path)
-      : m_prefix(prefix), m_path(path) {
-      ResourceLocator::pushPath(prefix, path);
-    }
+    ResourceLocator();
+    virtual ~ResourceLocator();
 
-    ~Path() {
-      ResourceLocator::popPath(m_prefix, m_path);
-    }
+    QAbstractFileEngine* create(const QString& fileName) const;
+
+    static void setPath(const QString& prefix, const QString& path);
+    static QString ui(const QString& filename);
+    static QString rename(const QString& src, const QString& new_base, const QSet<QString>& lst);
+    /// Makes sure that src is a file name that isn't included in list
+    /// and doesn't exist on file system
+    static QString unique(const QString& src, const QSet<QString>& list);
+
+    static void pushPath(const QString& prefix, const QString& opath);
+    static void popPath(const QString& prefix, const QString& opath);
+
+    class Path
+    {
+    public:
+      Path(const QString& prefix, const QString& path)
+        : m_prefix(prefix), m_path(path) {
+        ResourceLocator::pushPath(prefix, path);
+      }
+
+      ~Path() {
+        ResourceLocator::popPath(m_prefix, m_path);
+      }
+
+    private:
+      const QString m_prefix, m_path;
+    };
 
   private:
-    const QString m_prefix, m_path;
+    QMap<QString, QString> m_paths;
+    QMap<QString, QStringList> m_pathsOverride;
   };
-
-private:
-  QMap<QString, QString> m_paths;
-  QMap<QString, QStringList> m_pathsOverride;
-};
 
 } // namespace Shaderkit
 

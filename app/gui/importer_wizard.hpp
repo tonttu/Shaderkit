@@ -26,47 +26,50 @@
 
 class QTreeWidgetItem;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-class ImporterWizard;
-}
-class ImporterWizard : public QWizard {
-  Q_OBJECT
+  namespace Ui
+  {
+    class ImporterWizard;
+  }
+  class ImporterWizard : public QWizard
+  {
+    Q_OBJECT
 
-public:
-  explicit ImporterWizard(ScenePtr scene, QWidget *parent = 0);
-  ~ImporterWizard();
+  public:
+    explicit ImporterWizard(ScenePtr scene, QWidget* parent = 0);
+    ~ImporterWizard();
 
-  void setVisible(bool visible);
+    void setVisible(bool visible);
 
-  void import(const QString& filename);
+    void import(const QString& filename);
 
-protected slots:
-  void browse();
-  void changed(int);
-  void fileChanged(QString);
-  void manualDragToggled(bool);
+  protected slots:
+    void browse();
+    void changed(int);
+    void fileChanged(QString);
+    void manualDragToggled(bool);
 
-protected:
-  void load(ObjImporter::SceneInfo& si);
-  void done(int result);
+  protected:
+    void load(ObjImporter::SceneInfo& si);
+    void done(int result);
 
-private:
-  bool m_first;
-  ObjImporter m_importer;
-  Ui::ImporterWizard* m_ui;
-  ScenePtr m_scene;
-  Scene::Import m_import;
+  private:
+    bool m_first;
+    ObjImporter m_importer;
+    Ui::ImporterWizard* m_ui;
+    ScenePtr m_scene;
+    Scene::Import m_import;
 
-  QTreeWidgetItem* m_objects;
-  QTreeWidgetItem* m_models;
-  QTreeWidgetItem* m_animations;
-  QTreeWidgetItem* m_cameras;
-  QTreeWidgetItem* m_lights;
-  QTreeWidgetItem* m_materials;
-  QTreeWidgetItem* m_textures;
-};
+    QTreeWidgetItem* m_objects;
+    QTreeWidgetItem* m_models;
+    QTreeWidgetItem* m_animations;
+    QTreeWidgetItem* m_cameras;
+    QTreeWidgetItem* m_lights;
+    QTreeWidgetItem* m_materials;
+    QTreeWidgetItem* m_textures;
+  };
 
 } // namespace Shaderkit
 

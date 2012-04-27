@@ -29,105 +29,115 @@
 
 #include <queue>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
-  : QCommandLinkButton(parent), m_filename(filename) {
-  connect(this, SIGNAL(clicked()), SLOT(receiveClick()));
-  setMinimumHeight(sizeHint().height());
-  setToolTip(filename);
-}
+  WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
+    : QCommandLinkButton(parent), m_filename(filename)
+  {
+    connect(this, SIGNAL(clicked()), SLOT(receiveClick()));
+    setMinimumHeight(sizeHint().height());
+    setToolTip(filename);
+  }
 
-void WelcomeButton::setFilename(QString filename) {
-  m_filename = filename;
-}
+  void WelcomeButton::setFilename(QString filename)
+  {
+    m_filename = filename;
+  }
 
-void WelcomeButton::receiveClick() {
-  emit clicked(m_filename);
-}
+  void WelcomeButton::receiveClick()
+  {
+    emit clicked(m_filename);
+  }
 
 
-Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome) {
-  m_ui->setupUi(this);
-  m_ui->version_label->setText(m_ui->version_label->text().arg(Shaderkit::STR));
+  Welcome::Welcome() : QFrame(), m_ui(new Ui::Welcome)
+  {
+    m_ui->setupUi(this);
+    m_ui->version_label->setText(m_ui->version_label->text().arg(Shaderkit::STR));
 
-  connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
-  connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newScene()));
+    connect(m_ui->open_button, SIGNAL(clicked()), this, SLOT(load()));
+    connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newScene()));
 
-  QStringList files = ShaderDB::instance().localScenes();
-  int count = 0;
-  typedef QPair<QDateTime, QString> V;
-  std::priority_queue<V, std::vector<V>> recent;
+    QStringList files = ShaderDB::instance().localScenes();
+    int count = 0;
+    typedef QPair<QDateTime, QString> V;
+    std::priority_queue<V, std::vector<V>> recent;
 
-  foreach (QString file, files) {
-    MetaInfo info;
-    if (!MetaInfo::ping(file, info)) continue;
+    foreach (QString file, files) {
+      MetaInfo info;
+      if (!MetaInfo::ping(file, info)) continue;
 
-    if (info.categories.contains("example") && count++ < 4) {
-      WelcomeButton * btn = new WelcomeButton(m_ui->example_frame, file);
+      if (info.categories.contains("example") && count++ < 4) {
+        WelcomeButton* btn = new WelcomeButton(m_ui->example_frame, file);
+        btn->setIcon(QIcon(":/icons/project_hl.png"));
+        m_ui->example_layout->insertWidget(0, btn);
+        btn->setText(info.name);
+        btn->setDescription(info.description);
+        connect(btn, SIGNAL(clicked(QString)), this, SLOT(openExample(QString)));
+      } else if (info.categories.contains("user")) {
+        QFileInfo finfo(file);
+        recent.push(qMakePair(finfo.lastModified(), file));
+      }
+    }
+    setMinimumSize(sizeHint());
+    setMaximumSize(sizeHint());
+
+    for (count = 0; count < 4 && !recent.empty(); ++count) {
+      const V& v = recent.top();
+
+      MetaInfo info;
+      if (!MetaInfo::ping(v.second, info)) {
+        recent.pop();
+        continue;
+      }
+      WelcomeButton* btn = new WelcomeButton(m_ui->recent_frame, v.second);
       btn->setIcon(QIcon(":/icons/project_hl.png"));
-      m_ui->example_layout->insertWidget(0, btn);
+      m_ui->recent_layout->insertWidget(count, btn);
       btn->setText(info.name);
       btn->setDescription(info.description);
-      connect(btn, SIGNAL(clicked(QString)), this, SLOT(openExample(QString)));
-    } else if (info.categories.contains("user")) {
-      QFileInfo finfo(file);
-      recent.push(qMakePair(finfo.lastModified(), file));
-    }
-  }
-  setMinimumSize(sizeHint());
-  setMaximumSize(sizeHint());
+      connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
 
-  for (count = 0; count < 4 && !recent.empty(); ++count) {
-    const V& v = recent.top();
-
-    MetaInfo info;
-    if (!MetaInfo::ping(v.second, info)) {
       recent.pop();
-      continue;
     }
-    WelcomeButton * btn = new WelcomeButton(m_ui->recent_frame, v.second);
-    btn->setIcon(QIcon(":/icons/project_hl.png"));
-    m_ui->recent_layout->insertWidget(count, btn);
-    btn->setText(info.name);
-    btn->setDescription(info.description);
-    connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
-
-    recent.pop();
+    if (count) {
+      m_ui->recent_label->setEnabled(true);
+    }
   }
-  if (count) {
-    m_ui->recent_label->setEnabled(true);
+
+  Welcome::~Welcome()
+  {
+    delete m_ui;
   }
-}
 
-Welcome::~Welcome() {
-  delete m_ui;
-}
-
-void Welcome::openExample(QString filename) {
-  if (MainWindow::instance().openScene(Scene::load(filename, Scene::ReadOnly))) {
-    deleteLater();
+  void Welcome::openExample(QString filename)
+  {
+    if (MainWindow::instance().openScene(Scene::load(filename, Scene::ReadOnly))) {
+      deleteLater();
+    }
   }
-}
 
-void Welcome::open(QString filename) {
-  if (MainWindow::instance().openScene(Scene::load(filename, Scene::Ok))) {
-    deleteLater();
+  void Welcome::open(QString filename)
+  {
+    if (MainWindow::instance().openScene(Scene::load(filename, Scene::Ok))) {
+      deleteLater();
+    }
   }
-}
 
-void Welcome::load() {
-  if (MainWindow::instance().load())
-    deleteLater();
-}
+  void Welcome::load()
+  {
+    if (MainWindow::instance().load())
+      deleteLater();
+  }
 
-void Welcome::newScene() {
-  NewWizard* w = new NewWizard(this);
-  connect(w, SIGNAL(rejected()), this, SLOT(show()));
-  connect(w, SIGNAL(accepted()), this, SLOT(deleteLater()));
+  void Welcome::newScene()
+  {
+    NewWizard* w = new NewWizard(this);
+    connect(w, SIGNAL(rejected()), this, SLOT(show()));
+    connect(w, SIGNAL(accepted()), this, SLOT(deleteLater()));
 
-  w->show();
-  hide();
-}
+    w->show();
+    hide();
+  }
 
 } // namespace Shaderkit

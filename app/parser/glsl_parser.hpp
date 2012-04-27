@@ -4,22 +4,23 @@
 #include "parser/glsl_pp.hpp"
 #include "gl/shader.hpp"
 
-namespace Shaderkit {
-
-class GLSLParser
+namespace Shaderkit
 {
-public:
-  GLSLParser();
 
-  bool parse(QByteArray data);
+  class GLSLParser
+  {
+  public:
+    GLSLParser();
 
-  static Shader::Type detect(const QString& filename);
+    bool parse(QByteArray data);
 
-  const GLSLpp& pp() const { return m_pp; }
+    static Shader::Type detect(const QString& filename);
 
-private:
-  GLSLpp m_pp;
-};
+    const GLSLpp& pp() const { return m_pp; }
+
+  private:
+    GLSLpp m_pp;
+  };
 
 } // namespace Shaderkit
 

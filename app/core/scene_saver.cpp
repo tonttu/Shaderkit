@@ -20,92 +20,102 @@
 
 #include <QTimer>
 
-namespace Shaderkit {
-
-AfterIdleOperation::AfterIdleOperation(QObject* parent, float timeout,
-                                       float min_interval, float max_wait)
-  : QObject(parent),
-    m_timeout(timeout),
-    m_min_interval(min_interval),
-    m_max_wait(max_wait),
-    m_timer(new QTimer(this))
+namespace Shaderkit
 {
-  m_timer->setSingleShot(true);
-  connect(m_timer, SIGNAL(timeout()), this, SLOT(trigger()));
-}
 
-void AfterIdleOperation::action() {
-  m_last_changed = QDateTime::currentDateTime();
-  if (m_first_changed.isNull())
-    m_first_changed = m_last_changed;
-  if (!m_enabled_func || m_enabled_func()) updateTimer();
-}
-
-void AfterIdleOperation::stateChanged() {
-  if (!m_enabled_func || m_enabled_func()) updateTimer();
-}
-
-void AfterIdleOperation::trigger() {
-  if (m_enabled_func && !m_enabled_func()) return;
-  emit timeout();
-
-  m_last_changed = QDateTime();
-  m_last_timeout = QDateTime::currentDateTime();
-  m_first_changed = QDateTime();
-}
-
-void AfterIdleOperation::updateTimer() {
-  if (m_timeout <= 0 || m_last_changed.isNull()) return;
-
-  QDateTime target = m_last_changed.addSecs(m_timeout);
-
-  if (m_min_interval > 0 && m_last_timeout.isValid()) {
-    QDateTime min = m_last_timeout.addSecs(m_min_interval);
-    target = std::max(target, min);
+  AfterIdleOperation::AfterIdleOperation(QObject* parent, float timeout,
+                                         float min_interval, float max_wait)
+    : QObject(parent),
+      m_timeout(timeout),
+      m_min_interval(min_interval),
+      m_max_wait(max_wait),
+      m_timer(new QTimer(this))
+  {
+    m_timer->setSingleShot(true);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(trigger()));
   }
 
-  if (m_max_wait > 0 && m_first_changed.isValid()) {
-    QDateTime max = m_first_changed.addSecs(m_max_wait);
-    target = std::min(target, max);
+  void AfterIdleOperation::action()
+  {
+    m_last_changed = QDateTime::currentDateTime();
+    if (m_first_changed.isNull())
+      m_first_changed = m_last_changed;
+    if (!m_enabled_func || m_enabled_func()) updateTimer();
   }
 
-  int delay = QDateTime::currentDateTime().secsTo(target);
-  if (delay <= 0) m_timer->start(1);
-  else m_timer->start(delay * 1000);
-}
+  void AfterIdleOperation::stateChanged()
+  {
+    if (!m_enabled_func || m_enabled_func()) updateTimer();
+  }
+
+  void AfterIdleOperation::trigger()
+  {
+    if (m_enabled_func && !m_enabled_func()) return;
+    emit timeout();
+
+    m_last_changed = QDateTime();
+    m_last_timeout = QDateTime::currentDateTime();
+    m_first_changed = QDateTime();
+  }
+
+  void AfterIdleOperation::updateTimer()
+  {
+    if (m_timeout <= 0 || m_last_changed.isNull()) return;
+
+    QDateTime target = m_last_changed.addSecs(m_timeout);
+
+    if (m_min_interval > 0 && m_last_timeout.isValid()) {
+      QDateTime min = m_last_timeout.addSecs(m_min_interval);
+      target = std::max(target, min);
+    }
+
+    if (m_max_wait > 0 && m_first_changed.isValid()) {
+      QDateTime max = m_first_changed.addSecs(m_max_wait);
+      target = std::min(target, max);
+    }
+
+    int delay = QDateTime::currentDateTime().secsTo(target);
+    if (delay <= 0) m_timer->start(1);
+    else m_timer->start(delay * 1000);
+  }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-SceneSaver::SceneSaver(Scene& scene)
-  : m_scene(scene),
-    m_idle(new AfterIdleOperation(this))
-{
-  m_idle->setEnabled(std::bind(&SceneSaver::enabled, this));
-  connect(m_idle, SIGNAL(timeout()), this, SLOT(save()));
-}
+  SceneSaver::SceneSaver(Scene& scene)
+    : m_scene(scene),
+      m_idle(new AfterIdleOperation(this))
+  {
+    m_idle->setEnabled(std::bind(&SceneSaver::enabled, this));
+    connect(m_idle, SIGNAL(timeout()), this, SLOT(save()));
+  }
 
-SceneSaver::~SceneSaver() {
-}
+  SceneSaver::~SceneSaver()
+  {
+  }
 
-bool SceneSaver::enabled() const {
-  return m_scene.isChanged() && m_scene.automaticSaving() && m_scene.state() != Scene::ReadOnly;
-}
+  bool SceneSaver::enabled() const
+  {
+    return m_scene.isChanged() && m_scene.automaticSaving() && m_scene.state() != Scene::ReadOnly;
+  }
 
-void SceneSaver::sceneChanged() {
-  m_idle->action();
-}
+  void SceneSaver::sceneChanged()
+  {
+    m_idle->action();
+  }
 
-void SceneSaver::stateChanged() {
-  m_idle->stateChanged();
-}
+  void SceneSaver::stateChanged()
+  {
+    m_idle->stateChanged();
+  }
 
-void SceneSaver::save() {
-  QVariantMap scene = m_scene.toMap();
-  if (m_scene.automaticSaving())
-    m_scene.save(scene);
+  void SceneSaver::save()
+  {
+    QVariantMap scene = m_scene.toMap();
+    if (m_scene.automaticSaving())
+      m_scene.save(scene);
 
-  /// @todo history
-}
+    /// @todo history
+  }
 
 } // namespace Shaderkit

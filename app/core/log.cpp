@@ -30,8 +30,10 @@
 #define fileno _fileno
 #endif
 
-namespace {
-  void writelog(Shaderkit::Log::Level l, FILE* target, const char* fmt, va_list ap) {
+namespace
+{
+  void writelog(Shaderkit::Log::Level l, FILE* target, const char* fmt, va_list ap)
+  {
     static QByteArray last;
     static int count = 0;
     static const char* prefixes[] = {"          ",
@@ -39,7 +41,8 @@ namespace {
                                      " Error    ",
                                      " Warning  ",
                                      " Info     ",
-                                     " Debug    "};
+                                     " Debug    "
+                                    };
     QByteArray ts = QTime::currentTime().toString("HH:mm:ss.zzz").toAscii();
 
     QByteArray str(prefixes[l]);
@@ -65,26 +68,29 @@ namespace {
   }
 }
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-Log* Log::s_log = 0;
+  Log* Log::s_log = 0;
 
-Log::Log() : level(LOG_INFO), target(stderr) {
-  if (!s_log)
-    s_log = this;
-}
-
-Log::~Log() {
-  if (s_log) {
-    info("Bye");
+  Log::Log() : level(LOG_INFO), target(stderr)
+  {
+    if (!s_log)
+      s_log = this;
   }
-  if (s_log == this)
-    s_log = 0;
 
-  if (target && fileno(target) > 2) {
-    fclose(target);
+  Log::~Log()
+  {
+    if (s_log) {
+      info("Bye");
+    }
+    if (s_log == this)
+      s_log = 0;
+
+    if (target && fileno(target) > 2) {
+      fclose(target);
+    }
   }
-}
 
 #define LOG_IMPL(type) \
   assert(s_log); \
@@ -102,32 +108,33 @@ Log::~Log() {
   writelog(type, s_log->target, str.toUtf8().data(), ap); \
   va_end(ap)
 
-void Log::fatal(const char* fmt, ...) { LOG_IMPL(LOG_FATAL); abort(); }
-void Log::error(const char* fmt, ...) { LOG_IMPL(LOG_ERROR); }
-void Log::warn(const char* fmt, ...) { LOG_IMPL(LOG_WARNING); }
-void Log::info(const char* fmt, ...) { LOG_IMPL(LOG_INFO); }
-void Log::debug(const char* fmt, ...) { LOG_IMPL(LOG_DEBUG); }
+  void Log::fatal(const char* fmt, ...) { LOG_IMPL(LOG_FATAL); abort(); }
+  void Log::error(const char* fmt, ...) { LOG_IMPL(LOG_ERROR); }
+  void Log::warn(const char* fmt, ...) { LOG_IMPL(LOG_WARNING); }
+  void Log::info(const char* fmt, ...) { LOG_IMPL(LOG_INFO); }
+  void Log::debug(const char* fmt, ...) { LOG_IMPL(LOG_DEBUG); }
 
-void Log::fatal(const QString& str, ...) { LOG_IMPL2(LOG_FATAL); abort(); }
-void Log::error(const QString& str, ...) { LOG_IMPL2(LOG_ERROR); }
-void Log::warn(const QString& str, ...) { LOG_IMPL2(LOG_WARNING); }
-void Log::info(const QString& str, ...) { LOG_IMPL2(LOG_INFO); }
-void Log::debug(const QString& str, ...) { LOG_IMPL2(LOG_DEBUG); }
+  void Log::fatal(const QString& str, ...) { LOG_IMPL2(LOG_FATAL); abort(); }
+  void Log::error(const QString& str, ...) { LOG_IMPL2(LOG_ERROR); }
+  void Log::warn(const QString& str, ...) { LOG_IMPL2(LOG_WARNING); }
+  void Log::info(const QString& str, ...) { LOG_IMPL2(LOG_INFO); }
+  void Log::debug(const QString& str, ...) { LOG_IMPL2(LOG_DEBUG); }
 
-void Log::log(Level level, const char* fmt, ...) {
-  assert(s_log);
-  va_list ap;
-  va_start(ap, fmt);
+  void Log::log(Level level, const char* fmt, ...)
+  {
+    assert(s_log);
+    va_list ap;
+    va_start(ap, fmt);
 
-  if (level < LOG_NONE || level > LOG_DEBUG) {
-    level = LOG_ERROR;
-    writelog(level, s_log->target, "Invalid log level", ap);
+    if (level < LOG_NONE || level > LOG_DEBUG) {
+      level = LOG_ERROR;
+      writelog(level, s_log->target, "Invalid log level", ap);
+    }
+    if (s_log->level >= level)
+      writelog(level, s_log->target, fmt, ap);
+    va_end(ap);
+    if (level == LOG_FATAL) abort();
   }
-  if (s_log->level >= level)
-    writelog(level, s_log->target, fmt, ap);
-  va_end(ap);
-  if (level == LOG_FATAL) abort();
-}
 
 #undef LOG_IMPL2
 #undef LOG_IMPL

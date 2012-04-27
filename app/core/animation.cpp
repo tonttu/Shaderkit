@@ -17,18 +17,22 @@
 
 #include "core/animation.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-Animation::Animation(QString name) : SceneObject(name) {
-}
+  Animation::Animation(QString name) : SceneObject(name)
+  {
+  }
 
-QVariantMap Animation::toMap() const {
-  QVariantMap map = SceneObject::toMap();
-  return map;
-}
+  QVariantMap Animation::toMap() const
+  {
+    QVariantMap map = SceneObject::toMap();
+    return map;
+  }
 
-void Animation::load(QVariantMap map) {
-  SceneObject::load(map);
-}
+  void Animation::load(QVariantMap map)
+  {
+    SceneObject::load(map);
+  }
 
 } // namespace Shaderkit

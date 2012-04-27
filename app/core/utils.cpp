@@ -20,41 +20,47 @@
 #include <QSet>
 #include <QColor>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Utils {
-  QString uniqueName(QString name, const QList<QString>& lst, QString def) {
-    if (name.isEmpty()) name = def;
+  namespace Utils
+  {
+    QString uniqueName(QString name, const QList<QString>& lst, QString def)
+    {
+      if (name.isEmpty()) name = def;
 
-    QSet<QString> set;
-    foreach (QString str, lst) set << str.toLower();
+      QSet<QString> set;
+      foreach (QString str, lst) set << str.toLower();
 
-    QString base = name;
-    int i = 1;
-    while (set.contains(name.toLower()))
-      name = base + "." + QString::number(i++);
-    return name;
-  }
-
-  Eigen::Vector3f toVector3(QVariant in) {
-    QVariantList lst = in.toList();
-    if (lst.size() == 3) {
-      return Eigen::Vector3f(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
+      QString base = name;
+      int i = 1;
+      while (set.contains(name.toLower()))
+        name = base + "." + QString::number(i++);
+      return name;
     }
-    return Eigen::Vector3f(0, 0, 0);
-  }
 
-  QVariantList toList(const Eigen::Vector3f& in) {
-    QVariantList ret;
-    ret << in[0] << in[1] << in[2];
-    return ret;
-  }
+    Eigen::Vector3f toVector3(QVariant in)
+    {
+      QVariantList lst = in.toList();
+      if (lst.size() == 3) {
+        return Eigen::Vector3f(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
+      }
+      return Eigen::Vector3f(0, 0, 0);
+    }
 
-  QVariantList toList(const Eigen::Vector4f& in) {
-    QVariantList ret;
-    ret << in[0] << in[1] << in[2] << in[3];
-    return ret;
+    QVariantList toList(const Eigen::Vector3f& in)
+    {
+      QVariantList ret;
+      ret << in[0] << in[1] << in[2];
+      return ret;
+    }
+
+    QVariantList toList(const Eigen::Vector4f& in)
+    {
+      QVariantList ret;
+      ret << in[0] << in[1] << in[2] << in[3];
+      return ret;
+    }
   }
-}
 
 } // namespace Shaderkit

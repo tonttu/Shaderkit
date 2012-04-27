@@ -22,27 +22,30 @@
 
 #include <QDialog>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-class RenderPassList;
-}
+  namespace Ui
+  {
+    class RenderPassList;
+  }
 
-class RenderPassList : public QDialog {
-  Q_OBJECT
+  class RenderPassList : public QDialog
+  {
+    Q_OBJECT
 
-public:
-  RenderPassList(QList<RenderPassPtr> list, QWidget* parent = 0);
-  ~RenderPassList();
+  public:
+    RenderPassList(QList<RenderPassPtr> list, QWidget* parent = 0);
+    ~RenderPassList();
 
-  QList<RenderPassPtr> orderedList() const;
+    QList<RenderPassPtr> orderedList() const;
 
-private:
-  QList<RenderPassPtr> m_list;
-  Ui::RenderPassList* m_ui;
+  private:
+    QList<RenderPassPtr> m_list;
+    Ui::RenderPassList* m_ui;
 
-  void updateList();
-};
+    void updateList();
+  };
 
 } // namespace Shaderkit
 

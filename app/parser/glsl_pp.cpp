@@ -24,56 +24,60 @@
 
 int ppparse(Shaderkit::GLSLpp& parser);
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-GLSLpp::GLSLpp()
-  : yyscanner(0), m_version(0), m_current_macro("", "", ""),
-    m_macro_line(0), m_last_status(true), m_depth(0) {}
+  GLSLpp::GLSLpp()
+    : yyscanner(0), m_version(0), m_current_macro("", "", ""),
+      m_macro_line(0), m_last_status(true), m_depth(0) {}
 
-void GLSLpp::reset() {
-  m_out.clear();
+  void GLSLpp::reset()
+  {
+    m_out.clear();
 
-  m_objs.clear();
-  m_funcs.clear();
+    m_objs.clear();
+    m_funcs.clear();
 
-  m_version = 0;
-  m_profile.clear();
+    m_version = 0;
+    m_profile.clear();
 
-  m_extensions.clear();
-  m_pragmas.clear();
-  m_macros.clear();
+    m_extensions.clear();
+    m_pragmas.clear();
+    m_macros.clear();
 
-  m_current_macro = MacroValue("", "", "");
-  m_macro_line = 0;
-  while (!m_macro_stack.empty())
-    m_macro_stack.pop();
+    m_current_macro = MacroValue("", "", "");
+    m_macro_line = 0;
+    while (!m_macro_stack.empty())
+      m_macro_stack.pop();
 
-  m_undefs.clear();
-  m_require.clear();
+    m_undefs.clear();
+    m_require.clear();
 
-  m_line_values.clear();
-  m_last_status = true;
+    m_line_values.clear();
+    m_last_status = true;
 
-  m_func.clear();
-  m_args.clear();
-  m_txt.clear();
-  m_depth = 0;
-}
+    m_func.clear();
+    m_args.clear();
+    m_txt.clear();
+    m_depth = 0;
+  }
 
-bool GLSLpp::parse(QByteArray data) {
-  pplex_init(&yyscanner);
-  pp_scan_bytes(data.data(), data.length(), yyscanner);
-  ppset_lineno(0, yyscanner);
-  int r = ppparse(*this);
-  fillLineValues();
-  pplex_destroy(yyscanner);
-  yyscanner = 0;
+  bool GLSLpp::parse(QByteArray data)
+  {
+    pplex_init(&yyscanner);
+    pp_scan_bytes(data.data(), data.length(), yyscanner);
+    ppset_lineno(0, yyscanner);
+    int r = ppparse(*this);
+    fillLineValues();
+    pplex_destroy(yyscanner);
+    yyscanner = 0;
 
-  return r == 0;
-}
+    return r == 0;
+  }
 
-void GLSLpp::error(GLSLpp& /*parser*/, const char* str) {
-  fprintf(stderr, "%d: error - %s\n", line()+1, str);
-}
+  void GLSLpp::error(GLSLpp& /*parser*/, const char* str)
+  {
+    fprintf(stderr, "%d: error - %s\n", line()+1, str);
+  }
 
 } // namespace Shaderkit

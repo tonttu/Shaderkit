@@ -27,152 +27,154 @@
 #include <QColor>
 #include <QPointF>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-struct RenderOptions {
-  RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE) {}
-  bool grid;
-  bool ui;
-  bool blueprint;
-  float grid_animation;
-  // QSize size; /// @todo
-  enum {
-    NONE,
-    TRANSLATE,
-    ROTATE,
-    SCALE
-  } gizmo_type;
-  GizmoPtr gizmo;
-  FocusGrabberPtr focus_grabber;
-  QPointF hover;
-};
+  struct RenderOptions {
+    RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE) {}
+    bool grid;
+    bool ui;
+    bool blueprint;
+    float grid_animation;
+    // QSize size; /// @todo
+    enum {
+      NONE,
+      TRANSLATE,
+      ROTATE,
+      SCALE
+    } gizmo_type;
+    GizmoPtr gizmo;
+    FocusGrabberPtr focus_grabber;
+    QPointF hover;
+  };
 
-/**
- * Render pass represents one renderable image that might only be a small part
- * of the whole composition. Different kinds of render passes could be for
- * example shadow map rendering, gaussian blur post-processing and normal phong
- * shading.
- *
- * Render pass might use outputs (textures) of other render passes as inputs
- * to shaders, and the output generated from this render pass might be either
- * the final output to screen or an intermediate result, rendered to texture
- * with Frame Buffer Object.
- *
- * Currently one render pass can have exactly one shader program and one Camera
- * (or more generally "view"). It also has list of objects, lights and
- * in/out textures.
- *
- * Render passes are controlled by Scene, the Pass itself doesn't know of any
- * other passes.
- *
- * @todo implement that stuff ^
- */
-class RenderPass : public QObject, public std::enable_shared_from_this<RenderPass> {
-  Q_OBJECT
+  /**
+   * Render pass represents one renderable image that might only be a small part
+   * of the whole composition. Different kinds of render passes could be for
+   * example shadow map rendering, gaussian blur post-processing and normal phong
+   * shading.
+   *
+   * Render pass might use outputs (textures) of other render passes as inputs
+   * to shaders, and the output generated from this render pass might be either
+   * the final output to screen or an intermediate result, rendered to texture
+   * with Frame Buffer Object.
+   *
+   * Currently one render pass can have exactly one shader program and one Camera
+   * (or more generally "view"). It also has list of objects, lights and
+   * in/out textures.
+   *
+   * Render passes are controlled by Scene, the Pass itself doesn't know of any
+   * other passes.
+   *
+   * @todo implement that stuff ^
+   */
+  class RenderPass : public QObject, public std::enable_shared_from_this<RenderPass>
+  {
+    Q_OBJECT
 
-public:
-  enum Type {
-    Normal,
-    PostProc,
-    Disabled
-  } m_type;
+  public:
+    enum Type {
+      Normal,
+      PostProc,
+      Disabled
+    } m_type;
 
-  /// @todo separate Object from Model. Object is an instance of Model, including
-  ///       the transformation matrix etc.
-  typedef QSet<ObjectPtr> Objects;
-  typedef QSet<LightPtr> Lights;
+    /// @todo separate Object from Model. Object is an instance of Model, including
+    ///       the transformation matrix etc.
+    typedef QSet<ObjectPtr> Objects;
+    typedef QSet<LightPtr> Lights;
 
-  RenderPass(QString name, ScenePtr scene);
+    RenderPass(QString name, ScenePtr scene);
 
-  /// Render the pass
-  void render(State& state, const RenderOptions& render_opts);
+    /// Render the pass
+    void render(State& state, const RenderOptions& render_opts);
 
-  QVariantMap toMap() const;
+    QVariantMap toMap() const;
 
-  /// Load the render pass from map
-  void load(QVariantMap map);
+    /// Load the render pass from map
+    void load(QVariantMap map);
 
-  int height() const;
-  int width() const;
-  bool autosize() const;
+    int height() const;
+    int width() const;
+    bool autosize() const;
 
-  void setAutosize(bool v);
-  void resize(int w, int h);
+    void setAutosize(bool v);
+    void resize(int w, int h);
 
-  GLbitfield clearBits() const { return m_clear; }
-  void setClearBits(GLbitfield bits);
+    GLbitfield clearBits() const { return m_clear; }
+    void setClearBits(GLbitfield bits);
 
-  const Color& clearColor() const { return m_clearColor; }
-  void setClearColor(const Color& color);
+    const Color& clearColor() const { return m_clearColor; }
+    void setClearColor(const Color& color);
 
-  QStringList out() const;
-  FBOImagePtr out(const QString& name) const;
+    QStringList out() const;
+    FBOImagePtr out(const QString& name) const;
 
-  QString name() const;
-  void setName(const QString& name);
+    QString name() const;
+    void setName(const QString& name);
 
-  /// @todo this should be removed, CameraEditor & Camera have the same functionality
-  Type type() const { return m_type; }
-  void setType(Type type);
+    /// @todo this should be removed, CameraEditor & Camera have the same functionality
+    Type type() const { return m_type; }
+    void setType(Type type);
 
-  ScenePtr scene() { return m_scene; }
+    ScenePtr scene() { return m_scene; }
 
-  MaterialPtr defaultMaterial() { return m_defaultMaterial; }
-  void setDefaultMaterial(MaterialPtr defaultMaterial);
+    MaterialPtr defaultMaterial() { return m_defaultMaterial; }
+    void setDefaultMaterial(MaterialPtr defaultMaterial);
 
-  Objects objects() const { return m_objects; }
-  void setObjects(Objects objs);
-  void add(ObjectPtr obj);
-  void remove(ObjectPtr obj);
+    Objects objects() const { return m_objects; }
+    void setObjects(Objects objs);
+    void add(ObjectPtr obj);
+    void remove(ObjectPtr obj);
 
-  Lights lights() { return m_lights; }
-  void setLights(Lights lights);
-  void add(LightPtr light);
-  void remove(LightPtr light);
+    Lights lights() { return m_lights; }
+    void setLights(Lights lights);
+    void add(LightPtr light);
+    void remove(LightPtr light);
 
-  CameraPtr view() const { return m_view; }
-  void setView(CameraPtr camera);
+    CameraPtr view() const { return m_view; }
+    void setView(CameraPtr camera);
 
-  QIcon icon();
+    QIcon icon();
 
-  RenderPassPtr clone() const;
+    RenderPassPtr clone() const;
 
-  FBOPtr fbo() const { return m_fbo; }
+    FBOPtr fbo() const { return m_fbo; }
 
-  void remove(FBOImagePtr buffer);
-  void set(int target, FBOImagePtr buffer);
+    void remove(FBOImagePtr buffer);
+    void set(int target, FBOImagePtr buffer);
 
-signals:
-  void changed(RenderPassPtr);
+  signals:
+    void changed(RenderPassPtr);
 
-protected:
-  void beginFBO();
-  void endFBO();
-  void renderUI(State& state, const RenderOptions& render_opts);
+  protected:
+    void beginFBO();
+    void endFBO();
+    void renderUI(State& state, const RenderOptions& render_opts);
 
-  QString m_name;
+    QString m_name;
 
-  /// All objects that are rendered in this pass
-  Objects m_objects;
-  /// All enabled lights
-  Lights m_lights;
-  MaterialPtr m_defaultMaterial;
-  CameraPtr m_view;
+    /// All objects that are rendered in this pass
+    Objects m_objects;
+    /// All enabled lights
+    Lights m_lights;
+    MaterialPtr m_defaultMaterial;
+    CameraPtr m_view;
 
-  ScenePtr m_scene;
+    ScenePtr m_scene;
 
-  /// Bitwise OR of GL_{COLOR,DEPTH,STENCIL}_BUFFER_BIT, or zero if we don't
-  /// want to clear the buffer before rendering.
-  GLbitfield m_clear;
-  Color m_clearColor;
+    /// Bitwise OR of GL_{COLOR,DEPTH,STENCIL}_BUFFER_BIT, or zero if we don't
+    /// want to clear the buffer before rendering.
+    GLbitfield m_clear;
+    Color m_clearColor;
 
-  int m_width, m_height; /// Output size, if zero, use scene size.
-  bool m_autosize;
-  FBOPtr m_fbo;
+    int m_width, m_height; /// Output size, if zero, use scene size.
+    bool m_autosize;
+    FBOPtr m_fbo;
 
-  BufferObject m_gridVertices, m_gridColors;
-  ProgramPtr m_gridProg;
-};
+    BufferObject m_gridVertices, m_gridColors;
+    ProgramPtr m_gridProg;
+  };
 
 } // namespace Shaderkit
 

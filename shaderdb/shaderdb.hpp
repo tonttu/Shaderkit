@@ -25,34 +25,36 @@
 
 class QFile;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class ShaderDB {
-public:
-  ShaderDB();
-  virtual ~ShaderDB();
+  class ShaderDB
+  {
+  public:
+    ShaderDB();
+    virtual ~ShaderDB();
 
-  void addPath(QString path, bool make_primary = false);
-  QStringList localScenes();
+    void addPath(QString path, bool make_primary = false);
+    QStringList localScenes();
 
-  static ScenePtr newLocalScene(QString name, QString srcfile = "");
+    static ScenePtr newLocalScene(QString name, QString srcfile = "");
 
-  QString defaultPath() const { return m_defaultPath; }
+    QString defaultPath() const { return m_defaultPath; }
 
-  static bool findLimbo(MetaInfo& info, QString& filename);
-  static bool openNewLimbo(QFile& file, const QString& name);
+    static bool findLimbo(MetaInfo& info, QString& filename);
+    static bool openNewLimbo(QFile& file, const QString& name);
 
-  static ShaderDB & instance();
+    static ShaderDB& instance();
 
-protected:
-  QSet<QString> scanDir(QString path, bool subdirs = true);
-  QString makeUniqPath(QString path, QString name) const;
+  protected:
+    QSet<QString> scanDir(QString path, bool subdirs = true);
+    QString makeUniqPath(QString path, QString name) const;
 
-  QSet<QString> m_paths;
-  QString m_defaultPath;
+    QSet<QString> m_paths;
+    QString m_defaultPath;
 
-  static ShaderDB * s_instance;
-};
+    static ShaderDB* s_instance;
+  };
 
 }
 

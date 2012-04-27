@@ -23,25 +23,27 @@
 
 #include <QString>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class QueryShader {
-public:
-  static QueryShader& instance();
+  class QueryShader
+  {
+  public:
+    static QueryShader& instance();
 
-  bool compile(Shader::Type type, QString src);
-  bool bind(const char* name);
-  bool unbind(float& v);
+    bool compile(Shader::Type type, QString src);
+    bool bind(const char* name);
+    bool unbind(float& v);
 
-private:
-  QueryShader();
+  private:
+    QueryShader();
 
-  static QueryShader* s_instance;
+    static QueryShader* s_instance;
 
-  TransformFeedback m_feedback;
-  GLuint m_shader, m_prog;
-  bool m_attached;
-};
+    TransformFeedback m_feedback;
+    GLuint m_shader, m_prog;
+    bool m_attached;
+  };
 
 } // namespace Shaderkit
 

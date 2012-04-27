@@ -20,7 +20,8 @@
 
 #include <QMap>
 
-void _check_gl(const char* str, const char* file, int line) {
+void _check_gl(const char* str, const char* file, int line)
+{
   static QMap<QString, int> s_errors;
   const int limit = 3;
   int e = glGetError();

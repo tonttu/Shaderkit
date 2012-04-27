@@ -20,78 +20,85 @@
 
 #include <cassert>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-TransformFeedback::TransformFeedback() : m_query(0), m_id(0) {
-}
-
-TransformFeedback::~TransformFeedback() {
-  if (m_id) {
-    glRun(glDeleteTransformFeedbacks(1, &m_id));
+  TransformFeedback::TransformFeedback() : m_query(0), m_id(0)
+  {
   }
-  if (m_query) {
-    glDeleteQueries(1, &m_query);
-  }
-}
 
-bool TransformFeedback::begin(int primitive, int size) {
-  assert(primitive == GL_POINTS || primitive == GL_LINES || primitive == GL_TRIANGLES);
-  if (glewIsSupported("GL_ARB_transform_feedback2")) {
-    if (!m_id) {
-      assert(glGenTransformFeedbacks);
-      glRun(glGenTransformFeedbacks(1, &m_id));
-      if (!m_id) return false;
+  TransformFeedback::~TransformFeedback()
+  {
+    if (m_id) {
+      glRun(glDeleteTransformFeedbacks(1, &m_id));
+    }
+    if (m_query) {
+      glDeleteQueries(1, &m_query);
+    }
+  }
+
+  bool TransformFeedback::begin(int primitive, int size)
+  {
+    assert(primitive == GL_POINTS || primitive == GL_LINES || primitive == GL_TRIANGLES);
+    if (glewIsSupported("GL_ARB_transform_feedback2")) {
+      if (!m_id) {
+        assert(glGenTransformFeedbacks);
+        glRun(glGenTransformFeedbacks(1, &m_id));
+        if (!m_id) return false;
+      }
+
+      glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_id));
     }
 
-    glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_id));
+    if (!m_query) {
+      glRun(glGenQueries(1, &m_query));
+    }
+
+    m_buffer.bind(GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_READ, size*sizeof(float));
+    glRun(glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, m_query));
+    glRun(glBeginTransformFeedback(primitive));
+    return true;
   }
 
-  if (!m_query) {
-    glRun(glGenQueries(1, &m_query));
+  const float* TransformFeedback::map(int& size)
+  {
+    glRun(glEndTransformFeedback());
+    glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
+    unsigned int res = 0;
+    glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
+
+    size = res;
+    return m_buffer.map();
   }
 
-  m_buffer.bind(GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_READ, size*sizeof(float));
-  glRun(glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, m_query));
-  glRun(glBeginTransformFeedback(primitive));
-  return true;
-}
-
-const float* TransformFeedback::map(int& size) {
-  glRun(glEndTransformFeedback());
-  glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
-  unsigned int res = 0;
-  glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
-
-  size = res;
-  return m_buffer.map();
-}
-
-void TransformFeedback::unmap() {
-  m_buffer.unmap();
-  m_buffer.unbind();
-  if (glewIsSupported("GL_ARB_transform_feedback2"))
-    glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0));
-}
-
-bool TransformFeedback::end(float* out, int size) {
-  bool ok = false;
-  glRun(glEndTransformFeedback());
-  glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
-  unsigned int res = 0;
-  glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
-  Log::info("feedback written: %d", res);
-
-  const float* data = m_buffer.map();
-  if ((int)res == size && data) {
-    std::copy(data, data + size, out);
-    ok = true;
+  void TransformFeedback::unmap()
+  {
+    m_buffer.unmap();
+    m_buffer.unbind();
+    if (glewIsSupported("GL_ARB_transform_feedback2"))
+      glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0));
   }
-  m_buffer.unmap();
-  m_buffer.unbind();
-  if (glewIsSupported("GL_ARB_transform_feedback2"))
-    glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0));
 
-  return ok;
-}
+  bool TransformFeedback::end(float* out, int size)
+  {
+    bool ok = false;
+    glRun(glEndTransformFeedback());
+    glRun(glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN));
+    unsigned int res = 0;
+    glRun(glGetQueryObjectuiv(m_query, GL_QUERY_RESULT, &res));
+    Log::info("feedback written: %d", res);
+
+    const float* data = m_buffer.map();
+    if ((int)res == size && data) {
+      std::copy(data, data + size, out);
+      ok = true;
+    }
+    m_buffer.unmap();
+    m_buffer.unbind();
+    if (glewIsSupported("GL_ARB_transform_feedback2"))
+      glRun(glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0));
+
+    return ok;
+  }
 
 } // namespace Shaderkit

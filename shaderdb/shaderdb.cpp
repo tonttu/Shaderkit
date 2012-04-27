@@ -30,176 +30,187 @@
 
 #include <cassert>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-ShaderDB * ShaderDB::s_instance = 0;
+  ShaderDB* ShaderDB::s_instance = 0;
 
-ShaderDB::ShaderDB() {
-  if (!s_instance)
-    s_instance = this;
-}
-
-ShaderDB::~ShaderDB() {
-  if (s_instance == this) {
-    s_instance = 0;
+  ShaderDB::ShaderDB()
+  {
+    if (!s_instance)
+      s_instance = this;
   }
-}
 
-void ShaderDB::addPath(QString path, bool make_primary) {
-  QDir dir(path);
-  if (make_primary)
-    m_defaultPath = path;
-  path = dir.canonicalPath();
-  if (!path.isEmpty()) {
-    m_paths << path;
+  ShaderDB::~ShaderDB()
+  {
+    if (s_instance == this) {
+      s_instance = 0;
+    }
+  }
+
+  void ShaderDB::addPath(QString path, bool make_primary)
+  {
+    QDir dir(path);
     if (make_primary)
       m_defaultPath = path;
+    path = dir.canonicalPath();
+    if (!path.isEmpty()) {
+      m_paths << path;
+      if (make_primary)
+        m_defaultPath = path;
+    }
   }
-}
 
-QStringList ShaderDB::localScenes() {
-  QSet<QString> files;
+  QStringList ShaderDB::localScenes()
+  {
+    QSet<QString> files;
 
-  foreach (QString path, m_paths)
-    files += scanDir(path);
+    foreach (QString path, m_paths)
+      files += scanDir(path);
 
-  QStringList ret = files.toList();
-  return ret;
-}
-
-ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile) {
-/*
-  QDir dir;
-  QString path = makeUniqPath(m_defaultPath, name);
-  if (!dir.mkpath(path)) {
-    Log::error("Failed to create %s", path.toUtf8().data());
-    return ScenePtr();
+    QStringList ret = files.toList();
+    return ret;
   }
-  dir.setPath(path);
-  path = dir.canonicalPath();
 
-  QString target = makeUniqPath(path, name + ".shaderkit");
-*/
-  ScenePtr scene = srcfile.isEmpty() ? ScenePtr(new Scene()) : Scene::load(srcfile, Scene::New);
-  if (!scene) return scene;
+  ScenePtr ShaderDB::newLocalScene(QString name, QString srcfile)
+  {
+    /*
+      QDir dir;
+      QString path = makeUniqPath(m_defaultPath, name);
+      if (!dir.mkpath(path)) {
+        Log::error("Failed to create %s", path.toUtf8().data());
+        return ScenePtr();
+      }
+      dir.setPath(path);
+      path = dir.canonicalPath();
 
-  scene->setFilename("");
-  MetaInfo& info = scene->metainfo();
+      QString target = makeUniqPath(path, name + ".shaderkit");
+    */
+    ScenePtr scene = srcfile.isEmpty() ? ScenePtr(new Scene()) : Scene::load(srcfile, Scene::New);
+    if (!scene) return scene;
 
-  info.shaderkit_version = Shaderkit::STR;
-  if (!info.name.isEmpty())
-    info.description = "Based on " + info.name;
-  info.name = name;
-  info.id = "";
-  info.revision = 0;
-  info.releases = QStringList() << "dev";
-  info.servers.clear();
-  info.categories.removeAll("example");
-  info.categories.removeAll("built-in");
-  info.categories.removeAll("user");
-  info.categories << "user";
+    scene->setFilename("");
+    MetaInfo& info = scene->metainfo();
 
-  /// @todo copy all file-based external 3D objects and texture images
+    info.shaderkit_version = Shaderkit::STR;
+    if (!info.name.isEmpty())
+      info.description = "Based on " + info.name;
+    info.name = name;
+    info.id = "";
+    info.revision = 0;
+    info.releases = QStringList() << "dev";
+    info.servers.clear();
+    info.categories.removeAll("example");
+    info.categories.removeAll("built-in");
+    info.categories.removeAll("user");
+    info.categories << "user";
 
-  //scene->setRoot(path);
-  /// @todo
-/*  foreach (ProgramPtr p, scene->shaders()) {
-    foreach (ShaderPtr s, p->shaders()) {
-      if (!s->filename().isEmpty()) {
-        QFileInfo d(s->filename());
-        QString target = path + "/" + d.fileName();
-        QFile::copy(s->filename(), target);
-        s->setFilename(target);
+    /// @todo copy all file-based external 3D objects and texture images
+
+    //scene->setRoot(path);
+    /// @todo
+    /*  foreach (ProgramPtr p, scene->shaders()) {
+        foreach (ShaderPtr s, p->shaders()) {
+          if (!s->filename().isEmpty()) {
+            QFileInfo d(s->filename());
+            QString target = path + "/" + d.fileName();
+            QFile::copy(s->filename(), target);
+            s->setFilename(target);
+          }
+        }
+      }*/
+
+    /*QJson::Serializer serializer;
+    QFile file(target);
+    const QByteArray str = serializer.serialize(scene->save());
+    if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
+      file.write(str);
+    }*/
+
+    return scene;
+  }
+
+  bool ShaderDB::findLimbo(MetaInfo& info, QString& filename)
+  {
+    QString limbo_path = instance().defaultPath() + "/limbo";
+    foreach (const QString& dir, QDir(limbo_path).entryList(
+               QStringList(), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time)) {
+      foreach (const QString& name, QDir(limbo_path + "/" + dir).entryList(
+                 QStringList() << "*.shaderkit", QDir::Files | QDir::Readable, QDir::Time)) {
+        QString tmp = QString("%1/%2/%3").arg(limbo_path, dir, name);
+        MetaInfo info_tmp;
+        if (MetaInfo::ping(tmp, info_tmp)) {
+          info = info_tmp;
+          filename = tmp;
+          return true;
+        }
       }
     }
-  }*/
+    return false;
+  }
 
-  /*QJson::Serializer serializer;
-  QFile file(target);
-  const QByteArray str = serializer.serialize(scene->save());
-  if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
-    file.write(str);
-  }*/
-
-  return scene;
-}
-
-bool ShaderDB::findLimbo(MetaInfo& info, QString& filename) {
-  QString limbo_path = instance().defaultPath() + "/limbo";
-  foreach (const QString& dir, QDir(limbo_path).entryList(
-             QStringList(), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time)) {
-    foreach (const QString& name, QDir(limbo_path + "/" + dir).entryList(
-               QStringList() << "*.shaderkit", QDir::Files | QDir::Readable, QDir::Time)) {
-      QString tmp = QString("%1/%2/%3").arg(limbo_path, dir, name);
-      MetaInfo info_tmp;
-      if (MetaInfo::ping(tmp, info_tmp)) {
-        info = info_tmp;
-        filename = tmp;
+  bool ShaderDB::openNewLimbo(QFile& file, const QString& name)
+  {
+    QString out = name;
+    out.replace('/', '-');
+    if (out.isEmpty()) out = "empty";
+    for (int i = 0; i < 10; ++i) {
+      QString d = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+      QString path = instance().defaultPath() + "/limbo/" + d + "-" + QString::number(i);
+      if (QFile::exists(path)) continue;
+      if (!QDir().mkpath(path)) continue;
+      QString filename = path + "/" + out + ".shaderkit";
+      file.setFileName(filename);
+      if (file.open(QFile::WriteOnly))
         return true;
+    }
+    return false;
+  }
+
+  ShaderDB& ShaderDB::instance()
+  {
+    if (!s_instance)
+      new ShaderDB;
+    assert(s_instance);
+    return *s_instance;
+  }
+
+  QSet<QString> ShaderDB::scanDir(QString path, bool subdirs)
+  {
+    QSet<QString> ret;
+
+    QStringList search;
+    search << "*.shaderkit" << "*.zip";
+
+    QDir::Filters filters = QDir::NoDotAndDotDot | QDir::Files;
+    if (subdirs)
+      filters |= QDir::AllDirs;
+
+    QDir dir(path);
+    QFileInfoList lst = dir.entryInfoList(search, filters);
+
+    foreach (QFileInfo info, lst) {
+      if (info.isDir() && subdirs) {
+        ret += scanDir(info.absoluteFilePath(), false);
+      } else if (info.isFile()) {
+        QString name = info.canonicalFilePath();
+        if (!name.isEmpty())
+          ret << name;
       }
     }
-  }
-  return false;
-}
 
-bool ShaderDB::openNewLimbo(QFile& file, const QString& name) {
-  QString out = name;
-  out.replace('/', '-');
-  if(out.isEmpty()) out = "empty";
-  for (int i = 0; i < 10; ++i) {
-    QString d = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
-    QString path = instance().defaultPath() + "/limbo/" + d + "-" + QString::number(i);
-    if (QFile::exists(path)) continue;
-    if (!QDir().mkpath(path)) continue;
-    QString filename = path + "/" + out + ".shaderkit";
-    file.setFileName(filename);
-    if (file.open(QFile::WriteOnly))
-      return true;
-  }
-  return false;
-}
-
-ShaderDB & ShaderDB::instance() {
-  if (!s_instance)
-    new ShaderDB;
-  assert(s_instance);
-  return *s_instance;
-}
-
-QSet<QString> ShaderDB::scanDir(QString path, bool subdirs) {
-  QSet<QString> ret;
-
-  QStringList search;
-  search << "*.shaderkit" << "*.zip";
-
-  QDir::Filters filters = QDir::NoDotAndDotDot | QDir::Files;
-  if (subdirs)
-    filters |= QDir::AllDirs;
-
-  QDir dir(path);
-  QFileInfoList lst = dir.entryInfoList(search, filters);
-
-  foreach (QFileInfo info, lst) {
-    if (info.isDir() && subdirs) {
-      ret += scanDir(info.absoluteFilePath(), false);
-    } else if (info.isFile()) {
-      QString name = info.canonicalFilePath();
-      if (!name.isEmpty())
-        ret << name;
-    }
+    return ret;
   }
 
-  return ret;
-}
+  QString ShaderDB::makeUniqPath(QString path, QString name) const
+  {
+    QString base = path + "/" + name.replace("/", "_");
+    path = base;
+    QDir dir;
+    for (int i = 0; dir.exists(path); ++i)
+      path = base + "-" + QString::number(i);
 
-QString ShaderDB::makeUniqPath(QString path, QString name) const {
-  QString base = path + "/" + name.replace("/", "_");
-  path = base;
-  QDir dir;
-  for (int i = 0; dir.exists(path); ++i)
-    path = base + "-" + QString::number(i);
-
-  return path;
-}
+    return path;
+  }
 
 } // namespace Shaderkit

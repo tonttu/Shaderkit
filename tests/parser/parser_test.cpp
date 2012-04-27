@@ -9,7 +9,8 @@
 
 using namespace Shaderkit;
 
-void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ") {
+void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ")
+{
   for (auto it = v.children.begin(); it != v.children.end(); ++it) {
     Log::info("%s'%s' src:'%s' partial:'%s', value:'%s'", ind.c_str(),
               it->name.c_str(), it->src.c_str(), it->partially_expanded.c_str(), it->value.c_str());
@@ -17,7 +18,8 @@ void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ") {
   }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   Log log;
 
   if (argc == 3 && std::string(argv[1]) == "--debug") {

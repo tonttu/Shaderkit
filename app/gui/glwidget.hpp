@@ -26,67 +26,69 @@
 
 #include <QGLWidget>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-/**
- * OpenGL Widget. This will create the OpenGL context and the widget will
- * work as the final viewport.
- *
- * Widget has exactly one Scene that is connected to it.
- */
-class GLWidget : public QGLWidget {
-  Q_OBJECT
+  /**
+   * OpenGL Widget. This will create the OpenGL context and the widget will
+   * work as the final viewport.
+   *
+   * Widget has exactly one Scene that is connected to it.
+   */
+  class GLWidget : public QGLWidget
+  {
+    Q_OBJECT
 
-public:
-  GLWidget(const QGLFormat& format, QWidget* parent = 0, const QGLWidget* shareWidget = 0);
-  GLWidget(QGLContext* context, QWidget* parent = 0);
-  ~GLWidget();
+  public:
+    GLWidget(const QGLFormat& format, QWidget* parent = 0, const QGLWidget* shareWidget = 0);
+    GLWidget(QGLContext* context, QWidget* parent = 0);
+    ~GLWidget();
 
-  QSize minimumSizeHint() const;
-  QSize sizeHint() const;
+    QSize minimumSizeHint() const;
+    QSize sizeHint() const;
 
-  RenderOptions & renderOptions() { return m_render_options; }
+    RenderOptions& renderOptions() { return m_render_options; }
 
-  ScenePtr scene() const { return m_scene; }
+    ScenePtr scene() const { return m_scene; }
 
-public slots:
-  void sceneChange(ScenePtr);
+  public slots:
+    void sceneChange(ScenePtr);
 
-protected:
-  /// After the initialization is done, invalidate the screen every 10 milliseconds
-  void initializeGL();
+  protected:
+    /// After the initialization is done, invalidate the screen every 10 milliseconds
+    void initializeGL();
 
-  /// Render the scene
-  void paintGL();
+    /// Render the scene
+    void paintGL();
 
-  /// Update the viewport size to scene
-  void resizeGL(int width, int height);
+    /// Update the viewport size to scene
+    void resizeGL(int width, int height);
 
-  void mouseMoveEvent(QMouseEvent* event);
-  void mousePressEvent(QMouseEvent* event);
-  void mouseReleaseEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event);
 
-  void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent* event);
 
-  void dragEnterEvent(QDragEnterEvent* event);
-  void dragLeaveEvent(QDragLeaveEvent* event);
-  void dragMoveEvent(QDragMoveEvent* event);
-  void dropEvent(QDropEvent* event);
+    void dragEnterEvent(QDragEnterEvent* event);
+    void dragLeaveEvent(QDragLeaveEvent* event);
+    void dragMoveEvent(QDragMoveEvent* event);
+    void dropEvent(QDropEvent* event);
 
-  ScenePtr m_scene;
-  QTimer* m_timer;
+    ScenePtr m_scene;
+    QTimer* m_timer;
 
-  QMap<Qt::MouseButton, QPointF> m_button_down;
+    QMap<Qt::MouseButton, QPointF> m_button_down;
 
-  Viewport* m_view;
-  CameraPtr m_debug_camera;
+    Viewport* m_view;
+    CameraPtr m_debug_camera;
 
-  RenderOptions m_render_options;
-  bool m_initialized;
-};
+    RenderOptions m_render_options;
+    bool m_initialized;
+  };
 
-extern QVector<Eigen::Vector2f> g_debug_qt;
-extern QVector<Eigen::Vector2f> g_debug_2d;
+  extern QVector<Eigen::Vector2f> g_debug_qt;
+  extern QVector<Eigen::Vector2f> g_debug_2d;
 
 } // namespace Shaderkit
 

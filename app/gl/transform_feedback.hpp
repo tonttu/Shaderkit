@@ -22,25 +22,27 @@
 
 #include <QString>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class TransformFeedback {
-public:
-  TransformFeedback();
-  ~TransformFeedback();
+  class TransformFeedback
+  {
+  public:
+    TransformFeedback();
+    ~TransformFeedback();
 
-  bool begin(int primitive, int size);
-  const float* map(int& size);
-  void unmap();
-  bool end(float* out, int size);
+    bool begin(int primitive, int size);
+    const float* map(int& size);
+    void unmap();
+    bool end(float* out, int size);
 
 //  float readMacro(QString name);
 
-private:
-  BufferObject m_buffer;
-  unsigned int m_query;
-  unsigned int m_id;
-};
+  private:
+    BufferObject m_buffer;
+    unsigned int m_query;
+    unsigned int m_id;
+  };
 
 } // namespace Shaderkit
 

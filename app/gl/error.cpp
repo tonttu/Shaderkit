@@ -17,31 +17,34 @@
 
 #include "gl/error.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-ShaderError::ShaderError() : m_line(0), m_column(0), m_length(0) {}
-ShaderError::ShaderError(QString msg, QString type, int line, int column, int length)
-  : m_msg(msg), m_type(type),
-    m_line(line), m_column(column), m_length(length) {}
+  ShaderError::ShaderError() : m_line(0), m_column(0), m_length(0) {}
+  ShaderError::ShaderError(QString msg, QString type, int line, int column, int length)
+    : m_msg(msg), m_type(type),
+      m_line(line), m_column(column), m_length(length) {}
 
-bool ShaderError::operator<(const ShaderError& o) const {
-  if (m_material != o.m_material) return m_material < o.m_material;
-  if (m_program != o.m_program) return m_program < o.m_program;
-  if (m_shaderFilename != o.m_shaderFilename) return m_shaderFilename < o.m_shaderFilename;
-  if (m_line != o.m_line) return m_line < o.m_line;
-  if (m_column != o.m_column) return m_column < o.m_column;
-  if (m_length != o.m_length) return m_length < o.m_length;
-  if (m_type != o.m_type) return m_type < o.m_type;
-  return m_msg < o.m_msg;
-}
+  bool ShaderError::operator<(const ShaderError& o) const
+  {
+    if (m_material != o.m_material) return m_material < o.m_material;
+    if (m_program != o.m_program) return m_program < o.m_program;
+    if (m_shaderFilename != o.m_shaderFilename) return m_shaderFilename < o.m_shaderFilename;
+    if (m_line != o.m_line) return m_line < o.m_line;
+    if (m_column != o.m_column) return m_column < o.m_column;
+    if (m_length != o.m_length) return m_length < o.m_length;
+    if (m_type != o.m_type) return m_type < o.m_type;
+    return m_msg < o.m_msg;
+  }
 
-bool ShaderError::isDuplicate(const ShaderError& o) const {
-  return m_shaderFilename == o.m_shaderFilename &&
-      m_line == o.m_line &&
-      m_column == o.m_column &&
-      m_length == o.m_length &&
-      m_type == o.m_type &&
-      m_msg == o.m_msg;
-}
+  bool ShaderError::isDuplicate(const ShaderError& o) const
+  {
+    return m_shaderFilename == o.m_shaderFilename &&
+           m_line == o.m_line &&
+           m_column == o.m_column &&
+           m_length == o.m_length &&
+           m_type == o.m_type &&
+           m_msg == o.m_msg;
+  }
 
 } // namespace Shaderkit

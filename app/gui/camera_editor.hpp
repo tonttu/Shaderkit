@@ -25,47 +25,50 @@
 
 class QListWidgetItem;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-class CameraEditor;
-}
+  namespace Ui
+  {
+    class CameraEditor;
+  }
 
-class CameraEditor : public QDialog {
-  Q_OBJECT
+  class CameraEditor : public QDialog
+  {
+    Q_OBJECT
 
-public:
-  explicit CameraEditor(QWidget *parent, RenderPassPtr render_pass);
-  ~CameraEditor();
+  public:
+    explicit CameraEditor(QWidget* parent, RenderPassPtr render_pass);
+    ~CameraEditor();
 
-private slots:
-  void create();
-  void duplicate();
-  void remove();
-  void selectionChanged();
-  void itemChanged(QListWidgetItem*);
-  void updated(RenderPassPtr pass);
-  void cameraListUpdated();
+  private slots:
+    void create();
+    void duplicate();
+    void remove();
+    void selectionChanged();
+    void itemChanged(QListWidgetItem*);
+    void updated(RenderPassPtr pass);
+    void cameraListUpdated();
 
-  void nameChanged();
-  void typeChanged();
-  void locChanged();
-  void targetChanged();
-  void fovChanged();
-  void nearChanged();
-  void farChanged();
+    void nameChanged();
+    void typeChanged();
+    void locChanged();
+    void targetChanged();
+    void fovChanged();
+    void nearChanged();
+    void farChanged();
 
-private:
-  void updatePanel();
+  private:
+    void updatePanel();
 
-  Ui::CameraEditor* m_ui;
-  RenderPassPtr m_render_pass;
+    Ui::CameraEditor* m_ui;
+    RenderPassPtr m_render_pass;
 
-  CameraPtr m_camera;
+    CameraPtr m_camera;
 
-  QAction* m_duplicate;
-  QAction* m_destroy;
-};
+    QAction* m_duplicate;
+    QAction* m_destroy;
+  };
 
 } // namespace Shaderkit
 

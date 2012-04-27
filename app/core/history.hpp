@@ -26,34 +26,36 @@
 
 class QTimer;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class History : public QObject {
-  Q_OBJECT
+  class History : public QObject
+  {
+    Q_OBJECT
 
-public:
-  History(Scene& scene, const QString& filename);
-  void changed();
-  void setSceneFilename(const QString& filename);
+  public:
+    History(Scene& scene, const QString& filename);
+    void changed();
+    void setSceneFilename(const QString& filename);
 
-  void sync();
+    void sync();
 
-private slots:
-  void save();
-  void commit();
+  private slots:
+    void save();
+    void commit();
 
-private:
-  Scene& m_scene;
-  QString m_filename;
-  QTimer* m_timer;
+  private:
+    Scene& m_scene;
+    QString m_filename;
+    QTimer* m_timer;
 
-  QQueue<QVariantMap> m_queue;
-  QMutex m_queueMutex;
+    QQueue<QVariantMap> m_queue;
+    QMutex m_queueMutex;
 
-  QMutex m_writerMutex;
+    QMutex m_writerMutex;
 
-  bool m_historyEnabled;
-};
+    bool m_historyEnabled;
+  };
 
 } // namespace Shaderkit
 

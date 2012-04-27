@@ -34,118 +34,123 @@ class QScrollArea;
 class QSplitter;
 class QCheckBox;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class CheckBoxDialog : public QDialog {
-public:
-  CheckBoxDialog(const QString& text, bool show_checkbox);
-  bool checked() const;
+  class CheckBoxDialog : public QDialog
+  {
+  public:
+    CheckBoxDialog(const QString& text, bool show_checkbox);
+    bool checked() const;
 
-private:
-  QCheckBox* m_checkbox;
-};
-
-/**
- * The (left) margin on the text editor, that shows the line numbers.
- *
- * This class is implemented like the code editor example in Qt documentation.
- */
-class EditorMargin : public QWidget {
-  Q_OBJECT
-
-public:
-  EditorMargin(GLSLEditor* editor);
-
-  /// Asks the width from Editor::marginWidth()
-  QSize sizeHint() const;
-
-protected:
-  /// Asks the width from Editor::marginWidth()
-  void paintEvent(QPaintEvent* event);
-
-  GLSLEditor* m_editor;
-};
-
-class FileListWidget : public QListWidget {
-public:
-  FileListWidget(QWidget* parent);
-  int preferredWidth();
-};
-
-class MultiEditor : public QFrame {
-  Q_OBJECT
-
-public:
-  MultiEditor(QWidget* parent, MaterialPtr material);
-  virtual ~MultiEditor() {}
-
-  MaterialPtr material() const { return m_material; }
-  void saveMaterial();
-
-  GLSLEditor* editor(const QString& filename) const;
-
-  /// Moves the focus to given error
-  void focusOnError(ShaderError error);
-
-  QList<GLSLEditor*> editors() const;
-
-  bool checkClose();
-
-  QScrollArea* area() const { return m_area; }
-
-  void jump(bool up, GLSLEditor* editor);
-
-protected:
-  virtual void showEvent(QShowEvent* event);
-
-public slots:
-  void refresh();
-
-private slots:
-  void autosize(QString);
-  void scrollTo(QModelIndex);
-  void relayout();
-  void editorModified(bool);
-  void materialChanged();
-  void ensureCursorVisible(GLSLEditor* ed = 0);
-
-  void itemChanged(QListWidgetItem*);
-  void shaderChanged(ShaderPtr);
-  void selectionChanged();
-  void docModificationChanged(bool);
-
-  void create();
-  void load();
-  void duplicate();
-  void remove();
-
-private:
-  struct Section {
-    Section() : item(0), header(0), editor(0), icon(0), label(0) {}
-    QListWidgetItem* item;
-    QWidget* header;
-    GLSLEditor* editor;
-    QLabel* icon;
-    QLabel* label;
+  private:
+    QCheckBox* m_checkbox;
   };
 
-  void addShader(ShaderPtr shader);
-  const Section* selected() const;
+  /**
+   * The (left) margin on the text editor, that shows the line numbers.
+   *
+   * This class is implemented like the code editor example in Qt documentation.
+   */
+  class EditorMargin : public QWidget
+  {
+    Q_OBJECT
 
-  QWidget* m_canvas;
-  FileListWidget* m_list;
-  QScrollArea* m_area;
-  QSplitter* m_splitter;
+  public:
+    EditorMargin(GLSLEditor* editor);
 
-  MaterialPtr m_material;
+    /// Asks the width from Editor::marginWidth()
+    QSize sizeHint() const;
 
-  QAction *m_create, *m_open, *m_duplicate, *m_destroy;
+  protected:
+    /// Asks the width from Editor::marginWidth()
+    void paintEvent(QPaintEvent* event);
 
-  /// key is a filename
-  QMap<QString, Section> m_sections;
+    GLSLEditor* m_editor;
+  };
 
-  QSignalMapper* m_mapper;
-};
+  class FileListWidget : public QListWidget
+  {
+  public:
+    FileListWidget(QWidget* parent);
+    int preferredWidth();
+  };
+
+  class MultiEditor : public QFrame
+  {
+    Q_OBJECT
+
+  public:
+    MultiEditor(QWidget* parent, MaterialPtr material);
+    virtual ~MultiEditor() {}
+
+    MaterialPtr material() const { return m_material; }
+    void saveMaterial();
+
+    GLSLEditor* editor(const QString& filename) const;
+
+    /// Moves the focus to given error
+    void focusOnError(ShaderError error);
+
+    QList<GLSLEditor*> editors() const;
+
+    bool checkClose();
+
+    QScrollArea* area() const { return m_area; }
+
+    void jump(bool up, GLSLEditor* editor);
+
+  protected:
+    virtual void showEvent(QShowEvent* event);
+
+  public slots:
+    void refresh();
+
+  private slots:
+    void autosize(QString);
+    void scrollTo(QModelIndex);
+    void relayout();
+    void editorModified(bool);
+    void materialChanged();
+    void ensureCursorVisible(GLSLEditor* ed = 0);
+
+    void itemChanged(QListWidgetItem*);
+    void shaderChanged(ShaderPtr);
+    void selectionChanged();
+    void docModificationChanged(bool);
+
+    void create();
+    void load();
+    void duplicate();
+    void remove();
+
+  private:
+    struct Section {
+      Section() : item(0), header(0), editor(0), icon(0), label(0) {}
+      QListWidgetItem* item;
+      QWidget* header;
+      GLSLEditor* editor;
+      QLabel* icon;
+      QLabel* label;
+    };
+
+    void addShader(ShaderPtr shader);
+    const Section* selected() const;
+
+    QWidget* m_canvas;
+    FileListWidget* m_list;
+    QScrollArea* m_area;
+    QSplitter* m_splitter;
+
+    MaterialPtr m_material;
+
+    QAction* m_create, *m_open, *m_duplicate, *m_destroy;
+
+    /// key is a filename
+    QMap<QString, Section> m_sections;
+
+    QSignalMapper* m_mapper;
+  };
 
 } // namespace Shaderkit
 

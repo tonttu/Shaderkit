@@ -22,36 +22,38 @@
 
 #include <QSyntaxHighlighter>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-/**
- * GLSL Highlighter that uses the flex lexer to tokenize the input and then
- * apply some colors to specific token groups.
- *
- * This doesn't do any fancy parsing of the file, all kind of context-aware
- * formatting is done separately on the Editor.
- */
-class Highlighter : public QSyntaxHighlighter {
-  Q_OBJECT
+  /**
+   * GLSL Highlighter that uses the flex lexer to tokenize the input and then
+   * apply some colors to specific token groups.
+   *
+   * This doesn't do any fancy parsing of the file, all kind of context-aware
+   * formatting is done separately on the Editor.
+   */
+  class Highlighter : public QSyntaxHighlighter
+  {
+    Q_OBJECT
 
-public:
-  Highlighter(QTextDocument* parent, GLSLParser& parser);
-  virtual ~Highlighter();
+  public:
+    Highlighter(QTextDocument* parent, GLSLParser& parser);
+    virtual ~Highlighter();
 
-protected:
-  /// Highlights one block (== one line)
-  void highlightBlock(const QString& text);
+  protected:
+    /// Highlights one block (== one line)
+    void highlightBlock(const QString& text);
 
-  /// @todo this should load a config file
-  void loadConfig();
+    /// @todo this should load a config file
+    void loadConfig();
 
-  QTextCharFormat m_errorFormat, m_commentFormat, m_ppFormat, m_typeFormat,
-    m_qualifierFormat, m_keywordFormat, m_constantFormat, m_operatorFormat,
-    m_parenthesesFormat, m_buildinVarFormat, m_idFormat;
+    QTextCharFormat m_errorFormat, m_commentFormat, m_ppFormat, m_typeFormat,
+                    m_qualifierFormat, m_keywordFormat, m_constantFormat, m_operatorFormat,
+                    m_parenthesesFormat, m_buildinVarFormat, m_idFormat;
 
-private:
-  GLSLParser& m_parser;
-};
+  private:
+    GLSLParser& m_parser;
+  };
 
 } // namespace Shaderkit
 

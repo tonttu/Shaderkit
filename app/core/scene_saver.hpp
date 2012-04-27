@@ -26,7 +26,8 @@
 
 class QTimer;
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
 /// Saving happens after a timeout (m_timeout), but is also restricted by
 /// another timeout (m_min_interval). However, if the user keeps using the
@@ -44,62 +45,64 @@ namespace Shaderkit {
 ///            ^                                                          ^
 ///            |......................m_max_wait..........................|
 
-class AfterIdleOperation : public QObject {
-  Q_OBJECT
+  class AfterIdleOperation : public QObject
+  {
+    Q_OBJECT
 
-public:
-  AfterIdleOperation(QObject* parent = 0, float timeout = 5.0f,
-                     float min_interval = 15.0f, float max_wait = 60.0f);
+  public:
+    AfterIdleOperation(QObject* parent = 0, float timeout = 5.0f,
+                       float min_interval = 15.0f, float max_wait = 60.0f);
 
-  void setEnabled(std::function<bool ()> func) { m_enabled_func = func; }
+    void setEnabled(std::function<bool ()> func) { m_enabled_func = func; }
 
-signals:
-  void timeout();
+  signals:
+    void timeout();
 
-public slots:
-  void action();
-  void stateChanged();
+  public slots:
+    void action();
+    void stateChanged();
 
-private slots:
-  void trigger();
+  private slots:
+    void trigger();
 
-private:
-  void updateTimer();
+  private:
+    void updateTimer();
 
-  /// "how long should be idle before triggering the event" (secs)
-  float m_timeout;
-  /// "how long minimum interval should be between two consecutive events" (secs)
-  float m_min_interval;
-  /// "How long can we wait before forcing event" (secs)
-  float m_max_wait;
+    /// "how long should be idle before triggering the event" (secs)
+    float m_timeout;
+    /// "how long minimum interval should be between two consecutive events" (secs)
+    float m_min_interval;
+    /// "How long can we wait before forcing event" (secs)
+    float m_max_wait;
 
-  QTimer* m_timer;
+    QTimer* m_timer;
 
-  QDateTime m_last_changed;
-  QDateTime m_last_timeout;
-  QDateTime m_first_changed;
+    QDateTime m_last_changed;
+    QDateTime m_last_timeout;
+    QDateTime m_first_changed;
 
-  std::function<bool ()> m_enabled_func;
-};
+    std::function<bool ()> m_enabled_func;
+  };
 
-class SceneSaver : public QObject {
-  Q_OBJECT
+  class SceneSaver : public QObject
+  {
+    Q_OBJECT
 
-public:
-  SceneSaver(Scene &scene);
-  ~SceneSaver();
+  public:
+    SceneSaver(Scene& scene);
+    ~SceneSaver();
 
-  bool enabled() const;
+    bool enabled() const;
 
-public slots:
-  void sceneChanged();
-  void stateChanged();
-  void save();
+  public slots:
+    void sceneChanged();
+    void stateChanged();
+    void save();
 
-private:
-  Scene& m_scene;
-  AfterIdleOperation* m_idle;
-};
+  private:
+    Scene& m_scene;
+    AfterIdleOperation* m_idle;
+  };
 
 } // namespace Shaderkit
 

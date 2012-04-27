@@ -22,41 +22,45 @@
 #include <QSet>
 #include <QCheckBox>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-class NewWizard;
-}
+  namespace Ui
+  {
+    class NewWizard;
+  }
 
-class ToggleButton : public QCheckBox {
-public:
-  ToggleButton(QWidget* parent = 0);
-  void paintEvent(QPaintEvent*);
-};
+  class ToggleButton : public QCheckBox
+  {
+  public:
+    ToggleButton(QWidget* parent = 0);
+    void paintEvent(QPaintEvent*);
+  };
 
-class NewWizard : public QDialog {
-  Q_OBJECT
+  class NewWizard : public QDialog
+  {
+    Q_OBJECT
 
-public:
-  explicit NewWizard(QWidget* parent = 0);
-  ~NewWizard();
+  public:
+    explicit NewWizard(QWidget* parent = 0);
+    ~NewWizard();
 
-protected:
-  void keyPressEvent(QKeyEvent* e);
+  protected:
+    void keyPressEvent(QKeyEvent* e);
 
-private slots:
-  void nameEditingFinished();
-  void nameEdited(QString);
-  void preview(QString);
-  void create();
+  private slots:
+    void nameEditingFinished();
+    void nameEdited(QString);
+    void preview(QString);
+    void create();
 
-private:
-  Ui::NewWizard* m_ui;
-  QSet<QString> m_scene_names;
-  QButtonGroup* m_group;
+  private:
+    Ui::NewWizard* m_ui;
+    QSet<QString> m_scene_names;
+    QButtonGroup* m_group;
 
-  QString getUniqName(QString str) const;
-};
+    QString getUniqName(QString str) const;
+  };
 
 } // namespace Shaderkit
 

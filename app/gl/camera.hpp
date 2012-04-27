@@ -30,104 +30,106 @@
 #undef far
 #endif
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-/**
- * OpenGL Camera class, handles perspective and ortho projections.
- */
-class Camera : public SceneObject {
-public:
-  enum Type { Perspective, Ortho, Rect };
+  /**
+   * OpenGL Camera class, handles perspective and ortho projections.
+   */
+  class Camera : public SceneObject
+  {
+  public:
+    enum Type { Perspective, Ortho, Rect };
 
-  Camera(const QString& name);
+    Camera(const QString& name);
 
-  /// Set the camera with screen size width x height
-  void prepare(int width, int height);
+    /// Set the camera with screen size width x height
+    void prepare(int width, int height);
 
-  QVariantMap toMap() const;
+    QVariantMap toMap() const;
 
-  /// Load the camera from map
-  void load(QVariantMap map);
+    /// Load the camera from map
+    void load(QVariantMap map);
 
-  CameraPtr clone() const;
+    CameraPtr clone() const;
 
-  QIcon icon();
+    QIcon icon();
 
-  float width() const { return m_width; }
-  float height() const { return m_height; }
+    float width() const { return m_width; }
+    float height() const { return m_height; }
 
-  /// Sets this camera to use orthographic matrix that fills the screen
-  void setRect(float near = -1.0f, float far = 1.0f);
+    /// Sets this camera to use orthographic matrix that fills the screen
+    void setRect(float near = -1.0f, float far = 1.0f);
 
-  void setNear(float near);
-  float near() const { return m_near; }
+    void setNear(float near);
+    float near() const { return m_near; }
 
-  void setFar(float far);
-  float far() const { return m_far; }
+    void setFar(float far);
+    float far() const { return m_far; }
 
-  void setFov(float fov);
-  float fov() const { return m_fov; }
+    void setFov(float fov);
+    float fov() const { return m_fov; }
 
-  void rotate(QPointF diff);
-  void translate(QPointF diff);
-  void zoom(float diff);
+    void rotate(QPointF diff);
+    void translate(QPointF diff);
+    void zoom(float diff);
 
-  void setTarget(const Eigen::Vector3f& target);
-  const Eigen::Vector3f& target() const;
+    void setTarget(const Eigen::Vector3f& target);
+    const Eigen::Vector3f& target() const;
 
-  void setLocation(const Eigen::Vector3f& location);
-  const Eigen::Vector3f location() const;
+    void setLocation(const Eigen::Vector3f& location);
+    const Eigen::Vector3f location() const;
 
-  const Eigen::Vector3f up() const;
-  const Eigen::Vector3f right() const;
-  const Eigen::Vector3f front() const;
+    const Eigen::Vector3f up() const;
+    const Eigen::Vector3f right() const;
+    const Eigen::Vector3f front() const;
 
-  Type type() const { return m_type; }
-  void setType(Type type);
+    Type type() const { return m_type; }
+    void setType(Type type);
 
-  float dist() const;
+    float dist() const;
 
-  //void setPickDisplay(float x, float y);
+    //void setPickDisplay(float x, float y);
 
-  const Eigen::Projective3f& projection() const { return m_projection; }
+    const Eigen::Projective3f& projection() const { return m_projection; }
 
-  const Eigen::Affine3f& view() const { return m_view; }
+    const Eigen::Affine3f& view() const { return m_view; }
 
-  /// @param swap_y enable if you want to project to Qt coordinates
-  Eigen::Projective3f normToWindow(bool swap_y = false) const;
+    /// @param swap_y enable if you want to project to Qt coordinates
+    Eigen::Projective3f normToWindow(bool swap_y = false) const;
 
-  /// Matrix from view coordinates to window coordinates
-  /// @param swap_y enable if you want to project to Qt coordinates
-  Eigen::Projective3f transform(bool swap_y = false) const;
+    /// Matrix from view coordinates to window coordinates
+    /// @param swap_y enable if you want to project to Qt coordinates
+    Eigen::Projective3f transform(bool swap_y = false) const;
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-protected:
-  void updateVectors();
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  protected:
+    void updateVectors();
 
-  Type m_type;
+    Type m_type;
 
-  /// The point the camera is looking at (Perspective)
-  Eigen::Vector3f m_target;
-  /// Camera up vector (Perspective)
+    /// The point the camera is looking at (Perspective)
+    Eigen::Vector3f m_target;
+    /// Camera up vector (Perspective)
 
-  Eigen::Vector3f m_up;
-  Eigen::Vector3f m_right;
-  Eigen::Vector3f m_front;
+    Eigen::Vector3f m_up;
+    Eigen::Vector3f m_right;
+    Eigen::Vector3f m_front;
 
-  float m_dx, m_dy, m_dist;
+    float m_dx, m_dy, m_dist;
 
-  Eigen::Projective3f m_projection;
-  Eigen::Affine3f m_view;
+    Eigen::Projective3f m_projection;
+    Eigen::Affine3f m_view;
 
-  float m_width, m_height;
+    float m_width, m_height;
 
-  /// Field of view, in degrees, in the y direction (Perspective)
-  float m_fov;
-  /// Near clipping plane distance
-  float m_near;
-  /// Far clipping plane distance
-  float m_far;
-};
+    /// Field of view, in degrees, in the y direction (Perspective)
+    float m_fov;
+    /// Near clipping plane distance
+    float m_near;
+    /// Far clipping plane distance
+    float m_far;
+  };
 
 } // namespace Shaderkit
 

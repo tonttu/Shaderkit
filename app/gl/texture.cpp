@@ -38,7 +38,8 @@
 #define I_(e, name) s_internalFormats[e] = #name, s_internalFormatsStr[#name] = e
 #define I(name) I_(GL_##name, name)
 
-namespace {
+namespace
+{
   QMap<GLenum, QString> s_names;
   QMap<QString, GLenum> s_enums;
   QMap<QString, QStringList> s_choices;
@@ -47,7 +48,8 @@ namespace {
   QMap<int, QString> s_internalFormats;
   QMap<QString, int> s_internalFormatsStr;
 
-  void s_init() {
+  void s_init()
+  {
     if (s_names.isEmpty()) {
       D(TEXTURE_WRAP_S, CLAMP);
       D(TEXTURE_WRAP_S, CLAMP_TO_EDGE);
@@ -242,7 +244,7 @@ namespace {
 
       // these are correct, right?
       s_internalFormats[1] = "LUMINANCE",
-      s_internalFormats[2] = "LUMINANCE_ALPHA";
+                             s_internalFormats[2] = "LUMINANCE_ALPHA";
       s_internalFormats[3] = "RGB";
       s_internalFormats[4] = "RGBA";
     }
@@ -259,631 +261,678 @@ namespace {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-TextureChangeManager::TextureChangeManager() : m_timer(new QTimer(this)) {
-  assert(!s_instance);
-  m_timer->start(100);
-  connect(m_timer, SIGNAL(timeout()), this, SLOT(run()));
-}
-
-TextureChangeManager::~TextureChangeManager() {
-}
-
-void TextureChangeManager::listen(TexturePtr texture, QObject* listener, std::function<void ()> func, bool data) {
-  if (!s_instance) s_instance = new TextureChangeManager;
-  Listener l;
-  l.obj = listener;
-  l.data = data;
-  l.func = func;
-  s_instance->m_callbacks[texture.get()] << l;
-  connect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
-}
-
-void TextureChangeManager::forget(TexturePtr texture, QObject* listener) {
-  if (!s_instance) return;
-  disconnect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
-  auto it = s_instance->m_callbacks.find(texture.get());
-  for (auto it2 = it->begin(); it2 != it->end(); ) {
-    if (it2->obj == listener) it2 = it->erase(it2);
-    else ++it2;
+  TextureChangeManager::TextureChangeManager() : m_timer(new QTimer(this))
+  {
+    assert(!s_instance);
+    m_timer->start(100);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(run()));
   }
-  if (it->isEmpty()) it = s_instance->m_callbacks.erase(it);
-  if (s_instance->m_callbacks.isEmpty()) {
-    s_instance->deleteLater();
-    s_instance = 0;
+
+  TextureChangeManager::~TextureChangeManager()
+  {
   }
-}
 
-void TextureChangeManager::changed(Texture* tex, bool data) {
-  if (!s_instance) return;
-  (data ? s_instance->m_queueData : s_instance->m_queue) << tex;
-}
-
-void TextureChangeManager::removed(Texture* tex) {
-  if (!s_instance) return;
-  auto lst = s_instance->m_callbacks.take(tex);
-  foreach (const Listener& l, lst)
-    if (l.obj)
-      disconnect(l.obj, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
-  if (s_instance->m_callbacks.isEmpty()) {
-    s_instance->deleteLater();
-    s_instance = 0;
+  void TextureChangeManager::listen(TexturePtr texture, QObject* listener, std::function<void ()> func, bool data)
+  {
+    if (!s_instance) s_instance = new TextureChangeManager;
+    Listener l;
+    l.obj = listener;
+    l.data = data;
+    l.func = func;
+    s_instance->m_callbacks[texture.get()] << l;
+    connect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
   }
-}
 
-void TextureChangeManager::listenerDeleted(QObject* obj) {
-  assert(s_instance == this);
-  for (auto it = m_callbacks.begin(); it != m_callbacks.end();) {
+  void TextureChangeManager::forget(TexturePtr texture, QObject* listener)
+  {
+    if (!s_instance) return;
+    disconnect(listener, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
+    auto it = s_instance->m_callbacks.find(texture.get());
     for (auto it2 = it->begin(); it2 != it->end(); ) {
-      if (it2->obj == obj) it2 = it->erase(it2);
+      if (it2->obj == listener) it2 = it->erase(it2);
       else ++it2;
     }
-    if (it->isEmpty()) it = m_callbacks.erase(it);
-    else ++it;
-  }
-  if (m_callbacks.isEmpty()) {
-    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(run()));
-    deleteLater();
-    s_instance = 0;
-  }
-}
-
-void TextureChangeManager::run() {
-  assert(s_instance == this);
-  foreach (Texture* tex, m_queue) {
-    auto it = m_callbacks.find(tex);
-    if (it != m_callbacks.end()) {
-      for (auto it2 = it->begin(); it2 != it->end(); ++it2)
-        it2->func();
+    if (it->isEmpty()) it = s_instance->m_callbacks.erase(it);
+    if (s_instance->m_callbacks.isEmpty()) {
+      s_instance->deleteLater();
+      s_instance = 0;
     }
   }
-  foreach (Texture* tex, m_queueData - m_queue) {
-    auto it = m_callbacks.find(tex);
-    if (it != m_callbacks.end()) {
-      for (auto it2 = it->begin(); it2 != it->end(); ++it2)
-        if (it2->data)
+
+  void TextureChangeManager::changed(Texture* tex, bool data)
+  {
+    if (!s_instance) return;
+    (data ? s_instance->m_queueData : s_instance->m_queue) << tex;
+  }
+
+  void TextureChangeManager::removed(Texture* tex)
+  {
+    if (!s_instance) return;
+    auto lst = s_instance->m_callbacks.take(tex);
+    foreach (const Listener& l, lst)
+      if (l.obj)
+        disconnect(l.obj, SIGNAL(destroyed(QObject*)), s_instance, SLOT(listenerDeleted(QObject*)));
+    if (s_instance->m_callbacks.isEmpty()) {
+      s_instance->deleteLater();
+      s_instance = 0;
+    }
+  }
+
+  void TextureChangeManager::listenerDeleted(QObject* obj)
+  {
+    assert(s_instance == this);
+    for (auto it = m_callbacks.begin(); it != m_callbacks.end();) {
+      for (auto it2 = it->begin(); it2 != it->end(); ) {
+        if (it2->obj == obj) it2 = it->erase(it2);
+        else ++it2;
+      }
+      if (it->isEmpty()) it = m_callbacks.erase(it);
+      else ++it;
+    }
+    if (m_callbacks.isEmpty()) {
+      disconnect(m_timer, SIGNAL(timeout()), this, SLOT(run()));
+      deleteLater();
+      s_instance = 0;
+    }
+  }
+
+  void TextureChangeManager::run()
+  {
+    assert(s_instance == this);
+    foreach (Texture* tex, m_queue) {
+      auto it = m_callbacks.find(tex);
+      if (it != m_callbacks.end()) {
+        for (auto it2 = it->begin(); it2 != it->end(); ++it2)
           it2->func();
+      }
     }
+    foreach (Texture* tex, m_queueData - m_queue) {
+      auto it = m_callbacks.find(tex);
+      if (it != m_callbacks.end()) {
+        for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+          if (it2->data)
+            it2->func();
+      }
+    }
+    m_queue.clear();
+    m_queueData.clear();
   }
-  m_queue.clear();
-  m_queueData.clear();
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Texture::Texture(QString name)
-  : FBOImage(name), m_bindedTexture(0), m_internalFormat(GL_RGBA),
-    m_blend(1.0), m_uv(1), m_paramsDirty(false), m_dirty(false) {
-  s_init();
-  setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  setParam(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-}
-
-Texture::~Texture() {
-  TextureChangeManager::removed(this);
-  if (m_id)
-    glDeleteTextures(1, &m_id);
-  m_id = 0;
-}
-
-void Texture::bind(int texture) {
-  m_bindedTexture = texture;
-  if (m_id == 0) glRun(glGenTextures(1, &m_id));
-  glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
-  glRun(glBindTexture(GL_TEXTURE_2D, m_id));
-  if (m_paramsDirty) applyParams();
-}
-
-void Texture::unbind() {
-  glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
-  glRun(glBindTexture(GL_TEXTURE_2D, 0));
-}
-
-void Texture::setParam(unsigned int pname, int param) {
-  m_params[pname] = Param(param);
-  m_paramsDirty = true;
-}
-
-void Texture::setParam(unsigned int pname, float param) {
-  m_params[pname] = Param(param);
-  m_paramsDirty = true;
-}
-
-bool Texture::setParam(QString pname, Param param) {
-  if (!s_enums.contains(pname)) {
-    Log::error("Invalid enum: %s", pname.toUtf8().data());
-    return false;
+  Texture::Texture(QString name)
+    : FBOImage(name), m_bindedTexture(0), m_internalFormat(GL_RGBA),
+      m_blend(1.0), m_uv(1), m_paramsDirty(false), m_dirty(false)
+  {
+    s_init();
+    setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    setParam(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   }
-  GLenum e = s_enums.value(pname);
-  if (param.is_float)
-    setParam(e, param.f);
-  else
-    setParam(e, param.i);
-  return true;
-}
 
-bool Texture::setParam(QString pname, QString param) {
-  if (!s_enums.contains(pname)) {
+  Texture::~Texture()
+  {
+    TextureChangeManager::removed(this);
+    if (m_id)
+      glDeleteTextures(1, &m_id);
+    m_id = 0;
+  }
+
+  void Texture::bind(int texture)
+  {
+    m_bindedTexture = texture;
+    if (m_id == 0) glRun(glGenTextures(1, &m_id));
+    glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
+    glRun(glBindTexture(GL_TEXTURE_2D, m_id));
+    if (m_paramsDirty) applyParams();
+  }
+
+  void Texture::unbind()
+  {
+    glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
+    glRun(glBindTexture(GL_TEXTURE_2D, 0));
+  }
+
+  void Texture::setParam(unsigned int pname, int param)
+  {
+    m_params[pname] = Param(param);
+    m_paramsDirty = true;
+  }
+
+  void Texture::setParam(unsigned int pname, float param)
+  {
+    m_params[pname] = Param(param);
+    m_paramsDirty = true;
+  }
+
+  bool Texture::setParam(QString pname, Param param)
+  {
+    if (!s_enums.contains(pname)) {
+      Log::error("Invalid enum: %s", pname.toUtf8().data());
+      return false;
+    }
+    GLenum e = s_enums.value(pname);
+    if (param.is_float)
+      setParam(e, param.f);
+    else
+      setParam(e, param.i);
+    return true;
+  }
+
+  bool Texture::setParam(QString pname, QString param)
+  {
+    if (!s_enums.contains(pname)) {
+      Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
+      return false;
+    }
+    GLenum e = s_enums.value(pname);
+
+    bool ok;
+    if (s_choices.contains(pname)) {
+      int i = param.toInt(&ok);
+      if (ok) {
+        setParam(e, i);
+        return true;
+      } else if (!s_choices.value(pname).contains(param)) {
+        Log::error("Invalid value: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
+        return false;
+      }
+      assert(s_enums.contains(param));
+      setParam(e, int(s_enums.value(param)));
+      return true;
+    } else if (s_ints.contains(pname)) {
+      int i = param.toInt(&ok);
+      if (!ok) {
+        Log::error("Invalid value: %s = %s (should be int)", pname.toUtf8().data(), param.toUtf8().data());
+        return false;
+      }
+      setParam(e, i);
+      return true;
+    } else if (s_floats.contains(pname)) {
+      float f = param.toFloat(&ok);
+      if (!ok) {
+        Log::error("Invalid value: %s = %s (should be float)", pname.toUtf8().data(), param.toUtf8().data());
+        return false;
+      }
+      setParam(e, f);
+      return true;
+    }
     Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
     return false;
   }
-  GLenum e = s_enums.value(pname);
 
-  bool ok;
-  if (s_choices.contains(pname)) {
-    int i = param.toInt(&ok);
-    if (ok) {
-      setParam(e, i);
-      return true;
-    } else if (!s_choices.value(pname).contains(param)) {
-      Log::error("Invalid value: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
-      return false;
+  QMap<QString, Texture::Param> Texture::paramStrings() const
+  {
+    QMap<QString, Texture::Param> ret;
+    for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+      ret[s_names.value(it.key())] = it.value();
     }
-    assert(s_enums.contains(param));
-    setParam(e, int(s_enums.value(param)));
-    return true;
-  } else if (s_ints.contains(pname)) {
-    int i = param.toInt(&ok);
-    if (!ok) {
-      Log::error("Invalid value: %s = %s (should be int)", pname.toUtf8().data(), param.toUtf8().data());
-      return false;
-    }
-    setParam(e, i);
-    return true;
-  } else if (s_floats.contains(pname)) {
-    float f = param.toFloat(&ok);
-    if (!ok) {
-      Log::error("Invalid value: %s = %s (should be float)", pname.toUtf8().data(), param.toUtf8().data());
-      return false;
-    }
-    setParam(e, f);
-    return true;
+    return ret;
   }
-  Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
-  return false;
-}
 
-QMap<QString, Texture::Param> Texture::paramStrings() const {
-  QMap<QString, Texture::Param> ret;
-  for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
-    ret[s_names.value(it.key())] = it.value();
-  }
-  return ret;
-}
+  Texture::Param Texture::param(QString name) const
+  {
+    if (!s_enums.contains(name)) {
+      Log::error("Unknown param %s", name.toUtf8().data());
+      return Param();
+    }
+    GLenum e = s_enums.value(name);
+    if (m_params.contains(e)) return m_params.value(e);
 
-Texture::Param Texture::param(QString name) const {
-  if (!s_enums.contains(name)) {
-    Log::error("Unknown param %s", name.toUtf8().data());
+    ParamType type = paramType(name);
+
+    if (type == ENUM || type == INT) {
+      GLint p;
+      glRun(glGetTexParameteriv(GL_TEXTURE_2D, e, &p));
+      return Param(p);
+    } else if (type == FLOAT) {
+      GLfloat p;
+      glRun(glGetTexParameterfv(GL_TEXTURE_2D, e, &p));
+      return Param(p);
+    }
+    assert(false && "Shouldn't happen");
     return Param();
   }
-  GLenum e = s_enums.value(name);
-  if (m_params.contains(e)) return m_params.value(e);
 
-  ParamType type = paramType(name);
-
-  if (type == ENUM || type == INT) {
-    GLint p;
-    glRun(glGetTexParameteriv(GL_TEXTURE_2D, e, &p));
-    return Param(p);
-  } else if (type == FLOAT) {
-    GLfloat p;
-    glRun(glGetTexParameterfv(GL_TEXTURE_2D, e, &p));
-    return Param(p);
+  QStringList Texture::allParams()
+  {
+    return (s_choices.keys().toSet() | s_ints | s_floats).toList();
   }
-  assert(false && "Shouldn't happen");
-  return Param();
-}
 
-QStringList Texture::allParams() {
-  return (s_choices.keys().toSet() | s_ints | s_floats).toList();
-}
-
-Texture::ParamType Texture::paramType(QString name) {
-  if (s_choices.contains(name)) {
-    return ENUM;
-  } else if (s_ints.contains(name)) {
-    return INT;
-  } else if (s_floats.contains(name)) {
-    return FLOAT;
+  Texture::ParamType Texture::paramType(QString name)
+  {
+    if (s_choices.contains(name)) {
+      return ENUM;
+    } else if (s_ints.contains(name)) {
+      return INT;
+    } else if (s_floats.contains(name)) {
+      return FLOAT;
+    }
+    return ParamType::UNKNOWN;
   }
-  return ParamType::UNKNOWN;
-}
 
-QStringList Texture::paramChoices(QString name) {
-  return s_choices.value(name);
-}
+  QStringList Texture::paramChoices(QString name)
+  {
+    return s_choices.value(name);
+  }
 
-QString Texture::enumToString(unsigned int value) {
-  return s_names.value(value);
-}
+  QString Texture::enumToString(unsigned int value)
+  {
+    return s_names.value(value);
+  }
 
-void Texture::setBlend(float value) {
-  m_blend = value;
-}
+  void Texture::setBlend(float value)
+  {
+    m_blend = value;
+  }
 
-void Texture::setUV(int idx) {
-  m_uv = idx;
-}
+  void Texture::setUV(int idx)
+  {
+    m_uv = idx;
+  }
 
-void Texture::setup(unsigned int fbo, int width, int height) {
-  if (m_id == 0) glRun(glGenTextures(1, &m_id));
+  void Texture::setup(unsigned int fbo, int width, int height)
+  {
+    if (m_id == 0) glRun(glGenTextures(1, &m_id));
 
-  bool type_changed = m_attachment != m_active_attachment,
-       size_changed = m_width != width || m_height != height,
-       fbo_changed = !m_fbo_num != fbo;
+    bool type_changed = m_attachment != m_active_attachment,
+         size_changed = m_width != width || m_height != height,
+         fbo_changed = !m_fbo_num != fbo;
 
-  if (m_dirty || type_changed || size_changed) {
-    bind();
-    if (m_attachment == GL_DEPTH_ATTACHMENT) {
-      if (!depthRenderableInternalFormats().contains(m_internalFormat)) {
-        m_internalFormat = GL_DEPTH_COMPONENT;
+    if (m_dirty || type_changed || size_changed) {
+      bind();
+      if (m_attachment == GL_DEPTH_ATTACHMENT) {
+        if (!depthRenderableInternalFormats().contains(m_internalFormat)) {
+          m_internalFormat = GL_DEPTH_COMPONENT;
+        }
+        glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, m_internalFormat, width, height,
+                           0 /* border */, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL /* data */));
+      } else if (m_attachment == GL_STENCIL_ATTACHMENT) {
+        if (!stencilRenderableInternalFormats().contains(m_internalFormat)) {
+          m_internalFormat = GL_STENCIL;
+        }
+        /// @todo implement
+      } else { // GL_COLOR_ATTACHMENTN
+        if (!colorRenderableInternalFormats().contains(m_internalFormat)) {
+          m_internalFormat = GL_RGBA;
+        }
+        glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, m_internalFormat, width, height,
+                           0 /* border */, GL_RGBA, GL_UNSIGNED_BYTE, NULL /* data */));
       }
-      glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, m_internalFormat, width, height,
-                         0 /* border */, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL /* data */));
-    } else if (m_attachment == GL_STENCIL_ATTACHMENT) {
-      if (!stencilRenderableInternalFormats().contains(m_internalFormat)) {
-        m_internalFormat = GL_STENCIL;
-      }
-      /// @todo implement
-    } else { // GL_COLOR_ATTACHMENTN
-      if (!colorRenderableInternalFormats().contains(m_internalFormat)) {
-        m_internalFormat = GL_RGBA;
-      }
-      glRun(glTexImage2D(GL_TEXTURE_2D, 0 /* level */, m_internalFormat, width, height,
-                         0 /* border */, GL_RGBA, GL_UNSIGNED_BYTE, NULL /* data */));
+
+      applyParams();
+      unbind();
     }
 
-    applyParams();
-    unbind();
-  }
-
-  /// @todo Should we run this if only size was changed?
-  if (m_dirty || type_changed || size_changed || fbo_changed) {
-    glRun(glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, 0));
-    glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_attachment, GL_TEXTURE_2D, m_id, 0 /* level */));
-  }
-
-  m_width = width;
-  m_height = height;
-  m_active_attachment = m_attachment;
-  m_dirty = false;
-  if (fbo_changed) m_fbo_num = fbo;
-}
-
-void Texture::applyParams() {
-  for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
-    if (it->is_float)
-      glRun(glTexParameterf(GL_TEXTURE_2D, it.key(), it->f));
-    else
-      glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
-  }
-  m_paramsDirty = false;
-  TextureChangeManager::changed(this);
-}
-
-TextureFile::TextureFile(QString name) : Texture(name) {}
-
-TexturePtr Texture::clone() const {
-  TexturePtr t(new Texture(*this));
-  t->m_id = 0;
-  t->m_fbo.reset();
-  t->m_fbo_num = 0;
-  t->m_bindedTexture = 0;
-  t->m_paramsDirty = true;
-  return t;
-}
-
-QVariantMap Texture::toMap() const {
-  QVariantMap map = FBOImage::toMap();
-  map["blend"] = m_blend;
-  map["uv"] = m_uv;
-
-  for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
-    QString pname = s_names.value(it.key());
-    if (pname.isEmpty()) {
-      Log::warn("Unknown texture parameter name %d", it.key());
-      continue;
+    /// @todo Should we run this if only size was changed?
+    if (m_dirty || type_changed || size_changed || fbo_changed) {
+      glRun(glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, 0));
+      glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_attachment, GL_TEXTURE_2D, m_id, 0 /* level */));
     }
 
-    if (s_ints.contains(pname)) {
-      if (it->is_float) {
-        Log::warn("Texture parameter %s should be integer", pname.toUtf8().data());
-      } else {
-        map[pname] = it->i;
+    m_width = width;
+    m_height = height;
+    m_active_attachment = m_attachment;
+    m_dirty = false;
+    if (fbo_changed) m_fbo_num = fbo;
+  }
+
+  void Texture::applyParams()
+  {
+    for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+      if (it->is_float)
+        glRun(glTexParameterf(GL_TEXTURE_2D, it.key(), it->f));
+      else
+        glRun(glTexParameteri(GL_TEXTURE_2D, it.key(), it->i));
+    }
+    m_paramsDirty = false;
+    TextureChangeManager::changed(this);
+  }
+
+  TextureFile::TextureFile(QString name) : Texture(name) {}
+
+  TexturePtr Texture::clone() const
+  {
+    TexturePtr t(new Texture(*this));
+    t->m_id = 0;
+    t->m_fbo.reset();
+    t->m_fbo_num = 0;
+    t->m_bindedTexture = 0;
+    t->m_paramsDirty = true;
+    return t;
+  }
+
+  QVariantMap Texture::toMap() const
+  {
+    QVariantMap map = FBOImage::toMap();
+    map["blend"] = m_blend;
+    map["uv"] = m_uv;
+
+    for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
+      QString pname = s_names.value(it.key());
+      if (pname.isEmpty()) {
+        Log::warn("Unknown texture parameter name %d", it.key());
+        continue;
       }
-    } else if (s_floats.contains(pname)) {
-      if (!it->is_float) {
-        Log::warn("Texture parameter %s should be float", pname.toUtf8().data());
-      } else {
-        map[pname] = it->f;
-      }
-    } else {
-      if (it->is_float) {
-        Log::warn("Texture parameter %s should be enum", pname.toUtf8().data());
-      } else {
-        QString param = s_names.value(it->i);
-        if (param.isEmpty()) {
-          Log::warn("Unknown texture parameter %d", it->i);
+
+      if (s_ints.contains(pname)) {
+        if (it->is_float) {
+          Log::warn("Texture parameter %s should be integer", pname.toUtf8().data());
         } else {
-          if (s_choices.value(pname).contains(param)) {
-            map[pname] = param;
+          map[pname] = it->i;
+        }
+      } else if (s_floats.contains(pname)) {
+        if (!it->is_float) {
+          Log::warn("Texture parameter %s should be float", pname.toUtf8().data());
+        } else {
+          map[pname] = it->f;
+        }
+      } else {
+        if (it->is_float) {
+          Log::warn("Texture parameter %s should be enum", pname.toUtf8().data());
+        } else {
+          QString param = s_names.value(it->i);
+          if (param.isEmpty()) {
+            Log::warn("Unknown texture parameter %d", it->i);
           } else {
-            Log::warn("Invalid texture parameter setting %s = %s",
-                      pname.toUtf8().data(), param.toUtf8().data());
+            if (s_choices.value(pname).contains(param)) {
+              map[pname] = param;
+            } else {
+              Log::warn("Invalid texture parameter setting %s = %s",
+                        pname.toUtf8().data(), param.toUtf8().data());
+            }
           }
         }
       }
     }
-  }
 
-  return map;
-}
+    return map;
+  }
 
 /// @todo Instead of QVariantMap we should have something that removes used
 ///       attributes and warns about extra ones
-void Texture::load(QVariantMap map) {
-  FBOImage::load(map);
+  void Texture::load(QVariantMap map)
+  {
+    FBOImage::load(map);
 
-  if (map.contains("blend")) m_blend = map["blend"].toFloat();
-  if (map.contains("uv")) m_uv = map["uv"].toInt();
+    if (map.contains("blend")) m_blend = map["blend"].toFloat();
+    if (map.contains("uv")) m_uv = map["uv"].toInt();
 
-  /// @todo allow GL_ -prefix and make case-insensitive search
-  foreach (QString pname, s_choices.keys()) {
-    if (map.contains(pname)) {
-      QString param = map[pname].toString();
-      if (s_choices[pname].contains(param)) {
-        setParam(s_enums[pname], int(s_enums[param]));
-      } else {
-        Log::warn("Invalid texture parameter setting %s = %s",
-                  pname.toUtf8().data(), param.toUtf8().data());
+    /// @todo allow GL_ -prefix and make case-insensitive search
+    foreach (QString pname, s_choices.keys()) {
+      if (map.contains(pname)) {
+        QString param = map[pname].toString();
+        if (s_choices[pname].contains(param)) {
+          setParam(s_enums[pname], int(s_enums[param]));
+        } else {
+          Log::warn("Invalid texture parameter setting %s = %s",
+                    pname.toUtf8().data(), param.toUtf8().data());
+        }
       }
     }
+
+    foreach (QString pname, s_ints)
+      if (map.contains(pname)) setParam(s_enums[pname], map[pname].toInt());
+
+    foreach (QString pname, s_floats)
+      if (map.contains(pname)) setParam(s_enums[pname], map[pname].toFloat());
   }
 
-  foreach (QString pname, s_ints)
-    if (map.contains(pname)) setParam(s_enums[pname], map[pname].toInt());
+  void Texture::setInternalFormat(int format)
+  {
+    m_internalFormat = format;
+    m_dirty = true;
+  }
 
-  foreach (QString pname, s_floats)
-    if (map.contains(pname)) setParam(s_enums[pname], map[pname].toFloat());
-}
+  void Texture::setInternalFormat(QString format)
+  {
+    if (s_internalFormatsStr.contains(format))
+      setInternalFormat(s_internalFormatsStr.value(format));
+  }
 
-void Texture::setInternalFormat(int format) {
-  m_internalFormat = format;
-  m_dirty = true;
-}
+  QString Texture::internalFormatStr() const
+  {
+    return s_internalFormats.value(m_internalFormat);
+  }
 
-void Texture::setInternalFormat(QString format) {
-  if (s_internalFormatsStr.contains(format))
-    setInternalFormat(s_internalFormatsStr.value(format));
-}
+  const QList<QPair<QString, QStringList>>& Texture::internalFormats(bool colorRenderableOnly)
+  {
+    static QList<QPair<QString, QStringList>> s_res, s_res_color_renderable;
+    if (!s_res.isEmpty()) return colorRenderableOnly ? s_res_color_renderable : s_res;
 
-QString Texture::internalFormatStr() const {
-  return s_internalFormats.value(m_internalFormat);
-}
+    QSet<QString> colors = colorRenderableInternalFormatsStr();
 
-const QList<QPair<QString, QStringList>>& Texture::internalFormats(bool colorRenderableOnly) {
-  static QList<QPair<QString, QStringList>> s_res, s_res_color_renderable;
-  if (!s_res.isEmpty()) return colorRenderableOnly ? s_res_color_renderable : s_res;
+    QList<QString> all = s_internalFormatsStr.keys();
+    qSort(all);
 
-  QSet<QString> colors = colorRenderableInternalFormatsStr();
+    QList<QPair<QString, QRegExp>> regexps;
+    regexps << QPair<QString, QRegExp>("Common", QRegExp("^(RED|RG|RGB|RGBA)$"));
+    regexps << QPair<QString, QRegExp>("Float", QRegExp("F$"));
+    regexps << QPair<QString, QRegExp>("Integer", QRegExp("[^U]I$"));
+    regexps << QPair<QString, QRegExp>("Unsigned integer", QRegExp("UI$"));
+    regexps << QPair<QString, QRegExp>("Luminance/Intensity", QRegExp("(LUMINANCE|INTENSITY)"));
+    regexps << QPair<QString, QRegExp>("Signed normalized", QRegExp("SNORM$"));
+    regexps << QPair<QString, QRegExp>("Stencil", QRegExp("STENCIL"));
+    regexps << QPair<QString, QRegExp>("Depth", QRegExp("DEPTH"));
+    regexps << QPair<QString, QRegExp>("Compressed", QRegExp("COMPRESSED"));
+    regexps << QPair<QString, QRegExp>("Alpha", QRegExp("^ALPHA"));
 
-  QList<QString> all = s_internalFormatsStr.keys();
-  qSort(all);
+    QMap<QString, QStringList> tmp1, tmp2;
 
-  QList<QPair<QString, QRegExp>> regexps;
-  regexps << QPair<QString, QRegExp>("Common", QRegExp("^(RED|RG|RGB|RGBA)$"));
-  regexps << QPair<QString, QRegExp>("Float", QRegExp("F$"));
-  regexps << QPair<QString, QRegExp>("Integer", QRegExp("[^U]I$"));
-  regexps << QPair<QString, QRegExp>("Unsigned integer", QRegExp("UI$"));
-  regexps << QPair<QString, QRegExp>("Luminance/Intensity", QRegExp("(LUMINANCE|INTENSITY)"));
-  regexps << QPair<QString, QRegExp>("Signed normalized", QRegExp("SNORM$"));
-  regexps << QPair<QString, QRegExp>("Stencil", QRegExp("STENCIL"));
-  regexps << QPair<QString, QRegExp>("Depth", QRegExp("DEPTH"));
-  regexps << QPair<QString, QRegExp>("Compressed", QRegExp("COMPRESSED"));
-  regexps << QPair<QString, QRegExp>("Alpha", QRegExp("^ALPHA"));
-
-  QMap<QString, QStringList> tmp1, tmp2;
-
-  foreach (QString format, all) {
-    bool match = false;
-    for (auto it = regexps.begin(); it != regexps.end(); ++it) {
-      QRegExp& e = it->second;
-      if (e.indexIn(format) >= 0) {
-        tmp1[it->first] << format;
-        if (colors.contains(format)) tmp2[it->first] << format;
-        match = true;
+    foreach (QString format, all) {
+      bool match = false;
+      for (auto it = regexps.begin(); it != regexps.end(); ++it) {
+        QRegExp& e = it->second;
+        if (e.indexIn(format) >= 0) {
+          tmp1[it->first] << format;
+          if (colors.contains(format)) tmp2[it->first] << format;
+          match = true;
+        }
+      }
+      if (!match) {
+        tmp1["Special"] << format;
+        if (colors.contains(format)) tmp2["Special"] << format;
       }
     }
-    if (!match) {
-      tmp1["Special"] << format;
-      if (colors.contains(format)) tmp2["Special"] << format;
+
+    foreach (auto p, regexps) {
+      if (!tmp1[p.first].isEmpty()) s_res << qMakePair(p.first, tmp1[p.first]);
+      if (!tmp2[p.first].isEmpty()) s_res_color_renderable << qMakePair(p.first, tmp2[p.first]);
     }
+
+    return colorRenderableOnly ? s_res_color_renderable : s_res;
   }
 
-  foreach (auto p, regexps) {
-    if (!tmp1[p.first].isEmpty()) s_res << qMakePair(p.first, tmp1[p.first]);
-    if (!tmp2[p.first].isEmpty()) s_res_color_renderable << qMakePair(p.first, tmp2[p.first]);
+  const QSet<int>& Texture::colorRenderableInternalFormats()
+  {
+    /**
+     * OpenGL specification 4.1 Core Profile:
+     *
+     * The following base internal formats from table 3.11 are color-renderable:
+     * RED, RG, RGB, and RGBA. The sized internal formats from table 3.12 that
+     * have a color-renderable base internal format are also color-renderable. No
+     * other formats, including compressed internal formats, are color-renderable.
+     *
+     * .. side note: Every format in 3.12 have color-renderable base internal
+     *               format, so this is set of 3.11, 3.12 and those special
+     *               3 / 4 values that should work too imo.
+     */
+
+    /*s_internalFormats[1] = "LUMINANCE",
+    s_internalFormats[2] = "LUMINANCE_ALPHA";
+    s_internalFormats[3] = "RGB";
+    s_internalFormats[4] = "RGBA";*/
+
+    static QSet<int> s_set;
+    if (!s_set.isEmpty()) return s_set;
+
+    s_set << GL_RED << GL_RG << GL_RGB << GL_RGBA
+    << 3 << 4; // RGB and RGBA
+
+    s_set << GL_R11F_G11F_B10F << GL_R16 << GL_R16F << GL_R16I << GL_R16UI << GL_R16_SNORM
+    << GL_R32F << GL_R32I << GL_R32UI << GL_R3_G3_B2 << GL_R8 << GL_R8I << GL_R8UI
+    << GL_R8_SNORM << GL_RG16 << GL_RG16F << GL_RG16I << GL_RG16UI << GL_RG16_SNORM
+    << GL_RG32F << GL_RG32I << GL_RG32UI << GL_RG8 << GL_RG8I << GL_RG8UI
+    << GL_RG8_SNORM << GL_RGB10 << GL_RGB10_A2 << GL_RGB10_A2UI << GL_RGB12
+    << GL_RGB16 << GL_RGB16F << GL_RGB16I << GL_RGB16UI << GL_RGB16_SNORM
+    << GL_RGB32F << GL_RGB32I << GL_RGB32UI << GL_RGB4 << GL_RGB5 << GL_RGB5_A1
+    << GL_RGB8 << GL_RGB8I << GL_RGB8UI << GL_RGB8_SNORM << GL_RGB9_E5 << GL_RGBA12
+    << GL_RGBA16 << GL_RGBA16F << GL_RGBA16I << GL_RGBA16UI << GL_RGBA16_SNORM
+    << GL_RGBA2 << GL_RGBA32F << GL_RGBA32I << GL_RGBA32UI << GL_RGBA4 << GL_RGBA8
+    << GL_RGBA8I << GL_RGBA8UI << GL_RGBA8_SNORM << GL_SRGB8 << GL_SRGB8_ALPHA8;
+
+    return s_set;
   }
 
-  return colorRenderableOnly ? s_res_color_renderable : s_res;
-}
-
-const QSet<int>& Texture::colorRenderableInternalFormats() {
-  /**
-   * OpenGL specification 4.1 Core Profile:
-   *
-   * The following base internal formats from table 3.11 are color-renderable:
-   * RED, RG, RGB, and RGBA. The sized internal formats from table 3.12 that
-   * have a color-renderable base internal format are also color-renderable. No
-   * other formats, including compressed internal formats, are color-renderable.
-   *
-   * .. side note: Every format in 3.12 have color-renderable base internal
-   *               format, so this is set of 3.11, 3.12 and those special
-   *               3 / 4 values that should work too imo.
-   */
-
-  /*s_internalFormats[1] = "LUMINANCE",
-  s_internalFormats[2] = "LUMINANCE_ALPHA";
-  s_internalFormats[3] = "RGB";
-  s_internalFormats[4] = "RGBA";*/
-
-  static QSet<int> s_set;
-  if (!s_set.isEmpty()) return s_set;
-
-  s_set << GL_RED << GL_RG << GL_RGB << GL_RGBA
-      << 3 << 4; // RGB and RGBA
-
-  s_set << GL_R11F_G11F_B10F << GL_R16 << GL_R16F << GL_R16I << GL_R16UI << GL_R16_SNORM
-      << GL_R32F << GL_R32I << GL_R32UI << GL_R3_G3_B2 << GL_R8 << GL_R8I << GL_R8UI
-      << GL_R8_SNORM << GL_RG16 << GL_RG16F << GL_RG16I << GL_RG16UI << GL_RG16_SNORM
-      << GL_RG32F << GL_RG32I << GL_RG32UI << GL_RG8 << GL_RG8I << GL_RG8UI
-      << GL_RG8_SNORM << GL_RGB10 << GL_RGB10_A2 << GL_RGB10_A2UI << GL_RGB12
-      << GL_RGB16 << GL_RGB16F << GL_RGB16I << GL_RGB16UI << GL_RGB16_SNORM
-      << GL_RGB32F << GL_RGB32I << GL_RGB32UI << GL_RGB4 << GL_RGB5 << GL_RGB5_A1
-      << GL_RGB8 << GL_RGB8I << GL_RGB8UI << GL_RGB8_SNORM << GL_RGB9_E5 << GL_RGBA12
-      << GL_RGBA16 << GL_RGBA16F << GL_RGBA16I << GL_RGBA16UI << GL_RGBA16_SNORM
-      << GL_RGBA2 << GL_RGBA32F << GL_RGBA32I << GL_RGBA32UI << GL_RGBA4 << GL_RGBA8
-      << GL_RGBA8I << GL_RGBA8UI << GL_RGBA8_SNORM << GL_SRGB8 << GL_SRGB8_ALPHA8;
-
-  return s_set;
-}
-
-const QSet<QString>& Texture::colorRenderableInternalFormatsStr() {
-  static QSet<QString> s_set;
-  if (!s_set.isEmpty()) return s_set;
-  foreach (int i, colorRenderableInternalFormats()) {
-    assert(s_internalFormats.contains(i));
-    s_set << s_internalFormats.value(i);
+  const QSet<QString>& Texture::colorRenderableInternalFormatsStr()
+  {
+    static QSet<QString> s_set;
+    if (!s_set.isEmpty()) return s_set;
+    foreach (int i, colorRenderableInternalFormats()) {
+      assert(s_internalFormats.contains(i));
+      s_set << s_internalFormats.value(i);
+    }
+    return s_set;
   }
-  return s_set;
-}
 
-const QSet<int>& Texture::depthRenderableInternalFormats() {
-  /**
-   * OpenGL specification 4.1 Core Profile:
-   *
-   * An internal format is depth-renderable if it is DEPTH_COMPONENT or one of
-   * the formats from table 3.13 whose base internal format is DEPTH_COMPONENT
-   * or DEPTH_STENCIL. No other formats are depth-renderable.
-   */
+  const QSet<int>& Texture::depthRenderableInternalFormats()
+  {
+    /**
+     * OpenGL specification 4.1 Core Profile:
+     *
+     * An internal format is depth-renderable if it is DEPTH_COMPONENT or one of
+     * the formats from table 3.13 whose base internal format is DEPTH_COMPONENT
+     * or DEPTH_STENCIL. No other formats are depth-renderable.
+     */
 
-  static QSet<int> s_set;
-  if (!s_set.isEmpty()) return s_set;
+    static QSet<int> s_set;
+    if (!s_set.isEmpty()) return s_set;
 
-  /// @todo should DEPTH_STENCIL also be in this list?
+    /// @todo should DEPTH_STENCIL also be in this list?
 
-  s_set << GL_DEPTH_COMPONENT << GL_DEPTH_COMPONENT16 << GL_DEPTH_COMPONENT24
-      << GL_DEPTH_COMPONENT32 << GL_DEPTH_COMPONENT32F << GL_DEPTH24_STENCIL8
-      << GL_DEPTH32F_STENCIL8;
+    s_set << GL_DEPTH_COMPONENT << GL_DEPTH_COMPONENT16 << GL_DEPTH_COMPONENT24
+    << GL_DEPTH_COMPONENT32 << GL_DEPTH_COMPONENT32F << GL_DEPTH24_STENCIL8
+    << GL_DEPTH32F_STENCIL8;
 
-  return s_set;
-}
-
-const QSet<QString>& Texture::depthRenderableInternalFormatsStr() {
-  static QSet<QString> s_set;
-  if (!s_set.isEmpty()) return s_set;
-  foreach (int i, depthRenderableInternalFormats()) {
-    assert(s_internalFormats.contains(i));
-    s_set << s_internalFormats.value(i);
+    return s_set;
   }
-  return s_set;
-}
 
-const QSet<int>& Texture::stencilRenderableInternalFormats() {
-  /**
-   * OpenGL specification 4.1 Core Profile:
-   *
-   * An internal format is stencil-renderable if it is STENCIL_INDEX or
-   * DEPTH_STENCIL, if it is one of the STENCIL_INDEX formats from table 4.10,
-   * or if it is one of the formats from table 3.13 whose base internal
-   * format is DEPTH_STENCIL. No other formats are stencil-renderable.
-   */
-
-  static QSet<int> s_set;
-  if (!s_set.isEmpty()) return s_set;
-
-  s_set << GL_STENCIL << GL_DEPTH_STENCIL
-        << GL_STENCIL_INDEX1 << GL_STENCIL_INDEX4 << GL_STENCIL_INDEX8
-        << GL_STENCIL_INDEX16
-        << GL_DEPTH24_STENCIL8 << GL_DEPTH32F_STENCIL8;
-
-  return s_set;
-}
-
-const QSet<QString>& Texture::stencilRenderableInternalFormatsStr() {
-  static QSet<QString> s_set;
-  if (!s_set.isEmpty()) return s_set;
-  foreach (int i, stencilRenderableInternalFormats()) {
-    assert(s_internalFormats.contains(i));
-    s_set << s_internalFormats.value(i);
+  const QSet<QString>& Texture::depthRenderableInternalFormatsStr()
+  {
+    static QSet<QString> s_set;
+    if (!s_set.isEmpty()) return s_set;
+    foreach (int i, depthRenderableInternalFormats()) {
+      assert(s_internalFormats.contains(i));
+      s_set << s_internalFormats.value(i);
+    }
+    return s_set;
   }
-  return s_set;
-}
 
-void Texture::dataUpdated() {
-  TextureChangeManager::changed(this, true);
-}
+  const QSet<int>& Texture::stencilRenderableInternalFormats()
+  {
+    /**
+     * OpenGL specification 4.1 Core Profile:
+     *
+     * An internal format is stencil-renderable if it is STENCIL_INDEX or
+     * DEPTH_STENCIL, if it is one of the STENCIL_INDEX formats from table 4.10,
+     * or if it is one of the formats from table 3.13 whose base internal
+     * format is DEPTH_STENCIL. No other formats are stencil-renderable.
+     */
 
-TexturePtr TextureFile::clone() const {
-  TextureFile* t = new TextureFile(*this);
-  t->m_id = 0;
-  t->m_fbo.reset();
-  t->m_fbo_num = 0;
-  t->m_bindedTexture = 0;
-  t->m_paramsDirty = true;
-  t->m_loadedFile.clear();
-  return TexturePtr(t);
-}
+    static QSet<int> s_set;
+    if (!s_set.isEmpty()) return s_set;
 
-QVariantMap TextureFile::toMap() const {
-  QVariantMap map = Texture::toMap();
-  if (!rawFilename().isEmpty()) map["file"] = rawFilename();
-  return map;
-}
+    s_set << GL_STENCIL << GL_DEPTH_STENCIL
+    << GL_STENCIL_INDEX1 << GL_STENCIL_INDEX4 << GL_STENCIL_INDEX8
+    << GL_STENCIL_INDEX16
+    << GL_DEPTH24_STENCIL8 << GL_DEPTH32F_STENCIL8;
 
-void TextureFile::load(QVariantMap map) {
-  Texture::load(map);
-  if (map.contains("file")) setFilename(map["file"].toString());
-}
+    return s_set;
+  }
 
-QIcon TextureFile::icon() const {
-  return QIcon();
-}
+  const QSet<QString>& Texture::stencilRenderableInternalFormatsStr()
+  {
+    static QSet<QString> s_set;
+    if (!s_set.isEmpty()) return s_set;
+    foreach (int i, stencilRenderableInternalFormats()) {
+      assert(s_internalFormats.contains(i));
+      s_set << s_internalFormats.value(i);
+    }
+    return s_set;
+  }
 
-void TextureFile::bind(int texture) {
-  bool reload = m_loadedFile != filename();
-  if (reload && m_id > 0) {
-    QGLContext* cx = const_cast<QGLContext*>(QGLContext::currentContext());
-    cx->deleteTexture(m_id);
-    m_id = 0;
-    m_width = m_height = 0;
-    if (!filename().isEmpty()) {
-      QImage image(filename());
-      if (image.isNull()) {
-        Log::error("Failed to load image: %s (%s)", filename().toUtf8().data(), rawFilename().toUtf8().data());
-      } else {
-        m_id = cx->bindTexture(image, GL_TEXTURE_2D, m_internalFormat,
-                 QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
-        m_width = image.width();
-        m_height = image.height();
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_internalFormat);
-        applyParams();
-        Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_id, m_width, m_height);
+  void Texture::dataUpdated()
+  {
+    TextureChangeManager::changed(this, true);
+  }
+
+  TexturePtr TextureFile::clone() const
+  {
+    TextureFile* t = new TextureFile(*this);
+    t->m_id = 0;
+    t->m_fbo.reset();
+    t->m_fbo_num = 0;
+    t->m_bindedTexture = 0;
+    t->m_paramsDirty = true;
+    t->m_loadedFile.clear();
+    return TexturePtr(t);
+  }
+
+  QVariantMap TextureFile::toMap() const
+  {
+    QVariantMap map = Texture::toMap();
+    if (!rawFilename().isEmpty()) map["file"] = rawFilename();
+    return map;
+  }
+
+  void TextureFile::load(QVariantMap map)
+  {
+    Texture::load(map);
+    if (map.contains("file")) setFilename(map["file"].toString());
+  }
+
+  QIcon TextureFile::icon() const
+  {
+    return QIcon();
+  }
+
+  void TextureFile::bind(int texture)
+  {
+    bool reload = m_loadedFile != filename();
+    if (reload && m_id > 0) {
+      QGLContext* cx = const_cast<QGLContext*>(QGLContext::currentContext());
+      cx->deleteTexture(m_id);
+      m_id = 0;
+      m_width = m_height = 0;
+      if (!filename().isEmpty()) {
+        QImage image(filename());
+        if (image.isNull()) {
+          Log::error("Failed to load image: %s (%s)", filename().toUtf8().data(), rawFilename().toUtf8().data());
+        } else {
+          m_id = cx->bindTexture(image, GL_TEXTURE_2D, m_internalFormat,
+                                 QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
+          m_width = image.width();
+          m_height = image.height();
+          glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_internalFormat);
+          applyParams();
+          Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_id, m_width, m_height);
+        }
       }
+      m_loadedFile = filename();
     }
-    m_loadedFile = filename();
+    glRun(glEnable(GL_TEXTURE_2D));
+    Texture::bind(texture);
   }
-  glRun(glEnable(GL_TEXTURE_2D));
-  Texture::bind(texture);
-}
 
-void TextureFile::setInternalFormat(int format) {
-  Texture::setInternalFormat(format);
-  m_loadedFile = "";
-}
+  void TextureFile::setInternalFormat(int format)
+  {
+    Texture::setInternalFormat(format);
+    m_loadedFile = "";
+  }
 
 } // namespace Shaderkit

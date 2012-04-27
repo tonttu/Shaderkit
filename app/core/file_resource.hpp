@@ -20,22 +20,24 @@
 
 #include <QString>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class FileResource {
-public:
-  FileResource();
-  virtual ~FileResource();
+  class FileResource
+  {
+  public:
+    FileResource();
+    virtual ~FileResource();
 
-  virtual void setFilename(const QString& filename);
-  /// @returns Absolute filename
-  const QString& filename() const;
-  const QString& rawFilename() const;
+    virtual void setFilename(const QString& filename);
+    /// @returns Absolute filename
+    const QString& filename() const;
+    const QString& rawFilename() const;
 
-private:
-  QString m_filenameAbsolute;
-  QString m_rawFilename;
-};
+  private:
+    QString m_filenameAbsolute;
+    QString m_rawFilename;
+  };
 
 } // namespace Shaderkit
 

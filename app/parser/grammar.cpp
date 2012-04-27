@@ -20,66 +20,73 @@
 
 #include <QFile>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-ShaderLexer::Token::Token() : token(0), pos(0), len(0), column(0), line(0) {}
-ShaderLexer::Token::Token(int token_, int pos_, int len_, int column_, int line_)
-  : token(token_), pos(pos_), len(len_), column(column_), line(line_) {}
+  ShaderLexer::Token::Token() : token(0), pos(0), len(0), column(0), line(0) {}
+  ShaderLexer::Token::Token(int token_, int pos_, int len_, int column_, int line_)
+    : token(token_), pos(pos_), len(len_), column(column_), line(line_) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-ShaderLexer::ShaderLexer() : m_tokenized_length(0) {}
+  ShaderLexer::ShaderLexer() : m_tokenized_length(0) {}
 
-void ShaderLexer::loadFile(const QString& name) {
-  QFile file(name);
-  if (file.open(QFile::ReadOnly | QFile::Text)) {
-    m_data = file.readAll();
+  void ShaderLexer::loadFile(const QString& name)
+  {
+    QFile file(name);
+    if (file.open(QFile::ReadOnly | QFile::Text)) {
+      m_data = file.readAll();
+      tokenize();
+    }
+  }
+
+  void ShaderLexer::loadSrc(const QString& src)
+  {
+    m_data = src.toUtf8();
     tokenize();
   }
-}
 
-void ShaderLexer::loadSrc(const QString& src) {
-  m_data = src.toUtf8();
-  tokenize();
-}
+  void ShaderLexer::tokenize()
+  {
+    /// @todo flex code is not thread safe
+    glslset_scan_string(m_data.data(), m_data.length());
+    m_tokenized_length = 0;
+    m_tokens.clear();
+    m_splitted.clear();
 
-void ShaderLexer::tokenize() {
-  /// @todo flex code is not thread safe
-  glslset_scan_string(m_data.data(), m_data.length());
-  m_tokenized_length = 0;
-  m_tokens.clear();
-  m_splitted.clear();
-
-  int token;
-  while ((token = glsllex_wrapper())) {
-    int l = glslget_leng();
-    m_tokens.push_back(Token(token, glslget_pos()-l, l, glslget_column() - l, glslget_line()));
-    m_tokenized_length += l;
+    int token;
+    while ((token = glsllex_wrapper())) {
+      int l = glslget_leng();
+      m_tokens.push_back(Token(token, glslget_pos()-l, l, glslget_column() - l, glslget_line()));
+      m_tokenized_length += l;
+    }
   }
-}
 
-std::string& ShaderLexer::toLines() {
-  if (!m_splitted.empty()) return m_splitted;
+  std::string& ShaderLexer::toLines()
+  {
+    if (!m_splitted.empty()) return m_splitted;
 
-  // the length of the splitted src is the length of all tokens splitted to lines
-  m_splitted.reserve(m_tokenized_length + m_tokens.size());
-  const char *data = m_data.data();
-  for (auto it = m_tokens.begin(); it != m_tokens.end(); it++) {
-    m_splitted.append(data + it->pos, it->len);
-    m_splitted.append(1, '\n');
+    // the length of the splitted src is the length of all tokens splitted to lines
+    m_splitted.reserve(m_tokenized_length + m_tokens.size());
+    const char* data = m_data.data();
+    for (auto it = m_tokens.begin(); it != m_tokens.end(); it++) {
+      m_splitted.append(data + it->pos, it->len);
+      m_splitted.append(1, '\n');
+    }
+    return m_splitted;
   }
-  return m_splitted;
-}
 
-int ShaderLexer::tokens() const {
-  return m_tokens.size();
-}
+  int ShaderLexer::tokens() const
+  {
+    return m_tokens.size();
+  }
 
 /// splitted line number -> (original line, original column)
-const ShaderLexer::Token& ShaderLexer::transform(int line) {
-  if (line < 0) return m_tokens[0];
-  return m_tokens[line];
-}
+  const ShaderLexer::Token& ShaderLexer::transform(int line)
+  {
+    if (line < 0) return m_tokens[0];
+    return m_tokens[line];
+  }
 
 } // namespace Shaderkit

@@ -29,195 +29,197 @@
 #define GLAPIENTRY __stdcall
 #endif
 
-namespace Shaderkit {
-
-/**
- * Uniform variable type info class, makes easier to implement more generic
- * code that does something with uniform variables.
- */
-struct ShaderTypeInfo {
-  typedef void (GLAPIENTRY *FloatSetter)(GLint, GLsizei, const GLfloat*);
-  typedef void (GLAPIENTRY *IntSetter)(GLint, GLsizei, const GLint*);
-  typedef void (GLAPIENTRY *MatrixSetter)(GLint, GLsizei, GLboolean, const GLfloat*);
+namespace Shaderkit
+{
 
   /**
-   * Constructor that also stores all the type information of given OpenGL type.
+   * Uniform variable type info class, makes easier to implement more generic
+   * code that does something with uniform variables.
+   */
+  struct ShaderTypeInfo {
+    typedef void (GLAPIENTRY* FloatSetter)(GLint, GLsizei, const GLfloat*);
+    typedef void (GLAPIENTRY* IntSetter)(GLint, GLsizei, const GLint*);
+    typedef void (GLAPIENTRY* MatrixSetter)(GLint, GLsizei, GLboolean, const GLfloat*);
+
+    /**
+     * Constructor that also stores all the type information of given OpenGL type.
+     *
+     * All types are either float or int types, like bool/sampler types are also ints.
+     *
+     * @param flags Bit field of type information:
+     *              0x01 bit on == sampler type
+     */
+    ShaderTypeInfo(int size = 0,
+                   FloatSetter float_setter = 0, IntSetter int_setter = 0, MatrixSetter matrix_setter = 0,
+                   GLenum type = 0, GLenum base_type = 0, int flags = 0);
+
+    /// Data type of the uniform variable, for example GL_FLOAT_MAT2x3
+    /// - see the whole list from glGetActiveUniform documentation.
+    GLenum type;
+    /// Data type of one element in vector/matrix
+    /// for example if type is GL_FLOAT_MAT2x3, this would be GL_FLOAT
+    GLenum base_type;
+    /// Number of elements in base_type, Different from 1 only for vector and matrix types.
+    int size;
+
+    /// If this some kind of sampler type.
+    bool is_sampler;
+
+    /// For float types, this is the correct setter function, like glUniform3fv.
+    FloatSetter float_setter;
+    /// For integer types, this is the correct setter function, like glUniform3iv.
+    IntSetter int_setter;
+    /// For matrix types, this is the correct setter function, like glUniformMatrix2x3fv.
+    MatrixSetter matrix_setter;
+
+    /// Returns the correct QVariant type for single_type.
+    QVariant::Type variant() const;
+
+    /// Return a TypeInfo object for given type
+    /// @param type Data type of the uniform variable, for example GL_FLOAT_MAT2x3
+    //              - see the whole list from glGetActiveUniform documentation
+    static const ShaderTypeInfo& typeInfo(GLenum type);
+  };
+
+  struct VarDescription {
+    VarDescription(const QString& n, const QString& d)
+      : name(n), desc(d) {}
+    QString name;
+    QString desc;
+    QList<GLenum> types;
+  };
+
+  struct VarGroupDescription {
+    VarGroupDescription(const QString& p, const QString& n)
+      : prefix(p), name(n) {}
+
+    VarGroupDescription& operator()(const QString& n, const QString& d) {
+      vars << VarDescription(n, d);
+      return *this;
+    }
+
+    QString prefix;
+    QString name;
+    QList<VarDescription> vars;
+  };
+
+  /**
+   * Any OpenGL uniform variable can be stored as UniformVar.
    *
-   * All types are either float or int types, like bool/sampler types are also ints.
+   * Constructor reads the current value from given shader, and set() method
+   * restores the variable state to (another) shader.
    *
-   * @param flags Bit field of type information:
-   *              0x01 bit on == sampler type
+   * @todo The design of this class is braindead. This class should just work
+   *       as a pointer to actual program when modifying values. This should
+   *       be freely copyable, maybe with some generation number.
    */
-  ShaderTypeInfo(int size = 0,
-      FloatSetter float_setter = 0, IntSetter int_setter = 0, MatrixSetter matrix_setter = 0,
-      GLenum type = 0, GLenum base_type = 0, int flags = 0);
+  class UniformVar
+  {
+  public:
+    typedef QVector<UniformVar> List;
 
-  /// Data type of the uniform variable, for example GL_FLOAT_MAT2x3
-  /// - see the whole list from glGetActiveUniform documentation.
-  GLenum type;
-  /// Data type of one element in vector/matrix
-  /// for example if type is GL_FLOAT_MAT2x3, this would be GL_FLOAT
-  GLenum base_type;
-  /// Number of elements in base_type, Different from 1 only for vector and matrix types.
-  int size;
+    /// Constructs an invalid variable, exists only for QMap etc.
+    UniformVar();
 
-  /// If this some kind of sampler type.
-  bool is_sampler;
+    /**
+     * Constructs a new variable, and reads the current value from given shader.
+     *
+     * @param name The name of the active uniform variable in prog, can't be
+     *             built-in uniform (anything that starts with "gl_").
+     * @param type Uniform variable type, see ShaderTypeInfo::type
+     */
+    UniformVar(ProgramPtr prog, QString name, GLenum type);
 
-  /// For float types, this is the correct setter function, like glUniform3fv.
-  FloatSetter float_setter;
-  /// For integer types, this is the correct setter function, like glUniform3iv.
-  IntSetter int_setter;
-  /// For matrix types, this is the correct setter function, like glUniformMatrix2x3fv.
-  MatrixSetter matrix_setter;
+    /**
+     * Sets this variable value to the prog shader program.
+     *
+     * @param prog The shader program where the uniform value is stored.
+     *             - Doesn't need to be same shader where this value was created.
+     *             If not given, the original shader program is used.
+     * @param relocate Do we use the old locations, or get new locations with
+     *                 parameter names. This can only be false if this is the same
+     *                 shader that was given in constructor, and it isn't relinked
+     *                 since. True is always a safe choice.
+     */
+    void set(ProgramPtr prog = ProgramPtr(), bool relocate = true);
 
-  /// Returns the correct QVariant type for single_type.
-  QVariant::Type variant() const;
+    /**
+     * Get the uniform variable value as a float.
+     * If there was a "vec4 foo[3]" then "foo[2][3]" is get(2, 3)
+     * @param array_idx Array element index (zero works if this is not an array)
+     * @param vector_idx Vector/Matrix element index (zero works if this is just a plain value)
+     */
+    float get(size_t array_idx = 0, size_t vector_idx = 0);
 
-  /// Return a TypeInfo object for given type
-  /// @param type Data type of the uniform variable, for example GL_FLOAT_MAT2x3
-  //              - see the whole list from glGetActiveUniform documentation
-  static const ShaderTypeInfo& typeInfo(GLenum type);
-};
+    /// @todo implement
+    float getDefault(size_t array_idx = 0, size_t vector_idx = 0) { (void)array_idx; (void)vector_idx; return 0; }
 
-struct VarDescription {
-  VarDescription(const QString& n, const QString& d)
-    : name(n), desc(d) {}
-  QString name;
-  QString desc;
-  QList<GLenum> types;
-};
+    /**
+     * Sets the uniform variable value. If no shader given, then the value is set
+     * to the same shader the uniform was originally read from, if any.
+     * @see get()
+     * @return true if success
+     */
+    bool set(float value, size_t array_idx = 0, size_t vector_idx = 0,
+             ProgramPtr prog = ProgramPtr(), bool relocate = true);
 
-struct VarGroupDescription {
-  VarGroupDescription(const QString& p, const QString& n)
-    : prefix(p), name(n) {}
+    /**
+     * The size of the array, if this is an array. For example "vec3 foo" is not
+     * an array (size == 1), it's only a vector, when "vec3 foo[2]" or
+     * "float bar[2]" both are arrays of size two.
+     */
+    size_t arraySize() const { return m_size; }
 
-  VarGroupDescription& operator()(const QString& n, const QString& d) {
-    vars << VarDescription(n, d);
-    return *this;
-  }
+    /// The name of the uniform variable
+    QString name() const { return m_name; }
 
-  QString prefix;
-  QString name;
-  QList<VarDescription> vars;
-};
+    /// Return the correct type info object for this variable.
+    const ShaderTypeInfo& typeinfo() const;
 
-/**
- * Any OpenGL uniform variable can be stored as UniformVar.
- *
- * Constructor reads the current value from given shader, and set() method
- * restores the variable state to (another) shader.
- *
- * @todo The design of this class is braindead. This class should just work
- *       as a pointer to actual program when modifying values. This should
- *       be freely copyable, maybe with some generation number.
- */
-class UniformVar {
-public:
-  typedef QVector<UniformVar> List;
+    bool operator==(const UniformVar& other) const;
 
-  /// Constructs an invalid variable, exists only for QMap etc.
-  UniformVar();
+    /// recommended lower limit to the values in this uniform
+    /// @todo implement
+    float min() const { return 0.0f; }
+    /// recommended upper limit to the values in this uniform
+    /// @todo implement
+    float max() const { return 1.0f; }
 
-  /**
-   * Constructs a new variable, and reads the current value from given shader.
-   *
-   * @param name The name of the active uniform variable in prog, can't be
-   *             built-in uniform (anything that starts with "gl_").
-   * @param type Uniform variable type, see ShaderTypeInfo::type
-   */
-  UniformVar(ProgramPtr prog, QString name, GLenum type);
+    static QList<VarGroupDescription> builtInVars();
 
-  /**
-   * Sets this variable value to the prog shader program.
-   *
-   * @param prog The shader program where the uniform value is stored.
-   *             - Doesn't need to be same shader where this value was created.
-   *             If not given, the original shader program is used.
-   * @param relocate Do we use the old locations, or get new locations with
-   *                 parameter names. This can only be false if this is the same
-   *                 shader that was given in constructor, and it isn't relinked
-   *                 since. True is always a safe choice.
-   */
-  void set(ProgramPtr prog = ProgramPtr(), bool relocate = true);
+  private:
+    /// The name of the uniform variable
+    QString m_name;
 
-  /**
-   * Get the uniform variable value as a float.
-   * If there was a "vec4 foo[3]" then "foo[2][3]" is get(2, 3)
-   * @param array_idx Array element index (zero works if this is not an array)
-   * @param vector_idx Vector/Matrix element index (zero works if this is just a plain value)
-   */
-  float get(size_t array_idx = 0, size_t vector_idx = 0);
+    /// Uniform variable type, see ShaderTypeInfo::type
+    GLenum m_type;
 
-  /// @todo implement
-  float getDefault(size_t array_idx = 0, size_t vector_idx = 0) { (void)array_idx; (void)vector_idx; return 0; }
+    /// @see arraySize()
+    size_t m_size;
 
-  /**
-   * Sets the uniform variable value. If no shader given, then the value is set
-   * to the same shader the uniform was originally read from, if any.
-   * @see get()
-   * @return true if success
-   */
-  bool set(float value, size_t array_idx = 0, size_t vector_idx = 0,
-      ProgramPtr prog = ProgramPtr(), bool relocate = true);
+    /// The shader program that was given in constructor.
+    ProgramPtr m_prog;
 
-   /**
-    * The size of the array, if this is an array. For example "vec3 foo" is not
-    * an array (size == 1), it's only a vector, when "vec3 foo[2]" or
-    * "float bar[2]" both are arrays of size two.
-    */
-  size_t arraySize() const { return m_size; }
+    /**
+     * Uniform variable locations in the shader for every variable array element.
+     * For example ivec3 (type GL_INT_VEC3) should have 1 location, but ivec3[2]
+     * should have 2 different locations.
+     */
+    QVector<GLint> m_location;
 
-  /// The name of the uniform variable
-  QString name() const { return m_name; }
+    /// The actual uniform data, if this is a float type
+    QVector<GLfloat> m_floatdata;
+    /// The actual uniform data, if this is a int type
+    QVector<GLint> m_intdata;
 
-  /// Return the correct type info object for this variable.
-  const ShaderTypeInfo& typeinfo() const;
+    /// Name of the uniform block where this variable belongs to.
+    /// Empty string means the default block.
+    QString m_uniform_block;
 
-  bool operator==(const UniformVar& other) const;
-
-  /// recommended lower limit to the values in this uniform
-  /// @todo implement
-  float min() const { return 0.0f; }
-  /// recommended upper limit to the values in this uniform
-  /// @todo implement
-  float max() const { return 1.0f; }
-
-  static QList<VarGroupDescription> builtInVars();
-
-private:
-  /// The name of the uniform variable
-  QString m_name;
-
-  /// Uniform variable type, see ShaderTypeInfo::type
-  GLenum m_type;
-
-  /// @see arraySize()
-  size_t m_size;
-
-  /// The shader program that was given in constructor.
-  ProgramPtr m_prog;
-
-  /**
-   * Uniform variable locations in the shader for every variable array element.
-   * For example ivec3 (type GL_INT_VEC3) should have 1 location, but ivec3[2]
-   * should have 2 different locations.
-   */
-  QVector<GLint> m_location;
-
-  /// The actual uniform data, if this is a float type
-  QVector<GLfloat> m_floatdata;
-  /// The actual uniform data, if this is a int type
-  QVector<GLint> m_intdata;
-
-  /// Name of the uniform block where this variable belongs to.
-  /// Empty string means the default block.
-  QString m_uniform_block;
-
-  /// Is this a built-in "gl_*" uniform. Currently the class doesn't know
-  /// how to handle those correctly.
-  bool m_builtin;
-};
+    /// Is this a built-in "gl_*" uniform. Currently the class doesn't know
+    /// how to handle those correctly.
+    bool m_builtin;
+  };
 
 #undef GLAPIENTRY
 #define GLAPIENTRY

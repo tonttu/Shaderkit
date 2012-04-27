@@ -20,102 +20,116 @@
 #include "core/material.hpp"
 #include "gl/state.hpp"
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-QVariantMap saveTransform(const Eigen::Affine3f& affine) {
-  const Eigen::Matrix4f& m = affine.matrix();
-  QStringList tmp;
-  for (int i = 0; i < 16; ++i)
-    tmp << QString::number(m.data()[i]);
-  QVariantMap ret;
-  ret["matrix"] = tmp.join(" ");
-  return ret;
-}
-
-Eigen::Affine3f loadTransform(const QVariant& var) {
-  QVariantMap map = var.toMap();
-  if (map.contains("matrix")) {
+  QVariantMap saveTransform(const Eigen::Affine3f& affine)
+  {
+    const Eigen::Matrix4f& m = affine.matrix();
     QStringList tmp;
-    tmp = map["matrix"].toString().split(QRegExp("\\s+"));
-    if (tmp.size() == 16) {
-      Eigen::Affine3f affine;
-      Eigen::Matrix4f& m = affine.matrix();
-      for (int i = 0; i < 16; ++i)
-        m.data()[i] = tmp[i].toFloat();
-      return affine;
+    for (int i = 0; i < 16; ++i)
+      tmp << QString::number(m.data()[i]);
+    QVariantMap ret;
+    ret["matrix"] = tmp.join(" ");
+    return ret;
+  }
+
+  Eigen::Affine3f loadTransform(const QVariant& var)
+  {
+    QVariantMap map = var.toMap();
+    if (map.contains("matrix")) {
+      QStringList tmp;
+      tmp = map["matrix"].toString().split(QRegExp("\\s+"));
+      if (tmp.size() == 16) {
+        Eigen::Affine3f affine;
+        Eigen::Matrix4f& m = affine.matrix();
+        for (int i = 0; i < 16; ++i)
+          m.data()[i] = tmp[i].toFloat();
+        return affine;
+      }
+    }
+    return Eigen::Affine3f::Identity();
+  }
+
+  Object3D::Object3D(QString name, ModelPtr model)
+    : SceneObject(name),
+      m_transform(Eigen::Affine3f::Identity()),
+      m_model(model)
+  {
+  }
+  Object3D::~Object3D() {}
+
+  void Object3D::render(State& state)
+  {
+    if (m_model) {
+      state.pushModel(m_transform);
+      m_model->render(shared_from_this(), state);
+      state.popModel();
     }
   }
-  return Eigen::Affine3f::Identity();
-}
 
-Object3D::Object3D(QString name, ModelPtr model)
-  : SceneObject(name),
-    m_transform(Eigen::Affine3f::Identity()),
-    m_model(model) {
-}
-Object3D::~Object3D() {}
-
-void Object3D::render(State& state) {
-  if (m_model) {
-    state.pushModel(m_transform);
-    m_model->render(shared_from_this(), state);
-    state.popModel();
+  bool Object3D::builtin() const
+  {
+    if (!m_model) return false;
+    return m_model->builtin();
   }
-}
 
-bool Object3D::builtin() const {
-  if (!m_model) return false;
-  return m_model->builtin();
-}
-
-MaterialPtr Object3D::materialForMesh(QString meshname) {
-  if (m_materials.contains(meshname)) return m_materials[meshname];
-  return m_default_material;
-}
-
-void Object3D::setMaterialForMesh(QString meshname, MaterialPtr mat) {
-  m_materials[meshname] = mat;
-}
-
-void Object3D::setDefaultMaterial(MaterialPtr mat) {
-  m_default_material = mat;
-}
-
-void Object3D::remove(MaterialPtr mat) {
-  if (mat == m_default_material) m_default_material = MaterialPtr();
-
-  for (auto it = m_materials.begin(); it != m_materials.end();) {
-    if (*it == mat) it = m_materials.erase(it);
-    else ++it;
+  MaterialPtr Object3D::materialForMesh(QString meshname)
+  {
+    if (m_materials.contains(meshname)) return m_materials[meshname];
+    return m_default_material;
   }
-}
 
-QVariantMap Object3D::toMap() const {
-  QVariantMap map = SceneObject::toMap();
-
-  if (m_default_material) map["material"] = m_default_material->name();
-  if (m_model) map["model"] = m_model->name();
-  QVariantMap materials;
-  for (auto it = m_materials.begin(); it != m_materials.end(); ++it) {
-    if (*it) materials[it.key()] = (*it)->name();
+  void Object3D::setMaterialForMesh(QString meshname, MaterialPtr mat)
+  {
+    m_materials[meshname] = mat;
   }
-  if (!materials.isEmpty()) map["materials"] = materials;
-  map["transform"] = saveTransform(m_transform);
 
-  return map;
-}
+  void Object3D::setDefaultMaterial(MaterialPtr mat)
+  {
+    m_default_material = mat;
+  }
 
-void Object3D::load(QVariantMap map) {
-  SceneObject::load(map);
-  m_transform = loadTransform(map["transform"]);
-}
+  void Object3D::remove(MaterialPtr mat)
+  {
+    if (mat == m_default_material) m_default_material = MaterialPtr();
 
-ObjectPtr Object3D::clone() {
-  return ObjectPtr(new Object3D(m_name));
-}
+    for (auto it = m_materials.begin(); it != m_materials.end();) {
+      if (*it == mat) it = m_materials.erase(it);
+      else ++it;
+    }
+  }
 
-void Object3D::setModel(ModelPtr model) {
-  m_model = model;
-}
+  QVariantMap Object3D::toMap() const
+  {
+    QVariantMap map = SceneObject::toMap();
+
+    if (m_default_material) map["material"] = m_default_material->name();
+    if (m_model) map["model"] = m_model->name();
+    QVariantMap materials;
+    for (auto it = m_materials.begin(); it != m_materials.end(); ++it) {
+      if (*it) materials[it.key()] = (*it)->name();
+    }
+    if (!materials.isEmpty()) map["materials"] = materials;
+    map["transform"] = saveTransform(m_transform);
+
+    return map;
+  }
+
+  void Object3D::load(QVariantMap map)
+  {
+    SceneObject::load(map);
+    m_transform = loadTransform(map["transform"]);
+  }
+
+  ObjectPtr Object3D::clone()
+  {
+    return ObjectPtr(new Object3D(m_name));
+  }
+
+  void Object3D::setModel(ModelPtr model)
+  {
+    m_model = model;
+  }
 
 } // namespace Shaderkit

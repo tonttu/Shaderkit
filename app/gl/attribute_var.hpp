@@ -6,47 +6,49 @@
 
 #include <QVector>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class AttributeVar {
-public:
-  typedef QVector<AttributeVar> List;
+  class AttributeVar
+  {
+  public:
+    typedef QVector<AttributeVar> List;
 
-  AttributeVar();
+    AttributeVar();
 
-  AttributeVar(ProgramPtr prog, QString name, GLenum type);
-  //void set(ProgramPtr prog = ProgramPtr(), bool relocate = true);
+    AttributeVar(ProgramPtr prog, QString name, GLenum type);
+    //void set(ProgramPtr prog = ProgramPtr(), bool relocate = true);
 
-  //bool set(float value, size_t array_idx = 0, size_t vector_idx = 0,
-  //    ProgramPtr prog = ProgramPtr(), bool relocate = true);
+    //bool set(float value, size_t array_idx = 0, size_t vector_idx = 0,
+    //    ProgramPtr prog = ProgramPtr(), bool relocate = true);
 
-   /**
-    * The size of the array, if this is an array. For example "vec3 foo" is not
-    * an array (size == 1), it's only a vector, when "vec3 foo[2]" or
-    * "float bar[2]" both are arrays of size two.
-    */
-  //size_t arraySize() const { return m_size; }
+    /**
+     * The size of the array, if this is an array. For example "vec3 foo" is not
+     * an array (size == 1), it's only a vector, when "vec3 foo[2]" or
+     * "float bar[2]" both are arrays of size two.
+     */
+    //size_t arraySize() const { return m_size; }
 
-  /// The name of the uniform variable
-  QString name() const { return m_name; }
+    /// The name of the uniform variable
+    QString name() const { return m_name; }
 
-  bool operator==(const AttributeVar& other) const;
+    bool operator==(const AttributeVar& other) const;
 
-private:
-  QString m_name;
+  private:
+    QString m_name;
 
-  GLenum m_type;
+    GLenum m_type;
 
-  /// @see arraySize()
+    /// @see arraySize()
 //  size_t m_size;
 
-  ProgramPtr m_prog;
+    ProgramPtr m_prog;
 
 //  QVector<GLint> m_location;
 
-  /// Is this a built-in "gl_*" attribute.
-  bool m_builtin;
-};
+    /// Is this a built-in "gl_*" attribute.
+    bool m_builtin;
+  };
 
 } // namespace Shaderkit
 

@@ -22,28 +22,30 @@
 #include <QString>
 #include <QStringList>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-class SceneObject {
-public:
-  SceneObject(const QString& name);
-  virtual ~SceneObject();
+  class SceneObject
+  {
+  public:
+    SceneObject(const QString& name);
+    virtual ~SceneObject();
 
-  QString name() const { return m_name; }
-  void setName(QString name);
+    QString name() const { return m_name; }
+    void setName(QString name);
 
-  virtual QVariantMap toMap() const;
-  virtual void load(QVariantMap map);
+    virtual QVariantMap toMap() const;
+    virtual void load(QVariantMap map);
 
-  void setRef(QString import, QString refname);
-  QString ref();
-  QStringList refName();
+    void setRef(QString import, QString refname);
+    QString ref();
+    QStringList refName();
 
-protected:
-  QString m_name;
-  QString m_ref;
-  QStringList m_ref_name;
-};
+  protected:
+    QString m_name;
+    QString m_ref;
+    QStringList m_ref_name;
+  };
 
 } // namespace Shaderkit
 

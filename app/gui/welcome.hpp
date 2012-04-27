@@ -23,48 +23,52 @@
 #include <QFrame>
 #include <QCommandLinkButton>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-namespace Ui {
-class Welcome;
-}
+  namespace Ui
+  {
+    class Welcome;
+  }
 
-class WelcomeButton : public QCommandLinkButton {
-  Q_OBJECT
+  class WelcomeButton : public QCommandLinkButton
+  {
+    Q_OBJECT
 
-public:
-  explicit WelcomeButton(QWidget* parent, QString filename = "");
-  virtual ~WelcomeButton() {}
+  public:
+    explicit WelcomeButton(QWidget* parent, QString filename = "");
+    virtual ~WelcomeButton() {}
 
-  void setFilename(QString filename);
-  QString filename() const { return m_filename; }
+    void setFilename(QString filename);
+    QString filename() const { return m_filename; }
 
-signals:
-  void clicked(QString filename);
+  signals:
+    void clicked(QString filename);
 
-protected slots:
-  void receiveClick();
+  protected slots:
+    void receiveClick();
 
-protected:
-  QString m_filename;
-};
+  protected:
+    QString m_filename;
+  };
 
-class Welcome : public QFrame {
-  Q_OBJECT
+  class Welcome : public QFrame
+  {
+    Q_OBJECT
 
-public:
-  explicit Welcome();
-  virtual ~Welcome();
+  public:
+    explicit Welcome();
+    virtual ~Welcome();
 
-public slots:
-  void openExample(QString filename);
-  void open(QString filename);
-  void load();
-  void newScene();
+  public slots:
+    void openExample(QString filename);
+    void open(QString filename);
+    void load();
+    void newScene();
 
-private:
-  Ui::Welcome* m_ui;
-};
+  private:
+    Ui::Welcome* m_ui;
+  };
 
 } // namespace Shaderkit
 

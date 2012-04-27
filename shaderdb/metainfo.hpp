@@ -21,31 +21,32 @@
 #include <QVariantMap>
 #include <QStringList>
 
-namespace Shaderkit {
-
-class MetaInfo
+namespace Shaderkit
 {
-public:
-  MetaInfo();
 
-  QVariantMap toMap() const;
-  void load(QVariantMap map);
+  class MetaInfo
+  {
+  public:
+    MetaInfo();
 
-  static bool ping(const QString& filename, MetaInfo& info);
+    QVariantMap toMap() const;
+    void load(QVariantMap map);
 
-  QString shaderkit_version;
-  QString name;
-  QString description;
-  QString id;
-  int revision;
-  QStringList releases;
-  QStringList servers;
-  QStringList categories;
-  QMap<QString, QPair<QString, int>> dependencies;
-  QStringList licenses;
-  QStringList authors;
-  QStringList renderer;
-};
+    static bool ping(const QString& filename, MetaInfo& info);
+
+    QString shaderkit_version;
+    QString name;
+    QString description;
+    QString id;
+    int revision;
+    QStringList releases;
+    QStringList servers;
+    QStringList categories;
+    QMap<QString, QPair<QString, int>> dependencies;
+    QStringList licenses;
+    QStringList authors;
+    QStringList renderer;
+  };
 
 }
 

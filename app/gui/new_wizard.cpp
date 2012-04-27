@@ -26,145 +26,156 @@
 
 #include <cassert>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-ToggleButton::ToggleButton(QWidget* parent) : QCheckBox(parent) {
-}
-
-void ToggleButton::paintEvent(QPaintEvent*) {
-  QSize size = sizeHint();
-  QPainter painter(this);
-  QPixmap p = icon().pixmap(16, QIcon::Normal, isChecked() ? QIcon::On : QIcon::Off);
-  int y = (size.height() - 16) / 2;
-  painter.drawPixmap(0, y, p);
-  painter.drawText(QRectF(20, 0, size.width()-20, size.height()), text(),
-                   QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
-}
-
-NewWizard::NewWizard(QWidget* parent)
-  : QDialog(parent),
-    m_ui(new Ui::NewWizard),
-    m_group(new QButtonGroup(this)) {
-  m_ui->setupUi(this);
-
-  m_ui->advanced->hide();
-
-  m_ui->empty_scene->setCheckable(true);
-  m_group->addButton(m_ui->empty_scene);
-  m_ui->empty_scene->setText("Empty project");
-  m_ui->empty_scene->setDescription("Empty project");
-  connect(m_ui->empty_scene, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
-
-  /// @todo these should be dependent on the current template selection
-  m_ui->renderer->addItem("OpenGL 3.2 compatibility / GLSL 1.50");
-  m_ui->renderer->addItem("OpenGL 1.4 / OpenGL 2.0 / GLSL 1.10");
-
-  m_group->setExclusive(true);
-
-  QStringList files = ShaderDB::instance().localScenes();
-  foreach (QString file, files) {
-    MetaInfo info;
-    if (!MetaInfo::ping(file, info)) continue;
-    if (!info.categories.contains("template")) continue;
-
-    WelcomeButton* btn = 0;
-    m_scene_names << info.name.toLower();
-
-    btn = new WelcomeButton(m_ui->list, file);
-    m_ui->list_layout->insertWidget(1, btn);
-
-    btn->setCheckable(true);
-    m_group->addButton(btn);
-    btn->setIcon(m_ui->empty_scene->icon());
-    btn->setText(info.name);
-    btn->setDescription(info.description);
-    connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
+  ToggleButton::ToggleButton(QWidget* parent) : QCheckBox(parent)
+  {
   }
 
-  m_ui->name->setText(getUniqName("My Project"));
+  void ToggleButton::paintEvent(QPaintEvent*)
+  {
+    QSize size = sizeHint();
+    QPainter painter(this);
+    QPixmap p = icon().pixmap(16, QIcon::Normal, isChecked() ? QIcon::On : QIcon::Off);
+    int y = (size.height() - 16) / 2;
+    painter.drawPixmap(0, y, p);
+    painter.drawText(QRectF(20, 0, size.width()-20, size.height()), text(),
+                     QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
+  }
 
-  connect(m_ui->name, SIGNAL(editingFinished()), this, SLOT(nameEditingFinished()));
-  connect(m_ui->name, SIGNAL(textEdited(QString)), this, SLOT(nameEdited(QString)));
-  connect(m_ui->advanced_btn, SIGNAL(toggled(bool)), m_ui->advanced, SLOT(setShown(bool)));
-  connect(this, SIGNAL(accepted()), SLOT(create()));
-}
+  NewWizard::NewWizard(QWidget* parent)
+    : QDialog(parent),
+      m_ui(new Ui::NewWizard),
+      m_group(new QButtonGroup(this))
+  {
+    m_ui->setupUi(this);
 
-NewWizard::~NewWizard() {
-  delete m_ui;
-}
+    m_ui->advanced->hide();
 
-void NewWizard::keyPressEvent(QKeyEvent* e) {
-  if (m_ui->name->hasFocus() &&
-      (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)) {
+    m_ui->empty_scene->setCheckable(true);
+    m_group->addButton(m_ui->empty_scene);
+    m_ui->empty_scene->setText("Empty project");
+    m_ui->empty_scene->setDescription("Empty project");
+    connect(m_ui->empty_scene, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
 
-    QList<QPushButton*> list = qFindChildren<QPushButton*>(this);
-    for (int i = 0; i < list.size(); ++i) {
-      QPushButton* pb = list.at(i);
-      if (pb->isDefault()) {
-        pb->setFocus();
-        break;
-      }
+    /// @todo these should be dependent on the current template selection
+    m_ui->renderer->addItem("OpenGL 3.2 compatibility / GLSL 1.50");
+    m_ui->renderer->addItem("OpenGL 1.4 / OpenGL 2.0 / GLSL 1.10");
+
+    m_group->setExclusive(true);
+
+    QStringList files = ShaderDB::instance().localScenes();
+    foreach (QString file, files) {
+      MetaInfo info;
+      if (!MetaInfo::ping(file, info)) continue;
+      if (!info.categories.contains("template")) continue;
+
+      WelcomeButton* btn = 0;
+      m_scene_names << info.name.toLower();
+
+      btn = new WelcomeButton(m_ui->list, file);
+      m_ui->list_layout->insertWidget(1, btn);
+
+      btn->setCheckable(true);
+      m_group->addButton(btn);
+      btn->setIcon(m_ui->empty_scene->icon());
+      btn->setText(info.name);
+      btn->setDescription(info.description);
+      connect(btn, SIGNAL(clicked(QString)), this, SLOT(preview(QString)));
     }
-    e->accept();
-  } else {
-    QDialog::keyPressEvent(e);
+
+    m_ui->name->setText(getUniqName("My Project"));
+
+    connect(m_ui->name, SIGNAL(editingFinished()), this, SLOT(nameEditingFinished()));
+    connect(m_ui->name, SIGNAL(textEdited(QString)), this, SLOT(nameEdited(QString)));
+    connect(m_ui->advanced_btn, SIGNAL(toggled(bool)), m_ui->advanced, SLOT(setShown(bool)));
+    connect(this, SIGNAL(accepted()), SLOT(create()));
   }
-}
 
-void NewWizard::nameEditingFinished() {
-  QString str = m_ui->name->text();
-  QString name = getUniqName(str);
-  if (str != name)
-    m_ui->name->setText(name);
-  m_ui->name_error->clear();
-}
+  NewWizard::~NewWizard()
+  {
+    delete m_ui;
+  }
 
-void NewWizard::nameEdited(QString str) {
-  if (m_scene_names.contains(str.toLower())) {
-    m_ui->name_error->setText("Name is already in use");
-  } else if (str.isEmpty()) {
-    m_ui->name_error->setText("Name can't be empty");
-  } else {
+  void NewWizard::keyPressEvent(QKeyEvent* e)
+  {
+    if (m_ui->name->hasFocus() &&
+        (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)) {
+
+      QList<QPushButton*> list = qFindChildren<QPushButton*>(this);
+      for (int i = 0; i < list.size(); ++i) {
+        QPushButton* pb = list.at(i);
+        if (pb->isDefault()) {
+          pb->setFocus();
+          break;
+        }
+      }
+      e->accept();
+    } else {
+      QDialog::keyPressEvent(e);
+    }
+  }
+
+  void NewWizard::nameEditingFinished()
+  {
+    QString str = m_ui->name->text();
+    QString name = getUniqName(str);
+    if (str != name)
+      m_ui->name->setText(name);
     m_ui->name_error->clear();
   }
-}
 
-void NewWizard::preview(QString file) {
-
-}
-
-void NewWizard::create() {
-  WelcomeButton* btn = dynamic_cast<WelcomeButton*>(m_group->checkedButton());
-  assert(btn);
-
-  ScenePtr scene = ShaderDB::newLocalScene(m_ui->name->text(), btn->filename());
-  MainWindow::instance().openScene(scene);
-}
-
-QString NewWizard::getUniqName(QString str) const {
-  if (str.isEmpty())
-    str = "My Project";
-
-  if (!m_scene_names.contains(str.toLower()))
-    return str;
-
-  QString newname, base;
-  QRegExp r("^(.*)(\\d+)$");
-  r.setMinimal(true);
-  int i;
-  if (r.exactMatch(str)) {
-    base = r.cap(1);
-    i = r.cap(2).toInt();
-  } else {
-    base = str;
-    if (!str.endsWith("."))
-      base += ".";
-    i = 0;
+  void NewWizard::nameEdited(QString str)
+  {
+    if (m_scene_names.contains(str.toLower())) {
+      m_ui->name_error->setText("Name is already in use");
+    } else if (str.isEmpty()) {
+      m_ui->name_error->setText("Name can't be empty");
+    } else {
+      m_ui->name_error->clear();
+    }
   }
-  do {
-    newname = base + QString::number(++i);
-  } while (m_scene_names.contains(newname.toLower()));
-  return newname;
-}
+
+  void NewWizard::preview(QString file)
+  {
+
+  }
+
+  void NewWizard::create()
+  {
+    WelcomeButton* btn = dynamic_cast<WelcomeButton*>(m_group->checkedButton());
+    assert(btn);
+
+    ScenePtr scene = ShaderDB::newLocalScene(m_ui->name->text(), btn->filename());
+    MainWindow::instance().openScene(scene);
+  }
+
+  QString NewWizard::getUniqName(QString str) const
+  {
+    if (str.isEmpty())
+      str = "My Project";
+
+    if (!m_scene_names.contains(str.toLower()))
+      return str;
+
+    QString newname, base;
+    QRegExp r("^(.*)(\\d+)$");
+    r.setMinimal(true);
+    int i;
+    if (r.exactMatch(str)) {
+      base = r.cap(1);
+      i = r.cap(2).toInt();
+    } else {
+      base = str;
+      if (!str.endsWith("."))
+        base += ".";
+      i = 0;
+    }
+    do {
+      newname = base + QString::number(++i);
+    } while (m_scene_names.contains(newname.toLower()));
+    return newname;
+  }
 
 } // namespace Shaderkit

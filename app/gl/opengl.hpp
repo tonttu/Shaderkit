@@ -27,7 +27,8 @@
 void _check_gl(const char* str, const char* file, int line);
 
 template <typename T>
-T _check_gl2(const char* str, const T& t, const char* file, int line) {
+T _check_gl2(const char* str, const T& t, const char* file, int line)
+{
   _check_gl(str, file, line);
   return t;
 }

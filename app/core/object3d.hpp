@@ -25,54 +25,56 @@
 
 #include <QVariantMap>
 
-namespace Shaderkit {
+namespace Shaderkit
+{
 
-/**
- * 3D Model class.
- *
- * Every renderable object should inherit from this, including all built-in
- * objects and models loaded from files.
- *
- * An object might have texture coordinates, but actual textures, shaders,
- * vertex colors etc. come from other classes, this is strictly 3D trimesh
- * or similar renderable object. Shaders etc should be ready before calling
- * the render() method.
- */
-class Object3D : public std::enable_shared_from_this<Object3D>,
-                 public SceneObject {
-public:
-  Object3D(QString name, ModelPtr model = ModelPtr());
-  virtual ~Object3D();
+  /**
+   * 3D Model class.
+   *
+   * Every renderable object should inherit from this, including all built-in
+   * objects and models loaded from files.
+   *
+   * An object might have texture coordinates, but actual textures, shaders,
+   * vertex colors etc. come from other classes, this is strictly 3D trimesh
+   * or similar renderable object. Shaders etc should be ready before calling
+   * the render() method.
+   */
+  class Object3D : public std::enable_shared_from_this<Object3D>,
+    public SceneObject
+  {
+  public:
+    Object3D(QString name, ModelPtr model = ModelPtr());
+    virtual ~Object3D();
 
-  /// Renders the object with given state
-  virtual void render(State& state);
+    /// Renders the object with given state
+    virtual void render(State& state);
 
-  virtual bool builtin() const;
+    virtual bool builtin() const;
 
-  MaterialPtr materialForMesh(QString meshname);
-  void setMaterialForMesh(QString meshname, MaterialPtr mat);
-  void setDefaultMaterial(MaterialPtr mat);
-  void remove(MaterialPtr mat);
+    MaterialPtr materialForMesh(QString meshname);
+    void setMaterialForMesh(QString meshname, MaterialPtr mat);
+    void setDefaultMaterial(MaterialPtr mat);
+    void remove(MaterialPtr mat);
 
-  virtual QVariantMap toMap() const;
-  virtual void load(QVariantMap map);
-  /// Doesn't clone materials or model
-  ObjectPtr clone();
+    virtual QVariantMap toMap() const;
+    virtual void load(QVariantMap map);
+    /// Doesn't clone materials or model
+    ObjectPtr clone();
 
-  void setModel(ModelPtr model);
-  ModelPtr model() { return m_model; }
+    void setModel(ModelPtr model);
+    ModelPtr model() { return m_model; }
 
-  const Eigen::Affine3f& transform() const { return m_transform; }
-  Eigen::Affine3f& transform() { return m_transform; }
+    const Eigen::Affine3f& transform() const { return m_transform; }
+    Eigen::Affine3f& transform() { return m_transform; }
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-private:
-  Eigen::Affine3f m_transform;
-  ModelPtr m_model;
-  QMap<QString, MaterialPtr> m_materials;
-  MaterialPtr m_default_material;
-};
+  private:
+    Eigen::Affine3f m_transform;
+    ModelPtr m_model;
+    QMap<QString, MaterialPtr> m_materials;
+    MaterialPtr m_default_material;
+  };
 
 } // namespace Shaderkit
 
