@@ -24,10 +24,13 @@
 
 #include <QWizard>
 
+class QTreeWidgetItem;
+
+namespace Shaderkit {
+
 namespace Ui {
 class ImporterWizard;
 }
-class QTreeWidgetItem;
 class ImporterWizard : public QWizard {
   Q_OBJECT
 
@@ -64,5 +67,7 @@ private:
   QTreeWidgetItem* m_materials;
   QTreeWidgetItem* m_textures;
 };
+
+} // namespace Shaderkit
 
 #endif // IMPORTER_WIZARD_HPP

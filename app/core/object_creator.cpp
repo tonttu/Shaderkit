@@ -87,6 +87,8 @@ const char* fragment_shader_norm =
   );
 }
 
+namespace Shaderkit {
+
 Eigen::Vector3f project3(const Eigen::Projective3f& projection,
                          const Eigen::Vector3f& vector);
 
@@ -328,3 +330,5 @@ Eigen::Vector3f ObjectCreator::hit(const Eigen::Vector2f& c) {
     return ray.origin() + ray.direction() * ray.intersection(plane);
   }
 }
+
+} // namespace Shaderkit

@@ -24,6 +24,8 @@
 #include "core/scene.hpp"
 
 namespace {
+  using namespace Shaderkit;
+
   void setUniformSel(State* state, GLProgram& prog, const QString& name,
                      const Eigen::Vector4f& v, const std::vector<int>& sel) {
     if (sel.empty()) {
@@ -121,6 +123,8 @@ void State::setLight(int light_id, Light* light) {
     disable(GL_LIGHT0 + light_id);
   }
 }
+
+namespace Shaderkit {
 
 void State::enable(GLenum cap) {
   glEnable(cap);
@@ -382,3 +386,5 @@ void State::setUniform(GLProgram& prog, const QString& name, const Eigen::Affine
   /// @todo should work with mat4 and mat3
   prog.setUniform(this, name, m);
 }
+
+} // namespace Shaderkit

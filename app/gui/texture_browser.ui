@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TextureBrowser</class>
- <widget class="QWidget" name="TextureBrowser">
+ <class>Shaderkit::TextureBrowser</class>
+ <widget class="QWidget" name="Shaderkit::TextureBrowser">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,7 +14,7 @@
    <string>Texture Browser</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../gfx/gfx.qrc">
+   <iconset resource="../../gfx/gfx.qrc">
     <normaloff>:/icons/logo.png</normaloff>:/icons/logo.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -248,7 +248,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../gfx/gfx.qrc"/>
+  <include location="../../gfx/gfx.qrc"/>
  </resources>
  <connections/>
 </ui>

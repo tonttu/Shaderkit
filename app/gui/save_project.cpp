@@ -35,6 +35,8 @@ namespace
   }
 }
 
+namespace Shaderkit {
+
 SaveProject::SaveProject(QWidget* parent)
   : QDialog(parent),
     m_ui(new Ui::SaveProject) {
@@ -203,3 +205,5 @@ void SaveProject::browse() {
     m_ui->filename->setText(dialog.selectedFiles()[0]);
   }
 }
+
+} // namespace Shaderkit

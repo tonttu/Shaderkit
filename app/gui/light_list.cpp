@@ -26,6 +26,8 @@
 
 #include <QColorDialog>
 
+namespace Shaderkit {
+
 void updatePreview(QPushButton& btn, Color& color) {
   QImage img(16, 16, QImage::Format_RGB32);
 
@@ -353,3 +355,5 @@ void LightList::setDiffuse(QColor color) {
 void LightList::setSpecular(QColor color) {
   m_ui->specular->setText(Color(color).name());
 }
+
+} // namespace Shaderkit

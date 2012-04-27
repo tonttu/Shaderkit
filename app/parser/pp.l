@@ -36,7 +36,7 @@ void yy_push_state_debug(int state, yyscan_t scanner);
 #define skip(s, e) yylval->string = copystr(skip_((yytext), (s), (yyleng)-(e)))
 #define skip2(s, e) yylval->string = copystr(skip_((yytext), (s), -(yyleng - (e))))
 
-#define YY_DECL int GLSLpp::lex(YYSTYPE* yylval_param)
+#define YY_DECL int Shaderkit::GLSLpp::lex(YYSTYPE* yylval_param)
 #define ECHO m_out.append(yytext, yyleng)
 %}
  /* Do not call ppwrap() at the EOF
@@ -412,13 +412,13 @@ void pp_push_state(int state, yyscan_t scanner) {
   yy_push_state(state, scanner);
 }
 
-void GLSLpp::pp_return(bool push, bool b) {
+void Shaderkit::GLSLpp::pp_return(bool push, bool b) {
   changeState(push, b ? IF : IF_SEEK);
   if (b)
     m_line_values[line()-1] = b;
 }
 
-void GLSLpp::push_string(const char* name, const std::string& src, const std::string& str,
+void Shaderkit::GLSLpp::push_string(const char* name, const std::string& src, const std::string& str,
     const std::vector<std::string>& params) {
   // m_stack.push_back(name);
   //Log::info("push: %d (%s)", line(), str);
@@ -437,7 +437,7 @@ void GLSLpp::push_string(const char* name, const std::string& src, const std::st
   pp_push_state(YY_START == EVAL || YY_START == CTRL_EVAL ? CTRL_EVAL : CTRL, yyscanner);
 }
 
-void GLSLpp::pop() {
+void Shaderkit::GLSLpp::pop() {
   struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
   int from = YY_START;
   yy_pop_state(yyscanner);
@@ -447,15 +447,15 @@ void GLSLpp::pop() {
   fillLineValues(YY_START);
 }
 
-int GLSLpp::line() const {
+int Shaderkit::GLSLpp::line() const {
   return ppget_lineno(yyscanner);
 }
 
-int GLSLpp::column() const {
+int Shaderkit::GLSLpp::column() const {
   return ppget_column(yyscanner);
 }
 
-int GLSLpp::lex_debug(YYSTYPE* lvalp) {
+int Shaderkit::GLSLpp::lex_debug(YYSTYPE* lvalp) {
   int token = lex(lvalp);
   const char* t = tokenName(token);
   if (t) fprintf(stderr, "Token: %s\n", t);
@@ -463,12 +463,12 @@ int GLSLpp::lex_debug(YYSTYPE* lvalp) {
   return token;
 }
 
-void GLSLpp::newline() {
+void Shaderkit::GLSLpp::newline() {
   m_out.push_back('\n');
   ppset_lineno(line()+1, yyscanner);
 }
 
-void GLSLpp::changeState(bool push, int state) {
+void Shaderkit::GLSLpp::changeState(bool push, int state) {
   fillLineValues(state);
   if(push) {
     pp_push_state(state, yyscanner);
@@ -481,7 +481,7 @@ void GLSLpp::changeState(bool push, int state) {
   }
 }
 
-void GLSLpp::fillLineValues(int new_state) {
+void Shaderkit::GLSLpp::fillLineValues(int new_state) {
   if (new_state == -1) new_state = INITIAL;
   if (m_macro_stack.empty()) {
     for (int i = m_line_values.size(), l = line(); i < l; ++i)

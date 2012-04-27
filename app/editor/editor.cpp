@@ -50,6 +50,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 EditorMargin::EditorMargin(GLSLEditor* editor) : QWidget(editor), m_editor(editor) {}
 
 QSize EditorMargin::sizeHint() const {
@@ -565,3 +567,5 @@ const MultiEditor::Section* MultiEditor::selected() const {
   }
   return 0;
 }
+
+} // namespace Shaderkit

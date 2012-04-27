@@ -25,6 +25,8 @@
 
 class QFile;
 
+namespace Shaderkit {
+
 class ShaderDB {
 public:
   ShaderDB();
@@ -51,5 +53,7 @@ protected:
 
   static ShaderDB * s_instance;
 };
+
+}
 
 #endif // SHADERDB_HPP

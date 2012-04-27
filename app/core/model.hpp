@@ -28,6 +28,8 @@
 
 #include "Eigen/Geometry"
 
+namespace Shaderkit {
+
 struct Node {
   Node();
   QString name;
@@ -158,6 +160,6 @@ private:
   void renderObj(State& state);
 };
 
-
+} // namespace Shaderkit
 
 #endif // MODEL_HPP

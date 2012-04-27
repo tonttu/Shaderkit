@@ -40,6 +40,8 @@
 #include <QListWidget>
 #include <QColorDialog>
 
+namespace Shaderkit {
+
 RenderPassProperties* RenderPassProperties::s_instance = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -811,3 +813,5 @@ QPushButton* RenderPassProperties::createButton(RenderPassPtr pass, QWidget* con
   connect(btn, SIGNAL(clicked()), this, method);
   return btn;
 }
+
+} // namespace Shaderkit

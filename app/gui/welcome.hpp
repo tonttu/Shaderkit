@@ -23,6 +23,8 @@
 #include <QFrame>
 #include <QCommandLinkButton>
 
+namespace Shaderkit {
+
 namespace Ui {
 class Welcome;
 }
@@ -63,5 +65,7 @@ public slots:
 private:
   Ui::Welcome* m_ui;
 };
+
+} // namespace Shaderkit
 
 #endif // WELCOME_HPP

@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+using namespace Shaderkit;
+
 void macroChildren(const GLSLpp::MacroValue& v, std::string ind = "  ") {
   for (auto it = v.children.begin(); it != v.children.end(); ++it) {
     Log::info("%s'%s' src:'%s' partial:'%s', value:'%s'", ind.c_str(),

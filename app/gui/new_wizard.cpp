@@ -26,6 +26,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 ToggleButton::ToggleButton(QWidget* parent) : QCheckBox(parent) {
 }
 
@@ -164,3 +166,5 @@ QString NewWizard::getUniqName(QString str) const {
   } while (m_scene_names.contains(newname.toLower()));
   return newname;
 }
+
+} // namespace Shaderkit

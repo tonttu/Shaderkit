@@ -17,6 +17,8 @@
 
 #include "gl/scene_object.hpp"
 
+namespace Shaderkit {
+
 SceneObject::SceneObject(const QString& name) : m_name(name) {}
 SceneObject::~SceneObject() {}
 
@@ -55,3 +57,5 @@ QString SceneObject::ref() {
 QStringList SceneObject::refName() {
   return m_ref_name;
 }
+
+} // namespace Shaderkit

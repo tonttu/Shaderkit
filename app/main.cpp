@@ -48,6 +48,8 @@
 #include <QDesktopServices>
 #endif
 
+using namespace Shaderkit;
+
 // #include <GL/glut.h>
 
 /*#include <X11/Xlib.h>

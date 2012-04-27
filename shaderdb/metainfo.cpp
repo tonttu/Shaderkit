@@ -21,7 +21,7 @@
 #include "parser.h"
 
 #include <QFile>
-
+namespace Shaderkit {
 QStringList getList(QVariantMap map, QString name) {
   QVariant var = map[name];
   if (var.type() == QVariant::StringList || var.type() == QVariant::List) {
@@ -111,3 +111,5 @@ bool MetaInfo::ping(const QString& filename, MetaInfo& info) {
   }
   return ok;
 }
+
+} // namespace Shaderkit

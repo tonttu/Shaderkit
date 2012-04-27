@@ -29,7 +29,7 @@ void _check_gl(const char* str, const char* file, int line) {
     out = out.arg(file).arg(line).arg((const char*)(gluErrorString(e))).arg(str);
     int num = ++s_errors[out];
     if (num == limit) out += " (starting to ignore)";
-    if (num <= limit) Log::error(out);
+    if (num <= limit) Shaderkit::Log::error(out);
     //abort();
   }
 }

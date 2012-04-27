@@ -21,6 +21,8 @@
 #include <QVariantMap>
 #include <QStringList>
 
+namespace Shaderkit {
+
 class MetaInfo
 {
 public:
@@ -44,5 +46,7 @@ public:
   QStringList authors;
   QStringList renderer;
 };
+
+}
 
 #endif // METAINFO_HPP

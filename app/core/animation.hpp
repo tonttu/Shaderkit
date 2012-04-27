@@ -20,6 +20,8 @@
 
 #include "gl/scene_object.hpp"
 
+namespace Shaderkit {
+
 class Animation : public SceneObject {
 public:
   Animation(QString name);
@@ -27,5 +29,7 @@ public:
   QVariantMap toMap() const;
   void load(QVariantMap map);
 };
+
+} // namespace Shaderkit
 
 #endif // ANIMATION_HPP

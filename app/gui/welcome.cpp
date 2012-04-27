@@ -29,6 +29,8 @@
 
 #include <queue>
 
+namespace Shaderkit {
+
 WelcomeButton::WelcomeButton(QWidget* parent, QString filename)
   : QCommandLinkButton(parent), m_filename(filename) {
   connect(this, SIGNAL(clicked()), SLOT(receiveClick()));
@@ -127,3 +129,5 @@ void Welcome::newScene() {
   w->show();
   hide();
 }
+
+} // namespace Shaderkit

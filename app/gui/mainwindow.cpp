@@ -43,6 +43,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 IconBtn::IconBtn(QWidget* parent) : QPushButton(parent), m_padding(0, 0) {}
 IconBtn::~IconBtn() {}
 
@@ -676,3 +678,5 @@ About::About(QWidget* parent) : QDialog(parent) {
   layout1->addWidget(logo);
   layout1->addWidget(container);
 }
+
+} // namespace Shaderkit

@@ -22,7 +22,9 @@
 #include "pp_yacc.h"
 #include "pp_lex.hpp"
 
-int ppparse(GLSLpp& parser);
+int ppparse(Shaderkit::GLSLpp& parser);
+
+namespace Shaderkit {
 
 GLSLpp::GLSLpp()
   : yyscanner(0), m_version(0), m_current_macro("", "", ""),
@@ -73,3 +75,5 @@ bool GLSLpp::parse(QByteArray data) {
 void GLSLpp::error(GLSLpp& /*parser*/, const char* str) {
   fprintf(stderr, "%d: error - %s\n", line()+1, str);
 }
+
+} // namespace Shaderkit

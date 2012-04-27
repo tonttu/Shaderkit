@@ -4,6 +4,8 @@
 #include "parser/glsl_pp.hpp"
 #include "gl/shader.hpp"
 
+namespace Shaderkit {
+
 class GLSLParser
 {
 public:
@@ -18,5 +20,7 @@ public:
 private:
   GLSLpp m_pp;
 };
+
+} // namespace Shaderkit
 
 #endif // GLSL_PARSER_HPP

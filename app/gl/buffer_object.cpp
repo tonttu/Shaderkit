@@ -22,6 +22,8 @@
 #include "core/scene.hpp"
 #include "core/material.hpp"
 
+namespace Shaderkit {
+
 BufferObject::BufferObject() : m_id(0), m_target(0), m_cache_size(0), m_use_cache(true) {
 }
 
@@ -244,3 +246,5 @@ void BufferObject2::uploadData(const void* data, int offsetBytes, int sizeBytes)
   glRun(glBufferSubData(m_target, offsetBytes, sizeBytes, data));
   unbind();
 }
+
+} // namespace Shaderkit

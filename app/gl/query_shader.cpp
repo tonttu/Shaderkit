@@ -19,6 +19,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 QueryShader* QueryShader::s_instance = 0;
 
 QueryShader::QueryShader() : m_shader(0), m_prog(0), m_attached(0) {
@@ -101,3 +103,5 @@ bool QueryShader::unbind(float& out) {
   glRun(glUseProgram(0));
   return ok;
 }
+
+} // namespace Shaderkit

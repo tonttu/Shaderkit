@@ -22,6 +22,8 @@
 #include <QString>
 #include <QStringList>
 
+namespace Shaderkit {
+
 class SceneObject {
 public:
   SceneObject(const QString& name);
@@ -42,5 +44,7 @@ protected:
   QString m_ref;
   QStringList m_ref_name;
 };
+
+} // namespace Shaderkit
 
 #endif // SCENE_OBJECT_HPP

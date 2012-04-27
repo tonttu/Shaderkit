@@ -28,8 +28,10 @@
 #include <QDir>
 
 namespace {
-  ShaderManager* s_shader_manager = 0;
+  Shaderkit::ShaderManager* s_shader_manager = 0;
 }
+
+namespace Shaderkit {
 
 ShaderManager::ShaderManager() {
   assert(!s_shader_manager);
@@ -45,8 +47,6 @@ ShaderManager& ShaderManager::instance() {
   assert(s_shader_manager);
   return *s_shader_manager;
 }
-
-
 
 GLProgram::GLProgram(const QString& name)
   : m_name(name), m_prog(0), m_compiled(false), m_relink(true) {
@@ -291,3 +291,5 @@ void GLProgram::setTransformFeedbackVaryings(QStringList lst) {
   foreach (const QString& str, lst)
     m_transformFeedback << str.toUtf8();
 }
+
+} // namespace Shaderkit

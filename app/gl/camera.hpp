@@ -30,6 +30,8 @@
 #undef far
 #endif
 
+namespace Shaderkit {
+
 /**
  * OpenGL Camera class, handles perspective and ortho projections.
  */
@@ -126,5 +128,7 @@ protected:
   /// Far clipping plane distance
   float m_far;
 };
+
+} // namespace Shaderkit
 
 #endif // CAMERA_HPP

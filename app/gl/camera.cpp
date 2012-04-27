@@ -28,6 +28,8 @@
 // this include last because of near/far undefs
 #include "gl/camera.hpp"
 
+namespace Shaderkit {
+
 Camera::Camera(const QString &name)
   : SceneObject(name), m_type(Perspective),
     m_target(0, 0, 0), m_up(0, 1, 0),
@@ -237,3 +239,5 @@ Eigen::Projective3f Camera::normToWindow(bool swap_y) const {
 Eigen::Projective3f Camera::transform(bool swap_y) const {
   return normToWindow(swap_y) * projection() * view();
 }
+
+} // namespace Shaderkit

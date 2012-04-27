@@ -27,6 +27,9 @@
 #endif
 
 class QString;
+
+namespace Shaderkit {
+
 class Log {
 public:
   enum Level { LOG_NONE = 0, LOG_FATAL, LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG } level;
@@ -52,6 +55,8 @@ public:
 private:
   static Log* s_log;
 };
+
+} // namespace Shaderkit
 
 #undef PRINTF_CHECK
 

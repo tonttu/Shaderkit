@@ -29,6 +29,8 @@
 /// @todo include something less massive
 #include <QtGui>
 
+namespace Shaderkit {
+
 QVector<Eigen::Vector2f> g_debug_qt;
 QVector<Eigen::Vector2f> g_debug_2d;
 
@@ -302,3 +304,5 @@ void GLWidget::sceneChange(ScenePtr s) {
   m_scene = s;
   if (s) s->resize(size().width(), size().height());
 }
+
+} // namespace Shaderkit

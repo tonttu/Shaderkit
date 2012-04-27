@@ -31,7 +31,7 @@
 #endif
 
 namespace {
-  void writelog(Log::Level l, FILE* target, const char* fmt, va_list ap) {
+  void writelog(Shaderkit::Log::Level l, FILE* target, const char* fmt, va_list ap) {
     static QByteArray last;
     static int count = 0;
     static const char* prefixes[] = {"          ",
@@ -64,6 +64,8 @@ namespace {
     }
   }
 }
+
+namespace Shaderkit {
 
 Log* Log::s_log = 0;
 
@@ -129,3 +131,5 @@ void Log::log(Level level, const char* fmt, ...) {
 
 #undef LOG_IMPL2
 #undef LOG_IMPL
+
+} // namespace Shaderkit

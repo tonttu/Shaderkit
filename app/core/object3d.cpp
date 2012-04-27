@@ -20,6 +20,8 @@
 #include "core/material.hpp"
 #include "gl/state.hpp"
 
+namespace Shaderkit {
+
 QVariantMap saveTransform(const Eigen::Affine3f& affine) {
   const Eigen::Matrix4f& m = affine.matrix();
   QStringList tmp;
@@ -115,3 +117,5 @@ ObjectPtr Object3D::clone() {
 void Object3D::setModel(ModelPtr model) {
   m_model = model;
 }
+
+} // namespace Shaderkit

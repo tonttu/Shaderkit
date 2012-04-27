@@ -23,6 +23,7 @@
 
 #include <cassert>
 
+namespace Shaderkit {
 
 bool ParserImpl::hasColumnInformation() const {
   return false;
@@ -297,3 +298,5 @@ bool ShaderCompilerOutputParser::parse(Shader& shader, ShaderErrorList& errors) 
   }
   return false;
 }
+
+} // namespace Shaderkit

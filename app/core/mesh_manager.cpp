@@ -18,6 +18,8 @@
 #include "core/mesh_manager.hpp"
 #include "gl/buffer_object.hpp"
 
+namespace Shaderkit {
+
 MeshManager::MeshManager()
 {
 }
@@ -33,3 +35,5 @@ MeshManager& MeshManager::instance() {
   static MeshManager m;
   return m;
 }
+
+} // namespace Shaderkit

@@ -71,7 +71,7 @@ int mainloop(QMap<GLenum, GLuint>& shaders, int readfd, int writefd) {
     if (!shaders.contains(header.type)) {
       s = glCreateShader(header.type);
       if (s == 0) {
-        Log::error("Sandbox Compiler: Failed to create shader of type %d", s);
+        Shaderkit::Log::error("Sandbox Compiler: Failed to create shader of type %d", s);
         return 1;
       }
       shaders[header.type] = s;
@@ -145,6 +145,8 @@ int readResponse(int fd, double timeout) {
 }
 
 }
+
+namespace Shaderkit {
 
 SandboxCompiler* SandboxCompiler::s_instance = 0;
 
@@ -302,3 +304,5 @@ int SandboxCompiler::run(int& argc, char* argv[]) {
   Log::info("Sandbox Compiler closing");
   return ret;
 }
+
+} // namespace Shaderkit

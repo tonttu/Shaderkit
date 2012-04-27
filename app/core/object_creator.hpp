@@ -27,6 +27,8 @@
 class QString;
 class QMouseEvent;
 
+namespace Shaderkit {
+
 class FocusGrabber {
 public:
   virtual bool move(QMouseEvent* ev) = 0;
@@ -59,5 +61,7 @@ private:
   void renderBox(State& state, const RenderOptions& render_opts);
   void renderSphere(State& state, const RenderOptions& render_opts);
 };
+
+} // namespace Shaderkit
 
 #endif // OBJECT_CREATOR_HPP

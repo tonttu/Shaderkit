@@ -30,6 +30,8 @@
 #include <QObject>
 #include <QSet>
 
+namespace Shaderkit {
+
 class ShaderManager : public QObject {
   Q_OBJECT
 
@@ -217,5 +219,7 @@ protected:
 
   QList<QByteArray> m_transformFeedback;
 };
+
+} // namespace Shaderkit
 
 #endif

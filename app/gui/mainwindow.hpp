@@ -32,6 +32,8 @@
 
 class QGLContext;
 
+namespace Shaderkit {
+
 /// Clickable custom button used in the editor status bar inside the tab widget.
 /// @todo this is used in render_pass_properties, move to somewhere else
 class IconBtn : public QPushButton {
@@ -207,5 +209,7 @@ class About : public QDialog
 public:
   About(QWidget* parent);
 };
+
+} // namespace Shaderkit
 
 #endif // MAINWINDOW_HPP

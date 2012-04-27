@@ -24,6 +24,7 @@ static int s_column, s_line, s_pos;
 #define isatty _isatty
 #define fileno _fileno
 #endif
+
 %}
 
 %option noyywrap

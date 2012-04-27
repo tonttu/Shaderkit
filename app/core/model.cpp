@@ -31,7 +31,10 @@
 
 // #include <GL/glut.h>
 
+namespace Shaderkit {
+
 namespace ObjectRenderer {
+
   /// @todo delete
   void drawBox(float x, float y, float z) {
 #define N(a, b, c) for (int j=0;j<4;++j) normals[i+j] = Eigen::Vector3f(a, b, c)
@@ -487,3 +490,5 @@ void TriMesh::renderObj(State& state) {
   }
   state.pop();
 }
+
+} // namespace Shaderkit

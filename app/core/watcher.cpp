@@ -23,6 +23,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+namespace Shaderkit {
+
 Watcher::WatchableObj::WatchableObj() : inode(0) {}
 Watcher::WatchableObj::WatchableObj(Watchable* obj_, ino_t inode_)
   : obj(obj_), inode(inode_) {}
@@ -119,3 +121,5 @@ void Watcher::updateDir(const QString& dir) {
   for (QSet<QString>::iterator it = tmp.begin(); it != tmp.end(); it++)
     update(*it);
 }
+
+} // namespace Shaderkit

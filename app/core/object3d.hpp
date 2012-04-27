@@ -25,6 +25,8 @@
 
 #include <QVariantMap>
 
+namespace Shaderkit {
+
 /**
  * 3D Model class.
  *
@@ -71,5 +73,7 @@ private:
   QMap<QString, MaterialPtr> m_materials;
   MaterialPtr m_default_material;
 };
+
+} // namespace Shaderkit
 
 #endif // OBJECT3D_HPP

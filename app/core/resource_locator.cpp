@@ -23,8 +23,10 @@
 #include <QSet>
 
 namespace {
-  ResourceLocator* s_instance = 0;
+  Shaderkit::ResourceLocator* s_instance = 0;
 }
+
+namespace Shaderkit {
 
 ResourceLocator::ResourceLocator() {
   if (!s_instance) s_instance = this;
@@ -119,3 +121,5 @@ QString ResourceLocator::unique(const QString& src, const QSet<QString>& lst) {
 
   return file;
 }
+
+} // namespace Shaderkit

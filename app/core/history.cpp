@@ -31,6 +31,8 @@ namespace {
   const char s_magic[] = "\nShdrktHstr\x5b\xf2\x48\xda\xbd\x27\x72\xb7\n";
 }
 
+namespace Shaderkit {
+
 History::History(Scene& scene, const QString& filename)
  : m_scene(scene), m_timer(new QTimer(this)),
    m_historyEnabled(false) {
@@ -131,3 +133,5 @@ void History::commit() {
     }
   }
 }
+
+} // namespace Shaderkit

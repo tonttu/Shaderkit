@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "gl/error.hpp"
 
+namespace Shaderkit {
+
 /// @todo implement something on windows too
 class SandboxCompiler {
 public:
@@ -44,5 +46,7 @@ private:
   bool start();
   void killSandbox();
 };
+
+} // namespace Shaderkit
 
 #endif

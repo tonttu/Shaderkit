@@ -13,6 +13,8 @@
 #include <QMessageBox>
 #include <QFile>
 
+namespace Shaderkit {
+
 GLSLEditor::GLSLEditor(MultiEditor& me, QWidget* parent, ShaderPtr shader, QTextDocument* doc)
   : QTextEdit(parent), m_multiEditor(me), m_margin(new EditorMargin(this)),
     m_shader(shader), m_marginWidth(10) {
@@ -399,3 +401,5 @@ void GLSLEditor::updateMarginWidth(int blockCount) {
 int GLSLEditor::marginWidth() const {
   return m_marginWidth;
 }
+
+} // namespace Shaderkit

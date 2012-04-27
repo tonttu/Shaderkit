@@ -26,6 +26,8 @@
 #include <QAction>
 #include <QMenu>
 
+namespace Shaderkit {
+
 Viewport::Viewport(QWidget* parent) : QWidget(parent) {
   QVBoxLayout* layout = new QVBoxLayout(this);
   layout->setMargin(0);
@@ -150,3 +152,5 @@ void Viewport::deleteObject() {
   foreach (ObjectPtr obj, scene->selection())
     scene->remove(obj);
 }
+
+} // namespace Shaderkit

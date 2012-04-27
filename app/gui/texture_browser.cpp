@@ -36,8 +36,10 @@
 #include <cmath>
 
 namespace {
-  TextureBrowser* s_browser = 0;
+  Shaderkit::TextureBrowser* s_browser = 0;
 }
+
+namespace Shaderkit {
 
 TextureWidgetGL::TextureWidgetGL(const QGLFormat& format, QWidget* parent, const QGLWidget* shared)
   : QGLWidget(format, parent, shared) {
@@ -868,3 +870,5 @@ void FlowLayout::setGeometry(const QRect &r)
   int rows = std::ceil(m_items.size() / float(n));
   m_minHeight = rows*itemh + (rows+1) * spy;
 }
+
+} // namespace Shaderkit

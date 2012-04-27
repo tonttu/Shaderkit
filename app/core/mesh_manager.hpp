@@ -23,6 +23,8 @@
 #include <QByteArray>
 #include <QMap>
 
+namespace Shaderkit {
+
 class MeshManager {
 public:
   BufferObject2 & get(const QByteArray& key);
@@ -61,5 +63,7 @@ private:
   /// @todo ref<BufferObject2>, garbage collection
   QMap<QByteArray, BufferObject2*> m_map;
 };
+
+} // namespace Shaderkit
 
 #endif // MESH_MANAGER_HPP

@@ -29,6 +29,8 @@
 #define GLAPIENTRY __stdcall
 #endif
 
+namespace Shaderkit {
+
 /**
  * Uniform variable type info class, makes easier to implement more generic
  * code that does something with uniform variables.
@@ -219,5 +221,7 @@ private:
 
 #undef GLAPIENTRY
 #define GLAPIENTRY
+
+} // namespace Shaderkit
 
 #endif

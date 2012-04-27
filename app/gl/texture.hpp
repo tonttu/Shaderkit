@@ -28,6 +28,8 @@
 
 class QTimer;
 
+namespace Shaderkit {
+
 /// Signals when OpenGL texture was changed, so for example this isn't emitted
 /// on setParam but only on applyParams
 class TextureChangeManager : public QObject {
@@ -150,5 +152,7 @@ public:
 private:
   QString m_loadedFile;
 };
+
+} // namespace Shaderkit
 
 #endif // TEXTURE_HPP

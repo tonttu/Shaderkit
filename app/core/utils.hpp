@@ -24,6 +24,8 @@
 
 #include "Eigen/Geometry"
 
+namespace Shaderkit {
+
 namespace Utils
 {
   QString uniqueName(QString name, const QList<QString>& lst, QString def = "Untitled");
@@ -37,5 +39,7 @@ namespace Utils
   /// helper method to convert QColor to 4 element GLfloat array
   void getColor(const QColor& color, float* tmp);
 }
+
+} // namespace Shaderkit
 
 #endif // UTILS_HPP

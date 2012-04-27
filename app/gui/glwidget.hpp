@@ -26,6 +26,8 @@
 
 #include <QGLWidget>
 
+namespace Shaderkit {
+
 /**
  * OpenGL Widget. This will create the OpenGL context and the widget will
  * work as the final viewport.
@@ -85,5 +87,7 @@ protected:
 
 extern QVector<Eigen::Vector2f> g_debug_qt;
 extern QVector<Eigen::Vector2f> g_debug_2d;
+
+} // namespace Shaderkit
 
 #endif // GLWIDGET_HPP

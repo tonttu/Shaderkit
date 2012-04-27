@@ -23,6 +23,8 @@
 
 #include <QString>
 
+namespace Shaderkit {
+
 class QueryShader {
 public:
   static QueryShader& instance();
@@ -40,5 +42,7 @@ private:
   GLuint m_shader, m_prog;
   bool m_attached;
 };
+
+} // namespace Shaderkit
 
 #endif // QUERY_SHADER_HPP

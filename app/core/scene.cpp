@@ -49,6 +49,8 @@
 #include <cassert>
 
 namespace {
+using namespace Shaderkit;
+
 void loadRefs(QMap<QString, Scene::Import>& imports, QVariant src,
               QSet<QString> ObjImporter::Filter::*target) {
   QVariantMap tmp = src.toMap();
@@ -130,6 +132,8 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
+
+namespace Shaderkit {
 
 Scene::Scene(/*QString filename*/)
   : m_width(-1), m_height(-1),
@@ -927,3 +931,5 @@ void Scene::add(TexturePtr t) {
   m_textures[t->name()] = t;
   emit textureListUpdated();
 }
+
+} // namespace Shaderkit

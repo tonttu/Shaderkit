@@ -42,11 +42,11 @@ namespace {
 
   /// Reads color from material src to target.
   /// Example: getColor(target, material, AI_MATKEY_COLOR_DIFFUSE);
-  void getColor(Color& target, aiMaterial& src, const char * pKey,
+  void getColor(Shaderkit::Color& target, aiMaterial& src, const char * pKey,
                 unsigned int type, unsigned int idx) {
     aiColor3D color;
     if (src.Get(pKey, type, idx, color) == AI_SUCCESS)
-      target = Color(color.r, color.g, color.b);
+      target = Shaderkit::Color(color.r, color.g, color.b);
   }
   void getBool(bool& target, aiMaterial& src, const char * pKey,
                unsigned int type, unsigned int idx) {
@@ -71,6 +71,8 @@ namespace {
     return roles;
   }
 }
+
+namespace Shaderkit {
 
 class LogStream : public Assimp::LogStream {
 public:
@@ -586,3 +588,5 @@ QString ObjImporter::findFile(QString file) {
   /// @todo implement something funny and elegant
   return ret;
 }
+
+} // namespace Shaderkit

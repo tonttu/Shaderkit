@@ -24,6 +24,8 @@
 #include "gl/camera.hpp"
 #include "gui/properties.hpp"
 
+namespace Shaderkit {
+
 MappableValue::MappableValue(const QString& src, const QString& var, int srcindex,
                              int varindex, const QString& selection, const QString& orig)
   : m_orig(orig), m_src(src), m_var(var), m_srcindex(srcindex), m_varindex(varindex),
@@ -180,7 +182,6 @@ ProgramPtr Material::prog(bool create_if_not_found) {
   return m_program;
 }
 
-
 void Material::setScene(ScenePtr scene) {
   m_scene = scene;
 }
@@ -307,3 +308,5 @@ MaterialPtr Material::clone(bool clone_textures) const {
   }
   return m;
 }
+
+} // namespace Shaderkit

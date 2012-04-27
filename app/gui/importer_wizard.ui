@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ImporterWizard</class>
- <widget class="QWizard" name="ImporterWizard">
+ <class>Shaderkit::ImporterWizard</class>
+ <widget class="QWizard" name="Shaderkit::ImporterWizard">
   <property name="geometry">
    <rect>
     <x>0</x>

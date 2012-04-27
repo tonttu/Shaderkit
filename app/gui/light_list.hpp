@@ -21,11 +21,14 @@
 #include "forward.hpp"
 #include <QDialog>
 
+class QListWidgetItem;
+
+namespace Shaderkit {
+
 namespace Ui {
 class LightList;
 }
 
-class QListWidgetItem;
 class LightList : public QDialog {
   Q_OBJECT
 
@@ -64,5 +67,7 @@ private:
   QAction* m_duplicate;
   QAction* m_destroy;
 };
+
+} // namespace Shaderkit
 
 #endif // LIGHT_LIST_HPP

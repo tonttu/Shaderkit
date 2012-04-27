@@ -22,6 +22,8 @@
 #include <stdexcept>
 #include <cassert>
 
+namespace Shaderkit {
+
 ShaderTypeInfo::ShaderTypeInfo(int size_,
     FloatSetter float_setter_, IntSetter int_setter_, MatrixSetter matrix_setter_,
     GLenum type_, GLenum single_type_, int flags)
@@ -327,3 +329,5 @@ QList<VarGroupDescription> UniformVar::builtInVars() {
   }
   return s_vars;
 }
+
+} // namespace Shaderkit

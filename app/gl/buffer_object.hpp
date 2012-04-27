@@ -27,6 +27,8 @@
 #include <QSet>
 #include <QMap>
 
+namespace Shaderkit {
+
 class BufferObject {
 public:
   BufferObject();
@@ -347,5 +349,7 @@ private:
   QMap<int, int> m_active_vertex_attribs;
   int m_bind_stack;
 };
+
+} // namespace Shaderkit
 
 #endif // BUFFER_OBJECT_HPP

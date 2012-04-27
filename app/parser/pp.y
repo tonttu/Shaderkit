@@ -38,7 +38,7 @@ namespace {
 // Do not use global variables (reentrant parser)
 %define api.pure
 
-%parse-param { GLSLpp& parser }
+%parse-param { Shaderkit::GLSLpp& parser }
 
 %union {
   const char* string;
@@ -108,16 +108,16 @@ stuff
     parser.m_profile = "";
   }
   | HASH_EXTENSION IDENTIFIER ':' REQUIRE NL {
-    parser.m_extensions[$2] = GLSLpp::Require;
+	parser.m_extensions[$2] = Shaderkit::GLSLpp::Require;
   }
   | HASH_EXTENSION IDENTIFIER ':' ENABLE NL {
-    parser.m_extensions[$2] = GLSLpp::Enable;
+	parser.m_extensions[$2] = Shaderkit::GLSLpp::Enable;
   }
   | HASH_EXTENSION IDENTIFIER ':' WARN NL {
-    parser.m_extensions[$2] = GLSLpp::Warn;
+	parser.m_extensions[$2] = Shaderkit::GLSLpp::Warn;
   }
   | HASH_EXTENSION IDENTIFIER ':' DISABLE NL {
-    parser.m_extensions[$2] = GLSLpp::Disable;
+	parser.m_extensions[$2] = Shaderkit::GLSLpp::Disable;
   }
   | HASH_PRAGMA raw NL {
     parser.m_pragmas.push_back(std::make_pair($2 ? trim(*$2) : "", parser.line()));
@@ -152,7 +152,7 @@ stuff
     // fprintf(stderr, "Defined '%s' as '%s'\n", $1, $2 ? $2->c_str() : 0);
   }
   | DEFINE_FUNC identifier_list ')' data NL {
-    GLSLpp::Func& f = parser.m_funcs[$1];
+	Shaderkit::GLSLpp::Func& f = parser.m_funcs[$1];
     f.chunks.clear();
     f.src.clear();
     f.chunks.reserve($4->size());

@@ -27,11 +27,17 @@
 #include <set>
 #include <stack>
 
+
 union YYSTYPE;
 typedef void* yyscan_t;
 
+namespace Shaderkit {
 class GLSLpp;
-int ppparse(GLSLpp&);
+}
+
+int ppparse(Shaderkit::GLSLpp&);
+
+namespace Shaderkit {
 
 class GLSLpp {
 public:
@@ -133,7 +139,9 @@ private:
   int column() const;
   void newline();
 
-  friend int ppparse(GLSLpp&);
+  friend int ::ppparse(GLSLpp&);
 };
+
+} // namespace Shaderkit
 
 #endif // GLSL_PP_HPP

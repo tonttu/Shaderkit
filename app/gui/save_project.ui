@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SaveProject</class>
- <widget class="QDialog" name="SaveProject">
+ <class>Shaderkit::SaveProject</class>
+ <widget class="QDialog" name="Shaderkit::SaveProject">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -74,7 +74,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="../gfx/gfx.qrc">:/icons/warning.png</pixmap>
+      <pixmap resource="../../gfx/gfx.qrc">:/icons/warning.png</pixmap>
      </property>
     </widget>
    </item>
@@ -130,13 +130,13 @@
   </layout>
  </widget>
  <resources>
-  <include location="../gfx/gfx.qrc"/>
+  <include location="../../gfx/gfx.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>SaveProject</receiver>
+   <receiver>Shaderkit::SaveProject</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -152,7 +152,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>SaveProject</receiver>
+   <receiver>Shaderkit::SaveProject</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

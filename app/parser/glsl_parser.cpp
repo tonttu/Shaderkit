@@ -1,5 +1,7 @@
 #include "parser/glsl_parser.hpp"
 
+namespace Shaderkit {
+
 GLSLParser::GLSLParser()
 {
 }
@@ -13,3 +15,5 @@ Shader::Type GLSLParser::detect(const QString& filename) {
   /// @todo Implement
   return Shader::Unknown;
 }
+
+} // namespace Shaderkit

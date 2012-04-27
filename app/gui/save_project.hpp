@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include <QDialog>
 
+namespace Shaderkit {
+
 namespace Ui {
 class SaveProject;
 }
@@ -44,5 +46,7 @@ private slots:
 private:
   Ui::SaveProject* m_ui;
 };
+
+} // namespace Shaderkit
 
 #endif // SAVE_PROJECT_HPP

@@ -29,6 +29,8 @@
 
 struct aiNode;
 
+namespace Shaderkit {
+
 class ObjImporter {
 public:
   typedef QList<QPair<QString, QString>> InfoList;
@@ -141,5 +143,7 @@ private:
   QString m_file;
   bool m_analyzed;
 };
+
+} // namespace Shaderkit
 
 #endif // OBJ_IMPORTER_HPP

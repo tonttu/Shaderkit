@@ -24,6 +24,8 @@
 #include "gl/camera.hpp"
 #include "gui/viewport.hpp"
 
+namespace Shaderkit {
+
 CameraEditor::CameraEditor(QWidget* parent, RenderPassPtr render_pass)
   : QDialog(parent),
     m_ui(new Ui::CameraEditor),
@@ -263,3 +265,5 @@ void CameraEditor::farChanged() {
   if (!m_camera) return;
   m_camera->setFar(m_ui->far_plane->text().toFloat());
 }
+
+} // namespace Shaderkit

@@ -22,6 +22,8 @@
 
 #include <QSyntaxHighlighter>
 
+namespace Shaderkit {
+
 /**
  * GLSL Highlighter that uses the flex lexer to tokenize the input and then
  * apply some colors to specific token groups.
@@ -50,5 +52,7 @@ protected:
 private:
   GLSLParser& m_parser;
 };
+
+} // namespace Shaderkit
 
 #endif // HIGHLIGHTER_H

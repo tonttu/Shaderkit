@@ -23,6 +23,8 @@
 #include <QComboBox>
 #include <QPushButton>
 
+namespace Shaderkit {
+
 /*class TextureEditor : public QWidget {
   Q_OBJECT
 
@@ -154,5 +156,6 @@ protected:
   static RenderPassProperties* s_instance;
 };
 
+} // namespace Shaderkit
 
 #endif // RENDER_PASS_PROPERTIES_HPP

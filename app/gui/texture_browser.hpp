@@ -26,11 +26,14 @@
 #include <QGLWidget>
 #include <QLayout>
 
+class QFrame;
+class QLabel;
+
+namespace Shaderkit {
+
 namespace Ui {
 class TextureBrowser;
 }
-class QFrame;
-class QLabel;
 
 class TextureWidgetGL : public QGLWidget {
   Q_OBJECT
@@ -170,5 +173,7 @@ private:
   int m_minHeight;
   QList<QLayoutItem*> m_items;
 };
+
+} // namespace Shaderkit
 
 #endif // TEXTURE_BROWSER_HPP

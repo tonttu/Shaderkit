@@ -43,6 +43,8 @@
 #include <QListWidget>
 #include <QStackedWidget>
 
+namespace Shaderkit {
+
 void MenuComboBox::showPopup() {
   hidePopup();
   emit showPopup(QPoint(0, height()));
@@ -1123,3 +1125,5 @@ void FileList::selectionChanged() {
   }
 }
 #endif
+
+} // namespace Shaderkit

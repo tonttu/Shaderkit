@@ -29,6 +29,8 @@
 #include <QVector>
 #include <QRectF>
 
+namespace Shaderkit {
+
 class LineSegment {
 public:
   LineSegment(const Eigen::Vector3f& a = Eigen::Vector3f(0, 0, 0),
@@ -165,5 +167,7 @@ public:
 protected:
   virtual void renderImpl(State& state);
 };
+
+} // namespace Shaderkit
 
 #endif // GIZMOS_HPP

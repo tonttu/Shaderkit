@@ -26,6 +26,8 @@
 #include "Eigen/OpenGLSupport"
 
 namespace {
+  using namespace Shaderkit;
+
   const float ll = 0.2f, mm = 0.3f, hh = 1.0f;
   const float translate_gizmo_vertices[] = {
     ll,  0,  0,   hh,  0,  0,
@@ -58,6 +60,7 @@ namespace {
   };
 }
 
+namespace Shaderkit {
 
 Eigen::Vector2f project2(const Eigen::Projective3f& projection,
                          const Eigen::Vector3f& vector) {
@@ -694,3 +697,5 @@ void Gizmo::HitShape::transform(const Eigen::Projective3f& window_projection) {
   bbox.extend(bbox.min() - Eigen::Vector2f(9.0f, 9.0f));
   bbox.extend(bbox.max() + Eigen::Vector2f(9.0f, 9.0f));
 }
+
+} // namespace Shaderkit

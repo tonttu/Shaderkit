@@ -26,6 +26,8 @@
 
 class QTimer;
 
+namespace Shaderkit {
+
 /// Saving happens after a timeout (m_timeout), but is also restricted by
 /// another timeout (m_min_interval). However, if the user keeps using the
 /// ui all the time and the first timeout seems never to be passed by,
@@ -98,5 +100,7 @@ private:
   Scene& m_scene;
   AfterIdleOperation* m_idle;
 };
+
+} // namespace Shaderkit
 
 #endif // SCENE_SAVER_HPP

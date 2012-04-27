@@ -20,6 +20,8 @@
 
 #include <QTimer>
 
+namespace Shaderkit {
+
 AfterIdleOperation::AfterIdleOperation(QObject* parent, float timeout,
                                        float min_interval, float max_wait)
   : QObject(parent),
@@ -105,3 +107,5 @@ void SceneSaver::save() {
 
   /// @todo history
 }
+
+} // namespace Shaderkit

@@ -24,6 +24,8 @@
 #include "core/object3d.hpp"
 #include "gui/viewport.hpp"
 
+namespace Shaderkit {
+
 ObjectList::ObjectList(QWidget* parent, RenderPassPtr render_pass)
   : QDialog(parent),
     m_ui(new Ui::ObjectList),
@@ -118,3 +120,5 @@ void ObjectList::itemChanged(QListWidgetItem* item) {
       m_render_pass->remove(obj);
   }
 }
+
+} // namespace Shaderkit

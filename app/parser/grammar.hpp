@@ -21,6 +21,8 @@
 #include <QPair>
 #include <QVector>
 
+namespace Shaderkit {
+
 /**
  * GLSL Lexer, wrapper for Flex lexer code (lex.yy.c).
  *
@@ -78,5 +80,7 @@ protected:
   /// The string that toLines returns
   std::string m_splitted;
 };
+
+} // namespace Shaderkit
 
 #endif // GRAMMAR_H

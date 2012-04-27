@@ -20,6 +20,8 @@
 
 #include <QFile>
 
+namespace Shaderkit {
+
 ShaderLexer::Token::Token() : token(0), pos(0), len(0), column(0), line(0) {}
 ShaderLexer::Token::Token(int token_, int pos_, int len_, int column_, int line_)
   : token(token_), pos(pos_), len(len_), column(column_), line(line_) {}
@@ -79,3 +81,5 @@ const ShaderLexer::Token& ShaderLexer::transform(int line) {
   if (line < 0) return m_tokens[0];
   return m_tokens[line];
 }
+
+} // namespace Shaderkit

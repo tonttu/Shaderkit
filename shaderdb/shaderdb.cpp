@@ -30,6 +30,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 ShaderDB * ShaderDB::s_instance = 0;
 
 ShaderDB::ShaderDB() {
@@ -199,3 +201,5 @@ QString ShaderDB::makeUniqPath(QString path, QString name) const {
 
   return path;
 }
+
+} // namespace Shaderkit

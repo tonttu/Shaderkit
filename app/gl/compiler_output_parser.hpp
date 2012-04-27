@@ -23,6 +23,7 @@
 #include <QStringList>
 #include <QRegExp>
 
+namespace Shaderkit {
 
 class ParserImpl {
 public:
@@ -58,5 +59,7 @@ public:
 protected:
   QList<std::shared_ptr<ParserImpl>> m_parsers;
 };
+
+} // namespace Shaderkit
 
 #endif

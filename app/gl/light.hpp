@@ -23,6 +23,8 @@
 #include "gl/scene_object.hpp"
 #include <QVariant>
 
+namespace Shaderkit {
+
 /**
  * OpenGL Light.
  */
@@ -86,5 +88,7 @@ protected:
   /// The maximum spread angle of a light source, if m_type == Spot.
   float m_spot_cutoff;
 };
+
+} // namespace Shaderkit
 
 #endif // LIGHT_HPP

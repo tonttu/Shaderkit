@@ -20,6 +20,8 @@
 #include "gl/opengl.hpp"
 #include "core/utils.hpp"
 
+namespace Shaderkit {
+
 Light::Light(const QString& name)
   : SceneObject(name), m_type(Direction), m_id(-1),
   m_ambient(0, 0, 0, 255), m_diffuse(255, 255, 255, 255), m_specular(255, 255, 255, 255),
@@ -135,3 +137,5 @@ void Light::setDirection(const Eigen::Vector3f& dir) {
 void Light::setSpotCutoff(float v) {
   m_spot_cutoff = v;
 }
+
+} // namespace Shaderkit

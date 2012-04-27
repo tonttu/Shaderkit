@@ -21,6 +21,8 @@
 #include <QAbstractFileEngineHandler>
 #include <QMap>
 
+namespace Shaderkit {
+
 class ResourceLocator : public QAbstractFileEngineHandler
 {
 public:
@@ -58,5 +60,7 @@ private:
   QMap<QString, QString> m_paths;
   QMap<QString, QStringList> m_pathsOverride;
 };
+
+} // namespace Shaderkit
 
 #endif // RESOURCE_LOCATOR_HPP

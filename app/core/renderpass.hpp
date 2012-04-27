@@ -27,6 +27,8 @@
 #include <QColor>
 #include <QPointF>
 
+namespace Shaderkit {
+
 struct RenderOptions {
   RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE) {}
   bool grid;
@@ -171,5 +173,7 @@ protected:
   BufferObject m_gridVertices, m_gridColors;
   ProgramPtr m_gridProg;
 };
+
+} // namespace Shaderkit
 
 #endif // RENDERPASS_HPP

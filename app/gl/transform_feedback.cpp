@@ -20,6 +20,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 TransformFeedback::TransformFeedback() : m_query(0), m_id(0) {
 }
 
@@ -91,3 +93,5 @@ bool TransformFeedback::end(float* out, int size) {
 
   return ok;
 }
+
+} // namespace Shaderkit

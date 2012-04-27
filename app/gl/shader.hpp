@@ -25,6 +25,8 @@
 
 #include <QIcon>
 
+namespace Shaderkit {
+
 /**
  * GLSL Shader.
  *
@@ -153,5 +155,7 @@ protected:
   /// I mean you, NVIDIA!
   static bool s_sandbox_compile;
 };
+
+} // namespace Shaderkit
 
 #endif

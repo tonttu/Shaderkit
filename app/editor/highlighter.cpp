@@ -27,6 +27,8 @@
 
 /// group all tokens to groups
 namespace SyntaxHL {
+  using namespace Shaderkit;
+
   static const int comment_tokens[] = { COMMENT, COMMENT_BEGIN, COMMENT_END };
 
   static const int pp_tokens[] = { PP };
@@ -67,6 +69,8 @@ namespace SyntaxHL {
 
   static const int id_tokens[] = { IDENTIFIER };
 }
+
+namespace Shaderkit {
 
 enum SyntaxType { SERROR = 0, SCOMMENT, SPP, STYPE, SQUALIFIER, SKEYWORDS, SCONSTANTS,
   SOPERATORS, SPARENTHESES, SBUILDIN_VAR, SID };
@@ -166,3 +170,5 @@ void Highlighter::highlightBlock(const QString &text) {
   }
   setCurrentBlockState(glslget_state());
 }
+
+} // namespace Shaderkit

@@ -20,6 +20,8 @@
 #include <QSet>
 #include <QColor>
 
+namespace Shaderkit {
+
 namespace Utils {
   QString uniqueName(QString name, const QList<QString>& lst, QString def) {
     if (name.isEmpty()) name = def;
@@ -54,3 +56,5 @@ namespace Utils {
     return ret;
   }
 }
+
+} // namespace Shaderkit

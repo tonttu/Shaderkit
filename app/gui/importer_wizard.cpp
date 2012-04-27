@@ -33,6 +33,8 @@ namespace {
   }
 }
 
+namespace Shaderkit {
+
 ImporterWizard::ImporterWizard(ScenePtr scene, QWidget *parent)
   : QWizard(parent),
     m_first(true),
@@ -225,3 +227,5 @@ void ImporterWizard::done(int result) {
 
   m_scene->merge(m_import, scene);
 }
+
+} // namespace Shaderkit

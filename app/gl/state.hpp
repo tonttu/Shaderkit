@@ -26,6 +26,8 @@
 #include <QSet>
 #include <QMap>
 
+namespace Shaderkit {
+
 /**
  * Represents OpenGL state.
  *
@@ -128,5 +130,7 @@ protected:
 
   int nextFree(const QSet<int>& lst, int id = 0) const;
 };
+
+} // namespace Shaderkit
 
 #endif // STATE_HPP

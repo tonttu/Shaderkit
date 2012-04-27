@@ -22,6 +22,8 @@
 
 #include <QString>
 
+namespace Shaderkit {
+
 class TransformFeedback {
 public:
   TransformFeedback();
@@ -39,5 +41,7 @@ private:
   unsigned int m_query;
   unsigned int m_id;
 };
+
+} // namespace Shaderkit
 
 #endif // TRANSFORM_FEEDBACK_HPP

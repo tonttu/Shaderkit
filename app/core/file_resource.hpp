@@ -20,6 +20,8 @@
 
 #include <QString>
 
+namespace Shaderkit {
+
 class FileResource {
 public:
   FileResource();
@@ -34,5 +36,7 @@ private:
   QString m_filenameAbsolute;
   QString m_rawFilename;
 };
+
+} // namespace Shaderkit
 
 #endif // FILE_RESOURCE_HPP

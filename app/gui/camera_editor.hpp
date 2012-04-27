@@ -23,11 +23,14 @@
 #include "forward.hpp"
 #include <QDialog>
 
+class QListWidgetItem;
+
+namespace Shaderkit {
+
 namespace Ui {
 class CameraEditor;
 }
 
-class QListWidgetItem;
 class CameraEditor : public QDialog {
   Q_OBJECT
 
@@ -63,5 +66,7 @@ private:
   QAction* m_duplicate;
   QAction* m_destroy;
 };
+
+} // namespace Shaderkit
 
 #endif // CAMERA_EDITOR_HPP

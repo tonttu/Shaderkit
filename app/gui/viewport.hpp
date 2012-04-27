@@ -22,6 +22,8 @@
 
 #include <QWidget>
 
+namespace Shaderkit {
+
 class Viewport : public QWidget {
   Q_OBJECT
 
@@ -63,5 +65,7 @@ protected:
   QAction* m_scene_mode;
   QAction* m_render_mode;
 };
+
+} // namespace Shaderkit
 
 #endif // VIEWPORT_HPP

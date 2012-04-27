@@ -6,6 +6,8 @@
 
 #include <QVector>
 
+namespace Shaderkit {
+
 class AttributeVar {
 public:
   typedef QVector<AttributeVar> List;
@@ -45,5 +47,7 @@ private:
   /// Is this a built-in "gl_*" attribute.
   bool m_builtin;
 };
+
+} // namespace Shaderkit
 
 #endif // ATTRIBUTE_VAR_HPP

@@ -20,6 +20,8 @@
 
 #include <cassert>
 
+namespace Shaderkit {
+
 FBOImage::FBOImage(QString name) : SceneObject(name),
   m_id(0), m_attachment(0), m_active_attachment(0), m_width(0), m_height(0) {}
 
@@ -236,3 +238,5 @@ int FrameBufferObject::colorAttachments() {
   }
   return m_value;
 }
+
+} // namespace Shaderkit

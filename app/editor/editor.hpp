@@ -34,6 +34,8 @@ class QScrollArea;
 class QSplitter;
 class QCheckBox;
 
+namespace Shaderkit {
+
 class CheckBoxDialog : public QDialog {
 public:
   CheckBoxDialog(const QString& text, bool show_checkbox);
@@ -144,5 +146,7 @@ private:
 
   QSignalMapper* m_mapper;
 };
+
+} // namespace Shaderkit
 
 #endif // EDITOR_H

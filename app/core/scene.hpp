@@ -36,6 +36,8 @@
 
 #include <functional>
 
+namespace Shaderkit {
+
 /**
  * Scene is a data structure that stores all objects by name, and controls
  * the rendering. Scene also knows the actual viewport size and handles
@@ -271,5 +273,7 @@ protected:
 private:
   bool fileRename(const QString& from, const QString& to, bool keep_old_file);
 };
+
+} // namespace Shaderkit
 
 #endif // SCENE_HPP

@@ -26,6 +26,8 @@
 
 class QTimer;
 
+namespace Shaderkit {
+
 class History : public QObject {
   Q_OBJECT
 
@@ -52,5 +54,7 @@ private:
 
   bool m_historyEnabled;
 };
+
+} // namespace Shaderkit
 
 #endif // HISTORY_HPP

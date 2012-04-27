@@ -24,6 +24,8 @@
 #include <QMap>
 #include <QSet>
 
+namespace Shaderkit {
+
 class FBOImage : public SceneObject, public std::enable_shared_from_this<FBOImage> {
 public:
   FBOImage(QString name);
@@ -109,5 +111,7 @@ private:
   unsigned int m_id;
   int m_width, m_height;
 };
+
+} // namespace Shaderkit
 
 #endif // FBO_HPP

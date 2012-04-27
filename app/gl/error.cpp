@@ -17,6 +17,8 @@
 
 #include "gl/error.hpp"
 
+namespace Shaderkit {
+
 ShaderError::ShaderError() : m_line(0), m_column(0), m_length(0) {}
 ShaderError::ShaderError(QString msg, QString type, int line, int column, int length)
   : m_msg(msg), m_type(type),
@@ -41,3 +43,5 @@ bool ShaderError::isDuplicate(const ShaderError& o) const {
       m_type == o.m_type &&
       m_msg == o.m_msg;
 }
+
+} // namespace Shaderkit

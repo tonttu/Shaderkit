@@ -26,6 +26,8 @@
 
 #include <sys/types.h>
 
+namespace Shaderkit {
+
 /**
  * Watchable interface for every object that uses Watcher.
  */
@@ -89,5 +91,7 @@ private slots:
   /// Slot for QFileSystemWatcher
   void updateDir(const QString& dir);
 };
+
+} // namespace Shaderkit
 
 #endif // WATCHER_HPP

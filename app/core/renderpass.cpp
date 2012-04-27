@@ -69,6 +69,8 @@ const char* fragment_shader =
     }
   );
 
+namespace Shaderkit {
+
 Eigen::Vector3f project3(const Eigen::Projective3f& projection,
                          const Eigen::Vector3f& vector);
 
@@ -522,3 +524,5 @@ void RenderPass::load(QVariantMap map) {
 
   emit changed(shared_from_this());
 }
+
+} // namespace Shaderkit

@@ -10,6 +10,8 @@ namespace {
   }
 }
 
+namespace Shaderkit {
+
 Color::Color(float r, float g, float b, float a)
   : Eigen::Vector4f(r, g, b, a) {
 }
@@ -93,3 +95,5 @@ uint8_t Color::ab() const {
   long tmp = std::lround((*this)[3]*255);
   return clamp(tmp, 0l, 255l);
 }
+
+} // namespace Shaderkit

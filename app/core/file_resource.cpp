@@ -19,6 +19,8 @@
 
 #include <QFileInfo>
 
+namespace Shaderkit {
+
 FileResource::FileResource() {
 }
 
@@ -48,3 +50,5 @@ const QString& FileResource::filename() const {
 const QString& FileResource::rawFilename() const {
   return m_rawFilename;
 }
+
+} // namespace Shaderkit

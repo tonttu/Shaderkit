@@ -17,6 +17,8 @@
 
 #include "core/animation.hpp"
 
+namespace Shaderkit {
+
 Animation::Animation(QString name) : SceneObject(name) {
 }
 
@@ -28,3 +30,5 @@ QVariantMap Animation::toMap() const {
 void Animation::load(QVariantMap map) {
   SceneObject::load(map);
 }
+
+} // namespace Shaderkit

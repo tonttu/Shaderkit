@@ -7,6 +7,8 @@
 
 #include <QPlainTextEdit>
 
+namespace Shaderkit {
+
 /**
  * GLSL code editor.
  *
@@ -108,5 +110,7 @@ private:
 
   int m_marginWidth;
 };
+
+} // namespace Shaderkit
 
 #endif // GLSL_EDITOR_HPP

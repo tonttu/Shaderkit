@@ -22,6 +22,8 @@
 #include <QSet>
 #include <QCheckBox>
 
+namespace Shaderkit {
+
 namespace Ui {
 class NewWizard;
 }
@@ -55,5 +57,7 @@ private:
 
   QString getUniqName(QString str) const;
 };
+
+} // namespace Shaderkit
 
 #endif // NEW_WIZARD_H

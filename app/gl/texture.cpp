@@ -248,7 +248,7 @@ namespace {
     }
   }
 
-  TextureChangeManager* s_instance = 0;
+  Shaderkit::TextureChangeManager* s_instance = 0;
 }
 #undef I
 #undef D2_
@@ -258,6 +258,8 @@ namespace {
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
+
+namespace Shaderkit {
 
 TextureChangeManager::TextureChangeManager() : m_timer(new QTimer(this)) {
   assert(!s_instance);
@@ -883,3 +885,5 @@ void TextureFile::setInternalFormat(int format) {
   Texture::setInternalFormat(format);
   m_loadedFile = "";
 }
+
+} // namespace Shaderkit

@@ -22,6 +22,8 @@
 
 #include <QDialog>
 
+namespace Shaderkit {
+
 namespace Ui {
 class RenderPassList;
 }
@@ -41,5 +43,7 @@ private:
 
   void updateList();
 };
+
+} // namespace Shaderkit
 
 #endif // RENDER_PASS_LIST_HPP

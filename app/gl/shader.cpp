@@ -26,6 +26,8 @@
 
 #include <QFile>
 
+namespace Shaderkit {
+
 bool Shader::s_sandbox_compile = true;
 
 Shader::Shader(ProgramPtr prog, Shader::Type type)
@@ -185,3 +187,5 @@ bool Shader::handleCompilerOutput(ShaderErrorList& errors) {
   ShaderCompilerOutputParser& parser = ShaderCompilerOutputParser::instance();
   return parser.parse(*this, errors);
 }
+
+} // namespace Shaderkit

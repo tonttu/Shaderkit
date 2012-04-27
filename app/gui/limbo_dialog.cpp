@@ -27,6 +27,8 @@
 #include <QFileInfo>
 #include <QDir>
 
+namespace Shaderkit {
+
 LimboDialog::LimboDialog(const QString& filename, ScenePtr scene, const MetaInfo& meta, bool& cont)
   : m_filename(filename), m_meta(meta), m_done(false), m_cont(cont), m_scene(scene),
     m_ui(new Ui::LimboDialog) {
@@ -131,3 +133,5 @@ void LimboDialog::abortDiscard() {
   m_ui->discard_btn->setEnabled(true);
   m_ui->not_now_btn->setEnabled(true);
 }
+
+} // namespace Shaderkit

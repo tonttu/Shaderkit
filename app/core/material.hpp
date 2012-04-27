@@ -29,6 +29,8 @@
 
 #include <QString>
 
+namespace Shaderkit {
+
 /**
  * This is used to make a mapping between uniform variables / attributes
  * and Shaderkit variables. This class doesn't hold the uniform / attribute name,
@@ -191,5 +193,7 @@ private:
 
   ScenePtr m_scene;
 };
+
+} // namespace Shaderkit
 
 #endif // MATERIAL_HPP

@@ -29,6 +29,10 @@
 #include <QComboBox>
 #include <QStackedWidget>
 
+class QStackedWidget;
+
+namespace Shaderkit {
+
 /**
  * This line editor updates its size hints automatically based on the content.
  */
@@ -60,8 +64,6 @@ class HeaderWidget;
 class MaterialProperties;
 class UniformEditor;
 class AttributeEditor;
-
-class QStackedWidget;
 
 struct MaterialItem {
   MaterialPtr material;
@@ -340,4 +342,7 @@ protected:
   static FileList* s_instance;
 };
 */
+
+} // namespace Shaderkit
+
 #endif // PROPERTIES_HPP

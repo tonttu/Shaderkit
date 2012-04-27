@@ -20,6 +20,8 @@
 
 #include "core/renderpass.hpp"
 
+namespace Shaderkit {
+
 RenderPassList::RenderPassList(QList<RenderPassPtr> list, QWidget* parent)
   : QDialog(parent),
     m_list(list),
@@ -53,3 +55,5 @@ void RenderPassList::updateList() {
     m_ui->list->addItem(item);
   }
 }
+
+} // namespace Shaderkit

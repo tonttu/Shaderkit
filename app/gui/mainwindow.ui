@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>Shaderkit::MainWindow</class>
+ <widget class="QMainWindow" name="Shaderkit::MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,7 +14,7 @@
    <string>Shaderkit</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../gfx/gfx.qrc">
+   <iconset resource="../../gfx/gfx.qrc">
     <normaloff>:/icons/logo.png</normaloff>:/icons/logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -533,7 +533,7 @@
   </action>
   <action name="action_textures">
    <property name="icon">
-    <iconset resource="../gfx/gfx.qrc">
+    <iconset resource="../../gfx/gfx.qrc">
      <normaloff>:/icons/texture_browser.png</normaloff>:/icons/texture_browser.png</iconset>
    </property>
    <property name="text">
@@ -577,7 +577,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../gfx/gfx.qrc"/>
+  <include location="../../gfx/gfx.qrc"/>
  </resources>
  <connections/>
 </ui>

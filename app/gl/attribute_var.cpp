@@ -1,5 +1,7 @@
 #include "attribute_var.hpp"
 
+namespace Shaderkit {
+
 AttributeVar::AttributeVar()
     : m_type(0), m_builtin(false) {}
 
@@ -27,3 +29,5 @@ vec4 gl_MultiTexCoord5
 vec4 gl_MultiTexCoord6
 vec4 gl_MultiTexCoord7
 float gl_FogCoord*/
+
+} // namespace Shaderkit

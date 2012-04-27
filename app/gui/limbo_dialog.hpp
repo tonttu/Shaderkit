@@ -23,6 +23,8 @@
 
 #include "forward.hpp"
 
+namespace Shaderkit {
+
 namespace Ui {
   class LimboDialog;
 }
@@ -56,5 +58,7 @@ private:
 
   Ui::LimboDialog* m_ui;
 };
+
+} // namespace Shaderkit
 
 #endif // LIMBO_DIALOG_HPP

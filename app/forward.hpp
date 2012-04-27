@@ -26,6 +26,8 @@
 
 #include <memory>
 
+namespace Shaderkit {
+
 class Watchable;
 class Watcher;
 
@@ -103,11 +105,16 @@ class Viewport;
 
 class MetaInfo;
 
-class QColor;
-
 class MeshManager;
 class BufferObject;
 class BufferObject2;
+
+/// Hash for QSet etc
+template <typename T>
+uint qHash(std::shared_ptr<T> t) {
+  return uint((long)t.get() & std::numeric_limits<uint>::max());
+}
+} // namespace Shaderkit
 
 namespace Eigen {
   template<typename S, int R, int C, int O, int MR, int MC> class Matrix;
@@ -117,10 +124,5 @@ namespace Eigen {
   typedef Matrix<float, 4, 1, 0, 4, 1> Vector4f;
 }
 
-/// Hash for QSet etc
-template <typename T>
-uint qHash(std::shared_ptr<T> t) {
-  return uint((long)t.get() & std::numeric_limits<uint>::max());
-}
 
 #endif
