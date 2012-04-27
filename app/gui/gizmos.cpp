@@ -224,7 +224,7 @@ namespace Shaderkit
     m_object = obj;
   }
 
-  void Gizmo::render(QSize size, State& state, const RenderOptions& render_opts)
+  void Gizmo::render(QSize size, State& state, const RenderOptions&)
   {
     state.push();
 
@@ -301,7 +301,7 @@ namespace Shaderkit
     return hit && makeActive(hit->group);
   }
 
-  void Gizmo::input(const Eigen::Vector2f& diff)
+  void Gizmo::input(const Eigen::Vector2f&)
   {
   }
 
@@ -724,7 +724,7 @@ namespace Shaderkit
     return Gizmo::makeActive(type);
   }
 
-  void ScaleGizmo::renderImpl(State& state)
+  void ScaleGizmo::renderImpl(State&)
   {
 
   }

@@ -183,7 +183,6 @@ namespace Shaderkit
     /// @todo how stupid name is "Normal" for render pass. Extremely stupid. Fix it.
     RenderPassPtr ui_pass = selectedRenderPass(RenderPass::Normal);
 
-    bool ui = false;
     foreach (RenderPassPtr p, m_render_passes) {
       if (!p->view()) continue;
 

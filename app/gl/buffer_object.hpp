@@ -164,13 +164,13 @@ namespace Shaderkit
     /// null buffer (never used)
     virtual ~BufferObject2();
 
-    int size() const { return m_sizeBytes; }
+    std::size_t size() const { return m_sizeBytes; }
     void setUsage(GLenum usage) { m_usage = usage; }
 
     // BaseType could be generated automatically from ValueType and N, but it's
     // more clear this way
     template <GLenum BaseType, typename ValueType, typename Struct, size_t N>
-    void link(ValueType (Struct::*member)[N], VertexAttrib::Target target, int size = 0) {
+    void link(ValueType (Struct::*member)[N], VertexAttrib::Target target, std::size_t size = 0) {
       int offset = (char*)&(((Struct*)0)->*member) - (char*)((Struct*)0);
       AttribInfo& attr = m_attribs[target];
       attr.offset = offset;
@@ -181,7 +181,7 @@ namespace Shaderkit
     }
 
     template <GLenum BaseType, typename ValueType, typename Struct>
-    void link(ValueType (Struct::*member), VertexAttrib::Target target, int size = 0) {
+    void link(ValueType (Struct::*member), VertexAttrib::Target target, std::size_t size = 0) {
       int offset = (char*)&(((Struct*)0)->*member) - (char*)((Struct*)0);
       AttribInfo& attr = m_attribs[target];
       attr.offset = offset;
@@ -192,7 +192,7 @@ namespace Shaderkit
     }
 
     template <GLenum BaseType>
-    void set(VertexAttrib::Target target, int components, int stride = 0, int offset = 0) {
+    void set(VertexAttrib::Target target, int components, std::size_t stride = 0, std::size_t offset = 0) {
       AttribInfo& attr = m_attribs[target];
       attr.offset = offset;
       attr.components = components;
@@ -205,7 +205,7 @@ namespace Shaderkit
     class Array
     {
     public:
-      Array(BufferObject2& bo, void* data, int size) : m_bo(bo),
+      Array(BufferObject2& bo, void* data, std::size_t size) : m_bo(bo),
         m_data(reinterpret_cast<T*>(data)), m_begin(m_data), m_sizeBytes(size) {
         assert(data);
       }
@@ -219,7 +219,7 @@ namespace Shaderkit
       Array& operator++() { ++m_data; return *this; }
       Array& operator--() { --m_data; return *this; }
 
-      Array& operator=(int offset) { m_data = m_begin + offset; return *this; }
+      Array& operator=(std::size_t offset) { m_data = m_begin + offset; return *this; }
 
       Array& operator<<(const T& t) { **this = t; return ++*this; }
 
@@ -239,7 +239,7 @@ namespace Shaderkit
       BufferObject2& m_bo;
       T* m_data;
       T* const m_begin;
-      int m_sizeBytes;
+      std::size_t m_sizeBytes;
     };
 
     class BindHolder
@@ -278,27 +278,27 @@ namespace Shaderkit
     BindHolder bind(State& state);
 
     template <typename T>
-    Array<const T> mapRead(int offset, int size) {
+    Array<const T> mapRead(std::size_t offset, std::size_t size) {
       return Array<const T>(*this, map(offset * sizeof(T), size * sizeof(T), GL_MAP_READ_BIT), (offset+size) * sizeof(T));
     }
 
     template <typename T>
-    Array<T> mapReadWrite(int offset, int size) {
+    Array<T> mapReadWrite(std::size_t offset, std::size_t size) {
       return Array<T>(*this, map(offset * sizeof(T), size * sizeof(T), GL_MAP_READ_BIT | GL_MAP_WRITE_BIT), (offset+size) * sizeof(T));
     }
 
     template <typename T>
-    Array<T> mapWrite(int offset, int size) {
+    Array<T> mapWrite(std::size_t offset, std::size_t size) {
       return Array<T>(*this, map(offset * sizeof(T), size * sizeof(T), GL_MAP_WRITE_BIT), (offset+size) * sizeof(T));
     }
 
     template <typename T>
-    void upload(const T* t, int offsetItems, int numberOfItems) {
+    void upload(const T* t, std::size_t offsetItems, std::size_t numberOfItems) {
       uploadData(t, offsetItems*sizeof(T), numberOfItems*sizeof(T));
     }
 
     template <typename T>
-    void upload(const std::vector<T>& t, int offsetItems = 0) {
+    void upload(const std::vector<T>& t, std::size_t offsetItems = 0) {
       upload(t.data(), offsetItems, t.size());
     }
 
@@ -325,12 +325,12 @@ namespace Shaderkit
      *               MAP_FLUSH_EXPLICIT_BIT
      *               MAP_UNSYNCHRONIZED_BIT
      */
-    void* map(int offsetBytes, int bytes, int access);
+    void* map(std::size_t offsetBytes, std::size_t bytes, int access);
     void unmap();
 
     void bind();
     void unbind();
-    void uploadData(const void* data, int offsetBytes, int sizeBytes);
+    void uploadData(const void* data, std::size_t offsetBytes, std::size_t sizeBytes);
 
     /// Buffer object name
     unsigned int m_id;
@@ -349,8 +349,8 @@ namespace Shaderkit
 
     QMap<VertexAttrib::Target, AttribInfo> m_attribs;
 
-    int m_stride;
-    int m_sizeBytes;
+    std::size_t m_stride;
+    std::size_t m_sizeBytes;
 
     QMap<int, int> m_active_vertex_attribs;
     int m_bind_stack;

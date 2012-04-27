@@ -226,7 +226,7 @@ namespace Shaderkit
     state.pop();
   }
 
-  void ObjectCreator::renderBox(State& state, const RenderOptions& render_opts)
+  void ObjectCreator::renderBox(State& state, const RenderOptions&)
   {
     BufferObject2& box_bo = MeshManager::fetch("ObjectCreator::renderBox");
     box_bo.setUsage(GL_DYNAMIC_DRAW);
@@ -298,7 +298,7 @@ namespace Shaderkit
     }
   }
 
-  void ObjectCreator::renderSphere(State& state, const RenderOptions& render_opts)
+  void ObjectCreator::renderSphere(State& state, const RenderOptions&)
   {
     Eigen::Vector3f p = m_points[0];
     const float r = (m_hover - p).norm();

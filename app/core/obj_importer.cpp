@@ -588,21 +588,21 @@ namespace Shaderkit
     return obj;
   }
 
-  AnimationPtr ObjImporter::loadAnim(const QString& name)
+  AnimationPtr ObjImporter::loadAnim(const QString& /*name*/)
   {
     // const aiAnimation& anim = *m_aiscene->mAnimations[m_names.animations[name]];
     /// @todo implement
     return AnimationPtr();
   }
 
-  CameraPtr ObjImporter::loadCamera(const QString& name)
+  CameraPtr ObjImporter::loadCamera(const QString& /*name*/)
   {
     // const aiCamera& cam = *m_aiscene->mCameras[m_names.cameras[name]];
     /// @todo implement
     return CameraPtr();
   }
 
-  LightPtr ObjImporter::loadLight(const QString& name)
+  LightPtr ObjImporter::loadLight(const QString& /*name*/)
   {
     //const aiLight& light = *m_aiscene->mLights[m_names.lights[name]];
     /// @todo implement

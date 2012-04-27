@@ -284,12 +284,12 @@ namespace Shaderkit
     }
   }
 
-  void GLWidget::dragLeaveEvent(QDragLeaveEvent* event)
+  void GLWidget::dragLeaveEvent(QDragLeaveEvent*)
   {
     m_scene->pick(-1, -1);
   }
 
-  void GLWidget::dragMoveEvent(QDragMoveEvent* event)
+  void GLWidget::dragMoveEvent(QDragMoveEvent*)
   {
     /*m_scene->setPickDisplay(float(event->pos().x())/width(),
                             1.0f-float(event->pos().y())/height());*/

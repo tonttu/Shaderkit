@@ -406,7 +406,7 @@ namespace Shaderkit
     return editor;
   }
 
-  void MainWindow::fileUpdated(const QString& filename)
+  void MainWindow::fileUpdated(const QString& /*filename*/)
   {
     /// @todo implement
     /*  Editor* editor = findEditor(filename);

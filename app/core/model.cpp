@@ -164,7 +164,6 @@ namespace Shaderkit
 
         BufferObject2::Array<Vertex> data = bo.mapWrite<Vertex>(0, vertex_count);
 
-        int i = 0;
         float r2 = 0.5f / radius;
         for (int layer = 0; layer <= stripes; ++layer) {
           float layer_radius = radius * sin(stripe_angle * layer);
@@ -440,7 +439,6 @@ namespace Shaderkit
     MaterialPtr mat = state.material();
     if (mat && mat->prog()) {
       const QMap<QString, MappableValue>& attrs = mat->attributeMap();
-      GLProgram& prog = *mat->prog();
       for (auto it = attrs.begin(); it != attrs.end(); ++it) {
         const MappableValue& map = *it;
         if (map.src() == "mesh" && map.srcindex() == -1 && map.select().empty()) {
@@ -485,7 +483,7 @@ namespace Shaderkit
           }
 
           else if ((map.var() == "color" || map.var() == "colors") &&
-                   (std::max(0, map.varindex()) < colors.size())) {
+                   (std::size_t(std::max(0, map.varindex())) < colors.size())) {
             int idx = std::max(0, map.varindex());
             assert(idx < 8);
             VertexAttrib::Target target = (VertexAttrib::Target)(VertexAttrib::Color0 + idx);
@@ -497,7 +495,7 @@ namespace Shaderkit
           }
 
           else if ((map.var() == "uv" || map.var() == "uvs") &&
-                   (std::max(0, map.varindex()) < uvs.size())) {
+                   (std::size_t(std::max(0, map.varindex())) < uvs.size())) {
             int idx = std::max(0, map.varindex());
             assert(idx < 8);
             VertexAttrib::Target target = (VertexAttrib::Target)(VertexAttrib::UV0 + idx);

@@ -272,7 +272,7 @@ namespace Shaderkit
     return m_prog;
   }
 
-  QVariantMap GLProgram::toMap(ScenePtr scene, QVariantMap& map, bool pack) const
+  QVariantMap GLProgram::toMap(ScenePtr, QVariantMap& map, bool pack) const
   {
     assert(!pack && "not implemented");
 

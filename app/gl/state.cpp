@@ -59,7 +59,7 @@ namespace
   }
 
   void assignValues(std::vector<float>::iterator& output,
-                    float v, const std::vector<int>& sel)
+                    float v, const std::vector<int>&)
   {
     *output++ = v;
   }
@@ -71,7 +71,7 @@ namespace
       std::copy(v.data(), v.data() + 4, output);
       output += 4;
     } else if (sel.size() <= 4) {
-      for (int i = 0; i < sel.size(); ++i)
+      for (std::size_t i = 0; i < sel.size(); ++i)
         *output++ = v[sel[i]];
     } else assert(false);
   }

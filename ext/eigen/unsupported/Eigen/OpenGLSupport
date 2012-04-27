@@ -188,6 +188,7 @@ template<typename Scalar> void glLoadMatrix(const Transform<Scalar,3,Affine>& t)
 template<typename Scalar> void glLoadMatrix(const Transform<Scalar,3,Projective>& t)    { glLoadMatrix(t.matrix()); }
 template<typename Scalar> void glLoadMatrix(const Transform<Scalar,3,AffineCompact>& t) { glLoadMatrix(Transform<Scalar,3,Affine>(t).matrix()); }
 
+/*
 static void glRotate(const Rotation2D<float>& rot)
 {
   glRotatef(rot.angle()*180.f/float(M_PI), 0.f, 0.f, 1.f);
@@ -202,6 +203,7 @@ template<typename Derived> void glRotate(const RotationBase<Derived,3>& rot)
   Transform<typename Derived::Scalar,3,Projective> tr(rot);
   glMultMatrix(tr.matrix());
 }
+*/
 
 #define EIGEN_GL_MAKE_CONST_const const
 #define EIGEN_GL_MAKE_CONST__ 

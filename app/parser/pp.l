@@ -222,7 +222,7 @@ PASTEABLE   [_a-zA-Z0-9]+
       } else {
         if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
         if ((YY_START) == CTRL_EVAL || (YY_START) == EVAL) {
-          fprintf(stderr, "Not found: '%s' %d\n", yytext, m_macro_stack.size());
+		  fprintf(stderr, "Not found: '%s' %lu\n", yytext, m_macro_stack.size());
           yylval->integer = 0; return DECIMAL;
         } else {
           ECHO;
@@ -239,7 +239,7 @@ PASTEABLE   [_a-zA-Z0-9]+
   } else {
     if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
     if ((YY_START) == CTRL_EVAL || (YY_START) == EVAL) {
-      fprintf(stderr, "Not found: '%s' %d\n", yytext, m_macro_stack.size());
+	  fprintf(stderr, "Not found: '%s' %lu\n", yytext, m_macro_stack.size());
       yylval->integer = 0; return DECIMAL;
     } else {
       ECHO;
@@ -439,7 +439,9 @@ void Shaderkit::GLSLpp::push_string(const char* name, const std::string& src, co
 
 void Shaderkit::GLSLpp::pop() {
   struct yyguts_t* yyg = (struct yyguts_t*)yyscanner;
+#ifdef PP_DEBUG
   int from = YY_START;
+#endif
   yy_pop_state(yyscanner);
 #ifdef PP_DEBUG
   fprintf(stderr, "POP  %s -> %s\n", stateName(from), stateName(YY_START));

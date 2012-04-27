@@ -212,7 +212,7 @@ namespace Shaderkit
                       Qt::escape(value.src.c_str()));
               } else {
                 QStringList tmp;
-                for (int i = 0; i < value.params.size(); ++i)
+                for (std::size_t i = 0; i < value.params.size(); ++i)
                   tmp << value.params[i].c_str();
                 if (value.value.empty()) {
                   txt = QString("#define %1(%2) %3").arg(
@@ -312,7 +312,7 @@ namespace Shaderkit
       in_comment.cursor = QTextCursor(document());
 
       const std::vector<bool>& ln = m_parser.pp().lineValues();
-      for (int i = 0; i < ln.size(); ++i) {
+      for (std::size_t i = 0; i < ln.size(); ++i) {
         if (ln[i]) continue;
         const int anchor = document()->findBlockByLineNumber(i).position();
         in_comment.cursor.setPosition(anchor);

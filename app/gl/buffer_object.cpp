@@ -75,7 +75,7 @@ namespace Shaderkit
     enableArray(state, cap, components);
   }
 
-  void BufferObject::bind(State& state, GLenum target)
+  void BufferObject::bind(State&, GLenum target)
   {
     if (m_id == 0) glRun(glGenBuffers(1, &m_id));
     m_target = target;
@@ -176,7 +176,7 @@ namespace Shaderkit
       glRun(glDeleteBuffers(1, &m_id));
   }
 
-  void* BufferObject2::map(int offsetBytes, int bytes, int access)
+  void* BufferObject2::map(std::size_t offsetBytes, std::size_t bytes, int access)
   {
     bind();
     if (m_sizeBytes < offsetBytes + bytes) {
@@ -260,7 +260,7 @@ namespace Shaderkit
       glRun(glBindBuffer(m_target, 0));
   }
 
-  void BufferObject2::uploadData(const void* data, int offsetBytes, int sizeBytes)
+  void BufferObject2::uploadData(const void* data, std::size_t offsetBytes, std::size_t sizeBytes)
   {
     bind();
     if (m_sizeBytes < offsetBytes + sizeBytes) {

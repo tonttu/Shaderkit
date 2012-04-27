@@ -496,7 +496,7 @@ namespace Shaderkit
     }
   }
 
-  void MultiEditor::focusOnError(ShaderError error)
+  void MultiEditor::focusOnError(ShaderError)
   {
     /// @todo implement
     /*  Editor* e = editor(error.res());

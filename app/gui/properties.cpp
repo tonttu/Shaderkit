@@ -879,7 +879,7 @@ namespace Shaderkit
       update(m);
   }
 
-  void MaterialProperties::setActiveMaterials(QSet<MaterialPtr> materials)
+  void MaterialProperties::setActiveMaterials(QSet<MaterialPtr> /*materials*/)
   {
     /*  QSet<MaterialPtr> current = m_materials.keys().toSet();
       foreach (MaterialPtr m, current - materials) {

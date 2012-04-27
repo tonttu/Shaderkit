@@ -126,7 +126,7 @@
     int type;
     long value;
     IntConstant(int t, long v) : type(t), value(v) {}
-    virtual void print(int i = 0) {
+	virtual void print(int /*i*/ = 0) {
       //indent(i) << "IntConstant " << token_name(type) << " '" << value << '\'' << std::endl;
     }
   };
@@ -183,7 +183,7 @@
     virtual void print(int i = 0) {
       indent(i) << "Function" << std::endl;
     }
-    void addParam(Parameter* p) {
+	void addParam(Parameter*) {
       /* if (params == 0) params = p;
       else link(params, p); */
     }

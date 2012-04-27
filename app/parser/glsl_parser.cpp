@@ -13,7 +13,7 @@ namespace Shaderkit
     return m_pp.parse(data);
   }
 
-  Shader::Type GLSLParser::detect(const QString& filename)
+  Shader::Type GLSLParser::detect(const QString& /*filename*/)
   {
     /// @todo Implement
     return Shader::Unknown;

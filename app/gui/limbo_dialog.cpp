@@ -83,7 +83,7 @@ namespace Shaderkit
     delete m_ui;
   }
 
-  void LimboDialog::closeEvent(QCloseEvent* event)
+  void LimboDialog::closeEvent(QCloseEvent*)
   {
     if (!m_done) notNow();
   }

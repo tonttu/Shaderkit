@@ -137,7 +137,7 @@ namespace Shaderkit
     }
   }
 
-  void NewWizard::preview(QString file)
+  void NewWizard::preview(QString /*file*/)
   {
 
   }
