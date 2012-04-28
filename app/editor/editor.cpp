@@ -187,13 +187,6 @@ namespace Shaderkit
     QTextDocument* doc = editors.isEmpty() ? 0 : editors[0]->document();
 
     QString src = shader->src();
-    QFile f(shader->filename());
-    bool open = f.open(QFile::ReadOnly);
-    bool changed = !open;
-    if (!doc && src.isEmpty() && open) {
-      src = f.readAll();
-      if (!src.isEmpty()) changed = true;
-    }
 
     Section& s = m_sections[shader->filename()];
 
@@ -228,21 +221,20 @@ namespace Shaderkit
             this, SLOT(editorModified(bool)));
     connect(s.editor, SIGNAL(cursorPositionChanged()),
             this, SLOT(ensureCursorVisible()));
+    connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
+            this, SLOT(docModificationChanged(bool)));
 
     if (!doc) {
       s.editor->setText(src);
-      connect(s.editor->document(), SIGNAL(modificationChanged(bool)),
-              this, SLOT(docModificationChanged(bool)));
-    } else {
-      /// @todo this is not enough, maybe using a timer?
-      /// @todo ensurePolished?
-      autosize(shader->filename());
+
+      QFile f(shader->filename());
+      bool changed = true;
+      if (f.open(QFile::ReadOnly))
+        changed = f.readAll() != src;
+      if (changed)
+        s.editor->document()->setModified(true);
     }
-
-    if (changed)
-      s.editor->document()->setModified(true);
-
-    QTimer::singleShot(50, this, SLOT(relayout()));
+    autosize(shader->filename());
   }
 
   void MultiEditor::relayout()

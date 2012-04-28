@@ -279,7 +279,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Shaderkit %1 &lt;a href=&quot;http://www.shaderkit.org/&quot;&gt;www.shaderkit.org&lt;/a&gt;</string>
+            <string>Shaderkit %1 &lt;a href=&quot;http://shaderkit.org/&quot;&gt;shaderkit.org&lt;/a&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>

@@ -57,7 +57,7 @@ namespace Shaderkit
     setTabStopWidth(2*8);
     setLineWrapMode(NoWrap);
 
-    updateMarginWidth(0);
+    updateMarginWidth(doc ? doc->blockCount() : 0);
     highlightCurrentLine();
 
     setFrameShape(QFrame::NoFrame);
