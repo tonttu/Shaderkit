@@ -245,7 +245,7 @@ namespace Shaderkit
   RenderPassProperties::RenderPassProperties(QWidget* parent)
     : QTableWidget(parent),
       m_data(new PropertyLayoutData(3, 1)),
-      m_create(0), m_reorder(0), m_duplicate(0), m_destroy(0)
+      m_create(0), m_reorder(0), m_duplicate(0), m_destroy(0), m_firstRender(true)
   {
     if (!s_instance) s_instance = this;
 
@@ -256,7 +256,7 @@ namespace Shaderkit
     verticalHeader()->hide();
     horizontalHeader()->hide();
 
-    horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+    //horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
     horizontalHeader()->setStretchLastSection(true);
 
     setHorizontalScrollMode(ScrollPerPixel);
@@ -297,6 +297,16 @@ namespace Shaderkit
 
     selectionChanged();
   }
+
+  void RenderPassProperties::paintEvent(QPaintEvent* e)
+  {
+    QTableWidget::paintEvent(e);
+    if (m_firstRender) {
+      horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+      m_firstRender = false;
+    }
+  }
+
 #if 0
   void RenderPassProperties::dropEvent(QDropEvent* event)
   {

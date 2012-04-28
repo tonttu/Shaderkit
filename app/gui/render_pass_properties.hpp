@@ -100,6 +100,16 @@ namespace Shaderkit
 
     void init();
 
+  protected:
+    /// It seems that there is some bug in Qt4 (or maybe we are using it somehow wrong).
+    /// If we render this thing normally having QHeaderView::ResizeToContents,
+    /// ScrollPerPixel, setStretchLastSection and ScrollBarAsNeeded and we are actuall
+    /// hidden (in QTabWidget), before we render the widget the first time, Qt toggles
+    /// vertical header on and off every frame, causing massive resize wave eating all
+    /// CPU time. So we are hacking around that by setting last of those styles only
+    /// after first render.
+    void paintEvent(QPaintEvent* e);
+
   public slots:
     void changed(RenderPassPtr pass);
     void listUpdated(QList<RenderPassPtr> passes);
@@ -154,6 +164,9 @@ namespace Shaderkit
 
     QAction* m_create, *m_reorder, *m_duplicate, *m_destroy;
     QList<RenderPassPtr> m_list;
+
+    /// See paintEvent for explanation for this
+    bool m_firstRender;
 
     static RenderPassProperties* s_instance;
   };

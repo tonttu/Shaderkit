@@ -274,6 +274,10 @@ namespace Shaderkit
 
     std::shared_ptr<PropertyLayoutData> layoutData() { return m_data; }
 
+  protected:
+    /// @see RenderPassProperties::paintEvent
+    void paintEvent(QPaintEvent* e);
+
   public slots:
     /// This shader program in given render pass has changed (usually just relinked)
     void update(MaterialPtr mat);
@@ -315,6 +319,8 @@ namespace Shaderkit
     std::shared_ptr<PropertyLayoutData> m_data;
 
     MaterialPtr m_selected;
+
+    bool m_firstRender;
 
     static MaterialProperties* s_instance;
   };
