@@ -73,6 +73,7 @@
         "uv0" : { "map" : "mesh.uv" }
       },
       "uniforms" : {
+        "shininess" : { "map" : "material.shininess" }
       },
       "fragment" : ["phong.frag"],
       "vertex" : ["phong.vert"]

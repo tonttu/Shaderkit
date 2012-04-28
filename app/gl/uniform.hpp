@@ -78,6 +78,28 @@ struct ShaderTypeInfo {
   static const ShaderTypeInfo& typeInfo(GLenum type);
 };
 
+struct VarDescription {
+  VarDescription(const QString& n, const QString& d)
+    : name(n), desc(d) {}
+  QString name;
+  QString desc;
+  QList<GLenum> types;
+};
+
+struct VarGroupDescription {
+  VarGroupDescription(const QString& p, const QString& n)
+    : prefix(p), name(n) {}
+
+  VarGroupDescription& operator()(const QString& n, const QString& d) {
+    vars << VarDescription(n, d);
+    return *this;
+  }
+
+  QString prefix;
+  QString name;
+  QList<VarDescription> vars;
+};
+
 /**
  * Any OpenGL uniform variable can be stored as UniformVar.
  *
@@ -158,6 +180,8 @@ public:
   /// recommended upper limit to the values in this uniform
   /// @todo implement
   float max() const { return 1.0f; }
+
+  static QList<VarGroupDescription> builtInVars();
 
 private:
   /// The name of the uniform variable

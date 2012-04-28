@@ -74,25 +74,33 @@ void Material::removeTexture(TexturePtr tex) {
 }
 
 void Material::setAttributeMapping(const QString& name, const QString& attr) {
+  bool signalChanged = false;
   if (attr.isEmpty()) {
-    m_attributeMap.remove(name);
-    return;
+    signalChanged = m_attributeMap.remove(name) > 0;
+  } else {
+    MappableValue var = MappableValue::parse(attr);
+    if (!var.src().isEmpty()) {
+      signalChanged = m_attributeMap[name] != var;
+      m_attributeMap[name] = var;
+    }
   }
-  MappableValue var = MappableValue::parse(attr);
-  if (!var.src().isEmpty()) {
-    m_attributeMap[name] = var;
-  }
+  if (signalChanged)
+    emit changed(shared_from_this());
 }
 
 void Material::setUniformMapping(const QString& name, const QString& attr) {
+  bool signalChanged = false;
   if (attr.isEmpty()) {
-    m_uniformMap.remove(name);
-    return;
+    signalChanged = m_uniformMap.remove(name) > 0;
+  } else {
+    MappableValue var = MappableValue::parse(attr);
+    if (!var.src().isEmpty()) {
+      signalChanged = m_uniformMap[name] != var;
+      m_uniformMap[name] = var;
+    }
   }
-  MappableValue var = MappableValue::parse(attr);
-  if (!var.src().isEmpty()) {
-    m_uniformMap[name] = var;
-  }
+  if (signalChanged)
+    emit changed(shared_from_this());
 }
 
 Material::Colors::Colors()

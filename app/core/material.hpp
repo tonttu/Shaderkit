@@ -83,6 +83,19 @@ public:
 
   QString toString() const { return m_orig; }
 
+  bool operator==(const MappableValue& o) const {
+    return m_orig == o.m_orig &&
+        m_src == o.m_src &&
+        m_var == o.m_var &&
+        m_srcindex == o.m_srcindex &&
+        m_varindex == o.m_varindex &&
+        m_select == o.m_select;
+  }
+
+  bool operator!=(const MappableValue& o) const {
+    return !(*this == o);
+  }
+
 private:
   QString m_orig;
   QString m_src, m_var;

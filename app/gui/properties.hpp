@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QComboBox>
+#include <QStackedWidget>
 
 /**
  * This line editor updates its size hints automatically based on the content.
@@ -44,10 +45,23 @@ private slots:
   void updateSizes();
 };
 
+class MenuComboBox : public QComboBox {
+  Q_OBJECT
+
+signals:
+  void showPopup(QPoint);
+
+public:
+  MenuComboBox(QWidget* parent = 0) : QComboBox(parent) {}
+  virtual void showPopup();
+};
+
 class HeaderWidget;
 class MaterialProperties;
 class UniformEditor;
 class AttributeEditor;
+
+class QStackedWidget;
 
 struct MaterialItem {
   MaterialPtr material;
@@ -68,6 +82,9 @@ public:
   QLabel* label() const { return m_label; }
   QPersistentModelIndex index() const { return m_index; }
 
+  MaterialPtr material() const { return m_mat; }
+  const QString& name() const { return m_name; }
+
 protected:
   MaterialPtr m_mat;
   QString m_name;
@@ -82,8 +99,7 @@ class AttributeEditor : public VarEditor {
 
 public:
   AttributeEditor(MaterialProperties& prop, int row, MaterialPtr mat, AttributeVar& var);
-
-  void updateUI(AttributeVar& var);
+  virtual void updateUI(AttributeVar& var);
 
 private slots:
   void editingFinished();
@@ -104,6 +120,29 @@ protected:
   UniformVar* getVar();
 };
 
+class FloatEditor;
+class UniformMapEditor : public QStackedWidget {
+  Q_OBJECT
+
+public:
+  UniformMapEditor(MaterialProperties& prop, FloatEditor& editor);
+  virtual void updateUI(UniformVar& var);
+
+  QSlider& slider() const { return *m_slider; }
+
+private slots:
+  void editingFinished();
+  void menu(QPoint point);
+
+private:
+  void clear();
+
+private:
+  FloatEditor& m_editor;
+  MenuComboBox* m_combo;
+  QSlider* m_slider;
+};
+
 class FloatEditor : public UniformEditor {
   Q_OBJECT
 
@@ -120,7 +159,7 @@ private slots:
 
 private:
   LineEdit* m_edit;
-  QSlider* m_slider;
+  UniformMapEditor* m_ui;
   float m_min, m_max;
 
   QAction* m_reset_action;

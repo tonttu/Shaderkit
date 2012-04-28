@@ -322,6 +322,8 @@ void State::applyUniformsMappings() {
         prog.setUniform(this, it.key(), m_scene.width());
       else if (map.var() == "time")
         prog.setUniform(this, it.key(), m_time);
+      else if (map.var() == "dt")
+        prog.setUniform(this, it.key(), m_dt);
       else assert(false);
     }
 

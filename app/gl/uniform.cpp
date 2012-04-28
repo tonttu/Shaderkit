@@ -270,3 +270,60 @@ bool UniformVar::operator==(const UniformVar& other) const {
          m_uniform_block == other.m_uniform_block &&
          m_builtin == other.m_builtin;
 }
+
+QList<VarGroupDescription> UniformVar::builtInVars() {
+  static QList<VarGroupDescription> s_vars;
+  if (s_vars.isEmpty()) {
+    VarGroupDescription g("model", "Model");
+    g   ("transform", "Model matrix")
+        ("modelview", "Modelview matrix");
+    s_vars << g;
+
+    (g = VarGroupDescription("material", "Material"))
+        ("diffuse", "Diffuse color")
+        ("ambient", "Ambient color")
+        ("specular", "Specular color")
+        ("transparent", "Transparent color key")
+        ("emissive", "Self-illumination color")
+        ("wireframe", "Should object be rendered as wireframe")
+        ("twosided", "Is object two-sided")
+        ("opacity", "Opacity")
+        ("shininess", "Shininess factor")
+        ("shininess_strength", "Shininess strength")
+        ("refracti", "Refraction index");
+    s_vars << g;
+
+    (g = VarGroupDescription("scene", "Scene"))
+        ("width", "Width in pixels")
+        ("height", "Height in pixels")
+        ("time", "Time in seconds")
+        ("dt", "Frame time in seconds");
+    s_vars << g;
+
+    (g = VarGroupDescription("camera", "Camera / Viewport"))
+        ("target", "Target")
+        ("up", "Up")
+        ("right", "Right")
+        ("front", "Front")
+        ("view", "View matrix")
+        ("projection", "Projection matrix")
+        ("dist", "Distance from camera to target")
+        ("fov", "Field of view in y-direction in radians")
+        ("near", "Near plane distance")
+        ("far", "Far plane distance")
+        ("width", "Width in pixels")
+        ("height", "Height in pixels");
+    s_vars << g;
+
+    (g = VarGroupDescription("light", "Light"))
+        ("ambient", "Ambient color")
+        ("diffuse", "Diffuse color")
+        ("specular", "Specular color")
+        ("direction", "Unit vector for direction")
+        ("location", "Location")
+        ("target", "Target")
+        ("spot_cutoff", "Maximum spread angle");
+    s_vars << g;
+  }
+  return s_vars;
+}

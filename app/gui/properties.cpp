@@ -40,6 +40,13 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMenu>
+#include <QListWidget>
+#include <QStackedWidget>
+
+void MenuComboBox::showPopup() {
+  hidePopup();
+  emit showPopup(QPoint(0, height()));
+}
 
 class PropertyItem : public QWidgetItem {
 public:
@@ -346,6 +353,121 @@ void AttributeEditor::clear() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+UniformMapEditor::UniformMapEditor(MaterialProperties& prop, FloatEditor& editor)
+  : QStackedWidget(&prop)
+  , m_editor(editor)
+  , m_combo(new MenuComboBox(this))
+  , m_slider(new QSlider(this)) {
+  m_combo->setEditable(true);
+
+  addWidget(m_combo);
+  addWidget(m_slider);
+
+  connect(m_combo, SIGNAL(currentIndexChanged(QString)),
+          this, SLOT(editingFinished()));
+  connect(m_combo, SIGNAL(showPopup(QPoint)),
+          this, SLOT(menu(QPoint)));
+  connect(m_slider, SIGNAL(customContextMenuRequested(QPoint)),
+          this, SLOT(menu(QPoint)));
+
+}
+
+void UniformMapEditor::updateUI(UniformVar& var) {
+  QString selection = "";
+  if (m_editor.material()) {
+    const QMap<QString, MappableValue>& attrs = m_editor.material()->uniformMap();
+    if (attrs.contains(var.name()))
+      selection = attrs.value(var.name()).toString();
+  }
+
+  disconnect(m_combo, SIGNAL(currentIndexChanged(QString)),
+             this, SLOT(editingFinished()));
+  m_combo->clear();
+  m_combo->addItem(selection);
+  m_combo->setCurrentIndex(0);
+  connect(m_combo, SIGNAL(currentIndexChanged(QString)),
+          this, SLOT(editingFinished()));
+
+  if (selection.isEmpty()) {
+    setCurrentWidget(m_slider);
+  } else {
+    setCurrentWidget(m_combo);
+  }
+}
+
+void UniformMapEditor::editingFinished() {
+  if (m_editor.material())
+    m_editor.material()->setUniformMapping(m_editor.name(), m_combo->currentText());
+}
+
+void UniformMapEditor::clear() {
+  /*QList<VarGroupDescription> vars = UniformVar::builtInVars();
+  QListWidget* view = new QListWidget(m_combo);
+
+  QListWidgetItem* tmp = new QListWidgetItem("None");
+  QFont font = tmp->font();
+  font.setBold(true);
+  tmp->setFont(font);
+  view->addItem(tmp);
+
+  foreach (const VarGroupDescription& gd, vars) {
+    tmp = new QListWidgetItem("");
+    tmp->setFlags(Qt::NoItemFlags);
+    font.setPixelSize(2);
+    tmp->setFont(font);
+    view->addItem(tmp);
+
+    tmp = new QListWidgetItem(gd.name);
+    QFont font = tmp->font();
+    font.setBold(true);
+    tmp->setFlags(Qt::NoItemFlags);
+    tmp->setFont(font);
+    view->addItem(tmp);
+
+    foreach (const VarDescription& d, gd.vars) {
+      tmp = new QListWidgetItem(d.name);
+      tmp->setToolTip(d.desc);
+      tmp->setData(Qt::UserRole, gd.prefix + "." + d.name);
+      view->addItem(tmp);
+    }
+  }
+
+  m_combo->setModel(view->model());
+  m_combo->setView(view);*/
+}
+
+void UniformMapEditor::menu(QPoint point) {
+  QMenu menu;
+  foreach (QAction* action, actions())
+    menu.addAction(action);
+
+  if (!menu.isEmpty())
+    menu.addSeparator();
+
+  menu.addAction("None")->setData("");
+  menu.addSeparator();
+
+  QList<VarGroupDescription> vars = UniformVar::builtInVars();
+  foreach (const VarGroupDescription& gd, vars) {
+    QMenu* sub = menu.addMenu(gd.name);
+
+    foreach (const VarDescription& d, gd.vars) {
+      QAction* act = sub->addAction(QString("%2.%3: %1").arg(d.desc, gd.prefix, d.name));
+      act->setData(gd.prefix + "." + d.name);
+    }
+  }
+
+  QWidget* widget = dynamic_cast<QWidget*>(sender());
+
+  QAction* selection = menu.exec((widget ? widget : m_slider)->mapToGlobal(point));
+  if (selection && selection->data().isValid() && m_editor.material()) {
+    m_editor.material()->setUniformMapping(m_editor.name(), selection->data().toString());
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 UniformEditor::UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
   : VarEditor(prop, row, mat, var.name()) {
 }
@@ -372,20 +494,21 @@ FloatEditor::FloatEditor(MaterialProperties& prop, int row, MaterialPtr mat, Uni
   m_edit->setFrame(false);
   l->setWidget(0, 1, m_edit);
 
-  m_slider = new QSlider(Qt::Horizontal, container);
-  l->setWidget(1, 2, m_slider);
+  m_ui = new UniformMapEditor(prop, *this);
+  m_ui->slider().setOrientation(Qt::Horizontal);
+  l->setWidget(1, 2, m_ui);
 
   prop.setCellWidget(row, 1, container);
 
-  m_reset_action = new QAction("Reset", m_slider);
+  m_reset_action = new QAction("Reset", this);
+  m_ui->addAction(m_reset_action);
 
-  m_slider->setMinimum(0);
-  m_slider->setMaximum(1000);
-  m_slider->setContextMenuPolicy(Qt::ActionsContextMenu);
-  m_slider->addAction(m_reset_action);
+  m_ui->slider().setMinimum(0);
+  m_ui->slider().setMaximum(1000);
+  m_ui->slider().setContextMenuPolicy(Qt::CustomContextMenu);
 
   connect(m_edit, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
-  connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
+  connect(&m_ui->slider(), SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
   connect(m_reset_action, SIGNAL(triggered()), this, SLOT(reset()));
 }
 
@@ -399,7 +522,9 @@ void FloatEditor::updateUI(UniformVar& var) {
   if (m_edit->text() != txt)
     m_edit->setText(txt);
 
-  if (m_slider->isSliderDown()) return;
+  m_ui->updateUI(var);
+
+  if (m_ui->slider().isSliderDown()) return;
 
   if (var.min() < m_min) m_min = var.min();
   if (var.max() > m_max) m_max = var.max();
@@ -410,9 +535,9 @@ void FloatEditor::updateUI(UniformVar& var) {
   value -= m_min;
   if (tmp > 0.000000001f) {
     int ivalue = value/tmp*1000;
-    if (m_slider->value() != ivalue)
-      m_slider->setValue(ivalue);
-   }
+    if (m_ui->slider().value() != ivalue)
+      m_ui->slider().setValue(ivalue);
+  }
 }
 
 void FloatEditor::editingFinished() {
