@@ -252,8 +252,6 @@ int main(int argc, char* argv[])
   ResourceLocator rl;
   rl.setPath("db", db.defaultPath());
 
-  ShaderManager shader_manager;
-
   int ret = 0;
   {
     MainWindow window;

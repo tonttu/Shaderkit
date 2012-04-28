@@ -27,31 +27,8 @@
 
 #include <QDir>
 
-namespace
-{
-  Shaderkit::ShaderManager* s_shader_manager = 0;
-}
-
 namespace Shaderkit
 {
-
-  ShaderManager::ShaderManager()
-  {
-    assert(!s_shader_manager);
-    s_shader_manager = this;
-  }
-
-  ShaderManager::~ShaderManager()
-  {
-    assert(s_shader_manager == this);
-    s_shader_manager = 0;
-  }
-
-  ShaderManager& ShaderManager::instance()
-  {
-    assert(s_shader_manager);
-    return *s_shader_manager;
-  }
 
   GLProgram::GLProgram(const QString& name)
     : m_name(name), m_prog(0), m_compiled(false), m_relink(true)
@@ -78,7 +55,7 @@ namespace Shaderkit
       for (Shaders::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it) {
         ShaderErrorList errors(state ? state->material() : MaterialPtr(), name(), (*it)->filename());
         Shader::CompileStatus status = (*it)->compile(errors);
-        if (status != Shader::NONE) emit ShaderManager::instance().compiled(errors);
+        if (status != Shader::NONE) emit compiled(errors);
         if (status == Shader::OK || status == Shader::WARNINGS) {
           /// @todo This should not be re-attached
           glRun(glAttachShader(m_prog, (*it)->id()));
@@ -121,8 +98,7 @@ namespace Shaderkit
   {
     ShaderPtr shader(new Shader(shared_from_this(), type));
     shader->loadFile(filename);
-    m_shaders << shader;
-    emit changed();
+    addShader(shader);
 
     return shader;
   }
@@ -131,8 +107,7 @@ namespace Shaderkit
   {
     ShaderPtr shader(new Shader(shared_from_this(), type));
     shader->loadSrc(txt);
-    m_shaders << shader;
-    emit changed();
+    addShader(shader);
 
     return shader;
   }
@@ -141,14 +116,19 @@ namespace Shaderkit
   {
     if (!shader->program())
       shader->setProgram(shared_from_this());
+
     assert(shader->program() == shared_from_this());
+    assert(!m_shaders.contains(shader));
+
     m_shaders << shader;
+    connect(shader.get(), SIGNAL(changed(ShaderPtr)), this, SIGNAL(shaderChanged(ShaderPtr)));
     emit changed();
   }
 
   bool GLProgram::removeShader(ShaderPtr shader)
   {
     if (!m_shaders.contains(shader)) return false;
+    disconnect(shader.get(), SIGNAL(changed(ShaderPtr)), this, SIGNAL(shaderChanged(ShaderPtr)));
     m_shaders.remove(shader);
     if (m_prog) glRun(glDetachShader(m_prog, shader->id()));
     shader->setProgram(ProgramPtr());
@@ -199,7 +179,7 @@ namespace Shaderkit
       glRun(glUseProgram(m_prog)); /// @todo Do we need this?
       setUniform(m_uniformList);
     }
-    emit ShaderManager::instance().linked(errors);
+    emit linked(errors);
 
     glRun(glUseProgram(prog));
   }

@@ -26,6 +26,8 @@
 #include "core/file_resource.hpp"
 #include "core/scene_saver.hpp"
 
+#include "gl/error.hpp"
+
 #include "Eigen/Geometry"
 
 #include <QString>
@@ -221,6 +223,10 @@ namespace Shaderkit
     void changed(bool wasChangedBefore);
     void stateChanged();
     void saved();
+
+    void shaderChanged(ShaderPtr);
+    void progLinked(ShaderErrorList);
+    void progCompiled(ShaderErrorList);
 
   protected slots:
     void changedSlot();

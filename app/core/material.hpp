@@ -21,6 +21,7 @@
 #include "forward.hpp"
 #include "color.hpp"
 
+#include "gl/error.hpp"
 #include "gl/fbo.hpp"
 #include "gl/state.hpp"
 #include "gl/uniform.hpp"
@@ -171,6 +172,9 @@ namespace Shaderkit
 
   signals:
     void changed(MaterialPtr);
+    void shaderChanged(ShaderPtr);
+    void progLinked(ShaderErrorList);
+    void progCompiled(ShaderErrorList);
 
   private slots:
     void progChanged();

@@ -32,29 +32,6 @@
 
 namespace Shaderkit
 {
-
-  class ShaderManager : public QObject
-  {
-    Q_OBJECT
-
-  public:
-    ShaderManager();
-    virtual ~ShaderManager();
-    static ShaderManager& instance();
-
-  signals:
-    /// Emitted every time the program is linked
-    void linked(ShaderErrorList);
-    /// Shader was compiled
-    void compiled(ShaderErrorList);
-
-    void changed(ShaderPtr);
-
-    friend class GLProgram;
-    friend class Shader;
-  };
-
-
   /**
    * GLSL Program object.
    *
@@ -203,6 +180,11 @@ namespace Shaderkit
 
   signals:
     void changed();
+    void shaderChanged(ShaderPtr);
+    /// Emitted every time the program is linked
+    void linked(ShaderErrorList);
+    /// Shader was compiled
+    void compiled(ShaderErrorList);
 
   protected:
     QString m_name;

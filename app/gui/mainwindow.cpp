@@ -126,11 +126,6 @@ namespace Shaderkit
     connect(m_ui->action_sandbox_compiler, SIGNAL(toggled(bool)),
             this, SLOT(setSandboxCompiler(bool)));
 
-    connect(&ShaderManager::instance(), SIGNAL(linked(ShaderErrorList)),
-            this, SLOT(updateErrors(ShaderErrorList)));
-    connect(&ShaderManager::instance(), SIGNAL(compiled(ShaderErrorList)),
-            this, SLOT(updateErrors(ShaderErrorList)));
-
     QSettings settings("Shaderkit", "Shaderkit");
     m_ui->action_autosave_scene->setChecked(settings.value("gui/autosave_scene", true).toBool());
     m_ui->action_sandbox_compiler->setChecked(settings.value("core/use_sandbox_compiler", true).toBool());
@@ -302,6 +297,11 @@ namespace Shaderkit
 
       disconnect(m_scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
                  &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr> passes)));
+
+      disconnect(m_scene.get(), SIGNAL(progLinked(ShaderErrorList)),
+                 this, SLOT(updateErrors(ShaderErrorList)));
+      disconnect(m_scene.get(), SIGNAL(progCompiled(ShaderErrorList)),
+                 this, SLOT(updateErrors(ShaderErrorList)));
     }
 
     connect(scene.get(), SIGNAL(changed(bool)), this, SLOT(changed(bool)));
@@ -309,6 +309,11 @@ namespace Shaderkit
 
     connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
             &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr>)));
+
+    connect(scene.get(), SIGNAL(progLinked(ShaderErrorList)),
+            this, SLOT(updateErrors(ShaderErrorList)));
+    connect(scene.get(), SIGNAL(progCompiled(ShaderErrorList)),
+            this, SLOT(updateErrors(ShaderErrorList)));
 
     m_scene = scene;
     ResourceLocator::setPath("scene", scene->root());

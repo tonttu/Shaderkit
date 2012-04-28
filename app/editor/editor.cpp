@@ -177,7 +177,7 @@ namespace Shaderkit
     connect(m_list, SIGNAL(itemChanged(QListWidgetItem*)),
             this, SLOT(itemChanged(QListWidgetItem*)));
     connect(m_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
-    connect(&ShaderManager::instance(), SIGNAL(changed(ShaderPtr)),
+    connect(material.get(), SIGNAL(shaderChanged(ShaderPtr)),
             this, SLOT(shaderChanged(ShaderPtr)));
   }
 

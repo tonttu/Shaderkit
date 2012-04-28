@@ -34,8 +34,10 @@ namespace Shaderkit
    * It is safe to create Shader objects before actually having an OpenGL context.
    * The actual shader object is created only when the shader is compiled the first time.
    */
-  class Shader : public std::enable_shared_from_this<Shader>, public FileResource
+  class Shader : public QObject, public std::enable_shared_from_this<Shader>, public FileResource
   {
+    Q_OBJECT
+
   public:
     /// Supported shader types
     enum Type {
@@ -122,6 +124,9 @@ namespace Shaderkit
     static bool sandboxCompile() { return s_sandbox_compile; }
 
     static Type guessType(const QString& filename);
+
+  signals:
+    void changed(ShaderPtr);
 
   protected:
     /**

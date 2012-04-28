@@ -104,7 +104,7 @@ namespace Shaderkit
         Log::error("Failed to parse GLSL compiler output");
       }
       error_count = errors.size() - error_count;
-return ok ? error_count ? WARNINGS : OK : ERRORS;
+      return ok ? error_count ? WARNINGS : OK : ERRORS;
     } else {
       return NONE;
     }
@@ -113,7 +113,7 @@ return ok ? error_count ? WARNINGS : OK : ERRORS;
   void Shader::setFilename(const QString& filename)
   {
     FileResource::setFilename(filename);
-    emit ShaderManager::instance().changed(shared_from_this());
+    emit changed(shared_from_this());
   }
 
   GLuint Shader::id() const

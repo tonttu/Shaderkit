@@ -414,6 +414,15 @@ namespace Shaderkit
     m_lights.clear();
     m_cameras.clear();
     m_textures.clear();
+    foreach (MaterialPtr mat, m_materials) {
+      disconnect(mat.get(), SIGNAL(progLinked(ShaderErrorList)),
+                 this, SIGNAL(progLinked(ShaderErrorList)));
+      disconnect(mat.get(), SIGNAL(progCompiled(ShaderErrorList)),
+                 this, SIGNAL(progCompiled(ShaderErrorList)));
+      disconnect(mat.get(), SIGNAL(shaderChanged(ShaderPtr)),
+                 this, SIGNAL(shaderChanged(ShaderPtr)));
+    }
+
     m_materials.clear();
     m_models.clear();
     m_imports.clear();
@@ -807,10 +816,7 @@ namespace Shaderkit
   void Scene::add(MaterialPtr mat)
   {
     mat->setName(Utils::uniqueName(mat->name(), m_materials.keys(), "Material"));
-    m_materials[mat->name()] = mat;
-    mat->setScene(shared_from_this());
-
-    emit materialListUpdated(shared_from_this());
+    setMaterial(mat->name(), mat);
   }
 
   void Scene::add(ObjectPtr obj)
@@ -971,7 +977,24 @@ namespace Shaderkit
 
   void Scene::setMaterial(QString name, MaterialPtr material)
   {
+    if (m_materials.contains(name)) {
+      MaterialPtr old = m_materials[name];
+      disconnect(old.get(), SIGNAL(progLinked(ShaderErrorList)),
+                 this, SIGNAL(progLinked(ShaderErrorList)));
+      disconnect(old.get(), SIGNAL(progCompiled(ShaderErrorList)),
+                 this, SIGNAL(progCompiled(ShaderErrorList)));
+      disconnect(old.get(), SIGNAL(shaderChanged(ShaderPtr)),
+                 this, SIGNAL(shaderChanged(ShaderPtr)));
+    }
+
     m_materials[name] = material;
+
+    connect(material.get(), SIGNAL(progLinked(ShaderErrorList)),
+            this, SIGNAL(progLinked(ShaderErrorList)));
+    connect(material.get(), SIGNAL(progCompiled(ShaderErrorList)),
+            this, SIGNAL(progCompiled(ShaderErrorList)));
+    connect(material.get(), SIGNAL(shaderChanged(ShaderPtr)),
+            this, SIGNAL(shaderChanged(ShaderPtr)));
     material->setScene(shared_from_this());
     emit materialListUpdated(shared_from_this());
   }

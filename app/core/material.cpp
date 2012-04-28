@@ -191,6 +191,12 @@ namespace Shaderkit
     if (!create_if_not_found || m_program) return m_program;
     m_program.reset(new GLProgram(m_name));
     connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+    connect(m_program.get(), SIGNAL(linked(ShaderErrorList)),
+            this, SIGNAL(progLinked(ShaderErrorList)));
+    connect(m_program.get(), SIGNAL(compiled(ShaderErrorList)),
+            this, SIGNAL(progCompiled(ShaderErrorList)));
+    connect(m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
+            this, SIGNAL(shaderChanged(ShaderPtr)));
     emit changed(shared_from_this());
     return m_program;
   }
@@ -308,8 +314,16 @@ namespace Shaderkit
     m->style = style;
     m->m_scene = m_scene;
 
-    if (m_program)
+    if (m_program) {
       m->m_program = m_program->clone();
+      connect(m->m_program.get(), SIGNAL(changed()), m.get(), SLOT(progChanged()));
+      connect(m->m_program.get(), SIGNAL(linked(ShaderErrorList)),
+              m.get(), SIGNAL(progLinked(ShaderErrorList)));
+      connect(m->m_program.get(), SIGNAL(compiled(ShaderErrorList)),
+              m.get(), SIGNAL(progCompiled(ShaderErrorList)));
+      connect(m->m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
+              m.get(), SIGNAL(shaderChanged(ShaderPtr)));
+    }
 
     return m;
   }
