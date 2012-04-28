@@ -153,6 +153,14 @@ namespace Shaderkit
   MainWindow::~MainWindow()
   {
     assert (s_instance == this);
+
+    // Some objects (like GLWidget) use MainWindow instance in their destructors.
+    // Delete them manually, before MainWindow is totally unusable.
+    QObjectList lst = children();
+    foreach (QObject* obj, lst)
+      delete obj;
+
+    s_instance = 0;
   }
 
   MultiEditor* MainWindow::createEditor(MaterialPtr material)
