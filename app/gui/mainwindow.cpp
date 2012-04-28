@@ -297,6 +297,8 @@ namespace Shaderkit
 
       disconnect(m_scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
                  &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr> passes)));
+      disconnect(m_scene.get(), SIGNAL(materialListUpdated(ScenePtr)),
+                 &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
 
       disconnect(m_scene.get(), SIGNAL(progLinked(ShaderErrorList)),
                  this, SLOT(updateErrors(ShaderErrorList)));
@@ -309,6 +311,8 @@ namespace Shaderkit
 
     connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
             &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr>)));
+    connect(scene.get(), SIGNAL(materialListUpdated(ScenePtr)),
+            &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
 
     connect(scene.get(), SIGNAL(progLinked(ShaderErrorList)),
             this, SLOT(updateErrors(ShaderErrorList)));
@@ -336,6 +340,7 @@ namespace Shaderkit
 
     setSceneChanged(m_scene->isChanged());
     RenderPassProperties::instance().listUpdated(m_scene->renderPasses());
+    MaterialProperties::instance().updateMaterialList(m_scene);
 
     m_scene->setAutomaticSaving(m_ui->action_autosave_scene->isChecked());
 

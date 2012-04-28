@@ -150,9 +150,6 @@ namespace Shaderkit
       m_state(New),
       m_changed(false), m_loading(false), m_lastTime(0)
   {
-    /// @todo remove this, this non-gui class shouldn't call gui stuff
-    connect(this, SIGNAL(materialListUpdated(ScenePtr)),
-            &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
     m_time.start();
 
     connect(this, SIGNAL(changed(bool)), &m_saver, SLOT(sceneChanged()));
