@@ -68,8 +68,8 @@ namespace Shaderkit
         link(state);
     }
     if (isLinked()) {
-      /*if (state) state->useProgram(shared_from_this());
-      else */glRun(glUseProgram(m_prog));
+      if (state) state->useProgram(shared_from_this());
+      else glRun(glUseProgram(m_prog));
       return true;
     }
     return false;

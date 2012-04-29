@@ -90,6 +90,9 @@ namespace Shaderkit
     MaterialPtr material() const;
     QSet<MaterialPtr> usedMaterials() const { return m_usedMaterials; }
 
+    ProgramPtr prog() const;
+    void useProgram(ProgramPtr prog);
+
     void setCamera(CameraPtr camera);
     CameraPtr camera() const;
 
@@ -113,6 +116,7 @@ namespace Shaderkit
       QMap<QPair<void*, QString>, int> m_texunits;
       QMap<int, Light*> m_lights;
       CameraPtr m_camera;
+      ProgramPtr m_prog;
       VertexAttrib m_attr;
     };
 

@@ -91,6 +91,7 @@ namespace Shaderkit
     using List::begin;
     using List::end;
     using List::size;
+    using List::isEmpty;
 
     ShaderErrorList(MaterialPtr material_ = MaterialPtr(), QString program_ = "", QString shaderFilename_ = "")
       : material(material_), program(program_), shader_filename(shaderFilename_) {}

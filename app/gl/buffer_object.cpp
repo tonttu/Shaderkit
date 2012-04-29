@@ -218,10 +218,10 @@ namespace Shaderkit
 
     BufferObject2::BindHolder ret(*this);
 
-    if (!state.material() || !state.material()->prog())
+    if (!state.prog())
       return ret;
 
-    GLProgram& prog = *state.material()->prog();
+    GLProgram& prog = *state.prog();
     for (auto it = state.attr()->begin(), end = state.attr()->end(); it != end; ++it) {
       if (!m_attribs.contains(it.key())) continue;
       const AttribInfo& info = m_attribs[it.key()];

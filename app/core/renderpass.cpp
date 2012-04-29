@@ -289,6 +289,7 @@ namespace Shaderkit
     glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2], m_clearColor[3]);
     if (m_clear) glClear(m_clear);
     if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
+    state.applyUniformsMappings();
 
     if (m_type == PostProc) {
       glDisable(GL_DEPTH_TEST);

@@ -263,6 +263,7 @@ namespace Shaderkit
         len = data.length();
 
         // Recompile
+        /// @todo Should use sandbox compiler also here
         glRun(glShaderSource(shader.id(), 1, &str, &len));
         glRun(glCompileShader(shader.id()));
       }

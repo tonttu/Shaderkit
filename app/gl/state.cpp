@@ -205,6 +205,20 @@ namespace Shaderkit
     return m_materials.back();
   }
 
+  ProgramPtr State::prog() const
+  {
+    return m_data.back().m_prog;
+  }
+
+  void State::useProgram(ProgramPtr prog)
+  {
+    if (prog)
+      glRun(glUseProgram(prog->id()));
+    else
+      glRun(glUseProgram(0));
+    m_data.back().m_prog = prog;
+  }
+
   void State::popMaterial()
   {
     if (m_materials.isEmpty()) {
@@ -315,7 +329,7 @@ namespace Shaderkit
   {
     if (m_materials.isEmpty()) return;
     Material& mat = *m_materials.back();
-    /// @todo should work without shaders
+    /// @todo should maybe work without shaders
     if (!mat.prog()) return;
     GLProgram& prog = *mat.prog();
     CameraPtr c = camera();
