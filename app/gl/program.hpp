@@ -104,8 +104,9 @@ namespace Shaderkit
     void setUniform(GLint loc, const Eigen::Vector3f& v) { glRun(glUniform3fv(loc, 1, v.data())); }
     void setUniform(GLint loc, const Eigen::Vector4f& v) { glRun(glUniform4fv(loc, 1, v.data())); }
 
-    void setUniform(GLint loc, const Eigen::Projective3f& m) { glRun(glUniformMatrix4fv(loc, 1, false, m.data())); }
-    void setUniform(GLint loc, const Eigen::Affine3f& m) { glRun(glUniformMatrix3fv(loc, 1, false, m.data())); }
+    void setUniform(GLint loc, const Eigen::Projective3f& m) { glRun(glUniformMatrix4fv(loc, 1, false, m.matrix().data())); }
+    void setUniform(GLint loc, const Eigen::Matrix4f& m) { glRun(glUniformMatrix4fv(loc, 1, false, m.data())); }
+    void setUniform(GLint loc, const Eigen::Affine3f& m) { glRun(glUniformMatrix3fv(loc, 1, false, m.matrix().data())); }
 
     template <typename T>
     void setUniform(State* state, QString name, int vector_dimension, const T& t, bool restore = false) {

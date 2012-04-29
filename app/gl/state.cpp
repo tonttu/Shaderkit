@@ -338,9 +338,10 @@ namespace Shaderkit
       if (map.src() == "model") {
         if (map.var() == "transform")
           setUniform(prog, it.key(), model());
-        else if (map.var() == "modelview" && c)
-          setUniform(prog, it.key(), c->view() * model());
-        else assert(false);
+        else if (map.var() == "modelview" && c) {
+          Eigen::Matrix4f m = (c->view() * model()).matrix();
+          prog.setUniform(this, it.key(), m);
+        } else assert(false);
       }
 
       else if (map.src() == "material") {
