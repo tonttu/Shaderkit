@@ -431,8 +431,8 @@ namespace Shaderkit
   {
     state.push();
 
-    /*bool handledVertices = false, handledNormals = false, handledUvs = false,
-        handledColors = false;*/
+    bool handledVertices = false, handledNormals = false, handledUvs = false,
+        handledColors = false;
 
     std::vector<BufferObject2::BindHolder> binds;
 
@@ -450,6 +450,7 @@ namespace Shaderkit
             bo.sync(vertices);
             state.attr()[VertexAttrib::Vertex0] = it.key();
             binds.push_back(bo.bind(state));
+            handledVertices = true;
           }
 
           else if ((map.var() == "normal" || map.var() == "normals") &&
@@ -460,6 +461,7 @@ namespace Shaderkit
             bo.sync(normals);
             state.attr()[VertexAttrib::Normal] = it.key();
             binds.push_back(bo.bind(state));
+            handledNormals = true;
           }
 
           else if ((map.var() == "tangent" || map.var() == "tangents") &&
@@ -492,6 +494,7 @@ namespace Shaderkit
             bo.sync(colors[idx]);
             state.attr()[target] = it.key();
             binds.push_back(bo.bind(state));
+            handledColors = true;
           }
 
           else if ((map.var() == "uv" || map.var() == "uvs") &&
@@ -504,6 +507,7 @@ namespace Shaderkit
             bo.sync(uvs[idx]);
             state.attr()[target] = it.key();
             binds.push_back(bo.bind(state));
+            handledUvs = true;
           }
 
           else assert(false);
@@ -511,15 +515,43 @@ namespace Shaderkit
       }
     }
 
-    /*  if (!vertices.empty())
-        m_vertices.enableArray(state, GL_VERTEX_ARRAY, 3, vertices);
-      if (!normals.empty())
-        m_normals.enableArray(state, GL_NORMAL_ARRAY, 3, normals);
-      if (!uvs.empty())
-        m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, uv_sizes[0], uvs[0]);
-      if (!colors.empty())
-        m_color0.enableArray(state, GL_COLOR_ARRAY, 3, colors[0]);
-        */
+    // For now, as a backup support the fixed pipeline
+    if (!handledVertices && !vertices.empty()) {
+      BufferObject2& bo = m_buffers[VertexAttrib::Vertex0];
+      bo.set<GL_FLOAT>(VertexAttrib::Vertex0, 3, 0, 0);
+      bo.sync(vertices);
+      binds.push_back(bo.bind(state));
+      glRun(glEnableClientState(GL_VERTEX_ARRAY));
+      glRun(glVertexPointer(3, GL_FLOAT, 0, 0));
+    }
+
+    if (!handledNormals && !normals.empty()) {
+      BufferObject2& bo = m_buffers[VertexAttrib::Normal];
+      bo.set<GL_FLOAT>(VertexAttrib::Normal, 3, 0, 0);
+      bo.sync(normals);
+      binds.push_back(bo.bind(state));
+      glRun(glEnableClientState(GL_NORMAL_ARRAY));
+      glRun(glNormalPointer(GL_FLOAT, 0, 0));
+    }
+
+    if (!handledUvs && !uvs.empty()) {
+      BufferObject2& bo = m_buffers[VertexAttrib::UV0];
+      bo.set<GL_FLOAT>(VertexAttrib::UV0, uv_components[0], 0, 0);
+      bo.sync(uvs[0]);
+      binds.push_back(bo.bind(state));
+      glRun(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+      glRun(glTexCoordPointer(uv_components[0], GL_FLOAT, 0, 0));
+    }
+
+    if (!handledColors && !colors.empty()) {
+      BufferObject2& bo = m_buffers[VertexAttrib::Color0];
+      bo.set<GL_FLOAT>(VertexAttrib::Color0, 3, 0, 0);
+      bo.sync(colors[0]);
+      binds.push_back(bo.bind(state));
+      glRun(glEnableClientState(GL_COLOR_ARRAY));
+      glRun(glColorPointer(3, GL_FLOAT, 0, 0));
+    }
+
     if (!indices.empty()) {
       m_indices.set<GL_UNSIGNED_INT>(VertexAttrib::Index, 1);
       m_indices.sync(indices);
