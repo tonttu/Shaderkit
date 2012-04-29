@@ -21,6 +21,8 @@
 
 #include "parser/grammar.hpp"
 
+#include <QMap>
+
 #include <cassert>
 
 namespace Shaderkit
@@ -105,7 +107,7 @@ namespace Shaderkit
 
         if (!ok) {
           Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
-          return false;
+          continue;
         }
       }
     }
@@ -249,6 +251,8 @@ namespace Shaderkit
   bool ShaderCompilerOutputParser::parse(Shader& shader, ShaderErrorList& errors)
   {
     ShaderLexer lexer;
+    QMap<int, ShaderErrorList> errorLists;
+    bool parsedOk = false;
     for (int i = 0, e = m_parsers.size(); i < e; ++i) {
       std::shared_ptr<ParserImpl> impl = m_parsers[i];
       assert(impl);
@@ -285,34 +289,42 @@ namespace Shaderkit
 
       ShaderErrorList tmp;
       if (impl->parse(lines, tmp)) {
-        foreach (ShaderError e, tmp) {
-          // instead of using the original error log, we have used lexer to split
-          // the output to lines, therefore we need to map these line number to
-          // original line/column numbers
-          int l = lexer.tokens();
-          if (l) {
-            if (e.line() >= l) {
-              Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, log: %s, data: %s, src: %s",
-                         e.line(), l, &log[0], lexer.toLines().c_str(), shader.src().toUtf8().data());
-            } else {
-              const ShaderLexer::Token& token = lexer.transform(e.line());
-              e.setLine(token.line);
-              e.setColumn(token.column);
-              e.setLength(token.len);
-            }
-          }
-          errors << e;
-        }
-
+        errorLists.clear();
+        errorLists[tmp.size()] = tmp;
         if (i != 0) {
           /// This seems to be the best parser implementation, always prefer this
           m_parsers.removeAll(impl);
           m_parsers.insert(0, impl);
         }
-        return true;
+        parsedOk = true;
+        break;
+      }
+      if (!tmp.isEmpty())
+        errorLists[tmp.size()] = tmp;
+    }
+
+    if (!errorLists.isEmpty()) {
+      foreach (ShaderError e, errorLists.values().last()) {
+        // instead of using the original error log, we have used lexer to split
+        // the output to lines, therefore we need to map these line number to
+        // original line/column numbers
+        int l = lexer.tokens();
+        if (l) {
+          if (e.line() >= l) {
+            Log::error("BUG on Shader::handleCompilerOutput, e.line: %d, l: %d, data: %s, src: %s",
+                       e.line(), l, lexer.toLines().c_str(), shader.src().toUtf8().data());
+          } else {
+            const ShaderLexer::Token& token = lexer.transform(e.line());
+            e.setLine(token.line);
+            e.setColumn(token.column);
+            e.setLength(token.len);
+          }
+        }
+        errors << e;
       }
     }
-    return false;
+
+    return parsedOk;
   }
 
 } // namespace Shaderkit
