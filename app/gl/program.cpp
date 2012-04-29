@@ -202,10 +202,7 @@ namespace Shaderkit
                                &length, &size, &type, &name[0]));
 
       // For now skip build-in uniforms, since those can't be changed the same way as others.
-      /// @todo handle these magical variables somehow better
-      QSet<QString> special;
-      special << "time" << "far" << "near";
-      if (strncmp(&name[0], "gl_", 3) != 0 && !special.contains(QString::fromAscii(&name[0])))
+      if (strncmp(&name[0], "gl_", 3) != 0)
         list.push_back(UniformVar(shared_from_this(), &name[0], type));
     }
     return list;

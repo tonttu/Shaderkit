@@ -140,13 +140,8 @@ namespace Shaderkit
   {
     m_prog_binded = m_program ? m_program->bind(&state) : false;
 
-    if (m_prog_binded) {
+    if (m_prog_binded)
       m_program->setUniform(m_uniform_list);
-      /// @todo handle these magical variables somehow better
-      m_program->setUniform(&state, "time", state.time());
-      m_program->setUniform(&state, "far", state.camera()->far());
-      m_program->setUniform(&state, "near", state.camera()->near());
-    }
 
     foreach (QString name, m_textures.keys()) {
       int unit = state.reserveTexUnit(this, name);
