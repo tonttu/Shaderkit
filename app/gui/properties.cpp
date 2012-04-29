@@ -428,6 +428,11 @@ namespace Shaderkit
     }
   }
 
+  bool UniformMapEditor::editorVisible() const
+  {
+    return currentWidget() == m_slider;
+  }
+
   void UniformMapEditor::editingFinished()
   {
     if (m_editor.material())
@@ -509,6 +514,11 @@ namespace Shaderkit
   {
   }
 
+  bool UniformEditor::isInteractiveEditor() const
+  {
+    return false;
+  }
+
   UniformVar* UniformEditor::getVar()
   {
     UniformVar::List& list = m_mat->uniformList();
@@ -555,6 +565,11 @@ namespace Shaderkit
 
   FloatEditor::~FloatEditor()
   {
+  }
+
+  bool FloatEditor::isInteractiveEditor() const
+  {
+    return m_ui->editorVisible();
   }
 
   void FloatEditor::updateUI(UniformVar& var)
@@ -712,7 +727,7 @@ namespace Shaderkit
 
   MaterialProperties::MaterialProperties(QWidget* parent)
     : QTableWidget(parent),
-      m_only_uniforms(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
+      m_only_editors(0), m_create(0), m_open(0), m_duplicate(0), m_edit(0), m_destroy(0),
       /*m_hover_row(-1),*/ m_data(new PropertyLayoutData(3, 1)), m_firstRender(true)
   {
     if (!s_instance) s_instance = this;
@@ -758,10 +773,10 @@ namespace Shaderkit
     //QIcon icon(":/icons/sliders.png");
     QIcon icon(":/icons/uniforms_off.png");
     icon.addFile(":/icons/uniforms.png", QSize(), QIcon::Normal, QIcon::On);
-    m_only_uniforms = tb->addAction(icon, "Show only uniform variables",
+    m_only_editors = tb->addAction(icon, "Show only sliders",
                                     this, SLOT(toggleMode()));
-    m_only_uniforms->setCheckable(true);
-    m_only_uniforms->setChecked(false);
+    m_only_editors->setCheckable(true);
+    m_only_editors->setChecked(false);
     tb->addSeparator();
     m_create = tb->addAction(QIcon(":/icons/new2.png"), "New material",
                              this, SLOT(create()));
@@ -1024,7 +1039,14 @@ namespace Shaderkit
 
   void MaterialProperties::toggleMode()
   {
-
+    bool only_editors = m_only_editors->isChecked();
+    for (auto it = m_materials.begin(); it != m_materials.end(); ++it) {
+      auto& item = *it;
+      foreach (AttributeEditor* ed, item.attribute_mappers)
+        setRowHidden(ed->index().row(), only_editors);
+      foreach (UniformEditor* ed, item.uniform_editors)
+        setRowHidden(ed->index().row(), only_editors && !ed->isInteractiveEditor());
+    }
   }
 
   void MaterialProperties::materialChanged(MaterialPtr mat)
@@ -1085,7 +1107,7 @@ namespace Shaderkit
       selectionChanged();
     }
 
-    menu->addAction(m_only_uniforms);
+    menu->addAction(m_only_editors);
     menu->addSeparator();
     menu->addAction(m_create);
     menu->addAction(m_open);

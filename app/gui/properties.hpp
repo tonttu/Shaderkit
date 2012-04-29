@@ -124,6 +124,8 @@ namespace Shaderkit
     UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
     virtual void updateUI(UniformVar& var) = 0;
 
+    virtual bool isInteractiveEditor() const;
+
   protected:
     UniformVar* getVar();
   };
@@ -139,6 +141,8 @@ namespace Shaderkit
 
     /// @todo QSlider should be a template parameter
     QSlider& slider() const { return *m_slider; }
+
+    bool editorVisible() const;
 
   private slots:
     void editingFinished();
@@ -161,6 +165,8 @@ namespace Shaderkit
   public:
     FloatEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
     virtual ~FloatEditor();
+
+    virtual bool isInteractiveEditor() const;
 
     void updateUI(UniformVar& var);
 
@@ -328,7 +334,7 @@ namespace Shaderkit
 
     QItemSelectionModel::SelectionFlags selectionCommand(const QModelIndex& index,
         const QEvent* event) const;
-    QAction* m_only_uniforms, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
+    QAction *m_only_editors, *m_create, *m_open, *m_duplicate, *m_edit, *m_destroy;
     // int m_hover_row;
 
     std::shared_ptr<PropertyLayoutData> m_data;
