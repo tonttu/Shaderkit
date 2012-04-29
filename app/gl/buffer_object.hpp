@@ -20,6 +20,9 @@
 
 #include "gl/opengl.hpp"
 #include "forward.hpp"
+#include "core/color.hpp"
+
+#include <Eigen/Geometry>
 
 #include <cassert>
 #include <vector>
@@ -29,6 +32,53 @@
 
 namespace Shaderkit
 {
+  enum class VertexType { None,
+                          UV1, UV2, UV3, UV4,
+                          Color1, Color2, Color3, Color4,
+                          Normal };
+
+  template <VertexType type>
+  struct VertexImpl;
+
+  template <> struct VertexImpl<VertexType::None> {};
+  template <> struct VertexImpl<VertexType::UV1> { Eigen::Matrix<float, 1, 1, 0, 1, 1> uv; };
+  template <> struct VertexImpl<VertexType::UV2> { Eigen::Vector2f uv; };
+  template <> struct VertexImpl<VertexType::UV3> { Eigen::Vector3f uv; };
+  template <> struct VertexImpl<VertexType::UV4> { Eigen::Vector4f uv; };
+
+  template <> struct VertexImpl<VertexType::Color1> { float color; };
+  template <> struct VertexImpl<VertexType::Color2> { Eigen::Vector2f color; };
+  template <> struct VertexImpl<VertexType::Color3> { Eigen::Vector3f color; };
+  template <> struct VertexImpl<VertexType::Color4> { Color color; };
+  template <> struct VertexImpl<VertexType::Normal> { Eigen::Vector3f normal; };
+
+  template <size_t components, VertexType type = VertexType::None,
+            VertexType type2 = VertexType::None, VertexType type3 = VertexType::None>
+  struct Vertex;
+
+  template <size_t components, VertexType type, VertexType type2, VertexType type3>
+  struct Vertex: public VertexImpl<type>, public VertexImpl<type2>, public VertexImpl<type3>
+  {
+    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+  };
+
+  template <size_t components, VertexType type, VertexType type2>
+  struct Vertex<components, type, type2, VertexType::None>: public VertexImpl<type>, public VertexImpl<type2>
+  {
+    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+  };
+
+  template <size_t components, VertexType type>
+  struct Vertex<components, type, VertexType::None, VertexType::None>: public VertexImpl<type>
+  {
+    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+  };
+
+  template <size_t components>
+  struct Vertex<components, VertexType::None, VertexType::None, VertexType::None>
+  {
+    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+  };
 
   class BufferObject
   {
