@@ -172,7 +172,6 @@ namespace Shaderkit
     bool m_autosize;
     FBOPtr m_fbo;
 
-    BufferObject m_gridVertices, m_gridColors;
     ProgramPtr m_gridProg;
   };
 

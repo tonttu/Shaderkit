@@ -21,6 +21,7 @@
 #include "core/object_creator.hpp"
 #include "core/material.hpp"
 #include "core/utils.hpp"
+#include "core/mesh_manager.hpp"
 
 #include "gl/camera.hpp"
 #include "gl/light.hpp"
@@ -41,14 +42,16 @@ const char* vertex_shader =
   SHADER(
     precision highp float;
 
+    in vec3 vertex;
+    in vec4 color;
     out vec2 v;
 
     void main()
-{
-  v = gl_Vertex.xz;
-  gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
-  gl_FrontColor = gl_Color;
-}
+    {
+      v = vertex.xz;
+      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(vertex, 1);
+      gl_FrontColor = color;
+    }
   );
 
 const char* fragment_shader =
@@ -62,13 +65,13 @@ const char* fragment_shader =
     in vec2 v;
 
     void main()
-{
-  vec2 d = vec2(0.70710678, 0.70710678);
-  float dist = abs(dot(d, v) - anim);
-  float m = clamp(-2.0 / (10*5) * dist + 1.0, 0.0, 1.0);
-  m *= m;
-  gl_FragColor = mix(gl_Color, vec4(1, 1, 0, 1), mix(m, 1.0f, active*(1.0 + sin(time*6.456f)*0.3)));
-}
+    {
+      vec2 d = vec2(0.70710678, 0.70710678);
+      float dist = abs(dot(d, v) - anim);
+      float m = clamp(-2.0 / (10*5) * dist + 1.0, 0.0, 1.0);
+      m *= m;
+      gl_FragColor = mix(gl_Color, vec4(1, 1, 0, 1), mix(m, 1.0f, active*(1.0 + sin(time*6.456f)*0.3)));
+    }
   );
 
 namespace Shaderkit
@@ -374,7 +377,9 @@ namespace Shaderkit
     const int dist = 5;
 
     if (render_opts.grid) {
-      if (!m_gridVertices.size()) {
+      BufferObject2& gridVertices = MeshManager::fetch("gridVertices");
+      BufferObject2& gridColors = MeshManager::fetch("gridColors");
+      if (!gridVertices.size()) {
         std::vector<float> v;
         std::vector<float> c;
 #define V(a,b,c) v.push_back(a), v.push_back(b), v.push_back(c)
@@ -408,13 +413,19 @@ namespace Shaderkit
         }
 #undef V
 #undef C
-        m_gridVertices.enableArray(state, GL_VERTEX_ARRAY, 3, v);
-        m_gridColors.enableArray(state, GL_COLOR_ARRAY, 4, c);
-      } else {
-        m_gridVertices.enableArray(state, GL_VERTEX_ARRAY, 3);
-        m_gridColors.enableArray(state, GL_COLOR_ARRAY, 4);
+        gridVertices.set<GL_FLOAT>(VertexAttrib::Vertex0, 3);
+        gridVertices.upload(v);
+
+        gridColors.set<GL_FLOAT>(VertexAttrib::Color0, 4, 0, 0);
+        gridColors.upload(c);
       }
+      state.attr()[VertexAttrib::Vertex0] = "vertex";
+      state.attr()[VertexAttrib::Color0] = "color";
+
       m_gridProg->bind(&state);
+      auto b1 = gridVertices.bind(state);
+      auto b2 = gridColors.bind(state);
+
       if (render_opts.grid_animation <= 1.0f) {
         const float drop = step * dist * 0.5f;
         const float r = 1.4142135623731f * step * dist + drop;
@@ -424,7 +435,7 @@ namespace Shaderkit
       }
       m_gridProg->setUniform(&state, "time", state.time());
       m_gridProg->setUniform(&state, "active", render_opts.focus_grabber ? 0.2f : 0);
-      glRun(glDrawArrays(GL_LINES, 0, m_gridVertices.size()/sizeof(float)/3));
+      glRun(glDrawArrays(GL_LINES, 0, gridVertices.size()/sizeof(float)/3));
       m_gridProg->unbind();
     }
 
