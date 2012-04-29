@@ -736,7 +736,8 @@ namespace Shaderkit
 
   void TextureBrowser::newScene(ScenePtr scene)
   {
-    /// @todo what about the old signals?
+    disconnect(this, SLOT(updateContent()));
+    disconnect(this, SLOT(renderPassesChanged()));
     if (scene) {
       connect(scene.get(), SIGNAL(textureListUpdated()), this, SLOT(updateContent()));
       connect(scene.get(), SIGNAL(renderPassesListUpdated()), this, SLOT(renderPassesChanged()));
