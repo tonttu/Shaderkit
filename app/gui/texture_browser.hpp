@@ -69,9 +69,8 @@ namespace Shaderkit
     void resizeGL(int w, int h);
 
   private:
-    /// @todo this could be shared between all texture widgets..
-    BufferObject m_vertices, m_uv0;
     TexturePtr m_tex;
+    ProgramPtr m_prog;
 
     TextureWidgetGL(const TextureWidgetGL&);
     void operator=(const TextureWidgetGL&);

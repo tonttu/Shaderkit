@@ -20,10 +20,12 @@
 #include "ui_texture_browser.h"
 #include "gui/mainwindow.hpp"
 #include "core/scene.hpp"
+#include "gl/program.hpp"
 #include "gl/texture.hpp"
 #include "gl/state.hpp"
 #include "core/renderpass.hpp"
 #include "core/material.hpp"
+#include "core/mesh_manager.hpp"
 
 #include <QDebug>
 #include <QScrollBar>
@@ -35,9 +37,43 @@
 #include <cassert>
 #include <cmath>
 
+#define SHADER(x) #x
+
 namespace
 {
   Shaderkit::TextureBrowser* s_browser = 0;
+
+  const char* vertex_shader =
+    "#version 150 compatibility\n"
+    SHADER(
+      precision highp float;
+
+      in vec2 vertex;
+      in vec2 uv;
+      out vec2 uv2;
+
+      void main()
+      {
+        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(vertex, 0, 1);
+        uv2 = uv;
+      }
+    );
+
+  const char* fragment_shader =
+    "#version 150 compatibility\n"
+    SHADER(
+      precision highp float;
+
+      uniform sampler2D tex;
+
+      in vec2 uv2;
+      out vec3 color;
+
+      void main()
+      {
+        color = texture2D(tex, uv2).rgb;
+      }
+    );
 }
 
 namespace Shaderkit
@@ -45,16 +81,18 @@ namespace Shaderkit
 
   TextureWidgetGL::TextureWidgetGL(const QGLFormat& format, QWidget* parent, const QGLWidget* shared)
     : QGLWidget(format, parent, shared)
+    , m_prog(new GLProgram("texWidgetGL"))
   {
-    m_vertices.setCache(false);
-    m_uv0.setCache(false);
+    m_prog->addShaderSrc(vertex_shader, Shader::Vertex);
+    m_prog->addShaderSrc(fragment_shader, Shader::Fragment);
   }
 
   TextureWidgetGL::TextureWidgetGL(QGLContext* context, QWidget* parent)
     : QGLWidget(context, parent)
+    , m_prog(new GLProgram("texWidgetGL"))
   {
-    m_vertices.setCache(false);
-    m_uv0.setCache(false);
+    m_prog->addShaderSrc(vertex_shader, Shader::Vertex);
+    m_prog->addShaderSrc(fragment_shader, Shader::Fragment);
   }
 
   TextureWidgetGL::~TextureWidgetGL()
@@ -91,6 +129,13 @@ namespace Shaderkit
     float win_ar = ww / wh;
 
     int mode = 0;
+
+    BufferObject2& v = MeshManager::fetch("TextureWidgetGLv", mode);
+    BufferObject2& uv = MeshManager::fetch("TextureWidgetGLu", mode);
+
+    v.set<GL_FLOAT>(VertexAttrib::Vertex0, 2);
+    uv.set<GL_FLOAT>(VertexAttrib::UV0, 2);
+
     if (mode == 0) {
       float w, h;
       if (tex_ar > win_ar) {
@@ -103,8 +148,8 @@ namespace Shaderkit
       float vertices[] = {ox,oy, w+ox,oy, w+ox,h+oy, ox,h+oy};
       float uvs[] = {0,0, 1,0, 1,1, 0,1};
 
-      m_vertices.enableArray(state, GL_VERTEX_ARRAY, 2, 4, vertices);
-      m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, 2, 4, uvs);
+      v.upload(vertices, 0, 8);
+      uv.upload(uvs, 0, 8);
     } else if (mode == 1) {
       float vertices[] = {0, 0, ww,0, ww,wh, 0,wh};
 
@@ -122,9 +167,18 @@ namespace Shaderkit
       float y = (uv_h - 1.0f) * 0.5f;
       float uvs[] = {-x,-y, x+1,-y, x+1,y+1, -x,y+1};
 
-      m_vertices.enableArray(state, GL_VERTEX_ARRAY, 2, 4, vertices);
-      m_uv0.enableArray(state, GL_TEXTURE_COORD_ARRAY, 2, 4, uvs);
+      v.upload(vertices, 0, 8);
+      uv.upload(uvs, 0, 8);
     }
+    state.attr()[VertexAttrib::Vertex0] = "vertex";
+    state.attr()[VertexAttrib::UV0] = "uv";
+
+    m_prog->bind(&state);
+
+    auto b1 = v.bind(state);
+    auto b2 = uv.bind(state);
+
+    m_prog->setUniform(&state, "tex", 0);
 
     if (mode == 0 && std::fabs(tex_ar - win_ar) > 0.0001f) {
       glClear(GL_COLOR_BUFFER_BIT);

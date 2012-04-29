@@ -37,42 +37,45 @@
 
 #define SHADER(x) #x
 
-const char* vertex_shader =
-  "#version 150 compatibility\n"
-  SHADER(
-    precision highp float;
+namespace
+{
+  const char* vertex_shader =
+    "#version 150 compatibility\n"
+    SHADER(
+      precision highp float;
 
-    in vec3 vertex;
-    in vec4 color;
-    out vec2 v;
+      in vec3 vertex;
+      in vec4 color;
+      out vec2 v;
 
-    void main()
-    {
-      v = vertex.xz;
-      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(vertex, 1);
-      gl_FrontColor = color;
-    }
-  );
+      void main()
+      {
+        v = vertex.xz;
+        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(vertex, 1);
+        gl_FrontColor = color;
+      }
+    );
 
-const char* fragment_shader =
-  "#version 150 compatibility\n"
-  SHADER(
-    precision highp float;
+  const char* fragment_shader =
+    "#version 150 compatibility\n"
+    SHADER(
+      precision highp float;
 
-    uniform float anim;
-    uniform float active;
-    uniform float time;
-    in vec2 v;
+      uniform float anim;
+      uniform float active;
+      uniform float time;
+      in vec2 v;
 
-    void main()
-    {
-      vec2 d = vec2(0.70710678, 0.70710678);
-      float dist = abs(dot(d, v) - anim);
-      float m = clamp(-2.0 / (10*5) * dist + 1.0, 0.0, 1.0);
-      m *= m;
-      gl_FragColor = mix(gl_Color, vec4(1, 1, 0, 1), mix(m, 1.0f, active*(1.0 + sin(time*6.456f)*0.3)));
-    }
-  );
+      void main()
+      {
+        vec2 d = vec2(0.70710678, 0.70710678);
+        float dist = abs(dot(d, v) - anim);
+        float m = clamp(-2.0 / (10*5) * dist + 1.0, 0.0, 1.0);
+        m *= m;
+        gl_FragColor = mix(gl_Color, vec4(1, 1, 0, 1), mix(m, 1.0f, active*(1.0 + sin(time*6.456f)*0.3)));
+      }
+    );
+}
 
 namespace Shaderkit
 {
