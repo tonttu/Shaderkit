@@ -383,11 +383,13 @@ namespace Shaderkit
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-  UniformMapEditor::UniformMapEditor(MaterialProperties& prop, FloatEditor& editor)
+  UniformMapEditor::UniformMapEditor(MaterialProperties& prop, UniformEditor& editor,
+                                     bool only_menu)
     : QStackedWidget(&prop)
     , m_editor(editor)
     , m_combo(new MenuComboBox(this))
     , m_slider(new QSlider(this))
+    , m_only_menu(only_menu)
   {
     m_combo->setEditable(true);
 
@@ -400,7 +402,6 @@ namespace Shaderkit
             this, SLOT(menu(QPoint)));
     connect(m_slider, SIGNAL(customContextMenuRequested(QPoint)),
             this, SLOT(menu(QPoint)));
-
   }
 
   void UniformMapEditor::updateUI(UniformVar& var)
@@ -420,7 +421,7 @@ namespace Shaderkit
     connect(m_combo, SIGNAL(currentIndexChanged(QString)),
             this, SLOT(editingFinished()));
 
-    if (selection.isEmpty()) {
+    if (!m_only_menu && selection.isEmpty()) {
       setCurrentWidget(m_slider);
     } else {
       setCurrentWidget(m_combo);
@@ -500,8 +501,8 @@ namespace Shaderkit
     }
   }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   UniformEditor::UniformEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
     : VarEditor(prop, row, mat, var.name())
@@ -518,12 +519,14 @@ namespace Shaderkit
     return 0;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
   FloatEditor::FloatEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
     : UniformEditor(prop, row, mat, var),
       m_min(std::numeric_limits<float>::max()),
       m_max(std::numeric_limits<float>::min())
   {
-
     QWidget* container = new QWidget;
     PropertyLayout* l = new PropertyLayout(prop.layoutData());
     container->setLayout(l);
@@ -532,7 +535,7 @@ namespace Shaderkit
     m_edit->setFrame(false);
     l->setWidget(0, 1, m_edit);
 
-    m_ui = new UniformMapEditor(prop, *this);
+    m_ui = new UniformMapEditor(prop, *this, false);
     m_ui->slider().setOrientation(Qt::Horizontal);
     l->setWidget(1, 2, m_ui);
 
@@ -609,8 +612,24 @@ namespace Shaderkit
     }
   }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  GenericEditor::GenericEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
+    : UniformEditor(prop, row, mat, var)
+  {
+    m_ui = new UniformMapEditor(prop, *this, true);
+
+    prop.setCellWidget(row, 1, m_ui);
+  }
+
+  void GenericEditor::updateUI(UniformVar& var)
+  {
+    m_ui->updateUI(var);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   TextureEditor::TextureEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var)
     : UniformEditor(prop, row, mat, var)
@@ -1027,7 +1046,7 @@ namespace Shaderkit
     } else {
       /// @todo implement
     }
-    return 0;
+    return new GenericEditor(*this, row, mat, var);
   }
 
   void MaterialProperties::startDrag(Qt::DropActions supportedActions)

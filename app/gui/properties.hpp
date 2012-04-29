@@ -134,9 +134,10 @@ namespace Shaderkit
     Q_OBJECT
 
   public:
-    UniformMapEditor(MaterialProperties& prop, FloatEditor& editor);
+    UniformMapEditor(MaterialProperties& prop, UniformEditor& editor, bool only_menu);
     virtual void updateUI(UniformVar& var);
 
+    /// @todo QSlider should be a template parameter
     QSlider& slider() const { return *m_slider; }
 
   private slots:
@@ -147,9 +148,10 @@ namespace Shaderkit
     void clear();
 
   private:
-    FloatEditor& m_editor;
+    UniformEditor& m_editor;
     MenuComboBox* m_combo;
     QSlider* m_slider;
+    bool m_only_menu;
   };
 
   class FloatEditor : public UniformEditor
@@ -173,6 +175,19 @@ namespace Shaderkit
     float m_min, m_max;
 
     QAction* m_reset_action;
+  };
+
+  class GenericEditor : public UniformEditor
+  {
+    Q_OBJECT
+
+  public:
+    GenericEditor(MaterialProperties& prop, int row, MaterialPtr mat, UniformVar& var);
+
+    void updateUI(UniformVar& var);
+
+  private:
+    UniformMapEditor* m_ui;
   };
 
   class TextureEditor : public UniformEditor
