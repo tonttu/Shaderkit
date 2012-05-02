@@ -42,6 +42,8 @@ namespace Shaderkit
     void calcBbox(Eigen::AlignedBox<float, 3>& bbox,
                   const Eigen::Affine3f& transform = Eigen::Affine3f::Identity()) const;
 
+    NodePtr clone() const;
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
 
@@ -53,10 +55,14 @@ namespace Shaderkit
     void drawSphere(float radius, int segments, int rings, State& state);
   }
 
-  class Model : public SceneObject
+  /// @todo changed-event needs to be designed and implemented
+  class Model : public QObject, public std::enable_shared_from_this<Model>,
+      public SceneObject
   {
+    Q_OBJECT
+
   public:
-    Model(QString name);
+    Model(const QString& name);
 
     NodePtr node() { return m_node; }
 
@@ -74,11 +80,18 @@ namespace Shaderkit
     static ModelPtr createBuiltin(const QString& name, const QString& model,
                                   const QVariantMap& map = QVariantMap());
 
-  private:
+    virtual void attributeChanged();
 
+  signals:
+    void changed(ModelPtr);
+
+  protected:
+    explicit Model(const Model& m);
+
+  private:
     // bounding box in local coordinates
     Eigen::AlignedBox<float, 3> m_bbox;
-    bool m_dirty;
+    bool m_bbox_dirty;
 
     QVariantMap m_map;
 
@@ -89,32 +102,47 @@ namespace Shaderkit
   class Mesh
   {
   public:
+    Mesh() {}
     virtual ~Mesh() {}
     virtual void render(State& state);
 
     virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const = 0;
 
-    /// @todo accessors and make protected
-    QString name;
+    void setName(const QString& name) { m_name = name; }
+    const QString& name() const { return m_name; }
+
+    virtual MeshPtr clone() const = 0;
+
   protected:
+    explicit Mesh(const Mesh& m);
     virtual void renderObj(State& state) = 0;
 
+  private:
+    QString m_name;
   };
 
   class BuiltIn : public Mesh
   {
   public:
+    BuiltIn() {}
     virtual ~BuiltIn() {}
+
+  protected:
+    explicit BuiltIn(const BuiltIn& b);
   };
 
 /// Built-in Teapot object, that is a tuned version of GLUT teapot.
   class Teapot : public BuiltIn
   {
   public:
+    Teapot() {}
     virtual ~Teapot() {}
     virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
+    virtual MeshPtr clone() const;
+
   protected:
+    explicit Teapot(const Teapot& t);
     void renderObj(State& state);
   };
 
@@ -126,7 +154,10 @@ namespace Shaderkit
     virtual ~Box() {}
     virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
 
+    virtual MeshPtr clone() const;
+
   protected:
+    explicit Box(const Box& b);
     void renderObj(State& state);
 
     const Eigen::Vector3f m_size;
@@ -140,7 +171,10 @@ namespace Shaderkit
     virtual void calcBbox(const Eigen::Affine3f& transform,
                           Eigen::AlignedBox<float, 3>& bbox) const;
 
+    virtual MeshPtr clone() const;
+
   protected:
+    explicit Sphere(const Sphere& s);
     void renderObj(State& state);
 
     const float m_size;
@@ -162,6 +196,11 @@ namespace Shaderkit
     std::vector<std::vector<float>> uvs;
     std::vector<int> uv_components;
     std::vector<unsigned int> indices;
+
+    virtual MeshPtr clone() const;
+
+  protected:
+    explicit TriMesh(const TriMesh& t);
 
   private:
     std::map<VertexAttrib::Target, BufferObject2> m_buffers;

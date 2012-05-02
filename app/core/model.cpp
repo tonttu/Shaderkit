@@ -228,12 +228,40 @@ namespace Shaderkit
       children[i]->calcBbox(bbox, t);
   }
 
+  NodePtr Node::clone() const
+  {
+    NodePtr node(new Node);
+    node->name = name;
+    node->transform = transform;
+    foreach (NodePtr o, children)
+      node->children << o->clone();
+    foreach (MeshPtr m, meshes)
+      node->meshes << m->clone();
+    return node;
+  }
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-  Model::Model(QString name) : SceneObject(name), m_dirty(true), m_node(new Node), m_builtin(false)
+  Model::Model(const QString& name)
+    : SceneObject(name),
+      m_bbox_dirty(true),
+      m_node(new Node),
+      m_builtin(false)
   {
     m_node->name = name;
+  }
+
+  Model::Model(const Model& m)
+    : QObject(),
+      std::enable_shared_from_this<Model>(),
+      SceneObject(m),
+      m_bbox(m.m_bbox),
+      m_bbox_dirty(m.m_bbox_dirty),
+      m_map(m.m_map),
+      m_node(m.m_node->clone()),
+      m_builtin(m.m_builtin)
+  {
   }
 
   void Model::render(ObjectPtr o, State& state, const Node& node)
@@ -244,7 +272,7 @@ namespace Shaderkit
     glMultMatrix(state.model());
 
     foreach (MeshPtr m, node.meshes) {
-      MaterialPtr material = o->materialForMesh(m->name);
+      MaterialPtr material = o->materialForMesh(m->name());
       /// @todo should use raii
       if (material) state.pushMaterial(material);
 
@@ -338,8 +366,8 @@ namespace Shaderkit
 
   const Eigen::AlignedBox<float, 3>& Model::bbox()
   {
-    if (m_dirty) {
-      m_dirty = false;
+    if (m_bbox_dirty) {
+      m_bbox_dirty = false;
       m_bbox = m_node->bbox();
     }
     return m_bbox;
@@ -368,6 +396,15 @@ namespace Shaderkit
     return m;
   }
 
+  void Model::attributeChanged()
+  {
+    emit changed(shared_from_this());
+  }
+
+  Mesh::Mesh(const Mesh& m)
+    : m_name(m.m_name)
+  {}
+
   void Mesh::render(State& state)
   {
     glPushMatrix();
@@ -375,16 +412,34 @@ namespace Shaderkit
     glRun(glPopMatrix());
   }
 
+  BuiltIn::BuiltIn(const BuiltIn& b)
+    : Mesh(b)
+  {}
+
+  Teapot::Teapot(const Teapot& t)
+    : BuiltIn(t)
+  {}
+
   void Teapot::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
   {
     for (int i = 0; i < 8; ++i)
       bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*7.4-3.7f, ((i>>1)&1)*7.4-3.7f, (i&1)*7.4-3.7f));
   }
 
+  MeshPtr Teapot::clone() const
+  {
+    return MeshPtr(new Teapot(*this));
+  }
+
   void Teapot::renderObj(State&)
   {
     teapot(10, 3.7f, GL_FILL);
   }
+
+  Box::Box(const Box& b)
+    : BuiltIn(b),
+      m_size(b.m_size)
+  {}
 
   void Box::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
   {
@@ -394,10 +449,20 @@ namespace Shaderkit
                                               (i&1)*m_size[2]-m_size[2]*0.5f));
   }
 
+  MeshPtr Box::clone() const
+  {
+    return MeshPtr(new Box(*this));
+  }
+
   void Box::renderObj(State&)
   {
     ObjectRenderer::drawBox(m_size[0]*0.5f, m_size[1]*0.5f, m_size[2]*0.5f);
   }
+
+  Sphere::Sphere(const Sphere& s)
+    : BuiltIn(s),
+      m_size(s.m_size)
+  {}
 
   void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
   {
@@ -405,6 +470,11 @@ namespace Shaderkit
       bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*m_size-m_size*0.5f,
                                               ((i>>1)&1)*m_size-m_size*0.5f,
                                               (i&1)*m_size-m_size*0.5f));
+  }
+
+  MeshPtr Sphere::clone() const
+  {
+    return MeshPtr(new Sphere(*this));
   }
 
   void Sphere::renderObj(State&)
@@ -421,10 +491,28 @@ namespace Shaderkit
   {
   }
 
+  TriMesh::TriMesh(const TriMesh& t)
+    : Mesh(t),
+      vertices(t.vertices),
+      normals(t.normals),
+      tangents(t.tangents),
+      bitangents(t.bitangents),
+      colors(t.colors),
+      uvs(t.uvs),
+      uv_components(t.uv_components),
+      indices(t.indices),
+      m_indices(GL_ELEMENT_ARRAY_BUFFER)
+  {}
+
   void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
   {
     for (int i = 0, m = vertices.size(); i < m; i += 3)
       bbox.extend(transform * Eigen::Vector3f(vertices[i], vertices[i+1], vertices[i+2]));
+  }
+
+  MeshPtr TriMesh::clone() const
+  {
+    return MeshPtr(new TriMesh(*this));
   }
 
   void TriMesh::renderObj(State& state)

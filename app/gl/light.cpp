@@ -22,11 +22,33 @@
 
 namespace Shaderkit
 {
-
   Light::Light(const QString& name)
-    : SceneObject(name), m_type(Direction), m_id(-1),
-      m_ambient(0, 0, 0, 255), m_diffuse(255, 255, 255, 255), m_specular(255, 255, 255, 255),
-      m_direction(0, 0, 1), m_spot_cutoff(180) {}
+    : SceneObject(name),
+      m_type(*this, Direction),
+      m_id(-1),
+      m_ambient(*this, Color(0, 0, 0, 1)),
+      m_diffuse(*this, Color(1, 1, 1, 1)),
+      m_specular(*this, Color(1, 1, 1, 1)),
+      m_location(*this, Eigen::Vector3f(0, 0, 0)),
+      m_target(*this, Eigen::Vector3f(0, 0, 0)),
+      m_direction(*this, Eigen::Vector3f(0, 0, 1)),
+      m_spot_cutoff(*this, 180)
+  {}
+
+  Light::Light(const Light& l)
+    : QObject(),
+      std::enable_shared_from_this<Light>(),
+      SceneObject(l),
+      m_type(*this, l.m_type),
+      m_id(-1),
+      m_ambient(*this, l.m_ambient),
+      m_diffuse(*this, l.m_diffuse),
+      m_specular(*this, l.m_specular),
+      m_location(*this, l.m_location),
+      m_target(*this, l.m_target),
+      m_direction(*this, l.m_direction),
+     m_spot_cutoff(*this, l.m_spot_cutoff)
+  {}
 
   void Light::activate(State& state)
   {
@@ -35,20 +57,20 @@ namespace Shaderkit
 
     GLfloat tmp[4];
 
-    glRun(glLightfv(GL_LIGHT0+m_id, GL_AMBIENT, m_ambient.data()));
+    glRun(glLightfv(GL_LIGHT0+m_id, GL_AMBIENT, m_ambient->data()));
 
-    glRun(glLightfv(GL_LIGHT0+m_id, GL_DIFFUSE, m_diffuse.data()));
+    glRun(glLightfv(GL_LIGHT0+m_id, GL_DIFFUSE, m_diffuse->data()));
 
-    glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, m_specular.data()));
+    glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, m_specular->data()));
 
     if (m_type == Spot) {
-      tmp[0] = m_location.x();
-      tmp[1] = m_location.y();
-      tmp[2] = m_location.z();
+      tmp[0] = m_location->x();
+      tmp[1] = m_location->y();
+      tmp[2] = m_location->z();
       tmp[3] = 1.0f;
       glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
 
-      Eigen::Vector3f n = m_target - m_location;
+      Eigen::Vector3f n = m_target.value() - m_location.value();
       n.normalize();
 
       tmp[0] = n.x();
@@ -58,9 +80,9 @@ namespace Shaderkit
 
       glRun(glLightf(GL_LIGHT0+m_id, GL_SPOT_CUTOFF, m_spot_cutoff));
     } else {
-      tmp[0] = m_direction.x();
-      tmp[1] = m_direction.y();
-      tmp[2] = m_direction.z();
+      tmp[0] = m_direction->x();
+      tmp[1] = m_direction->y();
+      tmp[2] = m_direction->z();
       tmp[3] = 0.0f;
       glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
     }
@@ -79,15 +101,15 @@ namespace Shaderkit
       map["type"] = "spot";
       map["location"] = Utils::toList(m_location);
       map["target"] = Utils::toList(m_target);
-      map["spot cutoff"] = m_spot_cutoff;
+      map["spot cutoff"] = m_spot_cutoff.value();
     } else if (m_type == Direction) {
       map["type"] = "direction";
       map["direction"] = Utils::toList(m_direction);
     }
 
-    map["ambient"] = m_ambient.toQVariant();
-    map["diffuse"] = m_diffuse.toQVariant();
-    map["specular"] = m_specular.toQVariant();
+    map["ambient"] = m_ambient->toQVariant();
+    map["diffuse"] = m_diffuse->toQVariant();
+    map["specular"] = m_specular->toQVariant();
 
     return map;
   }
@@ -156,6 +178,11 @@ namespace Shaderkit
   void Light::setSpotCutoff(float v)
   {
     m_spot_cutoff = v;
+  }
+
+  void Light::attributeChanged()
+  {
+    emit changed(shared_from_this());
   }
 
 } // namespace Shaderkit

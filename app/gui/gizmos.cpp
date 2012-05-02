@@ -523,13 +523,15 @@ namespace Shaderkit
       Eigen::Vector3f point = ray.origin() + ray.direction() * ray.intersection(m_plane);
 
       // rotate/scale that vector to object coordinates and move the object
-      m_object->transform() = m_object_orig_transform * Eigen::Translation3f(m_gizmo_to_obj.linear() * (point - m_line.origin()));
+      m_object->setTransform(m_object_orig_transform *
+                             Eigen::Translation3f(m_gizmo_to_obj.linear() * (point - m_line.origin())));
     } else {
       // how much we have moved in gizmo coordinates
       Eigen::Vector3f diff_gizmo = m_line.direction() * closestLineParam(m_line, ray);
 
       // rotate/scale that vector to object coordinates and move the object
-      m_object->transform() = m_object_orig_transform * Eigen::Translation3f(m_gizmo_to_obj.linear() * diff_gizmo);
+      m_object->setTransform(m_object_orig_transform *
+                             Eigen::Translation3f(m_gizmo_to_obj.linear() * diff_gizmo));
     }
   }
 
@@ -713,9 +715,9 @@ namespace Shaderkit
     Eigen::Vector2f dir = m_current_cursor - m_center;
     float angle = std::atan2(dir[1], dir[0]);
 
-    m_object->transform() = m_object_orig_transform * m_gizmo_to_obj *
-                            Eigen::AngleAxis<float>((m_reversed ? -1.0f : 1.0f) * (angle - m_start_angle), normal) *
-                            m_gizmo_to_obj.inverse();
+    m_object->setTransform(m_object_orig_transform * m_gizmo_to_obj *
+                           Eigen::AngleAxis<float>((m_reversed ? -1.0f : 1.0f) * (angle - m_start_angle), normal) *
+                           m_gizmo_to_obj.inverse());
   }
 
   bool RotateGizmo::makeActive(Constraint type)

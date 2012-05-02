@@ -125,6 +125,8 @@ namespace Shaderkit
 
     static Type guessType(const QString& filename);
 
+    virtual void filenameChanged();
+
   signals:
     void changed(ShaderPtr);
 

@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "color.hpp"
 
+#include "core/attribute.hpp"
+
 #include "gl/error.hpp"
 #include "gl/fbo.hpp"
 #include "gl/state.hpp"
@@ -125,27 +127,30 @@ namespace Shaderkit
     void setUniformMapping(const QString& name, const QString& attr);
 
     struct Colors {
-      Colors();
-      Color diffuse;
-      Color specular;
-      Color ambient;
-      Color emissive;
-      Color transparent;
+      Colors(Material& material);
+      Colors(Material& material, const Colors& copy);
+
+      Attribute<Color> diffuse;
+      Attribute<Color> specular;
+      Attribute<Color> ambient;
+      Attribute<Color> emissive;
+      Attribute<Color> transparent;
     } colors;
 
     struct Style {
-      Style();
+      Style(Material& material);
+      Style(Material& material, const Style& copy);
 
-      bool wireframe;
-      bool twosided;
+      Attribute<bool> wireframe;
+      Attribute<bool> twosided;
 
-      QString shading_model;
-      QString blend_mode;
+      Attribute<QString> shading_model;
+      Attribute<QString> blend_mode;
 
-      float opacity;
-      float shininess;
-      float shininess_strength;
-      float refracti;
+      Attribute<float> opacity;
+      Attribute<float> shininess;
+      Attribute<float> shininess_strength;
+      Attribute<float> refracti;
     } style;
 
     UniformVar::List& uniformList() { return m_uniform_list; }
@@ -170,6 +175,8 @@ namespace Shaderkit
     const QMap<QString, MappableValue>& attributeMap() const { return m_attributeMap; }
     const QMap<QString, MappableValue>& uniformMap() const { return m_uniformMap; }
 
+    virtual void attributeChanged();
+
   signals:
     void changed(MaterialPtr);
     void shaderChanged(ShaderPtr);
@@ -178,6 +185,9 @@ namespace Shaderkit
 
   private slots:
     void progChanged();
+
+  protected:
+    explicit Material(const Material& m);
 
   private:
     friend void State::pushMaterial(MaterialPtr);

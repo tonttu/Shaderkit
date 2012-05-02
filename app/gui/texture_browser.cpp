@@ -604,7 +604,7 @@ namespace Shaderkit
       return;
     }
 
-    m_ui->sizeinfo->setText(QString("Texture #%1 %2x%3 %4").arg(t->id()).
+    m_ui->sizeinfo->setText(QString("Texture #%1 %2x%3 %4").arg(t->textureId()).
                             arg(t->width()).arg(t->height()).arg(t->internalFormatStr()));
 
     int buffer = t->attachment();

@@ -19,6 +19,9 @@
 #define FBO_HPP
 
 #include "forward.hpp"
+
+#include "core/attribute.hpp"
+
 #include "gl/scene_object.hpp"
 
 #include <QMap>
@@ -26,11 +29,14 @@
 
 namespace Shaderkit
 {
-
-  class FBOImage : public SceneObject, public std::enable_shared_from_this<FBOImage>
+  /// @todo Should this and RenderBuffer have (virtual) clone()?
+  class FBOImage : public QObject, public SceneObject,
+      public std::enable_shared_from_this<FBOImage>
   {
+    Q_OBJECT
+
   public:
-    FBOImage(QString name);
+    FBOImage(const QString& name);
     virtual ~FBOImage() {}
     virtual void setup(unsigned int fbo, int width, int height) = 0;
     /// type is GL_DEPTH_ATTACHMENT etc..
@@ -49,7 +55,7 @@ namespace Shaderkit
     virtual QVariantMap toMap() const;
     virtual void load(QVariantMap);
 
-    unsigned int id() const { return m_id; }
+    unsigned int renderBufferId() const { return m_render_buffer_id; }
 
     virtual void dataUpdated();
 
@@ -57,12 +63,21 @@ namespace Shaderkit
 
     int attachment() const { return m_attachment; }
 
-  protected:
-    QString m_role;
+    virtual void attributeChanged();
 
-    unsigned int m_id;
-    int m_attachment, m_active_attachment;
-    int m_width, m_height;
+  signals:
+    void changed(FBOImagePtr);
+
+  protected:
+    explicit FBOImage(const FBOImage& f);
+
+  protected:
+    Attribute<QString> m_role;
+
+    unsigned int m_render_buffer_id;
+    Attribute<int> m_attachment;
+    int m_active_attachment;
+    Attribute<int> m_width, m_height;
     std::weak_ptr<FrameBufferObject> m_fbo;
     unsigned int m_fbo_num;
   };
@@ -70,7 +85,7 @@ namespace Shaderkit
   class RenderBuffer : public FBOImage
   {
   public:
-    RenderBuffer(QString name = "");
+    RenderBuffer(const QString& name = "");
     virtual ~RenderBuffer();
 
     void setup(unsigned int fbo, int width, int height);

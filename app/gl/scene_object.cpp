@@ -20,12 +20,24 @@
 namespace Shaderkit
 {
 
-  SceneObject::SceneObject(const QString& name) : m_name(name) {}
+  SceneObject::SceneObject(const QString& name)
+    : m_name(name)
+  {}
+
+  SceneObject::SceneObject(const SceneObject& s)
+    : m_name(s.m_name),
+      m_ref(s.m_ref),
+      m_ref_name(s.m_ref_name)
+  {
+  }
+
   SceneObject::~SceneObject() {}
 
-  void SceneObject::setName(QString name)
+  void SceneObject::setName(const QString& name)
   {
+    if (m_name == name) return;
     m_name = name;
+    attributeChanged();
   }
 
   QVariantMap SceneObject::toMap() const
@@ -43,26 +55,21 @@ namespace Shaderkit
   void SceneObject::load(QVariantMap map)
   {
     QStringList tmp = map["ref"].toStringList();
-    if (tmp.size() > 0) {
-      m_ref = tmp[0];
-      m_ref_name = tmp.mid(1);
-    }
+    if (tmp.size() > 0)
+      setRef(tmp[0], tmp.mid(1));
   }
 
-  void SceneObject::setRef(QString import, QString refname)
+  void SceneObject::setRef(const QString& import, const QString& refname)
   {
+    setRef(import, QStringList(refname));
+  }
+
+  void SceneObject::setRef(const QString& import, const QStringList& refname)
+  {
+    if (import == m_ref && refname == m_ref_name) return;
     m_ref = import;
-    m_ref_name = QStringList(refname);
-  }
-
-  QString SceneObject::ref()
-  {
-    return m_ref;
-  }
-
-  QStringList SceneObject::refName()
-  {
-    return m_ref_name;
+    m_ref_name = refname;
+    attributeChanged();
   }
 
 } // namespace Shaderkit

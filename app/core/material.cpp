@@ -57,8 +57,81 @@ namespace Shaderkit
     return MappableValue();
   }
 
-  Material::Material(QString name) : SceneObject(name), m_prog_binded(false)
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  Material::Colors::Colors(Material& material)
+    : diffuse(material, Color(0.8f, 0.8f, 0.8f, 1.0f)),
+      specular(material, Color(1.0f, 1.0f, 1.0f, 1.0f)),
+      ambient(material, Color(1.0f, 1.0f, 1.0f, 1.0f)),
+      emissive(material, Color(0.0f, 0.0f, 0.0f, 0.0f)),
+      transparent(material, Color(0.0f, 0.0f, 0.0f, 0.0f)) {}
+
+  Material::Colors::Colors(Material& material, const Material::Colors& copy)
+    : diffuse(material, copy.diffuse),
+      specular(material, copy.specular),
+      ambient(material, copy.ambient),
+      emissive(material, copy.emissive),
+      transparent(material, copy.transparent) {}
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  Material::Style::Style(Material& material)
+    : wireframe(material, false),
+      twosided(material, false),
+      shading_model(material, "gouraud"),
+      blend_mode(material, "default"),
+      opacity(material, 1.0f),
+      shininess(material, 0.0f),
+      shininess_strength(material, 1.0f),
+      refracti(material, 1.0f) {}
+
+  Material::Style::Style(Material& material, const Style& copy)
+    : wireframe(material, copy.wireframe),
+      twosided(material, copy.twosided),
+      shading_model(material, copy.shading_model),
+      blend_mode(material, copy.blend_mode),
+      opacity(material, copy.opacity),
+      shininess(material, copy.shininess),
+      shininess_strength(material, copy.shininess_strength),
+      refracti(material, copy.refracti) {}
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  Material::Material(QString name)
+    : SceneObject(name),
+      colors(*this),
+      style(*this),
+      m_prog_binded(false)
   {
+  }
+
+  Material::Material(const Material& m)
+    : QObject(),
+      std::enable_shared_from_this<Material>(),
+      SceneObject(m),
+      colors(*this, m.colors),
+      style(*this, m.style),
+      m_uniform_list(m.m_uniform_list),
+      m_attribute_list(m.m_attribute_list),
+      m_textures(m.m_textures),
+      m_prog_binded(false),
+      m_attributeMap(m.m_attributeMap),
+      m_uniformMap(m.m_uniformMap),
+      m_scene(m.m_scene)
+  {
+    if (m.m_program) {
+      m_program = m.m_program->clone();
+      connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+      connect(m_program.get(), SIGNAL(linked(ShaderErrorList)),
+              this, SIGNAL(progLinked(ShaderErrorList)));
+      connect(m_program.get(), SIGNAL(compiled(ShaderErrorList)),
+              this, SIGNAL(progCompiled(ShaderErrorList)));
+      connect(m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
+              this, SIGNAL(shaderChanged(ShaderPtr)));
+    }
   }
 
   void Material::addTexture(QString name, TexturePtr tex)
@@ -69,67 +142,54 @@ namespace Shaderkit
 
   void Material::setTexture(QString name, TexturePtr tex)
   {
+    if (m_textures[name] == tex) return;
     m_textures[name] = tex;
     emit changed(shared_from_this());
   }
 
   void Material::removeTexture(TexturePtr tex)
   {
+    bool diff = false;
     for (auto it = m_textures.begin(); it != m_textures.end();) {
-      if (*it == tex) it = m_textures.erase(it);
-      else ++it;
+      if (*it == tex) {
+        it = m_textures.erase(it);
+        diff = true;
+      } else ++it;
     }
-    emit changed(shared_from_this());
+    if (diff) emit changed(shared_from_this());
   }
 
   void Material::setAttributeMapping(const QString& name, const QString& attr)
   {
-    bool signalChanged = false;
+    bool diff = false;
     if (attr.isEmpty()) {
-      signalChanged = m_attributeMap.remove(name) > 0;
+      diff = m_attributeMap.remove(name) > 0;
     } else {
       MappableValue var = MappableValue::parse(attr);
       if (!var.src().isEmpty()) {
-        signalChanged = m_attributeMap[name] != var;
+        diff = m_attributeMap[name] != var;
         m_attributeMap[name] = var;
       }
     }
-    if (signalChanged)
+    if (diff)
       emit changed(shared_from_this());
   }
 
   void Material::setUniformMapping(const QString& name, const QString& attr)
   {
-    bool signalChanged = false;
+    bool diff = false;
     if (attr.isEmpty()) {
-      signalChanged = m_uniformMap.remove(name) > 0;
+      diff = m_uniformMap.remove(name) > 0;
     } else {
       MappableValue var = MappableValue::parse(attr);
       if (!var.src().isEmpty()) {
-        signalChanged = m_uniformMap[name] != var;
+        diff = m_uniformMap[name] != var;
         m_uniformMap[name] = var;
       }
     }
-    if (signalChanged)
+    if (diff)
       emit changed(shared_from_this());
   }
-
-  Material::Colors::Colors()
-    : diffuse(0.8f, 0.8f, 0.8f, 1.0f),
-      specular(1.0f, 1.0f, 1.0f, 1.0f),
-      ambient(1.0f, 1.0f, 1.0f, 1.0f),
-      emissive(0.0f, 0.0f, 0.0f, 0.0f),
-      transparent(0.0f, 0.0f, 0.0f, 0.0f) {}
-
-  Material::Style::Style()
-    : wireframe(false),
-      twosided(false),
-      shading_model("gouraud"),
-      blend_mode("default"),
-      opacity(1.0f),
-      shininess(0.0f),
-      shininess_strength(1.0f),
-      refracti(1.0f) {}
 
   void Material::progChanged()
   {
@@ -184,7 +244,7 @@ namespace Shaderkit
   ProgramPtr Material::prog(bool create_if_not_found)
   {
     if (!create_if_not_found || m_program) return m_program;
-    m_program.reset(new GLProgram(m_name));
+    m_program.reset(new GLProgram(name()));
     connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
     connect(m_program.get(), SIGNAL(linked(ShaderErrorList)),
             this, SIGNAL(progLinked(ShaderErrorList)));
@@ -198,7 +258,9 @@ namespace Shaderkit
 
   void Material::setScene(ScenePtr scene)
   {
+    if (m_scene == scene) return;
     m_scene = scene;
+    emit changed(shared_from_this());
   }
 
   QVariantMap Material::toMap() const
@@ -229,22 +291,22 @@ namespace Shaderkit
     if (!tmp.isEmpty()) map["uniforms"] = tmp;
     tmp.clear();
 
-    map["diffuse"] = colors.diffuse.toQVariant();
-    map["specular"] = colors.specular.toQVariant();
-    map["ambient"] = colors.ambient.toQVariant();
-    map["emissive"] = colors.emissive.toQVariant();
-    map["transparent"] = colors.transparent.toQVariant();
+    map["diffuse"] = colors.diffuse->toQVariant();
+    map["specular"] = colors.specular->toQVariant();
+    map["ambient"] = colors.ambient->toQVariant();
+    map["emissive"] = colors.emissive->toQVariant();
+    map["transparent"] = colors.transparent->toQVariant();
 
-    map["wireframe"] = style.wireframe;
-    map["twosided"] = style.twosided;
+    map["wireframe"] = style.wireframe.value() ? 1 : 0;
+    map["twosided"] = style.twosided.value() ? 1 : 0;
 
-    map["shading_model"] = style.shading_model;
-    map["blend_mode"] = style.blend_mode;
+    map["shading_model"] = style.shading_model.value();
+    map["blend_mode"] = style.blend_mode.value();
 
-    map["opacity"] = style.opacity;
-    map["shininess"] = style.shininess;
-    map["shininess_strength"] = style.shininess_strength;
-    map["refracti"] = style.refracti;
+    map["opacity"] = style.opacity.value();
+    map["shininess"] = style.shininess.value();
+    map["shininess_strength"] = style.shininess_strength.value();
+    map["refracti"] = style.refracti.value();
 
     if (prog()) prog()->toMap(scene(), map);
     return map;
@@ -260,8 +322,8 @@ namespace Shaderkit
     if (map.contains("emissive")) colors.emissive = Color::fromQVariant(map["emissive"]);
     if (map.contains("transparent")) colors.transparent = Color::fromQVariant(map["transparent"]);
 
-    if (map.contains("wireframe")) style.wireframe = map["wireframe"].toBool();
-    if (map.contains("twosided")) style.twosided = map["twosided"].toBool();
+    if (map.contains("wireframe")) style.wireframe = map["wireframe"].toInt();
+    if (map.contains("twosided")) style.twosided = map["twosided"].toInt();
 
     if (map.contains("shading_model")) style.shading_model = map["shading_model"].toString();
     if (map.contains("blend_mode")) style.blend_mode = map["blend_mode"].toString();
@@ -279,7 +341,7 @@ namespace Shaderkit
     foreach (QString filename, map["geometry"].toStringList())
       prog(true)->addShader(filename, Shader::Geometry);
 
-    Log::info("Shading model: %s", style.shading_model.toUtf8().data());
+    Log::info("Shading model: %s", style.shading_model->toUtf8().data());
     /// @todo add a default shader if the material has shader hint
     ///       and prog is null
 
@@ -304,23 +366,7 @@ namespace Shaderkit
 
   MaterialPtr Material::clone() const
   {
-    MaterialPtr m(new Material(m_name));
-    m->colors = colors;
-    m->style = style;
-    m->m_scene = m_scene;
-
-    if (m_program) {
-      m->m_program = m_program->clone();
-      connect(m->m_program.get(), SIGNAL(changed()), m.get(), SLOT(progChanged()));
-      connect(m->m_program.get(), SIGNAL(linked(ShaderErrorList)),
-              m.get(), SIGNAL(progLinked(ShaderErrorList)));
-      connect(m->m_program.get(), SIGNAL(compiled(ShaderErrorList)),
-              m.get(), SIGNAL(progCompiled(ShaderErrorList)));
-      connect(m->m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
-              m.get(), SIGNAL(shaderChanged(ShaderPtr)));
-    }
-
-    return m;
+    return MaterialPtr(new Material(*this));
   }
 
   MaterialPtr Material::clone(bool clone_textures) const
@@ -334,6 +380,11 @@ namespace Shaderkit
       }
     }
     return m;
+  }
+
+  void Material::attributeChanged()
+  {
+    emit changed(shared_from_this());
   }
 
 } // namespace Shaderkit

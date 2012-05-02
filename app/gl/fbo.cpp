@@ -23,20 +23,42 @@
 namespace Shaderkit
 {
 
-  FBOImage::FBOImage(QString name) : SceneObject(name),
-    m_id(0), m_attachment(0), m_active_attachment(0), m_width(0), m_height(0) {}
+  FBOImage::FBOImage(const QString& name)
+    : SceneObject(name),
+      m_role(*this),
+      m_render_buffer_id(0),
+      m_attachment(*this, 0),
+      m_active_attachment(0),
+      m_width(*this, 0),
+      m_height(*this, 0),
+      m_fbo_num(0)
+  {}
 
-  RenderBuffer::RenderBuffer(QString name) : FBOImage(name) {}
+  FBOImage::FBOImage(const FBOImage& f)
+    : QObject(),
+      SceneObject(f),
+      std::enable_shared_from_this<FBOImage>(),
+      m_role(*this, f.m_role),
+      m_render_buffer_id(0),
+      m_attachment(*this, f.m_attachment),
+      m_active_attachment(0),
+      m_width(*this, f.m_width),
+      m_height(*this, f.m_height),
+      m_fbo_num(0)
+  {
+  }
+
+  RenderBuffer::RenderBuffer(const QString& name) : FBOImage(name) {}
 
   RenderBuffer::~RenderBuffer()
   {
-    if (m_id)
-      glDeleteRenderbuffers(1, &m_id);
+    if (m_render_buffer_id)
+      glDeleteRenderbuffers(1, &m_render_buffer_id);
   }
 
   void RenderBuffer::bind()
   {
-    glRun(glBindRenderbuffer(GL_RENDERBUFFER, m_id));
+    glRun(glBindRenderbuffer(GL_RENDERBUFFER, m_render_buffer_id));
   }
 
   void RenderBuffer::unbind()
@@ -46,7 +68,7 @@ namespace Shaderkit
 
   void RenderBuffer::setup(unsigned int fbo, int width, int height)
   {
-    if (m_id == 0) glRun(glGenRenderbuffers(1, &m_id));
+    if (m_render_buffer_id == 0) glRun(glGenRenderbuffers(1, &m_render_buffer_id));
 
     bool type_changed = m_attachment != m_active_attachment,
          size_changed = m_width != width || m_height != height,
@@ -65,7 +87,7 @@ namespace Shaderkit
 
     /// @todo Should we run this if only size was changed?
     if (type_changed || size_changed || fbo_changed)
-      glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, m_id);
+      glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, m_render_buffer_id);
 
     m_width = width;
     m_height = height;
@@ -76,7 +98,7 @@ namespace Shaderkit
   QVariantMap FBOImage::toMap() const
   {
     QVariantMap map = SceneObject::toMap();
-    if (!m_role.isEmpty()) map["role"] = m_role;
+    if (!m_role->isEmpty()) map["role"] = m_role.value();
     return map;
   }
 
@@ -97,6 +119,11 @@ namespace Shaderkit
       old->remove(shared_from_this());
     }
     m_fbo = fbo;
+  }
+
+  void FBOImage::attributeChanged()
+  {
+    emit changed(shared_from_this());
   }
 
 ///////////////////////////////////////////////////////////////////////////////

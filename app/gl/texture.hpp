@@ -66,11 +66,20 @@ namespace Shaderkit
 
   class Texture : public FBOImage
   {
+    Q_OBJECT
+
   public:
     enum ParamType { UNKNOWN, ENUM, INT, FLOAT };
     struct Param {
       Param(int v = 0) : is_float(false), i(v) {}
       Param(float v) : is_float(true), f(v) {}
+      bool operator==(const Param& p)
+      {
+        return is_float == p.is_float &&
+            ((is_float && f == p.f) ||
+             (!is_float && i == p.i));
+      }
+
       bool is_float;
       union {
         float f;
@@ -78,7 +87,7 @@ namespace Shaderkit
       };
     };
 
-    Texture(QString name);
+    Texture(const QString& name);
     virtual ~Texture();
 
     void setup(unsigned int fbo, int width, int height);
@@ -125,23 +134,33 @@ namespace Shaderkit
     static const QSet<int>& stencilRenderableInternalFormats();
     static const QSet<QString>& stencilRenderableInternalFormatsStr();
 
+    unsigned int textureId() const { return m_texture_id; }
+
     void dataUpdated();
 
+    virtual void attributeChanged();
+
+  signals:
+    void changed(TexturePtr);
+
   protected:
+    explicit Texture(const Texture& t);
     void applyParams();
 
+  protected:
+    unsigned int m_texture_id;
     QMap<unsigned int, Param> m_params;
     unsigned int m_bindedTexture;
-    int m_internalFormat;
-    float m_blend;
-    int m_uv;
+    Attribute<int> m_internalFormat;
+    Attribute<float> m_blend;
+    Attribute<int> m_uv;
     bool m_paramsDirty, m_dirty;
   };
 
   class TextureFile : public Texture, public FileResource
   {
   public:
-    TextureFile(QString name);
+    TextureFile(const QString& name);
     virtual ~TextureFile() {}
 
     virtual void bind(int texture = 0);
@@ -152,6 +171,10 @@ namespace Shaderkit
     virtual void load(QVariantMap map);
 
     QIcon icon() const;
+
+  protected:
+    explicit TextureFile(const TextureFile& t);
+    virtual void filenameChanged();
 
   private:
     QString m_loadedFile;

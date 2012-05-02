@@ -26,25 +26,37 @@ namespace Shaderkit
   {
   }
 
+  FileResource::FileResource(const FileResource& fr)
+  {
+    setFilename(fr.rawFilename());
+  }
+
   FileResource::~FileResource()
   {
   }
 
   void FileResource::setFilename(const QString& filename)
   {
-    m_rawFilename = filename;
+    QString abs;
     if (filename.isEmpty()) {
-      m_filenameAbsolute = filename;
+      abs = filename;
+    } else {
+      QFileInfo fi(filename);
+      abs = fi.canonicalFilePath();
+      if (abs.isEmpty()) {
+        QFileInfo fi2("$scene/"+filename);
+        abs = fi2.canonicalFilePath();
+      }
+      if (abs.isEmpty())
+        abs = fi.absoluteFilePath();
+    }
+
+    if (m_rawFilename == filename && m_filenameAbsolute == abs)
       return;
-    }
-    QFileInfo fi(filename);
-    m_filenameAbsolute = fi.canonicalFilePath();
-    if (m_filenameAbsolute.isEmpty()) {
-      QFileInfo fi2("$scene/"+filename);
-      m_filenameAbsolute = fi2.canonicalFilePath();
-    }
-    if (m_filenameAbsolute.isEmpty())
-      m_filenameAbsolute = fi.absoluteFilePath();
+
+    m_rawFilename = filename;
+    m_filenameAbsolute = abs;
+    filenameChanged();
   }
 
   const QString& FileResource::filename() const
@@ -55,6 +67,12 @@ namespace Shaderkit
   const QString& FileResource::rawFilename() const
   {
     return m_rawFilename;
+  }
+
+  FileResource& FileResource::operator=(const FileResource& fr)
+  {
+    setFilename(fr.rawFilename());
+    return *this;
   }
 
 } // namespace Shaderkit

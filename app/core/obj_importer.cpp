@@ -44,14 +44,14 @@ namespace
 
   /// Reads color from material src to target.
   /// Example: getColor(target, material, AI_MATKEY_COLOR_DIFFUSE);
-  void getColor(Shaderkit::Color& target, aiMaterial& src, const char* pKey,
+  void getColor(Shaderkit::Attribute<Shaderkit::Color>& target, aiMaterial& src, const char* pKey,
                 unsigned int type, unsigned int idx)
   {
     aiColor3D color;
     if (src.Get(pKey, type, idx, color) == AI_SUCCESS)
       target = Shaderkit::Color(color.r, color.g, color.b);
   }
-  void getBool(bool& target, aiMaterial& src, const char* pKey,
+  void getBool(Shaderkit::Attribute<bool>& target, aiMaterial& src, const char* pKey,
                unsigned int type, unsigned int idx)
   {
     int value;
@@ -527,12 +527,12 @@ namespace Shaderkit
     /// @todo bones
     /// @todo anim meshes
 
-    mesh->name = Utils::uniqueName(str(src.mName), m_names.meshes, "Mesh");
-    m_names.meshes << mesh->name;
+    mesh->setName(Utils::uniqueName(str(src.mName), m_names.meshes, "Mesh"));
+    m_names.meshes << mesh->name();
     QString matname = m_names.materials.key(src.mMaterialIndex);
-    Log::debug("Mesh - Material: %s, %s", mesh->name.toUtf8().data(), matname.toUtf8().data());
+    Log::debug("Mesh - Material: %s, %s", mesh->name().toUtf8().data(), matname.toUtf8().data());
     if (m_filter.materials.contains(matname)) {
-      obj->setMaterialForMesh(mesh->name, loadMaterial(src.mMaterialIndex));
+      obj->setMaterialForMesh(mesh->name(), loadMaterial(src.mMaterialIndex));
     }
 
     return MeshPtr(mesh);

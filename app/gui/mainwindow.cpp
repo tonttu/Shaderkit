@@ -380,8 +380,6 @@ namespace Shaderkit
   {
     if (!m_scene)
       return;
-    // you need to use "save as" instead of just "save" when the scene is in any weird state
-    m_ui->action_savescene->setEnabled(isChanged && m_scene->state() == Scene::Ok);
 
     QFont font = m_ui->action_savescene_as->font();
     font.setBold(isChanged && m_scene->state() == Scene::New);
@@ -509,6 +507,16 @@ namespace Shaderkit
 
   void MainWindow::saveScene()
   {
+    // you need to use "save as" instead of just "save" when the scene is in any weird state
+    if (m_scene->state() != Scene::Ok) {
+      if (m_scene->state() == Scene::New || m_scene->state() == Scene::Limbo)
+        Log::info("This is a new project, using save as dialog");
+      else if (m_scene->state() == Scene::ReadOnly)
+        Log::info("Project is opened in a read-only mode, using save as dialog");
+      saveSceneAs();
+      return;
+    }
+
     if (m_scene->save(m_scene->filename())) {
       m_ui->statusbar->showMessage("Saved project to " + m_scene->filename(), 5000);
     } else {

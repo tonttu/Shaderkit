@@ -136,7 +136,7 @@ namespace Shaderkit
         ObjectPtr obj(new Object3D(model->name(), model));
         Eigen::Vector3f c = m_points[0];
         c[1] += r;
-        obj->transform() = Eigen::Translation3f(c);
+        obj->setTransform(Eigen::Affine3f(Eigen::Translation3f(c)));
 
         m_scene->add(obj);
         RenderPassPtr rp = m_scene->selectedRenderPass(RenderPass::Normal);
@@ -155,7 +155,7 @@ namespace Shaderkit
           ModelPtr model = Model::createBuiltin(m_name, m_name, map);
           m_scene->add(model);
           ObjectPtr obj(new Object3D(model->name(), model));
-          obj->transform() = Eigen::Translation3f(box.center());
+          obj->setTransform(Eigen::Affine3f(Eigen::Translation3f(box.center())));
 
           m_scene->add(obj);
           RenderPassPtr rp = m_scene->selectedRenderPass(RenderPass::Normal);

@@ -19,8 +19,12 @@
 #define LIGHT_HPP
 
 #include "forward.hpp"
+
+#include "core/attribute.hpp"
 #include "core/color.hpp"
+
 #include "gl/scene_object.hpp"
+
 #include <QVariant>
 
 namespace Shaderkit
@@ -29,8 +33,11 @@ namespace Shaderkit
   /**
    * OpenGL Light.
    */
-  class Light : public SceneObject
+  class Light : public QObject, public std::enable_shared_from_this<Light>,
+      public SceneObject
   {
+    Q_OBJECT
+
   public:
     enum Type { Spot, Direction };
 
@@ -50,45 +57,53 @@ namespace Shaderkit
     LightPtr clone() const;
 
     void setType(Type t);
-    Type type() const { return m_type; }
+    Type type() const { return m_type.value(); }
 
     void setAmbient(const Color& color);
     void setDiffuse(const Color& color);
     void setSpecular(const Color& color);
-    const Color& ambient() const { return m_ambient; }
-    const Color& diffuse() const { return m_diffuse; }
-    const Color& specular() const { return m_specular; }
+    const Color& ambient() const { return m_ambient.value(); }
+    const Color& diffuse() const { return m_diffuse.value(); }
+    const Color& specular() const { return m_specular.value(); }
 
-    const Eigen::Vector3f& location() const { return m_location; }
+    const Eigen::Vector3f& location() const { return m_location.value(); }
     void setLocation(const Eigen::Vector3f& loc);
 
-    const Eigen::Vector3f& target() const { return m_target; }
+    const Eigen::Vector3f& target() const { return m_target.value(); }
     void setTarget(const Eigen::Vector3f& target);
 
     void setDirection(const Eigen::Vector3f& dir);
-    const Eigen::Vector3f& direction() const { return m_direction; }
+    const Eigen::Vector3f& direction() const { return m_direction.value(); }
 
-    float spotCutoff() const { return m_spot_cutoff; }
+    float spotCutoff() const { return m_spot_cutoff.value(); }
     void setSpotCutoff(float v);
 
+    virtual void attributeChanged();
+
+  signals:
+    void changed(LightPtr);
+
   protected:
-    Type m_type;
+    explicit Light(const Light& l);
+
+  protected:
+    Attribute<Type> m_type;
 
     /// The id (beginning from 0) of the light. If it's negative, it will
     /// be chosen automatically in activate().
     int m_id;
 
     /// Light colors
-    Color m_ambient, m_diffuse, m_specular;
+    Attribute<Color> m_ambient, m_diffuse, m_specular;
 
     /// if m_type == Spot, we control the light with location and the target vectors
-    Eigen::Vector3f m_location, m_target;
+    Attribute<Eigen::Vector3f> m_location, m_target;
 
     /// With direction lights (m_type == Direction) there is only direction vector
-    Eigen::Vector3f m_direction;
+    Attribute<Eigen::Vector3f> m_direction;
 
     /// The maximum spread angle of a light source, if m_type == Spot.
-    float m_spot_cutoff;
+    Attribute<float> m_spot_cutoff;
   };
 
 } // namespace Shaderkit

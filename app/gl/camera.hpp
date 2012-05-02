@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "gl/scene_object.hpp"
 
+#include "core/attribute.hpp"
+
 #include "Eigen/Geometry"
 
 #include <QVariant>
@@ -32,12 +34,14 @@
 
 namespace Shaderkit
 {
-
   /**
    * OpenGL Camera class, handles perspective and ortho projections.
    */
-  class Camera : public SceneObject
+  class Camera : public QObject, public std::enable_shared_from_this<Camera>,
+      public SceneObject
   {
+    Q_OBJECT
+
   public:
     enum Type { Perspective, Ortho, Rect };
 
@@ -55,20 +59,20 @@ namespace Shaderkit
 
     QIcon icon();
 
-    float width() const { return m_width; }
-    float height() const { return m_height; }
+    float width() const { return m_width.value(); }
+    float height() const { return m_height.value(); }
 
     /// Sets this camera to use orthographic matrix that fills the screen
     void setRect(float near = -1.0f, float far = 1.0f);
 
     void setNear(float near);
-    float near() const { return m_near; }
+    float near() const { return m_near.value(); }
 
     void setFar(float far);
-    float far() const { return m_far; }
+    float far() const { return m_far.value(); }
 
     void setFov(float fov);
-    float fov() const { return m_fov; }
+    float fov() const { return m_fov.value(); }
 
     void rotate(QPointF diff);
     void translate(QPointF diff);
@@ -84,16 +88,16 @@ namespace Shaderkit
     const Eigen::Vector3f right() const;
     const Eigen::Vector3f front() const;
 
-    Type type() const { return m_type; }
+    Type type() const { return m_type.value(); }
     void setType(Type type);
 
     float dist() const;
 
     //void setPickDisplay(float x, float y);
 
-    const Eigen::Projective3f& projection() const { return m_projection; }
+    const Eigen::Projective3f& projection() const { return m_projection.value(); }
 
-    const Eigen::Affine3f& view() const { return m_view; }
+    const Eigen::Affine3f& view() const { return m_view.value(); }
 
     /// @param swap_y enable if you want to project to Qt coordinates
     Eigen::Projective3f normToWindow(bool swap_y = false) const;
@@ -103,32 +107,41 @@ namespace Shaderkit
     Eigen::Projective3f transform(bool swap_y = false) const;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    virtual void attributeChanged();
+
+  signals:
+    void changed(CameraPtr);
+
   protected:
+    explicit Camera(const Camera& c);
     void updateVectors();
 
-    Type m_type;
+  protected:
+    Attribute<Type> m_type;
 
     /// The point the camera is looking at (Perspective)
-    Eigen::Vector3f m_target;
-    /// Camera up vector (Perspective)
+    Attribute<Eigen::Vector3f> m_target;
 
+    /// Camera up vector (Perspective)
+    /// There are cached values
     Eigen::Vector3f m_up;
     Eigen::Vector3f m_right;
     Eigen::Vector3f m_front;
 
-    float m_dx, m_dy, m_dist;
+    Attribute<float> m_dx, m_dy, m_dist;
 
-    Eigen::Projective3f m_projection;
-    Eigen::Affine3f m_view;
+    Attribute<Eigen::Projective3f> m_projection;
+    Attribute<Eigen::Affine3f> m_view;
 
-    float m_width, m_height;
+    Attribute<float> m_width, m_height;
 
     /// Field of view, in degrees, in the y direction (Perspective)
-    float m_fov;
+    Attribute<float> m_fov;
     /// Near clipping plane distance
-    float m_near;
+    Attribute<float> m_near;
     /// Far clipping plane distance
-    float m_far;
+    Attribute<float> m_far;
   };
 
 } // namespace Shaderkit

@@ -24,6 +24,7 @@ unix:exists(/usr/bin/ccache) {
 
 *g++*: QMAKE_CFLAGS += -g
 *g++*: QMAKE_CXXFLAGS += -std=c++0x -g
+*clang*: QMAKE_CXXFLAGS += -std=c++11 -g
 *msvc*: QMAKE_CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS
 
 # See issue http://eigen.tuxfamily.org/bz/show_bug.cgi?id=83

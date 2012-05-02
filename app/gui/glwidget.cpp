@@ -309,7 +309,7 @@ namespace Shaderkit
                     [=](ObjectPtr obj, MeshPtr mesh){ obj->setMaterial(mesh->name, material); }); */
       struct hate_too_old_gcc {
         static void func(MaterialPtr material, ObjectPtr obj, MeshPtr mesh) {
-          obj->setMaterialForMesh(mesh->name, material);
+          obj->setMaterialForMesh(mesh->name(), material);
         }
       };
       using namespace std::placeholders;

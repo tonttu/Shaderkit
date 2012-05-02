@@ -27,12 +27,18 @@ namespace Shaderkit
   {
   public:
     FileResource();
+    FileResource(const FileResource& fr);
     virtual ~FileResource();
 
     virtual void setFilename(const QString& filename);
     /// @returns Absolute filename
     const QString& filename() const;
     const QString& rawFilename() const;
+
+    FileResource& operator=(const FileResource& fr);
+
+  protected:
+    virtual void filenameChanged() = 0;
 
   private:
     QString m_filenameAbsolute;

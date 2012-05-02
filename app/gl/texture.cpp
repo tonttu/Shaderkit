@@ -364,9 +364,15 @@ namespace Shaderkit
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-  Texture::Texture(QString name)
-    : FBOImage(name), m_bindedTexture(0), m_internalFormat(GL_RGBA),
-      m_blend(1.0), m_uv(1), m_paramsDirty(false), m_dirty(false)
+  Texture::Texture(const QString& name)
+    : FBOImage(name),
+      m_texture_id(0),
+      m_bindedTexture(0),
+      m_internalFormat(*this, GL_RGBA),
+      m_blend(*this, 1.0),
+      m_uv(*this, 0),
+      m_paramsDirty(false),
+      m_dirty(false)
   {
     s_init();
     setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -375,20 +381,33 @@ namespace Shaderkit
     setParam(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   }
 
+  Texture::Texture(const Texture& t)
+    : FBOImage(t),
+      m_texture_id(0),
+      m_params(t.m_params),
+      m_bindedTexture(0),
+      m_internalFormat(*this, t.m_internalFormat),
+      m_blend(*this, t.m_blend),
+      m_uv(*this, t.m_uv),
+      m_paramsDirty(true),
+      m_dirty(true)
+  {
+  }
+
   Texture::~Texture()
   {
     TextureChangeManager::removed(this);
-    if (m_id)
-      glDeleteTextures(1, &m_id);
-    m_id = 0;
+    if (m_texture_id)
+      glDeleteTextures(1, &m_texture_id);
+    m_texture_id = 0;
   }
 
   void Texture::bind(int texture)
   {
     m_bindedTexture = texture;
-    if (m_id == 0) glRun(glGenTextures(1, &m_id));
+    if (m_texture_id == 0) glRun(glGenTextures(1, &m_texture_id));
     glRun(glActiveTexture(GL_TEXTURE0 + m_bindedTexture));
-    glRun(glBindTexture(GL_TEXTURE_2D, m_id));
+    glRun(glBindTexture(GL_TEXTURE_2D, m_texture_id));
     if (m_paramsDirty) applyParams();
   }
 
@@ -400,14 +419,22 @@ namespace Shaderkit
 
   void Texture::setParam(unsigned int pname, int param)
   {
-    m_params[pname] = Param(param);
+    Param src(param);
+    Param& target = m_params[pname];
+    if (src == target) return;
+    target = src;
     m_paramsDirty = true;
+    emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
   }
 
   void Texture::setParam(unsigned int pname, float param)
   {
-    m_params[pname] = Param(param);
+    Param src(param);
+    Param& target = m_params[pname];
+    if (src == target) return;
+    target = src;
     m_paramsDirty = true;
+    emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
   }
 
   bool Texture::setParam(QString pname, Param param)
@@ -538,7 +565,7 @@ namespace Shaderkit
 
   void Texture::setup(unsigned int fbo, int width, int height)
   {
-    if (m_id == 0) glRun(glGenTextures(1, &m_id));
+    if (m_texture_id == 0) glRun(glGenTextures(1, &m_texture_id));
 
     bool type_changed = m_attachment != m_active_attachment,
          size_changed = m_width != width || m_height != height,
@@ -572,7 +599,7 @@ namespace Shaderkit
     /// @todo Should we run this if only size was changed?
     if (m_dirty || type_changed || size_changed || fbo_changed) {
       glRun(glFramebufferRenderbuffer(GL_FRAMEBUFFER, m_attachment, GL_RENDERBUFFER, 0));
-      glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_attachment, GL_TEXTURE_2D, m_id, 0 /* level */));
+      glRun(glFramebufferTexture2D(GL_FRAMEBUFFER, m_attachment, GL_TEXTURE_2D, m_texture_id, 0 /* level */));
     }
 
     m_width = width;
@@ -594,24 +621,16 @@ namespace Shaderkit
     TextureChangeManager::changed(this);
   }
 
-  TextureFile::TextureFile(QString name) : Texture(name) {}
-
   TexturePtr Texture::clone() const
   {
-    TexturePtr t(new Texture(*this));
-    t->m_id = 0;
-    t->m_fbo.reset();
-    t->m_fbo_num = 0;
-    t->m_bindedTexture = 0;
-    t->m_paramsDirty = true;
-    return t;
+    return TexturePtr(new Texture(*this));
   }
 
   QVariantMap Texture::toMap() const
   {
     QVariantMap map = FBOImage::toMap();
-    map["blend"] = m_blend;
-    map["uv"] = m_uv;
+    map["blend"] = m_blend.value();
+    map["uv"] = m_uv.value();
 
     for (QMap<unsigned int, Param>::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
       QString pname = s_names.value(it.key());
@@ -871,16 +890,26 @@ namespace Shaderkit
     TextureChangeManager::changed(this, true);
   }
 
+  void Texture::attributeChanged()
+  {
+    emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  TextureFile::TextureFile(const QString& name)
+    : Texture(name)
+  {}
+
+  TextureFile::TextureFile(const TextureFile& t)
+    : Texture(t),
+      FileResource(t)
+  {}
+
   TexturePtr TextureFile::clone() const
   {
-    TextureFile* t = new TextureFile(*this);
-    t->m_id = 0;
-    t->m_fbo.reset();
-    t->m_fbo_num = 0;
-    t->m_bindedTexture = 0;
-    t->m_paramsDirty = true;
-    t->m_loadedFile.clear();
-    return TexturePtr(t);
+    return TexturePtr(new TextureFile(*this));
   }
 
   QVariantMap TextureFile::toMap() const
@@ -904,23 +933,25 @@ namespace Shaderkit
   void TextureFile::bind(int texture)
   {
     bool reload = m_loadedFile != filename();
-    if (reload && m_id > 0) {
+    if (reload && m_texture_id > 0) {
       QGLContext* cx = const_cast<QGLContext*>(QGLContext::currentContext());
-      cx->deleteTexture(m_id);
-      m_id = 0;
+      cx->deleteTexture(m_texture_id);
+      m_texture_id = 0;
       m_width = m_height = 0;
       if (!filename().isEmpty()) {
         QImage image(filename());
         if (image.isNull()) {
           Log::error("Failed to load image: %s (%s)", filename().toUtf8().data(), rawFilename().toUtf8().data());
         } else {
-          m_id = cx->bindTexture(image, GL_TEXTURE_2D, m_internalFormat,
+          m_texture_id = cx->bindTexture(image, GL_TEXTURE_2D, m_internalFormat,
                                  QGLContext::InvertedYBindOption | QGLContext::MipmapBindOption);
           m_width = image.width();
           m_height = image.height();
-          glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_internalFormat);
+          GLint internalFormat = 0;
+          glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+          m_internalFormat = internalFormat;
           applyParams();
-          Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_id, m_width, m_height);
+          Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_texture_id, m_width.value(), m_height.value());
         }
       }
       m_loadedFile = filename();
@@ -933,6 +964,11 @@ namespace Shaderkit
   {
     Texture::setInternalFormat(format);
     m_loadedFile = "";
+  }
+
+  void TextureFile::filenameChanged()
+  {
+    attributeChanged();
   }
 
 } // namespace Shaderkit

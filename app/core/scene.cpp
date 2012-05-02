@@ -882,6 +882,11 @@ namespace Shaderkit
     return QIcon();
   }
 
+  void Scene::filenameChanged()
+  {
+    changedSlot();
+  }
+
   void Scene::changedSlot()
   {
     if (m_loading) return;

@@ -197,6 +197,11 @@ namespace Shaderkit
     return Unknown;
   }
 
+  void Shader::filenameChanged()
+  {
+    emit changed(shared_from_this());
+  }
+
   bool Shader::handleCompilerOutput(ShaderErrorList& errors)
   {
     glCheck("handleCompilerOutput");

@@ -51,12 +51,24 @@ namespace Shaderkit
     return Eigen::Affine3f::Identity();
   }
 
-  Object3D::Object3D(QString name, ModelPtr model)
+  Object3D::Object3D(const QString& name, const ModelPtr& model)
     : SceneObject(name),
-      m_transform(Eigen::Affine3f::Identity()),
+      m_transform(*this, Eigen::Affine3f::Identity()),
       m_model(model)
   {
   }
+
+  Object3D::Object3D(const Object3D& o)
+    : QObject(),
+      std::enable_shared_from_this<Object3D>(),
+      SceneObject(o),
+      m_transform(*this, o.m_transform),
+      // shallow copy
+      m_model(o.m_model),
+      m_materials(o.m_materials),
+      m_default_material(o.m_default_material)
+  {}
+
   Object3D::~Object3D() {}
 
   void Object3D::render(State& state)
@@ -74,30 +86,42 @@ namespace Shaderkit
     return m_model->builtin();
   }
 
-  MaterialPtr Object3D::materialForMesh(QString meshname)
+  MaterialPtr Object3D::materialForMesh(const QString& meshname) const
   {
-    if (m_materials.contains(meshname)) return m_materials[meshname];
+    if (m_materials.contains(meshname))
+      return m_materials.value(meshname);
     return m_default_material;
   }
 
-  void Object3D::setMaterialForMesh(QString meshname, MaterialPtr mat)
+  void Object3D::setMaterialForMesh(const QString& meshname, const MaterialPtr& mat)
   {
+    if (m_materials[meshname] == mat) return;
     m_materials[meshname] = mat;
+    emit changed(shared_from_this());
   }
 
-  void Object3D::setDefaultMaterial(MaterialPtr mat)
+  void Object3D::setDefaultMaterial(const MaterialPtr& mat)
   {
+    if (m_default_material == mat) return;
     m_default_material = mat;
+    emit changed(shared_from_this());
   }
 
-  void Object3D::remove(MaterialPtr mat)
+  void Object3D::remove(const MaterialPtr& mat)
   {
-    if (mat == m_default_material) m_default_material = MaterialPtr();
+    bool diff = false;
+    if (mat == m_default_material) {
+      diff = true;
+      m_default_material = MaterialPtr();
+    }
 
     for (auto it = m_materials.begin(); it != m_materials.end();) {
-      if (*it == mat) it = m_materials.erase(it);
-      else ++it;
+      if (*it == mat) {
+        it = m_materials.erase(it);
+        diff = true;
+      } else ++it;
     }
+    if (diff) emit changed(shared_from_this());
   }
 
   QVariantMap Object3D::toMap() const
@@ -124,12 +148,24 @@ namespace Shaderkit
 
   ObjectPtr Object3D::clone()
   {
-    return ObjectPtr(new Object3D(m_name));
+    return ObjectPtr(new Object3D(*this));
   }
 
-  void Object3D::setModel(ModelPtr model)
+  void Object3D::setModel(const ModelPtr& model)
   {
+    if(m_model == model) return;
     m_model = model;
+    emit changed(shared_from_this());
+  }
+
+  void Object3D::setTransform(const Eigen::Affine3f& transform)
+  {
+    m_transform = transform;
+  }
+
+  void Object3D::attributeChanged()
+  {
+    emit changed(shared_from_this());
   }
 
 } // namespace Shaderkit

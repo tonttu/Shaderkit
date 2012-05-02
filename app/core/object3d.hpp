@@ -21,6 +21,8 @@
 #include "forward.hpp"
 #include "gl/scene_object.hpp"
 
+#include <core/attribute.hpp>
+
 #include "Eigen/Geometry"
 
 #include <QVariantMap>
@@ -39,11 +41,13 @@ namespace Shaderkit
    * or similar renderable object. Shaders etc should be ready before calling
    * the render() method.
    */
-  class Object3D : public std::enable_shared_from_this<Object3D>,
+  class Object3D : public QObject, public std::enable_shared_from_this<Object3D>,
     public SceneObject
   {
+    Q_OBJECT
+
   public:
-    Object3D(QString name, ModelPtr model = ModelPtr());
+    Object3D(const QString& name, const ModelPtr& model = ModelPtr());
     virtual ~Object3D();
 
     /// Renders the object with given state
@@ -51,26 +55,34 @@ namespace Shaderkit
 
     virtual bool builtin() const;
 
-    MaterialPtr materialForMesh(QString meshname);
-    void setMaterialForMesh(QString meshname, MaterialPtr mat);
-    void setDefaultMaterial(MaterialPtr mat);
-    void remove(MaterialPtr mat);
+    MaterialPtr materialForMesh(const QString& meshname) const;
+    void setMaterialForMesh(const QString& meshname, const MaterialPtr& mat);
+    void setDefaultMaterial(const MaterialPtr& mat);
+    void remove(const MaterialPtr& mat);
 
     virtual QVariantMap toMap() const;
     virtual void load(QVariantMap map);
-    /// Doesn't clone materials or model
+    /// @todo maybe different version that also makes a deep copy of model and materials?
     ObjectPtr clone();
 
-    void setModel(ModelPtr model);
+    void setModel(const ModelPtr& model);
     ModelPtr model() { return m_model; }
 
+    void setTransform(const Eigen::Affine3f& transform);
     const Eigen::Affine3f& transform() const { return m_transform; }
-    Eigen::Affine3f& transform() { return m_transform; }
+
+    virtual void attributeChanged();
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+  signals:
+    void changed(ObjectPtr);
+
+  protected:
+    explicit Object3D(const Object3D& o);
+
   private:
-    Eigen::Affine3f m_transform;
+    Attribute<Eigen::Affine3f> m_transform;
     ModelPtr m_model;
     QMap<QString, MaterialPtr> m_materials;
     MaterialPtr m_default_material;

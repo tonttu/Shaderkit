@@ -24,24 +24,30 @@
 
 namespace Shaderkit
 {
-
   class SceneObject
   {
   public:
     SceneObject(const QString& name);
     virtual ~SceneObject();
 
-    QString name() const { return m_name; }
-    void setName(QString name);
+    const QString& name() const { return m_name; }
+    void setName(const QString& name);
 
     virtual QVariantMap toMap() const;
     virtual void load(QVariantMap map);
 
-    void setRef(QString import, QString refname);
-    QString ref();
-    QStringList refName();
+    void setRef(const QString& import, const QString& refname);
+    void setRef(const QString& import, const QStringList& refname);
+
+    const QString& ref() { return m_ref; }
+    const QStringList& refName() { return m_ref_name; }
+
+    virtual void attributeChanged() = 0;
 
   protected:
+    explicit SceneObject(const SceneObject& s);
+
+  private:
     QString m_name;
     QString m_ref;
     QStringList m_ref_name;

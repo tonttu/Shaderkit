@@ -61,6 +61,7 @@ namespace Shaderkit
         /// @todo implement
         return QIcon();
       }
+      virtual void filenameChanged() {}
     };
     struct FileInfo {
       FileInfo(QString n, QIcon i, QString t)
@@ -207,9 +208,12 @@ namespace Shaderkit
 
     QIcon icon() const;
 
-    const QMap<QString, Import>& imports() const {
+    const QMap<QString, Import>& imports() const
+    {
       return m_imports;
     }
+
+    virtual void filenameChanged();
 
   signals:
     void shaderListUpdated();
