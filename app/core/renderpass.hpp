@@ -98,8 +98,8 @@ namespace Shaderkit
     int width() const;
     bool autosize() const;
 
-    void setAutosize(bool v);
-    void resize(int w, int h);
+    void setAutosize();
+    void setManualSize(int w, int h);
 
     GLbitfield clearBits() const { return m_clear; }
     void setClearBits(GLbitfield bits);
@@ -147,7 +147,7 @@ namespace Shaderkit
   signals:
     void changed(RenderPassPtr);
 
-  protected:
+  private:
     void beginFBO();
     void endFBO();
     void renderUI(State& state, const RenderOptions& render_opts);

@@ -476,7 +476,7 @@ namespace Shaderkit
         item.size = new QLineEdit(container);
         item.size->setValidator(new QRegExpValidator(QRegExp("\\d+x\\d+"), item.size));
         m_senders[item.size] = pass;
-        connect(item.size, SIGNAL(editingFinished()), this, SLOT(sizeChanged()));
+        connect(item.size, SIGNAL(editingFinished()), this, SLOT(sizeEdited()));
 
         layout->setWidget(0, 1, item.size);
 
@@ -661,14 +661,14 @@ namespace Shaderkit
     }
   }
 
-  void RenderPassProperties::sizeChanged()
+  void RenderPassProperties::sizeEdited()
   {
     RenderPassPtr pass = getSender();
     if (!pass || !m_passes.contains(pass)) return;
     QRegExp r("^(\\d+)x(\\d+)$");
     if (r.exactMatch(m_passes[pass].size->text())) {
       int w = r.cap(1).toInt(), h = r.cap(2).toInt();
-      pass->resize(w, h);
+      pass->setManualSize(w, h);
     }
   }
 
@@ -676,7 +676,10 @@ namespace Shaderkit
   {
     RenderPassPtr pass = getSender();
     if (!pass || !m_passes.contains(pass)) return;
-    pass->setAutosize(m_passes[pass].size_btn->isChecked());
+    if (m_passes[pass].size_btn->isChecked())
+      pass->setAutosize();
+    else
+      pass->setManualSize(pass->width(), pass->height());
   }
 
   void RenderPassProperties::clearChanged()

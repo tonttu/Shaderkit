@@ -113,22 +113,18 @@ namespace Shaderkit
     return m_autosize;
   }
 
-  void RenderPass::setAutosize(bool v)
+  void RenderPass::setAutosize()
   {
-    if (m_autosize == v) return;
-    m_autosize = v;
-    emit changed(shared_from_this());
+    m_width = 0;
+    m_height = 0;
+    m_autosize = true;
   }
 
-  void RenderPass::resize(int w, int h)
+  void RenderPass::setManualSize(int w, int h)
   {
-    if (m_width == w && m_height == h)
-      return;
-
     m_width = w;
     m_height = h;
-    if (!m_autosize)
-      emit changed(shared_from_this());
+    m_autosize = false;
   }
 
   void RenderPass::setClearBits(GLbitfield bits)
@@ -288,7 +284,6 @@ namespace Shaderkit
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
 
-    resize(width(), height());
     state.setCamera(m_view);
     m_view->prepare(width(), height());
 

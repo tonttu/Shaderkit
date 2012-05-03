@@ -128,7 +128,7 @@ namespace Shaderkit
     void openLightEditor();
     void openCameraEditor();
 
-    void sizeChanged();
+    void sizeEdited();
     void toggleAutoSize();
 
     void clearChanged();
