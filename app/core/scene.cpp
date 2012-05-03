@@ -225,12 +225,15 @@ namespace Shaderkit
 
     TexturePtr tex(new Texture(name));
     m_textures[name] = tex;
+    connect(tex.get(), SIGNAL(changed(TexturePtr)), this, SLOT(textureChanged(TexturePtr)));
     emit textureListUpdated();
     return tex;
   }
 
   void Scene::remove(TexturePtr t)
   {
+    disconnect(t.get(), SIGNAL(changed(TexturePtr)), this, SLOT(textureChanged(TexturePtr)));
+
     foreach (auto m, m_materials)
       m->removeTexture(t);
 
@@ -411,6 +414,7 @@ namespace Shaderkit
     m_lights.clear();
     m_cameras.clear();
     m_textures.clear();
+
     foreach (MaterialPtr mat, m_materials) {
       disconnect(mat.get(), SIGNAL(progLinked(ShaderErrorList)),
                  this, SIGNAL(progLinked(ShaderErrorList)));
@@ -423,6 +427,14 @@ namespace Shaderkit
     m_materials.clear();
     m_models.clear();
     m_imports.clear();
+
+    disconnect(this, SLOT(cameraChanged(CameraPtr)));
+    disconnect(this, SLOT(textureChanged(TexturePtr)));
+    disconnect(this, SLOT(lightChanged(LightPtr)));
+    disconnect(this, SLOT(materialChanged(MaterialPtr)));
+    disconnect(this, SLOT(modelChanged(ModelPtr)));
+    disconnect(this, SLOT(objectChanged(ObjectPtr)));
+    disconnect(this, SLOT(renderPassChanged(RenderPassPtr)));
 
     m_metainfo.load(map["shaderkit"].toMap());
 
@@ -460,6 +472,7 @@ namespace Shaderkit
       }
       model->load(p.map);
       m_models[p.name] = model;
+      disconnect(model.get(), SIGNAL(changed(ModelPtr)), this, SLOT(modelChanged(ModelPtr)));
     }
 
     foreach (P p, iterate(map["textures"])) {
@@ -470,6 +483,7 @@ namespace Shaderkit
       }
       t->load(p.map);
       m_textures[p.name] = t;
+      connect(t.get(), SIGNAL(changed(TexturePtr)), this, SLOT(textureChanged(TexturePtr)));
     }
 
     foreach (P p, iterate(map["materials"])) {
@@ -482,6 +496,7 @@ namespace Shaderkit
       ObjectPtr o = clone(imported, p, &ObjImporter::Scene::objects);
       o->load(p.map);
       m_objects[p.name] = o;
+      connect(o.get(), SIGNAL(changed(ObjectPtr)), this, SLOT(objectChanged(ObjectPtr)));
 
       QString model = p.map["model"].toString();
       if (m_models.contains(model)) o->setModel(m_models[model]);
@@ -501,12 +516,14 @@ namespace Shaderkit
       LightPtr l = clone(imported, p, &ObjImporter::Scene::lights);
       l->load(p.map);
       m_lights[p.name] = l;
+      connect(l.get(), SIGNAL(changed(LightPtr)), this, SLOT(lightChanged(LightPtr)));
     }
 
     foreach (P p, iterate(map["cameras"])) {
       CameraPtr c = clone(imported, p, &ObjImporter::Scene::cameras);
       c->load(p.map);
       m_cameras[p.name] = c;
+      connect(c.get(), SIGNAL(changed(CameraPtr)), this, SLOT(cameraChanged(CameraPtr)));
     }
 
     /// @todo animations
@@ -516,6 +533,7 @@ namespace Shaderkit
       RenderPassPtr pass(new RenderPass(map["name"].toString(), shared_from_this()));
       pass->load(map);
       m_render_passes << pass;
+      connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(renderPassChanged(RenderPassPtr)));
     }
 
     emit stateChanged();
@@ -754,11 +772,13 @@ namespace Shaderkit
     pass->setName(Utils::uniqueName(pass->name(), names, "Untitled"));
 
     m_render_passes << pass;
+    connect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(renderPassChanged(RenderPassPtr)));
     emit renderPassesListUpdated(m_render_passes);
   }
 
   void Scene::remove(RenderPassPtr pass)
   {
+    disconnect(pass.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(renderPassChanged(RenderPassPtr)));
     m_render_passes.removeAll(pass);
     emit renderPassesListUpdated(m_render_passes);
   }
@@ -766,6 +786,11 @@ namespace Shaderkit
   void Scene::setRenderPasses(RenderPasses passes)
   {
     m_render_passes = passes;
+    foreach (RenderPassPtr r, m_render_passes.toSet() - passes.toSet())
+      disconnect(r.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(renderPassChanged(RenderPassPtr)));
+    foreach (RenderPassPtr r, passes.toSet() - m_render_passes.toSet())
+      connect(r.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(renderPassChanged(RenderPassPtr)));
+
     emit renderPassesListUpdated(m_render_passes);
   }
 
@@ -773,11 +798,14 @@ namespace Shaderkit
   {
     camera->setName(Utils::uniqueName(camera->name(), m_cameras.keys(), "Camera"));
     m_cameras[camera->name()] = camera;
+    connect(camera.get(), SIGNAL(changed(CameraPtr)), this, SLOT(cameraChanged(CameraPtr)));
     emit cameraListUpdated();
   }
 
   void Scene::remove(CameraPtr camera)
   {
+    disconnect(camera.get(), SIGNAL(changed(CameraPtr)), this, SLOT(cameraChanged(CameraPtr)));
+
     foreach (const QString& name, m_cameras.keys(camera))
       m_cameras.remove(name);
 
@@ -792,12 +820,15 @@ namespace Shaderkit
   {
     light->setName(Utils::uniqueName(light->name(), m_lights.keys(), "Light"));
     m_lights[light->name()] = light;
+    connect(light.get(), SIGNAL(changed(LightPtr)), this, SLOT(lightChanged(LightPtr)));
 
     emit lightListUpdated();
   }
 
   void Scene::remove(LightPtr light)
   {
+    disconnect(light.get(), SIGNAL(changed(LightPtr)), this, SLOT(lightChanged(LightPtr)));
+
     foreach (const QString& name, m_lights.keys(light))
       m_lights.remove(name);
 
@@ -820,12 +851,15 @@ namespace Shaderkit
   {
     obj->setName(Utils::uniqueName(obj->name(), m_objects.keys(), "Object"));
     m_objects[obj->name()] = obj;
+    connect(obj.get(), SIGNAL(changed(ObjectPtr)), this, SLOT(objectChanged(ObjectPtr)));
 
     emit objectListUpdated();
   }
 
   void Scene::remove(ObjectPtr obj)
   {
+    disconnect(obj.get(), SIGNAL(changed(ObjectPtr)), this, SLOT(objectChanged(ObjectPtr)));
+
     foreach (const QString& name, m_objects.keys(obj))
       m_selection.removeAll(m_objects.take(name));
 
@@ -852,11 +886,15 @@ namespace Shaderkit
   void Scene::add(ModelPtr model)
   {
     model->setName(Utils::uniqueName(model->name(), m_models.keys(), "Model"));
+    connect(model.get(), SIGNAL(changed(ModelPtr)), this, SLOT(modelChanged(ModelPtr)));
+
     m_models[model->name()] = model;
   }
 
   void Scene::remove(ModelPtr model)
   {
+    disconnect(model.get(), SIGNAL(changed(ModelPtr)), this, SLOT(modelChanged(ModelPtr)));
+
     foreach (const QString& name, m_models.keys(model))
       m_models.remove(name);
 
@@ -894,6 +932,46 @@ namespace Shaderkit
     m_changed = true;
     //m_history.changed();
     emit changed(prev);
+  }
+
+  void Scene::cameraChanged(CameraPtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::textureChanged(TexturePtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::fboImageChanged(FBOImagePtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::lightChanged(LightPtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::materialChanged(MaterialPtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::modelChanged(ModelPtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::objectChanged(ObjectPtr)
+  {
+    changedSlot();
+  }
+
+  void Scene::renderPassChanged(RenderPassPtr)
+  {
+    changedSlot();
   }
 
 /// @todo what state use after this?
@@ -981,6 +1059,8 @@ namespace Shaderkit
   {
     if (m_materials.contains(name)) {
       MaterialPtr old = m_materials[name];
+      disconnect(old.get(), SIGNAL(changed(MaterialPtr)),
+                 this, SLOT(materialChanged(MaterialPtr)));
       disconnect(old.get(), SIGNAL(progLinked(ShaderErrorList)),
                  this, SIGNAL(progLinked(ShaderErrorList)));
       disconnect(old.get(), SIGNAL(progCompiled(ShaderErrorList)),
@@ -991,6 +1071,8 @@ namespace Shaderkit
 
     m_materials[name] = material;
 
+    connect(material.get(), SIGNAL(changed(MaterialPtr)),
+            this, SLOT(materialChanged(MaterialPtr)));
     connect(material.get(), SIGNAL(progLinked(ShaderErrorList)),
             this, SIGNAL(progLinked(ShaderErrorList)));
     connect(material.get(), SIGNAL(progCompiled(ShaderErrorList)),
@@ -1005,6 +1087,7 @@ namespace Shaderkit
   {
     t->setName(Utils::uniqueName(t->name(), m_textures.keys(), "Texture"));
     m_textures[t->name()] = t;
+    connect(t.get(), SIGNAL(changed(TexturePtr)), this, SLOT(textureChanged(TexturePtr)));
     emit textureListUpdated();
   }
 

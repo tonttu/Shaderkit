@@ -235,6 +235,16 @@ namespace Shaderkit
   protected slots:
     void changedSlot();
 
+  private slots:
+    void cameraChanged(CameraPtr);
+    void textureChanged(TexturePtr);
+    void fboImageChanged(FBOImagePtr);
+    void lightChanged(LightPtr);
+    void materialChanged(MaterialPtr);
+    void modelChanged(ModelPtr);
+    void objectChanged(ObjectPtr);
+    void renderPassChanged(RenderPassPtr);
+
   protected:
     void createDefaults();
 
