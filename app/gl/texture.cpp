@@ -375,10 +375,10 @@ namespace Shaderkit
       m_dirty(false)
   {
     s_init();
-    setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    setParam(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    setParam(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE, true);
+    setParam(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE, true);
+    setParam(GL_TEXTURE_MAG_FILTER, GL_LINEAR, true);
+    setParam(GL_TEXTURE_MIN_FILTER, GL_LINEAR, true);
   }
 
   Texture::Texture(const Texture& t)
@@ -417,27 +417,29 @@ namespace Shaderkit
     glRun(glBindTexture(GL_TEXTURE_2D, 0));
   }
 
-  void Texture::setParam(unsigned int pname, int param)
+  void Texture::setParam(unsigned int pname, int param, bool quiet)
   {
     Param src(param);
     Param& target = m_params[pname];
     if (src == target) return;
     target = src;
     m_paramsDirty = true;
-    emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
+    if (!quiet)
+      emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
   }
 
-  void Texture::setParam(unsigned int pname, float param)
+  void Texture::setParam(unsigned int pname, float param, bool quiet)
   {
     Param src(param);
     Param& target = m_params[pname];
     if (src == target) return;
     target = src;
     m_paramsDirty = true;
-    emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
+    if (!quiet)
+      emit changed(std::static_pointer_cast<Texture>(shared_from_this()));
   }
 
-  bool Texture::setParam(QString pname, Param param)
+  bool Texture::setParam(QString pname, Param param, bool quiet)
   {
     if (!s_enums.contains(pname)) {
       Log::error("Invalid enum: %s", pname.toUtf8().data());
@@ -445,13 +447,13 @@ namespace Shaderkit
     }
     GLenum e = s_enums.value(pname);
     if (param.is_float)
-      setParam(e, param.f);
+      setParam(e, param.f, quiet);
     else
-      setParam(e, param.i);
+      setParam(e, param.i, quiet);
     return true;
   }
 
-  bool Texture::setParam(QString pname, QString param)
+  bool Texture::setParam(QString pname, QString param, bool quiet)
   {
     if (!s_enums.contains(pname)) {
       Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
@@ -463,14 +465,14 @@ namespace Shaderkit
     if (s_choices.contains(pname)) {
       int i = param.toInt(&ok);
       if (ok) {
-        setParam(e, i);
+        setParam(e, i, quiet);
         return true;
       } else if (!s_choices.value(pname).contains(param)) {
         Log::error("Invalid value: %s = %s", pname.toUtf8().data(), param.toUtf8().data());
         return false;
       }
       assert(s_enums.contains(param));
-      setParam(e, int(s_enums.value(param)));
+      setParam(e, int(s_enums.value(param)), quiet);
       return true;
     } else if (s_ints.contains(pname)) {
       int i = param.toInt(&ok);
@@ -478,7 +480,7 @@ namespace Shaderkit
         Log::error("Invalid value: %s = %s (should be int)", pname.toUtf8().data(), param.toUtf8().data());
         return false;
       }
-      setParam(e, i);
+      setParam(e, i, quiet);
       return true;
     } else if (s_floats.contains(pname)) {
       float f = param.toFloat(&ok);
@@ -486,7 +488,7 @@ namespace Shaderkit
         Log::error("Invalid value: %s = %s (should be float)", pname.toUtf8().data(), param.toUtf8().data());
         return false;
       }
-      setParam(e, f);
+      setParam(e, f, quiet);
       return true;
     }
     Log::error("Invalid enum: %s = %s", pname.toUtf8().data(), param.toUtf8().data());

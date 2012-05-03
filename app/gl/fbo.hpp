@@ -42,9 +42,9 @@ namespace Shaderkit
     /// type is GL_DEPTH_ATTACHMENT etc..
     void setAttachment(int attachment) { m_attachment = attachment; }
     /// Role, like "diffuse", "normalmap", "lightmap" etc
-    void setRole(QString role) { m_role = role; }
+    void setRole(const QString& role) { m_role = role; }
 
-    QString role() const { return m_role; }
+    const QString& role() const { return m_role.value(); }
 
     int width() const { return m_width; }
     int height() const { return m_height; }

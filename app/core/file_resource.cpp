@@ -28,14 +28,14 @@ namespace Shaderkit
 
   FileResource::FileResource(const FileResource& fr)
   {
-    setFilename(fr.rawFilename());
+    setFilename(fr.rawFilename(), true);
   }
 
   FileResource::~FileResource()
   {
   }
 
-  void FileResource::setFilename(const QString& filename)
+  void FileResource::setFilename(const QString& filename, bool quiet)
   {
     QString abs;
     if (filename.isEmpty()) {
@@ -56,7 +56,8 @@ namespace Shaderkit
 
     m_rawFilename = filename;
     m_filenameAbsolute = abs;
-    filenameChanged();
+    if (!quiet)
+      filenameChanged();
   }
 
   const QString& FileResource::filename() const

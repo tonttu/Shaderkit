@@ -30,7 +30,7 @@ namespace Shaderkit
     FileResource(const FileResource& fr);
     virtual ~FileResource();
 
-    virtual void setFilename(const QString& filename);
+    virtual void setFilename(const QString& filename, bool quiet = false);
     /// @returns Absolute filename
     const QString& filename() const;
     const QString& rawFilename() const;

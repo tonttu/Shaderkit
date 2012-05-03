@@ -95,10 +95,10 @@ namespace Shaderkit
     virtual void bind(int texture = 0);
     virtual void unbind();
 
-    void setParam(unsigned int pname, int param);
-    void setParam(unsigned int pname, float param);
-    bool setParam(QString pname, Param param);
-    bool setParam(QString pname, QString param);
+    void setParam(unsigned int pname, int param, bool quiet = false);
+    void setParam(unsigned int pname, float param, bool quiet = false);
+    bool setParam(QString pname, Param param, bool quiet = false);
+    bool setParam(QString pname, QString param, bool quiet = false);
 
     QMap<QString, Param> paramStrings() const;
     Param param(QString name) const;

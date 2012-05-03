@@ -384,7 +384,7 @@ namespace Shaderkit
       for (unsigned int i = 0; i < count; ++i) {
         QString name = m_names.textures.key(num++);
         QString role = roles[type];
-        TextureFile* t = new TextureFile(name);
+        std::shared_ptr<TextureFile> t(new TextureFile(name));
         t->setRole(role);
 
         aiString path;
@@ -422,7 +422,7 @@ namespace Shaderkit
         t->setUV(uvindex);
         /// @todo use aiTextureOp op somehow
 
-        m->addTexture(name, TexturePtr(t));
+        m->addTexture(name, t);
       }
     }
 
