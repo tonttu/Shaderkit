@@ -57,6 +57,27 @@ namespace Shaderkit
     SceneObject& m_scene_object;
     T m_value;
   };
+
+#define DEFINE_COMPOUND_ATTR_OP(op)                                 \
+  template <typename T, typename Y>                                 \
+  Attribute<T>& operator op##= (Attribute<T>& attr, const Y& value) \
+  {                                                                 \
+    attr = attr.value() op value;                                   \
+    return attr;                                                    \
+  }
+
+  DEFINE_COMPOUND_ATTR_OP(+)
+  DEFINE_COMPOUND_ATTR_OP(-)
+  DEFINE_COMPOUND_ATTR_OP(*)
+  DEFINE_COMPOUND_ATTR_OP(/)
+  DEFINE_COMPOUND_ATTR_OP(%)
+  DEFINE_COMPOUND_ATTR_OP(&)
+  DEFINE_COMPOUND_ATTR_OP(|)
+  DEFINE_COMPOUND_ATTR_OP(^)
+  DEFINE_COMPOUND_ATTR_OP(<<)
+  DEFINE_COMPOUND_ATTR_OP(>>)
+
+#undef DEFINE_OP
 }
 
 #endif // ATTRIBUTE_HPP
