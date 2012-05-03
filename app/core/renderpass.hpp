@@ -19,7 +19,11 @@
 #define RENDERPASS_HPP
 
 #include "forward.hpp"
+
 #include "core/color.hpp"
+#include "core/attribute.hpp"
+
+#include "gl/scene_object.hpp"
 #include "gl/opengl.hpp"
 #include "gl/uniform.hpp"
 #include "gl/buffer_object.hpp"
@@ -68,7 +72,8 @@ namespace Shaderkit
    *
    * @todo implement that stuff ^
    */
-  class RenderPass : public QObject, public std::enable_shared_from_this<RenderPass>
+  class RenderPass : public QObject, public std::enable_shared_from_this<RenderPass>,
+      public SceneObject
   {
     Q_OBJECT
 
@@ -77,14 +82,14 @@ namespace Shaderkit
       Normal,
       PostProc,
       Disabled
-    } m_type;
+    };
 
     /// @todo separate Object from Model. Object is an instance of Model, including
     ///       the transformation matrix etc.
     typedef QSet<ObjectPtr> Objects;
     typedef QSet<LightPtr> Lights;
 
-    RenderPass(QString name, ScenePtr scene);
+    RenderPass(const QString& name, ScenePtr scene);
 
     /// Render the pass
     void render(State& state, const RenderOptions& render_opts);
@@ -110,32 +115,29 @@ namespace Shaderkit
     QStringList out() const;
     FBOImagePtr out(const QString& name) const;
 
-    QString name() const;
-    void setName(const QString& name);
-
     /// @todo this should be removed, CameraEditor & Camera have the same functionality
     Type type() const { return m_type; }
     void setType(Type type);
 
-    ScenePtr scene() { return m_scene; }
+    ScenePtr scene() const { return m_scene; }
 
-    MaterialPtr defaultMaterial() { return m_defaultMaterial; }
-    void setDefaultMaterial(MaterialPtr defaultMaterial);
+    MaterialPtr defaultMaterial() const { return m_defaultMaterial; }
+    void setDefaultMaterial(const MaterialPtr& defaultMaterial);
 
     Objects objects() const { return m_objects; }
-    void setObjects(Objects objs);
-    void add(ObjectPtr obj);
-    void remove(ObjectPtr obj);
+    void setObjects(const Objects& objs);
+    void add(const ObjectPtr& obj);
+    void remove(const ObjectPtr& obj);
 
     Lights lights() { return m_lights; }
-    void setLights(Lights lights);
-    void add(LightPtr light);
-    void remove(LightPtr light);
+    void setLights(const Lights& lights);
+    void add(const LightPtr& light);
+    void remove(const LightPtr& light);
 
     CameraPtr view() const { return m_view; }
-    void setView(CameraPtr camera);
+    void setView(const CameraPtr& camera);
 
-    QIcon icon();
+    QIcon icon() const;
 
     RenderPassPtr clone() const;
 
@@ -144,15 +146,20 @@ namespace Shaderkit
     void remove(FBOImagePtr buffer);
     void set(int target, FBOImagePtr buffer);
 
+    virtual void attributeChanged();
+
   signals:
     void changed(RenderPassPtr);
 
   private:
+    RenderPass(const RenderPass& r);
+
     void beginFBO();
     void endFBO();
     void renderUI(State& state, const RenderOptions& render_opts);
 
-    QString m_name;
+  private:
+    Attribute<Type> m_type;
 
     /// All objects that are rendered in this pass
     Objects m_objects;
@@ -165,11 +172,11 @@ namespace Shaderkit
 
     /// Bitwise OR of GL_{COLOR,DEPTH,STENCIL}_BUFFER_BIT, or zero if we don't
     /// want to clear the buffer before rendering.
-    GLbitfield m_clear;
-    Color m_clearColor;
+    Attribute<GLbitfield> m_clear;
+    Attribute<Color> m_clearColor;
 
-    int m_width, m_height; /// Output size, if zero, use scene size.
-    bool m_autosize;
+    Attribute<int> m_width, m_height; /// Output size, if zero, use scene size.
+    Attribute<bool> m_autosize;
     FBOPtr m_fbo;
 
     ProgramPtr m_gridProg;

@@ -84,16 +84,40 @@ namespace Shaderkit
                            const Eigen::Vector3f& vector);
 
 
-  RenderPass::RenderPass(QString name, ScenePtr scene)
-    : m_type(Disabled), m_name(name), m_scene(scene),
-      m_clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT),
-      m_clearColor(Color::fromBytes(50, 50, 50)),
-      m_width(0), m_height(0), m_autosize(true),
+  RenderPass::RenderPass(const QString& name, ScenePtr scene)
+    : SceneObject(name),
+      m_type(*this, Disabled),
+      m_scene(scene),
+      m_clear(*this, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT),
+      m_clearColor(*this, Color::fromBytes(50, 50, 50)),
+      m_width(*this, 0),
+      m_height(*this, 0),
+      m_autosize(*this, true),
       m_fbo(new FrameBufferObject),
       m_gridProg(new GLProgram("grid"))
   {
-    connect(this, SIGNAL(changed(RenderPassPtr)),
-            scene.get(), SLOT(changedSlot()));
+    m_gridProg->addShaderSrc(vertex_shader, Shader::Vertex);
+    m_gridProg->addShaderSrc(fragment_shader, Shader::Fragment);
+  }
+
+  RenderPass::RenderPass(const RenderPass& r)
+    : QObject(),
+      std::enable_shared_from_this<RenderPass>(),
+      SceneObject(r),
+      m_type(*this, r.m_type),
+      m_objects(r.m_objects),
+      m_lights(r.m_lights),
+      m_defaultMaterial(r.m_defaultMaterial),
+      m_view(r.m_view),
+      m_scene(r.m_scene),
+      m_clear(*this, r.m_clear),
+      m_clearColor(*this, r.m_clearColor),
+      m_width(*this, r.m_width),
+      m_height(*this, r.m_height),
+      m_autosize(*this, r.m_autosize),
+      m_fbo(new FrameBufferObject),
+      m_gridProg(new GLProgram("grid"))
+  {
     m_gridProg->addShaderSrc(vertex_shader, Shader::Vertex);
     m_gridProg->addShaderSrc(fragment_shader, Shader::Fragment);
   }
@@ -129,18 +153,12 @@ namespace Shaderkit
 
   void RenderPass::setClearBits(GLbitfield bits)
   {
-    if (m_clear != bits) {
-      m_clear = bits;
-      emit changed(shared_from_this());
-    }
+    m_clear = bits;
   }
 
   void RenderPass::setClearColor(const Color& color)
   {
-    if (m_clearColor != color) {
-      m_clearColor = color;
-      emit changed(shared_from_this());
-    }
+    m_clearColor = color;
   }
 
 /// @todo delete these two functions
@@ -159,16 +177,6 @@ namespace Shaderkit
     return FBOImagePtr();
   }
 
-  QString RenderPass::name() const
-  {
-    return m_name;
-  }
-
-  void RenderPass::setName(const QString& name)
-  {
-    m_name = name;
-  }
-
   void RenderPass::setType(Type type)
   {
     if (type == m_type) return;
@@ -182,72 +190,68 @@ namespace Shaderkit
     emit changed(shared_from_this());
   }
 
-  void RenderPass::setDefaultMaterial(MaterialPtr mat)
+  void RenderPass::setDefaultMaterial(const MaterialPtr& mat)
   {
-    if (mat != m_defaultMaterial) {
-      m_defaultMaterial = mat;
-      emit changed(shared_from_this());
-    }
+    if (mat == m_defaultMaterial) return;
+    m_defaultMaterial = mat;
+    emit changed(shared_from_this());
   }
 
-  void RenderPass::setObjects(Objects objs)
+  void RenderPass::setObjects(const Objects& objs)
   {
-    if (objs != m_objects) {
-      m_objects = objs;
-      emit changed(shared_from_this());
-    }
+    if (objs == m_objects) return;
+    m_objects = objs;
+    emit changed(shared_from_this());
   }
 
-  void RenderPass::add(ObjectPtr obj)
+  void RenderPass::add(const ObjectPtr& obj)
   {
     if (m_objects.contains(obj)) return;
     m_objects << obj;
     emit changed(shared_from_this());
   }
 
-  void RenderPass::remove(ObjectPtr obj)
+  void RenderPass::remove(const ObjectPtr& obj)
   {
     if (!m_objects.contains(obj)) return;
     m_objects.remove(obj);
     emit changed(shared_from_this());
   }
 
-  void RenderPass::setLights(Lights lights)
+  void RenderPass::setLights(const Lights& lights)
   {
-    if (lights != m_lights) {
-      m_lights = lights;
-      emit changed(shared_from_this());
-    }
+    if (lights == m_lights) return;
+    m_lights = lights;
+    emit changed(shared_from_this());
   }
 
-  void RenderPass::add(LightPtr light)
+  void RenderPass::add(const LightPtr& light)
   {
     if (m_lights.contains(light)) return;
     m_lights << light;
     emit changed(shared_from_this());
   }
 
-  void RenderPass::remove(LightPtr light)
+  void RenderPass::remove(const LightPtr& light)
   {
     if (!m_lights.contains(light)) return;
     m_lights.remove(light);
     emit changed(shared_from_this());
   }
 
-  void RenderPass::setView(CameraPtr camera)
+  void RenderPass::setView(const CameraPtr& camera)
   {
-    if (m_view != camera) {
-      m_view = camera;
-      if (camera) {
-        m_type = camera->type() == Camera::Perspective ? Normal : PostProc;
-      } else {
-        m_type = Disabled;
-      }
-      emit changed(shared_from_this());
+    if (m_view == camera) return;
+    m_view = camera;
+    if (camera) {
+      m_type = camera->type() == Camera::Perspective ? Normal : PostProc;
+    } else {
+      m_type = Disabled;
     }
+    emit changed(shared_from_this());
   }
 
-  QIcon RenderPass::icon()
+  QIcon RenderPass::icon() const
   {
     const char* icon = 0;
     if (m_type == PostProc)
@@ -262,18 +266,7 @@ namespace Shaderkit
 
   RenderPassPtr RenderPass::clone() const
   {
-    RenderPassPtr r(new RenderPass(m_name, m_scene));
-    r->m_type = m_type;
-    r->m_objects = m_objects;
-    r->m_lights = m_lights;
-    r->m_defaultMaterial = m_defaultMaterial;
-    r->m_view = m_view;
-    r->m_clear = m_clear;
-    r->m_clearColor = m_clearColor;
-    r->m_width = m_width;
-    r->m_height = m_height;
-    r->m_autosize = m_autosize;
-    return r;
+    return RenderPassPtr(new RenderPass(*this));
   }
 
   void RenderPass::render(State& state, const RenderOptions& render_opts)
@@ -287,7 +280,8 @@ namespace Shaderkit
     state.setCamera(m_view);
     m_view->prepare(width(), height());
 
-    glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2], m_clearColor[3]);
+    glClearColor(m_clearColor.value()[0], m_clearColor.value()[1],
+                 m_clearColor.value()[2], m_clearColor.value()[3]);
     if (m_clear) glClear(m_clear);
     if (m_defaultMaterial) state.pushMaterial(m_defaultMaterial);
     state.applyUniformsMappings();
@@ -458,8 +452,8 @@ namespace Shaderkit
 
     if (!tmp.isEmpty()) map["clear"] = tmp;
 
-    map["name"] = m_name;
-    map["background"] = m_clearColor.toQVariant();
+    map["name"] = name();
+    map["background"] = m_clearColor->toQVariant();
     if (m_defaultMaterial)
       map["material"] = m_defaultMaterial->name();
 
@@ -483,8 +477,8 @@ namespace Shaderkit
 
     QVariantMap in, out;
 
-    if (m_width > 0 && !m_autosize) out["width"] = m_width;
-    if (m_height > 0 && !m_autosize) out["height"] = m_height;
+    if (m_width > 0 && !m_autosize) out["width"] = m_width.value();
+    if (m_height > 0 && !m_autosize) out["height"] = m_height.value();
 
     auto buffers = m_fbo->buffers();
     for (auto it = buffers.begin(); it != buffers.end(); ++it) {
@@ -570,6 +564,11 @@ namespace Shaderkit
         m_fbo->set(target, FBOImagePtr(new RenderBuffer(tmp[1])));
     }
 
+    emit changed(shared_from_this());
+  }
+
+  void RenderPass::attributeChanged()
+  {
     emit changed(shared_from_this());
   }
 
