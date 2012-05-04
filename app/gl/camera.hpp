@@ -59,8 +59,8 @@ namespace Shaderkit
 
     QIcon icon();
 
-    float width() const { return m_width.value(); }
-    float height() const { return m_height.value(); }
+    float width() const { return m_width; }
+    float height() const { return m_height; }
 
     /// Sets this camera to use orthographic matrix that fills the screen
     void setRect(float near = -1.0f, float far = 1.0f);
@@ -95,9 +95,9 @@ namespace Shaderkit
 
     //void setPickDisplay(float x, float y);
 
-    const Eigen::Projective3f& projection() const { return m_projection.value(); }
+    const Eigen::Projective3f& projection() const { return m_projection; }
 
-    const Eigen::Affine3f& view() const { return m_view.value(); }
+    const Eigen::Affine3f& view() const { return m_view; }
 
     /// @param swap_y enable if you want to project to Qt coordinates
     Eigen::Projective3f normToWindow(bool swap_y = false) const;
@@ -131,10 +131,10 @@ namespace Shaderkit
 
     Attribute<float> m_dx, m_dy, m_dist;
 
-    Attribute<Eigen::Projective3f> m_projection;
-    Attribute<Eigen::Affine3f> m_view;
+    Eigen::Projective3f m_projection;
+    Eigen::Affine3f m_view;
 
-    Attribute<float> m_width, m_height;
+    float m_width, m_height;
 
     /// Field of view, in degrees, in the y direction (Perspective)
     Attribute<float> m_fov;

@@ -75,9 +75,10 @@ namespace Shaderkit
     Attribute<QString> m_role;
 
     unsigned int m_render_buffer_id;
+    /// This is saved implicitly by RenderPass
     Attribute<int> m_attachment;
     int m_active_attachment;
-    Attribute<int> m_width, m_height;
+    int m_width, m_height;
     std::weak_ptr<FrameBufferObject> m_fbo;
     unsigned int m_fbo_num;
   };

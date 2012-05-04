@@ -151,6 +151,7 @@ namespace Shaderkit
     unsigned int m_texture_id;
     QMap<unsigned int, Param> m_params;
     unsigned int m_bindedTexture;
+    /// @todo Should be saved
     Attribute<int> m_internalFormat;
     Attribute<float> m_blend;
     Attribute<int> m_uv;

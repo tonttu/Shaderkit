@@ -953,7 +953,7 @@ namespace Shaderkit
           glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
           m_internalFormat = internalFormat;
           applyParams();
-          Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_texture_id, m_width.value(), m_height.value());
+          Log::info("Image %s, #%d %dx%d", filename().toUtf8().data(), m_texture_id, m_width, m_height);
         }
       }
       m_loadedFile = filename();

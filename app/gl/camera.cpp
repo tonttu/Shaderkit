@@ -38,10 +38,10 @@ namespace Shaderkit
       m_dx(*this, 0),
       m_dy(*this, 0),
       m_dist(*this, 0.0f),
-      m_projection(*this, Eigen::Projective3f::Identity()),
-      m_view(*this, Eigen::Affine3f::Identity()),
-      m_width(*this, -1),
-      m_height(*this, -1),
+      m_projection(Eigen::Projective3f::Identity()),
+      m_view(Eigen::Affine3f::Identity()),
+      m_width(-1),
+      m_height(-1),
       m_fov(*this, 45),
       m_near(*this, 0.1f),
       m_far(*this, 1000.0f)
@@ -61,10 +61,10 @@ namespace Shaderkit
       m_dx(*this, c.m_dx),
       m_dy(*this, c.m_dy),
       m_dist(*this, c.m_dist),
-      m_projection(*this, c.m_projection),
-      m_view(*this, c.m_view),
-      m_width(*this, c.m_width),
-      m_height(*this, c.m_height),
+      m_projection(c.m_projection),
+      m_view(c.m_view),
+      m_width(c.m_width),
+      m_height(c.m_height),
       m_fov(*this, c.m_fov),
       m_near(*this, c.m_near),
       m_far(*this, c.m_far)
@@ -115,10 +115,10 @@ namespace Shaderkit
     }
 
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrix(m_projection.value());
+    glLoadMatrix(m_projection);
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrix(m_view.value());
+    glLoadMatrix(m_view);
   }
 
   void Camera::setRect(float near_, float far_)

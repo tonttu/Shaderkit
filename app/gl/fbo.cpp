@@ -29,8 +29,8 @@ namespace Shaderkit
       m_render_buffer_id(0),
       m_attachment(*this, 0),
       m_active_attachment(0),
-      m_width(*this, 0),
-      m_height(*this, 0),
+      m_width(0),
+      m_height(0),
       m_fbo_num(0)
   {}
 
@@ -42,8 +42,8 @@ namespace Shaderkit
       m_render_buffer_id(0),
       m_attachment(*this, f.m_attachment),
       m_active_attachment(0),
-      m_width(*this, f.m_width),
-      m_height(*this, f.m_height),
+      m_width(f.m_width),
+      m_height(f.m_height),
       m_fbo_num(0)
   {
   }
