@@ -60,49 +60,43 @@ namespace Shaderkit
     connect(m_ui->new_button, SIGNAL(clicked()), this, SLOT(newScene()));
 
     QStringList files = ShaderDB::instance().localScenes();
-    int count = 0;
-    typedef QPair<QDateTime, QString> V;
-    std::priority_queue<V, std::vector<V>> recent;
 
+    int count = 0;
+    int limit = 4;
     foreach (QString file, files) {
       MetaInfo info;
       if (!MetaInfo::ping(file, info)) continue;
 
-      if (info.categories.contains("example") && count++ < 4) {
+      if (info.categories.contains("example") && count++ < limit) {
         WelcomeButton* btn = new WelcomeButton(m_ui->example_frame, file);
         btn->setIcon(QIcon(":/icons/project_hl.png"));
         m_ui->example_layout->insertWidget(0, btn);
         btn->setText(info.name);
         btn->setDescription(info.description);
         connect(btn, SIGNAL(clicked(QString)), this, SLOT(openExample(QString)));
-      } else if (info.categories.contains("user")) {
-        QFileInfo finfo(file);
-        recent.push(qMakePair(finfo.lastModified(), file));
       }
     }
     setMinimumSize(sizeHint());
     setMaximumSize(sizeHint());
 
-    for (count = 0; count < 4 && !recent.empty(); ++count) {
-      const V& v = recent.top();
-
+    count = 0;
+    foreach (const QString& file, ShaderDB::recentScenes()) {
       MetaInfo info;
-      if (!MetaInfo::ping(v.second, info)) {
-        recent.pop();
+      if (!MetaInfo::ping(file, info))
         continue;
-      }
-      WelcomeButton* btn = new WelcomeButton(m_ui->recent_frame, v.second);
+
+      WelcomeButton* btn = new WelcomeButton(m_ui->recent_frame, file);
       btn->setIcon(QIcon(":/icons/project_hl.png"));
-      m_ui->recent_layout->insertWidget(count, btn);
+      m_ui->recent_layout->insertWidget(count++, btn);
       btn->setText(info.name);
       btn->setDescription(info.description);
       connect(btn, SIGNAL(clicked(QString)), this, SLOT(open(QString)));
 
-      recent.pop();
+      if (count >= limit)
+        break;
     }
-    if (count) {
+    if (count)
       m_ui->recent_label->setEnabled(true);
-    }
   }
 
   Welcome::~Welcome()

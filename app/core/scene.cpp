@@ -974,20 +974,21 @@ namespace Shaderkit
     changedSlot();
   }
 
-/// @todo what state use after this?
-  bool Scene::save(const QString& filename)
+  bool Scene::save(const QString& filen)
   {
     QJson::Serializer serializer;
     serializer.allowSpecialNumbers(true);
     serializer.setIndentMode(QJson::IndentFull);
-    QFile file(filename);
+    QFile file(filen);
     // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
     // that isn't what we want.
     const QByteArray str = serializer.serialize(toMap());
     if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
       file.write(str);
-      setFilename(filename);
+      setFilename(filen);
+      m_state = Ok;
       m_changed = false;
+      ShaderDB::sceneSaved(filename());
       emit saved();
       return true;
     }
@@ -1021,6 +1022,7 @@ namespace Shaderkit
     const QByteArray str = serializer.serialize(map);
     if (!str.isNull()) {
       file.write(str);
+      ShaderDB::sceneSaved(filename());
       m_changed = false;
       emit saved();
       return true;

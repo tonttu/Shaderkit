@@ -27,6 +27,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QSettings>
 
 #include <cassert>
 
@@ -165,6 +166,25 @@ namespace Shaderkit
         return true;
     }
     return false;
+  }
+
+  void ShaderDB::sceneSaved(const QString& filename)
+  {
+    const int max_files = 20;
+    QSettings settings("Shaderkit", "Shaderkit");
+    QStringList files = settings.value("history/recentScenes").toStringList();
+    files.removeAll(filename);
+    files.prepend(filename);
+    while (files.size() > max_files)
+      files.removeLast();
+
+    settings.setValue("history/recentScenes", files);
+  }
+
+  QStringList ShaderDB::recentScenes()
+  {
+    QSettings settings("Shaderkit", "Shaderkit");
+    return settings.value("history/recentScenes").toStringList();
   }
 
   ShaderDB& ShaderDB::instance()

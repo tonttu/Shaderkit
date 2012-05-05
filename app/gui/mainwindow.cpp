@@ -669,6 +669,7 @@ namespace Shaderkit
 
   void MainWindow::saved()
   {
+    /// @todo update recent projects -menu
     setSceneChanged(false);
   }
 

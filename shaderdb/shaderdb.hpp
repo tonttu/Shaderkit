@@ -44,9 +44,12 @@ namespace Shaderkit
     static bool findLimbo(MetaInfo& info, QString& filename);
     static bool openNewLimbo(QFile& file, const QString& name);
 
+    static void sceneSaved(const QString& filename);
+    static QStringList recentScenes();
+
     static ShaderDB& instance();
 
-  protected:
+  private:
     QSet<QString> scanDir(QString path, bool subdirs = true);
     QString makeUniqPath(QString path, QString name) const;
 
