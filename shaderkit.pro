@@ -31,6 +31,16 @@ license.commands = ./update_license.rb -a
 QMAKE_EXTRA_TARGETS += update-icons
 update-icons.commands = ./gfx/update-icons.sh
 
+unix {
+  QMAKE_EXTRA_TARGETS += doxygen doxyfile
+  doxygen.commands = cd $$IN_PWD && doxygen $$OUT_PWD/Doxyfile
+  doxygen.depends = doxyfile
+
+  doxyfile.commands = sed -e s/SHADERKIT_VERSION/`grep STR_HASH version.hpp|cut -d\'\"\' -f2`/ \
+                          -e \"s|SHADERKIT_OUTPUT|$$OUT_PWD/docs|\" \
+                          $$IN_PWD/Doxyfile.in > Doxyfile
+}
+
 docs.files = COPYING README
 unix:docs.path = $$PREFIX/share/doc/shaderkit
 !unix:docs.path = $$PREFIX/docs
