@@ -23,6 +23,7 @@
 #include "core/model.hpp"
 #include "core/utils.hpp"
 #include "core/resource_locator.hpp"
+#include "core/json_exporter.hpp"
 
 #include "gl/state.hpp"
 #include "gl/light.hpp"
@@ -976,9 +977,7 @@ namespace Shaderkit
 
   bool Scene::save(const QString& filen, QString& err)
   {
-    QJson::Serializer serializer;
-    serializer.allowSpecialNumbers(true);
-    serializer.setIndentMode(QJson::IndentFull);
+    JSONExporter serializer;
     QFile file(filen);
     // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
     // that isn't what we want.
@@ -1018,9 +1017,7 @@ namespace Shaderkit
         return false;
     }
 
-    QJson::Serializer serializer;
-    serializer.allowSpecialNumbers(true);
-    serializer.setIndentMode(QJson::IndentFull);
+    JSONExporter serializer;
     const QByteArray str = serializer.serialize(map);
     if (!str.isNull()) {
       file.write(str);
