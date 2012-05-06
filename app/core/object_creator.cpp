@@ -114,17 +114,17 @@ namespace Shaderkit
     m_prog2->addShaderSrc(fragment_shader_norm, Shader::Fragment);
   }
 
-  bool ObjectCreator::move(QMouseEvent* ev)
+  bool ObjectCreator::move(const Eigen::Vector2f& loc)
   {
-    m_points[m_state] = hit(Eigen::Vector2f(ev->x(), ev->y()));
+    m_points[m_state] = hit(loc);
     return true;
   }
 
-  bool ObjectCreator::btn(QMouseEvent* ev)
+  bool ObjectCreator::btn(QEvent::Type type, Qt::MouseButton btn, const Eigen::Vector2f& loc)
   {
-    if (ev->button() != Qt::LeftButton) return false;
-    m_points[m_state] = hit(Eigen::Vector2f(ev->x(), ev->y()));
-    if (ev->type() == QEvent::MouseButtonPress) {
+    if (btn != Qt::LeftButton) return false;
+    m_points[m_state] = hit(loc);
+    if (type == QEvent::MouseButtonPress) {
       if (m_state == 0 || m_state == 2) ++m_state;
     } else {
       if (m_name == "sphere") {
@@ -166,7 +166,7 @@ namespace Shaderkit
       }
     }
     if (m_state >= 0 && m_state < 5)
-      m_points[m_state] = hit(Eigen::Vector2f(ev->x(), ev->y()));
+      m_points[m_state] = hit(loc);
     return true;
   }
 
@@ -177,9 +177,9 @@ namespace Shaderkit
 
   void ObjectCreator::render(State& state, const RenderOptions& render_opts)
   {
-    m_window_to_obj = state.transform(true).inverse();
+    m_window_to_obj = state.transform().inverse();
 
-    m_hover = hit(Eigen::Vector2f(render_opts.hover.x(), render_opts.hover.y()));
+    m_hover = hit(render_opts.hover);
     float s = 100.0f;
 
     BufferObject2& hover_bo = MeshManager::fetch("ObjectCreator::hover");

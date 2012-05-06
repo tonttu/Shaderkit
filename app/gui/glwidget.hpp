@@ -78,7 +78,7 @@ namespace Shaderkit
     ScenePtr m_scene;
     QTimer* m_timer;
 
-    QMap<Qt::MouseButton, QPointF> m_button_down;
+    QMap<Qt::MouseButton, Eigen::Vector2f> m_button_down;
 
     Viewport* m_view;
     CameraPtr m_debug_camera;

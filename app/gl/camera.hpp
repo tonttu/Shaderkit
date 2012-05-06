@@ -74,8 +74,8 @@ namespace Shaderkit
     void setFov(float fov);
     float fov() const { return m_fov.value(); }
 
-    void rotate(QPointF diff);
-    void translate(QPointF diff);
+    void rotate(const Eigen::Vector2f& diff);
+    void translate(const Eigen::Vector2f& diff);
     void zoom(float diff);
 
     void setTarget(const Eigen::Vector3f& target);

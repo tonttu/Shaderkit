@@ -35,7 +35,7 @@ namespace Shaderkit
 {
 
   struct RenderOptions {
-    RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE) {}
+    RenderOptions() : grid(false), ui(false), blueprint(false), grid_animation(2.0f), gizmo_type(NONE), hover(0, 0), mousedown(0, 0) {}
     bool grid;
     bool ui;
     bool blueprint;
@@ -49,7 +49,8 @@ namespace Shaderkit
     } gizmo_type;
     GizmoPtr gizmo;
     FocusGrabberPtr focus_grabber;
-    QPointF hover;
+    Eigen::Vector2f hover;
+    Eigen::Vector2f mousedown;
   };
 
   /**

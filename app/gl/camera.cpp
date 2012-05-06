@@ -205,20 +205,20 @@ namespace Shaderkit
       return QIcon(":/icons/2dpass.png");
   }
 
-  void Camera::rotate(QPointF diff)
+  void Camera::rotate(const Eigen::Vector2f& diff)
   {
-    diff *= 5.0f;
-    m_dx = m_dx.value() - diff.x();
-    m_dy = m_dy.value() + diff.y();
+    const Eigen::Vector2f tmp = diff * 5.0f;
+    m_dx = m_dx.value() + tmp[0];
+    m_dy = m_dy.value() + tmp[1];
     if (m_dy < -M_PI*0.499f) m_dy = -M_PI*0.499f;
     if (m_dy > M_PI*0.499f) m_dy = M_PI*0.499f;
     updateVectors();
   }
 
-  void Camera::translate(QPointF diff)
+  void Camera::translate(const Eigen::Vector2f& diff)
   {
-    diff *= m_dist;
-    m_target = m_target.value() + m_up*diff.y() - m_right*diff.x();
+    const Eigen::Vector2f tmp = diff * m_dist;
+    m_target = m_target.value() + m_up*tmp[1] + m_right*tmp[0];
   }
 
   void Camera::zoom(float diff)

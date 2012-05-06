@@ -165,38 +165,36 @@ namespace Shaderkit
 
   void GLWidget::mouseMoveEvent(QMouseEvent* event)
   {
-    QPointF diff = event->posF() - m_render_options.hover;
-    m_render_options.hover = event->posF();
+    const Eigen::Vector2f pos(event->posF().x(), height() - event->posF().y());
+    const Eigen::Vector2f diff = pos - m_render_options.hover;
+    m_render_options.hover = pos;
+    if (event->buttons() != Qt::NoButton)
+      m_render_options.mousedown = pos;
 
     if (m_render_options.focus_grabber) {
-      if (m_render_options.focus_grabber->move(event)) {
+      if (m_render_options.focus_grabber->move(pos)) {
         event->accept();
         return;
       }
     }
 
     if (event->buttons() == Qt::NoButton && m_render_options.gizmo) {
-      m_render_options.gizmo->hover(
-        Eigen::Vector2f(m_render_options.hover.x(),
-                        height() - m_render_options.hover.y()));
+      m_render_options.gizmo->hover(m_render_options.hover);
     } else if (event->buttons() == Qt::LeftButton && m_render_options.gizmo && m_render_options.gizmo->active()) {
-      Eigen::Vector2f diff2(diff.x(), -diff.y());
-      m_render_options.gizmo->input(diff2);
+      m_render_options.gizmo->input(diff);
       event->accept();
       return;
     }
 
-    float d = width();
-    if (height() < d) d = height();
-    diff.setX(diff.x() / d);
-    diff.setY(diff.y() / d);
-    CameraPtr cam;
+    const float d = height() < d ? height() : width();
+    const Eigen::Vector2f diff2(diff / d);
 
+    CameraPtr cam;
     if (m_scene && (cam = m_scene->camera())) {
       if (event->buttons() & Qt::LeftButton) {
-        cam->rotate(diff);
+        cam->rotate(-diff2);
       } else if (event->buttons() & Qt::MidButton) {
-        cam->translate(diff);
+        cam->translate(-diff2);
       } else {
         QGLWidget::mouseMoveEvent(event);
         return;
@@ -209,23 +207,23 @@ namespace Shaderkit
 
   void GLWidget::mousePressEvent(QMouseEvent* event)
   {
-    m_button_down[event->button()] = event->posF();
+    const Eigen::Vector2f pos(event->posF().x(), height() - event->posF().y());
+    m_button_down[event->button()] = pos;
 
     if (m_render_options.focus_grabber) {
-      if (m_render_options.focus_grabber->btn(event)) {
+      if (m_render_options.focus_grabber->btn(event->type(), event->button(), pos)) {
         event->accept();
         return;
       }
     }
 
     if (event->buttons() == Qt::LeftButton && m_render_options.gizmo) {
-      m_render_options.gizmo->buttonDown(Eigen::Vector2f(event->posF().x(),
-                                         height() - event->posF().y()));
+      m_render_options.gizmo->buttonDown(pos);
     }
 
     /// @todo re-enable rotating stuff
     if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
-      m_render_options.hover = event->posF();
+      m_render_options.hover = pos;
       event->accept();
       return;
     }
@@ -235,12 +233,13 @@ namespace Shaderkit
 
   void GLWidget::mouseReleaseEvent(QMouseEvent* event)
   {
+    const Eigen::Vector2f pos(event->posF().x(), height() - event->posF().y());
     if (m_render_options.gizmo && m_render_options.gizmo->active()) {
       m_render_options.gizmo->buttonUp();
     }
 
     if (m_render_options.focus_grabber) {
-      if (m_render_options.focus_grabber->btn(event)) {
+      if (m_render_options.focus_grabber->btn(event->type(), event->button(), pos)) {
         if (m_render_options.focus_grabber->done())
           m_render_options.focus_grabber.reset();
         event->accept();
@@ -252,8 +251,8 @@ namespace Shaderkit
     // select objects
     if (event->modifiers() == 0 && event->button() == Qt::LeftButton) {
       event->accept();
-      QPointF diff = event->posF() - m_button_down[event->button()];
-      if (diff.x()*diff.x() + diff.y()*diff.y() < 3*3) {
+      const Eigen::Vector2f diff = pos - m_button_down[event->button()];
+      if (pos[0]*pos[0] + pos[1]*pos[1] < 3*3) {
         struct hate_too_old_gcc {
           static void func(ScenePtr scene, ObjectPtr obj, MeshPtr /*mesh*/) {
             QList<ObjectPtr> objects;
@@ -262,7 +261,7 @@ namespace Shaderkit
           }
         };
         using namespace std::placeholders;
-        m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true, true,
+        m_scene->pick(pos[0]/width(), pos[1]/height(), true, true,
                       std::bind(&hate_too_old_gcc::func, m_scene, _1, _2));
       }
     }
@@ -303,6 +302,7 @@ namespace Shaderkit
 
   void GLWidget::dropEvent(QDropEvent* event)
   {
+    const Eigen::Vector2f pos(event->pos().x(), height() - event->pos().y());
     MaterialPtr material = m_scene->material(event->mimeData()->data("text/x-shaderkit-material"));
     if (material) {
       /* m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,
@@ -313,7 +313,7 @@ namespace Shaderkit
         }
       };
       using namespace std::placeholders;
-      m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true, false,
+      m_scene->pick(pos[0]/width(), pos[1]/height(), true, false,
                     std::bind(&hate_too_old_gcc::func, material, _1, _2));
     } else {
       m_scene->pick(-1, -1);

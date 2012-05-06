@@ -24,8 +24,9 @@
 
 #include "Eigen/Geometry"
 
+#include <QEvent>
+
 class QString;
-class QMouseEvent;
 
 namespace Shaderkit
 {
@@ -33,8 +34,8 @@ namespace Shaderkit
   class FocusGrabber
   {
   public:
-    virtual bool move(QMouseEvent* ev) = 0;
-    virtual bool btn(QMouseEvent* ev) = 0;
+    virtual bool move(const Eigen::Vector2f& loc) = 0;
+    virtual bool btn(QEvent::Type type, Qt::MouseButton btn, const Eigen::Vector2f& loc) = 0;
     virtual void render(State& state, const RenderOptions& render_opts) = 0;
     virtual bool done() const = 0;
   };
@@ -43,8 +44,8 @@ namespace Shaderkit
   {
   public:
     ObjectCreator(ScenePtr scene, const QString& name);
-    virtual bool move(QMouseEvent* ev);
-    virtual bool btn(QMouseEvent* ev);
+    virtual bool move(const Eigen::Vector2f& loc);
+    virtual bool btn(QEvent::Type type, Qt::MouseButton btn, const Eigen::Vector2f& loc);
     virtual void render(State& state, const RenderOptions& render_opts);
     virtual bool done() const;
 

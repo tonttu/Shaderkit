@@ -698,7 +698,6 @@ namespace Shaderkit
     if (keep_old_file) {
       return QFile::copy(from, to);
     } else {
-      /// @todo this (probably?) doesn't work across filesystems!
       if (QFile::rename(from, to)) return true;
       if (QFile::copy(from, to)) {
         if (QFile::remove(from)) return true;
