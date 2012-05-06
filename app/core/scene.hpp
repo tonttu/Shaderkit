@@ -215,6 +215,8 @@ namespace Shaderkit
 
     virtual void filenameChanged();
 
+    const RenderOptions& lastRenderOpts() const { return m_lastRenderOpts; }
+
   signals:
     void shaderListUpdated();
     void objectListUpdated();
@@ -245,9 +247,7 @@ namespace Shaderkit
     void objectChanged(ObjectPtr);
     void renderPassChanged(RenderPassPtr);
 
-  protected:
-    void createDefaults();
-
+  private:
     QMap<QString, Import> m_imports;
 
     /**
@@ -292,7 +292,10 @@ namespace Shaderkit
 
     float m_lastTime;
 
+    RenderOptions m_lastRenderOpts;
+
   private:
+    void createDefaults();
     bool fileRename(const QString& from, const QString& to, bool keep_old_file);
   };
 

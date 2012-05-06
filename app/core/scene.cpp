@@ -170,6 +170,7 @@ namespace Shaderkit
     float dt = t - m_lastTime;
     State state(*this, t, dt);
     state.setSelection(m_selection);
+    m_lastRenderOpts = opts_in;
     RenderOptions opts = opts_in;
     opts_in.grid_animation += dt * 1.0f;
 

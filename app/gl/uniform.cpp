@@ -287,54 +287,57 @@ namespace Shaderkit
     static QList<VarGroupDescription> s_vars;
     if (s_vars.isEmpty()) {
       VarGroupDescription g("model", "Model");
-      g   ("transform", "Model matrix")
-      ("modelview", "Modelview matrix");
+      g("transform", "Model matrix (mat4)")
+      ("modelview", "Modelview matrix (mat4)");
       s_vars << g;
 
       (g = VarGroupDescription("material", "Material"))
-      ("diffuse", "Diffuse color")
-      ("ambient", "Ambient color")
-      ("specular", "Specular color")
-      ("transparent", "Transparent color key")
-      ("emissive", "Self-illumination color")
-      ("wireframe", "Should object be rendered as wireframe")
-      ("twosided", "Is object two-sided")
-      ("opacity", "Opacity")
-      ("shininess", "Shininess factor")
-      ("shininess_strength", "Shininess strength")
-      ("refracti", "Refraction index");
+      ("diffuse", "Diffuse color (vec4)")
+      ("ambient", "Ambient color (vec4)")
+      ("specular", "Specular color (vec4)")
+      ("transparent", "Transparent color key (vec4)")
+      ("emissive", "Self-illumination color (vec4)")
+      ("wireframe", "Wireframe mode (bool)")
+      ("twosided", "Two-sided mode (bool)")
+      ("opacity", "Opacity (float)")
+      ("shininess", "Shininess factor (float)")
+      ("shininess_strength", "Shininess strength (float)")
+      ("refracti", "Refraction index (float)");
       s_vars << g;
 
       (g = VarGroupDescription("scene", "Scene"))
-      ("width", "Width in pixels")
-      ("height", "Height in pixels")
-      ("time", "Time in seconds")
-      ("dt", "Frame time in seconds");
+      ("size", "Scene size in pixels (vec2)")
+      ("time", "Time in seconds (float)")
+      ("dt", "Frame time in seconds (float)");
       s_vars << g;
 
       (g = VarGroupDescription("camera", "Camera / Viewport"))
-      ("target", "Target")
-      ("up", "Up")
-      ("right", "Right")
-      ("front", "Front")
-      ("view", "View matrix")
-      ("projection", "Projection matrix")
-      ("dist", "Distance from camera to target")
-      ("fov", "Field of view in y-direction in radians")
-      ("near", "Near plane distance")
-      ("far", "Far plane distance")
-      ("width", "Width in pixels")
-      ("height", "Height in pixels");
+      ("target", "Target (vec3)")
+      ("up", "Up (vec3)")
+      ("right", "Right (vec3)")
+      ("front", "Front (vec3)")
+      ("view", "View matrix (mat4)")
+      ("projection", "Projection matrix (mat4)")
+      ("dist", "Distance from camera to target (float)")
+      ("fov", "Field of view in y-direction in radians (float)")
+      ("near", "Near plane distance (float)")
+      ("far", "Far plane distance (float)")
+      ("size", "Viewport size in pixels (vec2)");
+      s_vars << g;
+
+      (g = VarGroupDescription("gui", "GUI"))
+      ("mouse", "Cursor location (vec2)")
+      ("mousedown", "Last cursor location when there was a button down (vec2)");
       s_vars << g;
 
       (g = VarGroupDescription("light", "Light"))
-      ("ambient", "Ambient color")
-      ("diffuse", "Diffuse color")
-      ("specular", "Specular color")
-      ("direction", "Unit vector for direction")
-      ("location", "Location")
-      ("target", "Target")
-      ("spot_cutoff", "Maximum spread angle");
+      ("ambient", "Ambient color (vec4)")
+      ("diffuse", "Diffuse color (vec4)")
+      ("specular", "Specular color (vec4)")
+      ("direction", "Unit vector for direction (vec3)")
+      ("location", "Location (vec3)")
+      ("target", "Target (vec3)")
+      ("spot_cutoff", "Maximum spread angle (float)");
       s_vars << g;
     }
     return s_vars;

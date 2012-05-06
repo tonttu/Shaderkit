@@ -53,6 +53,15 @@ namespace
   }
 
   void setUniformSel(State* state, GLProgram& prog, const QString& name,
+                     const Eigen::Vector2f& v, const std::vector<int>& sel)
+  {
+    if (sel.empty())
+      prog.setUniform(state, name, v);
+    else
+      setUniformSel(state, prog, name, Eigen::Vector4f(v[0], v[1], 0.0f, 1.f), sel);
+  }
+
+  void setUniformSel(State* state, GLProgram& prog, const QString& name,
                      float v, const std::vector<int>&)
   {
     prog.setUniform(state, name, v);
@@ -335,13 +344,15 @@ namespace Shaderkit
     CameraPtr c = camera();
     for (auto it = mat.uniformMap().begin(); it != mat.uniformMap().end(); ++it) {
       const MappableValue& map = *it;
+      bool ok = true;
+
       if (map.src() == "model") {
         if (map.var() == "transform")
           setUniform(prog, it.key(), model());
         else if (map.var() == "modelview" && c) {
           Eigen::Matrix4f m = (c->view() * model()).matrix();
           prog.setUniform(this, it.key(), m);
-        } else assert(false);
+        } else ok = false;
       }
 
       else if (map.src() == "material") {
@@ -369,19 +380,18 @@ namespace Shaderkit
           prog.setUniform(this, it.key(), mat.style.shininess_strength);
         else if (map.var() == "refracti")
           prog.setUniform(this, it.key(), mat.style.refracti);
-        else assert(false);
+        else ok = false;
       }
 
       else if (map.src() == "scene") {
-        if (map.var() == "width")
-          prog.setUniform(this, it.key(), m_scene.width());
-        else if (map.var() == "height")
-          prog.setUniform(this, it.key(), m_scene.width());
+        if (map.var() == "size")
+          setUniformSel(this, prog, it.key(),
+                        Eigen::Vector2f(m_scene.width(), m_scene.height()), map.select());
         else if (map.var() == "time")
           prog.setUniform(this, it.key(), m_time);
         else if (map.var() == "dt")
           prog.setUniform(this, it.key(), m_dt);
-        else assert(false);
+        else ok = false;
       }
 
       else if (map.src() == "camera" && c) {
@@ -407,11 +417,10 @@ namespace Shaderkit
           prog.setUniform(this, it.key(), c->near());
         else if (map.var() == "far")
           prog.setUniform(this, it.key(), c->far());
-        else if (map.var() == "width")
-          prog.setUniform(this, it.key(), c->width());
-        else if (map.var() == "height")
-          prog.setUniform(this, it.key(), c->height());
-        else assert(false);
+        else if (map.var() == "size")
+          setUniformSel(this, prog, it.key(),
+                        Eigen::Vector2f(c->width(), c->height()), map.select());
+        else ok = false;
       }
 
       else if (map.src() == "lights" || map.src() == "light") {
@@ -429,9 +438,18 @@ namespace Shaderkit
           assignVector(this, prog, it.key(), map, m_data.back().m_lights, &Light::target);
         else if (map.var() == "spot_cutoff")
           assignVector(this, prog, it.key(), map, m_data.back().m_lights, &Light::spotCutoff);
-        else assert(false);
+        else ok = false;
+      }
 
-      } else assert(false);
+      else if (map.src() == "gui") {
+        if (map.var() == "mouse")
+          setUniformSel(this, prog, it.key(), m_scene.lastRenderOpts().hover, map.select());
+        else if (map.var() == "mousedown")
+          setUniformSel(this, prog, it.key(), m_scene.lastRenderOpts().mousedown, map.select());
+        else ok = false;
+      }
+
+      else ok = false;
     }
   }
 
