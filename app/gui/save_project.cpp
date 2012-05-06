@@ -25,6 +25,7 @@
 #include <QKeyEvent>
 #include <QSettings>
 #include <QFileDialog>
+#include <QMessageBox>
 
 namespace
 {
@@ -173,7 +174,10 @@ namespace Shaderkit
       }
 
       settings.setValue("history/last_projects_dir", QFileInfo(dir).path());
-      return scene->save(file);
+      QString err;
+      bool ok = scene->save(file, err);
+      if (!ok) QMessageBox::warning(&save, "Failed to save project", err);
+      return ok;
     }
     return false;
   }

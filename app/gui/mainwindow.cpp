@@ -507,20 +507,39 @@ namespace Shaderkit
 
   void MainWindow::saveScene()
   {
-    // you need to use "save as" instead of just "save" when the scene is in any weird state
-    if (m_scene->state() != Scene::Ok) {
-      if (m_scene->state() == Scene::New || m_scene->state() == Scene::Limbo)
-        Log::info("This is a new project, using save as dialog");
-      else if (m_scene->state() == Scene::ReadOnly)
-        Log::info("Project is opened in a read-only mode, using save as dialog");
+    if (m_scene->state() == Scene::ReadOnly) {
+      QString n = m_scene->metainfo().name;
+      QMessageBox box(QMessageBox::Question, QString("Saving project %1").arg(n),
+                      QString("Project %1 is currently opened in a read-only mode.\n"
+                              "Do you want to save the project with a different name or "
+                              "force overwrite of the read-only project?").arg(n));
+      box.addButton(QMessageBox::Cancel);
+      QPushButton* overwrite_btn = box.addButton("Overwrite", QMessageBox::DestructiveRole);
+      QPushButton* save_btn = box.addButton("Save as...", QMessageBox::YesRole);
+      box.setDefaultButton(save_btn);
+      box.exec();
+      if (box.clickedButton() == save_btn) {
+        saveSceneAs();
+        return;
+      } else if (box.clickedButton() == overwrite_btn) {
+        Log::info("Trying to overwrite the read-only project");
+      } else {
+        return;
+      }
+    } else if (m_scene->state() == Scene::New || m_scene->state() == Scene::Limbo) {
+      Log::info("This is a new project, using save as dialog");
       saveSceneAs();
       return;
     }
 
-    if (m_scene->save(m_scene->filename())) {
+    QString err;
+    if (m_scene->save(m_scene->filename(), err)) {
       m_ui->statusbar->showMessage("Saved project to " + m_scene->filename(), 5000);
     } else {
-      m_ui->statusbar->showMessage("Failed to save project to " + m_scene->filename(), 5000);
+      QString emsg = QString("Failed to save project to %1: %2").
+          arg(m_scene->filename(), err);
+      m_ui->statusbar->showMessage(emsg, 5000);
+      QMessageBox::warning(this, "Failed to save project", emsg);
     }
   }
 
@@ -589,8 +608,12 @@ namespace Shaderkit
         int ret = QMessageBox::question(this, "Unsaved changes", "The project has some unsaved changes, what to do?",
                                         QMessageBox::Save | QMessageBox::Close | QMessageBox::Cancel);
         if (ret == QMessageBox::Save) {
-          if (!m_scene->save(m_scene->filename())) {
-            /// @todo inform user?
+          QString err;
+          if (!m_scene->save(m_scene->filename(), err)) {
+            QString emsg = QString("Failed to save project to %1: %2").
+                arg(m_scene->filename(), err);
+            m_ui->statusbar->showMessage(emsg, 5000);
+            QMessageBox::warning(this, "Failed to save project", emsg);
             return false;
           }
         } else if (ret != QMessageBox::Close) {

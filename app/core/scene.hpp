@@ -140,7 +140,7 @@ namespace Shaderkit
 
     /// Saves the scene to JSON file.
     /// @returns true if saving succeeds
-    bool save(const QString& filename);
+    bool save(const QString& filename, QString& err);
     bool save(const QVariantMap& map);
 
     /// Returns the metainfo loaded from the project file

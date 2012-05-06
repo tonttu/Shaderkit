@@ -974,7 +974,7 @@ namespace Shaderkit
     changedSlot();
   }
 
-  bool Scene::save(const QString& filen)
+  bool Scene::save(const QString& filen, QString& err)
   {
     QJson::Serializer serializer;
     serializer.allowSpecialNumbers(true);
@@ -983,7 +983,8 @@ namespace Shaderkit
     // serializer.serialize(QVariant, QIODevice* io, bool* ok ) uses QDataStream
     // that isn't what we want.
     const QByteArray str = serializer.serialize(toMap());
-    if (!str.isNull() && file.open(QIODevice::WriteOnly)) {
+    assert(!str.isNull());
+    if (file.open(QIODevice::WriteOnly)) {
       file.write(str);
       setFilename(filen);
       m_state = Ok;
@@ -992,6 +993,7 @@ namespace Shaderkit
       emit saved();
       return true;
     }
+    err = file.errorString();
     return false;
   }
 
