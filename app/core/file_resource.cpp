@@ -38,7 +38,7 @@ namespace Shaderkit
   void FileResource::setFilename(const QString& filename, bool quiet)
   {
     QString abs;
-    if (filename.isEmpty()) {
+    if (filename.isEmpty() || filename.startsWith("$")) {
       abs = filename;
     } else {
       QFileInfo fi(filename);

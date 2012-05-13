@@ -99,9 +99,13 @@ namespace Shaderkit
   void CameraEditor::create()
   {
     CameraPtr cam(new Camera("Camera"));
+    cam->setLocation(Eigen::Vector3f(30, 30, 30));
     MainWindow::scene()->add(cam);
+    bool set_to_default = m_render_pass && !m_render_pass->view();
     foreach (QListWidgetItem* item, m_ui->list->findItems(cam->name(), Qt::MatchExactly)) {
       item->setSelected(true);
+      if (set_to_default)
+        item->setCheckState(Qt::Checked);
       break;
     }
   }
@@ -142,6 +146,10 @@ namespace Shaderkit
   {
     CameraPtr my_camera = m_render_pass ? m_render_pass->view() : CameraPtr();
 
+    QSet<QString> selected;
+    foreach (auto item, m_ui->list->selectedItems())
+      selected << item->text();
+
     m_ui->list->clear();
     foreach (CameraPtr camera, MainWindow::scene()->cameras()) {
       /// @todo icon
@@ -155,6 +163,8 @@ namespace Shaderkit
         else
           item->setCheckState(Qt::Unchecked);
       }
+      if (selected.contains(camera->name()))
+        item->setSelected(true);
     }
   }
 

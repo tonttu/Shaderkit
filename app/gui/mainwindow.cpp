@@ -501,7 +501,16 @@ namespace Shaderkit
     if (!widget)
       return;
 
+    /// @todo What if the scene is in ro-state?
+
+    // Put "New" scene to limbo state before saving any individual files
+    if (m_scene->state() == Scene::New) {
+      QVariantMap scene = m_scene->toMap();
+      m_scene->save(scene);
+    }
+
     MultiEditor* editor = m_editors.key(widget);
+    assert(editor);
     editor->saveMaterial();
   }
 
@@ -693,6 +702,7 @@ namespace Shaderkit
   void MainWindow::saved()
   {
     /// @todo update recent projects -menu
+    ResourceLocator::setPath("scene", m_scene->root());
     setSceneChanged(false);
   }
 
