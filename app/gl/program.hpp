@@ -174,6 +174,7 @@ namespace Shaderkit
 
     Shaders shaders() const { return m_shaders; }
     bool hasShader(const QString& filename) const;
+    bool hasShader(Shader::Type type) const;
 
     ProgramPtr clone() const;
 

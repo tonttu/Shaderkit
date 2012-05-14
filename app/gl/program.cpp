@@ -265,6 +265,10 @@ namespace Shaderkit
       map["vertex"] = shaders[Shader::Vertex];
     if (shaders.contains(Shader::Fragment))
       map["fragment"] = shaders[Shader::Fragment];
+    if (shaders.contains(Shader::TessCtrl))
+      map["tess-ctrl"] = shaders[Shader::TessCtrl];
+    if (shaders.contains(Shader::TessEval))
+      map["tess-eval"] = shaders[Shader::TessEval];
 
     return map;
   }
@@ -273,6 +277,13 @@ namespace Shaderkit
   {
     foreach (ShaderPtr s, m_shaders)
       if (s->filename() == filename) return true;
+    return false;
+  }
+
+  bool GLProgram::hasShader(Shader::Type type) const
+  {
+    foreach (ShaderPtr s, m_shaders)
+      if (s->type() == type) return true;
     return false;
   }
 

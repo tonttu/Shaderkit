@@ -186,6 +186,7 @@ namespace Shaderkit
 
   Shader::Type Shader::guessType(const QString& filename)
   {
+    /// @todo tesselation shaders?
     if (filename.endsWith(".fs") || filename.endsWith(".frag"))
       return Fragment;
     if (filename.endsWith(".vs") || filename.endsWith(".vert"))

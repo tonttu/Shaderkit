@@ -24,6 +24,7 @@
 
 #include "gl/opengl.hpp"
 #include "gl/state.hpp"
+#include "gl/program.hpp"
 
 #include "ext/glut_teapot.hpp"
 
@@ -454,9 +455,9 @@ namespace Shaderkit
     return MeshPtr(new Box(*this));
   }
 
-  void Box::renderObj(State&)
+  void Box::renderObj(State& state)
   {
-    ObjectRenderer::drawBox(m_size[0]*0.5f, m_size[1]*0.5f, m_size[2]*0.5f);
+    ObjectRenderer::drawBox(m_size[0]*0.5f, m_size[1]*0.5f, m_size[2]*0.5f, state);
   }
 
   Sphere::Sphere(const Sphere& s)
@@ -645,7 +646,17 @@ namespace Shaderkit
       m_indices.sync(indices);
       BufferObject2::BindHolder b = m_indices.bind(state);
 
-      glRun(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0));
+      bool use_patches = false;
+      if (mat && mat->prog()) {
+        GLProgram& prog = *mat->prog();
+        use_patches = prog.hasShader(Shader::TessCtrl) || prog.hasShader(Shader::TessEval);
+      }
+      if (use_patches) {
+        glPatchParameteri(GL_PATCH_VERTICES, 3);
+        glRun(glDrawElements(GL_PATCHES, indices.size(), GL_UNSIGNED_INT, 0));
+      } else {
+        glRun(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0));
+      }
     }
     state.pop();
   }

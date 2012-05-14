@@ -42,9 +42,11 @@ namespace Shaderkit
     /// Supported shader types
     enum Type {
       Unknown = 0,
-      Fragment = GL_FRAGMENT_SHADER,
       Vertex = GL_VERTEX_SHADER,
-      Geometry = GL_GEOMETRY_SHADER_EXT
+      TessCtrl = GL_TESS_CONTROL_SHADER,
+      TessEval = GL_TESS_EVALUATION_SHADER,
+      Geometry = GL_GEOMETRY_SHADER_EXT,
+      Fragment = GL_FRAGMENT_SHADER
     };
 
     /// compile() returns the compile status

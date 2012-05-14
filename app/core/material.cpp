@@ -340,6 +340,10 @@ namespace Shaderkit
       prog(true)->addShader(filename, Shader::Vertex);
     foreach (QString filename, map["geometry"].toStringList())
       prog(true)->addShader(filename, Shader::Geometry);
+    foreach (QString filename, map["tess-ctrl"].toStringList())
+      prog(true)->addShader(filename, Shader::TessCtrl);
+    foreach (QString filename, map["tess-eval"].toStringList())
+      prog(true)->addShader(filename, Shader::TessEval);
 
     Log::info("Shading model: %s", style.shading_model->toUtf8().data());
     /// @todo add a default shader if the material has shader hint

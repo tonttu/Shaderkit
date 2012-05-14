@@ -352,17 +352,21 @@ namespace Shaderkit
   void MultiEditor::create()
   {
     QMenu menu("Create a new shader file", this);
-    menu.addAction(Shader::icon(Shader::Fragment), "New fragment shader file")->setData(Shader::Fragment);
     menu.addAction(Shader::icon(Shader::Vertex), "New vertex shader file")->setData(Shader::Vertex);
+    menu.addAction(Shader::icon(Shader::TessCtrl), "New tesselation control shader file")->setData(Shader::TessCtrl);
+    menu.addAction(Shader::icon(Shader::TessEval), "New tesselation evaluation shader file")->setData(Shader::TessEval);
     menu.addAction(Shader::icon(Shader::Geometry), "New geometry shader file")->setData(Shader::Geometry);
+    menu.addAction(Shader::icon(Shader::Fragment), "New fragment shader file")->setData(Shader::Fragment);
     QAction* a = menu.exec(QCursor::pos());
     if (!a) return;
 
     int t = a->data().toInt();
     QString f;
-    if (t == Shader::Fragment) f = ".frag";
-    else if (t == Shader::Vertex) f = ".vert";
+    if (t == Shader::Vertex) f = ".vert";
+    else if (t == Shader::TessCtrl) f = ".tsctrl";
+    else if (t == Shader::TessEval) f = ".tseval";
     else if (t == Shader::Geometry) f = ".geom";
+    else if (t == Shader::Fragment) f = ".frag";
     else return;
 
     f = ResourceLocator::unique("$scene/untitled" + f, MainWindow::scene()->filenames());
@@ -411,9 +415,11 @@ namespace Shaderkit
       Shader::Type type = Shader::guessType(fi.absoluteFilePath());
       if (type == Shader::Unknown) {
         QMenu menu("Type of the shader", this);
-        menu.addAction(Shader::icon(Shader::Fragment), "Fragment shader")->setData(Shader::Fragment);
         menu.addAction(Shader::icon(Shader::Vertex), "Vertex shader")->setData(Shader::Vertex);
+        menu.addAction(Shader::icon(Shader::TessCtrl), "Tesselation control shader")->setData(Shader::TessCtrl);
+        menu.addAction(Shader::icon(Shader::TessEval), "Tesselation evaluation shader")->setData(Shader::TessEval);
         menu.addAction(Shader::icon(Shader::Geometry), "Geometry shader")->setData(Shader::Geometry);
+        menu.addAction(Shader::icon(Shader::Fragment), "Fragment shader")->setData(Shader::Fragment);
         QAction* a = menu.exec(QCursor::pos());
         if (!a) return;
         type = (Shader::Type)a->data().toInt();
