@@ -81,6 +81,7 @@ namespace Shaderkit
   {
     static GLenum s_glew_status = GLEW_OK + 1;
     if (s_glew_status != GLEW_OK) {
+      glewExperimental = GL_TRUE;
       s_glew_status = glewInit();
       if (s_glew_status == GLEW_OK) {
         Log::info("GLEW %s initialized", glewGetString(GLEW_VERSION));
