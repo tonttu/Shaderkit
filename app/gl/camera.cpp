@@ -78,30 +78,28 @@ namespace Shaderkit
     glViewport(0, 0, width, height);
     if (m_type == Perspective) {
       float f = 1.0f / tanf(m_fov*0.5f);
-      auto p = glm::mat4(
-          f* height/width, 0.0f,                          0.0f,                              0.0f,
-                     0.0f,    f,                          0.0f,                              0.0f,
-                     0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far* m_near/(m_near-m_far),
-                     0.0f, 0.0f,                         -1.0f,                              0.0f);
+      m_projection = glm::mat4(
+          f* height/width, 0.0f,                              0.0f, 0.0f,
+                     0.0f,    f,                              0.0f, 0.0f,
+                     0.0f, 0.0f,     (m_far+m_near)/(m_near-m_far), -1.f,
+                     0.0f, 0.0f, 2.0f*m_far* m_near/(m_near-m_far), 0.0f);
 
       auto v = glm::mat4(
-           float(m_right[0]),  float(m_right[1]),  float(m_right[2]), 0.0f,
-              float(m_up[0]),     float(m_up[1]),     float(m_up[2]), 0.0f,
-          float(-m_front[0]), float(-m_front[1]), float(-m_front[2]), 0.0f,
-                        0.0f,               0.0f,               0.0f, 1.0f);
+            m_right[0], m_up[0], -m_front[0], 0.0f,
+            m_right[1], m_up[1], -m_front[1], 0.0f,
+            m_right[2], m_up[2], -m_front[2], 0.0f,
+                  0.0f,    0.0f,        0.0f, 1.0f);
 
-      m_projection = p;
       glm::vec3 eye = m_target.value() - m_front*m_dist.value();
       m_view = v * glm::translate(-eye);
     } else if (m_type == Rect) {
       float tz = -(m_far+m_near)/(m_far-m_near);
-      glm::mat4 p(
-          2.0f/width,           0,                    0, -1.0f,
-                   0, 2.0f/height,                    0, -1.0f,
-                   0,           0, -2.0f/(m_far-m_near),    tz,
-                   0,           0,                    0,     1);
+      m_projection = glm::mat4(
+          2.0f/width,           0,                    0, 0,
+                   0, 2.0f/height,                    0, 0,
+                -1.f,           0, -2.0f/(m_far-m_near), 0,
+                -1.f,           0,                   tz, 1);
 
-      m_projection = p;
       m_view = glm::mat4();
     } else {
       /// @todo implement ortho camera

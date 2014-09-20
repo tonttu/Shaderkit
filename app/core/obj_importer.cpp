@@ -544,27 +544,9 @@ namespace Shaderkit
     dest->name = str(src.mName);
     m_nodeIndex[dest->name] << dest;
     {
-      /// assimp keeps the matrix in row-major format, we use column-major format. transpose.
-      /// @todo the transform should be affine? We should maybe create a matrix and
-      ///       assign that to transform?
       float* d = &dest->transform[0].x;
       const float* s = &src.mTransformation.a1;
-      d[0] = s[0];
-      d[4] = s[1];
-      d[8] = s[2];
-      d[12] = s[3];
-      d[1] = s[4];
-      d[5] = s[5];
-      d[9] = s[6];
-      d[13] = s[7];
-      d[2] = s[8];
-      d[6] = s[9];
-      d[10] = s[10];
-      d[14] = s[11];
-      d[3] = s[12];
-      d[7] = s[13];
-      d[11] = s[14];
-      d[15] = s[15];
+      memcpy(d, s, 16*sizeof(float));
     }
 
     for (unsigned int i = 0; i < src.mNumMeshes; ++i) {

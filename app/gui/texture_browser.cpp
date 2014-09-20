@@ -736,10 +736,10 @@ namespace Shaderkit
   void TextureBrowser::newScene(ScenePtr scene)
   {
     disconnect(this, SLOT(updateContent()));
-    disconnect(this, SLOT(renderPassesChanged()));
+    disconnect(this, SLOT(renderPassesChanged(QList<RenderPassPtr>)));
     if (scene) {
       connect(scene.get(), SIGNAL(textureListUpdated()), this, SLOT(updateContent()));
-      connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)), this, SLOT(renderPassesChanged()));
+      connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)), this, SLOT(renderPassesChanged(QList<RenderPassPtr>)));
       renderPassesChanged(scene->renderPasses());
     } else {
       renderPassesChanged(QList<RenderPassPtr>());

@@ -234,7 +234,7 @@ PASTEABLE   [_a-zA-Z0-9]+
 <CTRL,CTRL_EVAL,EVAL,INITIAL,IF,ELSE>{IDENTIFIER} {
   Objs::iterator it = m_objs.find(yytext);
   if (it != m_objs.end() /*&& std::find(m_stack.begin(), m_stack.end(), yytext) == m_stack.end()*/) {
-    fprintf(stderr, "pushing %s -> %s\n", yytext, it->second.c_str());
+    //fprintf(stderr, "pushing %s -> %s\n", yytext, it->second.c_str());
     push_string(yytext, it->second, it->second);
   } else {
     if (m_undefs.count(yytext) == 0) m_require.insert(yytext);
