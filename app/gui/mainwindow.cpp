@@ -268,11 +268,9 @@ namespace Shaderkit
 
   QGLFormat MainWindow::formatGL() const
   {
-    QGLFormat format(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba |
-                     QGL::AlphaChannel | QGL::DirectRendering | QGL::SampleBuffers);
-    //format.setVersion(3, 2);
-    //format.setProfile(QGLFormat::CompatibilityProfile);
-    return format;
+    if (m_scene)
+      return m_scene->glFormat();
+    return QGLFormat::defaultFormat();
   }
 
   void MainWindow::about()
@@ -328,6 +326,9 @@ namespace Shaderkit
 
     if (should_restore_settings)
       restore();
+
+    if (m_scene)
+      QGLFormat::setDefaultFormat(m_scene->glFormat());
 
     foreach (QGLWidget* w, m_glwidgets) {
       GLWidget* gl = dynamic_cast<GLWidget*>(w);

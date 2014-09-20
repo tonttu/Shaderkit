@@ -61,7 +61,6 @@ namespace Shaderkit
     //if (!releases.isEmpty()) map["release"] = putList(releases);
     //if (!servers.isEmpty()) map["server"] = putList(servers);
     if (!categories.isEmpty()) map["category"] = putList(categories);
-    //if (!renderer.isEmpty()) map["renderer"] = putList(renderer);
     if (!licenses.isEmpty()) map["license"] = putList(licenses);
     if (!authors.isEmpty()) map["authors"] = putList(authors);
 
@@ -91,7 +90,6 @@ namespace Shaderkit
     releases = getList(map, "release");
     servers = getList(map, "server");
     categories = getList(map, "category");
-    renderer = getList(map, "renderer");
     licenses = getList(map, "license");
     authors = getList(map, "authors");
 

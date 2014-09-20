@@ -309,6 +309,8 @@ namespace Shaderkit
   {
     QVariantMap map, tmp;
 
+    map["context"] = toMap(m_glFormat);
+
     foreach (QString name, m_models.keys())
       tmp[name] = m_models[name]->toMap();
     if (!tmp.isEmpty()) map["models"] = tmp, tmp.clear();
@@ -439,6 +441,8 @@ namespace Shaderkit
     disconnect(this, SLOT(renderPassChanged(RenderPassPtr)));
 
     m_metainfo.load(map["shaderkit"].toMap());
+
+    m_glFormat = formatFromMap(map["context"].toMap());
 
     QVariantMap tmp = map["import"].toMap();
     for (auto it = tmp.begin(); it != tmp.end(); ++it) {
@@ -708,6 +712,42 @@ namespace Shaderkit
       }
       return false;
     }
+  }
+
+  QGLFormat Scene::formatFromMap(const QMap<QString, QVariant> & map)
+  {
+    QGLFormat format;
+
+    QString version = map["version"].toString();
+    QRegExp versionMatch("(\\d+)(?:\\.(\\d+))?");
+    if (versionMatch.exactMatch(version)) {
+      format.setVersion(versionMatch.cap(1).toInt(), versionMatch.cap(2).toInt());
+    } else {
+      format.setVersion(3, 2);
+    }
+
+    if (map["profile"] == "compatibility") {
+      format.setProfile(QGLFormat::CompatibilityProfile);
+    } else {
+      format.setProfile(QGLFormat::CoreProfile);
+    }
+
+    /// @todo
+    format.setOption(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba |
+                     QGL::AlphaChannel | QGL::DirectRendering | QGL::SampleBuffers);
+
+    return format;
+  }
+
+  QMap<QString, QVariant> Scene::toMap(const QGLFormat & format)
+  {
+    QMap<QString, QVariant> map;
+    map["version"] = QString("%1.%2").arg(format.majorVersion()).arg(format.minorVersion());
+    map["profile"] = format.profile() == QGLFormat::CompatibilityProfile ? "compatibility" : "core";
+
+    /// @todo options
+
+    return map;
   }
 
   bool Scene::renameShaderFile(const QString& from, const QString& to, bool keep_old_file)

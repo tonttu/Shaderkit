@@ -35,6 +35,7 @@
 #include <QTime>
 #include <QPoint>
 #include <QIcon>
+#include <QGLFormat>
 
 #include <functional>
 
@@ -217,6 +218,8 @@ namespace Shaderkit
 
     const RenderOptions& lastRenderOpts() const { return m_lastRenderOpts; }
 
+    const QGLFormat & glFormat() const { return m_glFormat; }
+
   signals:
     void shaderListUpdated();
     void objectListUpdated();
@@ -294,9 +297,14 @@ namespace Shaderkit
 
     RenderOptions m_lastRenderOpts;
 
+    QGLFormat m_glFormat;
+
   private:
     void createDefaults();
     bool fileRename(const QString& from, const QString& to, bool keep_old_file);
+
+    static QGLFormat formatFromMap(const QMap<QString, QVariant>& map);
+    static QMap<QString, QVariant> toMap(const QGLFormat& format);
   };
 
 } // namespace Shaderkit

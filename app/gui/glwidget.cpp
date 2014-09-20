@@ -324,7 +324,10 @@ namespace Shaderkit
   void GLWidget::sceneChange(ScenePtr s)
   {
     m_scene = s;
-    if (s) s->resize(size().width(), size().height());
+    if (s) {
+      setFormat(s->glFormat());
+      s->resize(size().width(), size().height());
+    }
   }
 
 } // namespace Shaderkit

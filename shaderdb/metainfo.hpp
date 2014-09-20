@@ -45,7 +45,6 @@ namespace Shaderkit
     QMap<QString, QPair<QString, int>> dependencies;
     QStringList licenses;
     QStringList authors;
-    QStringList renderer;
   };
 
 }
