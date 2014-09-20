@@ -20,6 +20,9 @@
 #include "gl/opengl.hpp"
 #include "core/utils.hpp"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 namespace Shaderkit
 {
   Light::Light(const QString& name)
@@ -29,9 +32,9 @@ namespace Shaderkit
       m_ambient(*this, Color(0, 0, 0, 1)),
       m_diffuse(*this, Color(1, 1, 1, 1)),
       m_specular(*this, Color(1, 1, 1, 1)),
-      m_location(*this, Eigen::Vector3f(0, 0, 0)),
-      m_target(*this, Eigen::Vector3f(0, 0, 0)),
-      m_direction(*this, Eigen::Vector3f(0, 0, 1)),
+      m_location(*this, glm::vec3(0, 0, 0)),
+      m_target(*this, glm::vec3(0, 0, 0)),
+      m_direction(*this, glm::vec3(0, 0, 1)),
       m_spot_cutoff(*this, 180)
   {}
 
@@ -64,25 +67,25 @@ namespace Shaderkit
     glRun(glLightfv(GL_LIGHT0+m_id, GL_SPECULAR, m_specular->data()));
 
     if (m_type == Spot) {
-      tmp[0] = m_location->x();
-      tmp[1] = m_location->y();
-      tmp[2] = m_location->z();
+      tmp[0] = m_location->x;
+      tmp[1] = m_location->y;
+      tmp[2] = m_location->z;
       tmp[3] = 1.0f;
       glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
 
-      Eigen::Vector3f n = m_target.value() - m_location.value();
-      n.normalize();
+      glm::vec3 n = m_target.value() - m_location.value();
+      n = glm::normalize(n);
 
-      tmp[0] = n.x();
-      tmp[1] = n.y();
-      tmp[2] = n.z();
+      tmp[0] = n.x;
+      tmp[1] = n.y;
+      tmp[2] = n.z;
       glRun(glLightfv(GL_LIGHT0+m_id, GL_SPOT_DIRECTION, tmp));
 
       glRun(glLightf(GL_LIGHT0+m_id, GL_SPOT_CUTOFF, m_spot_cutoff));
     } else {
-      tmp[0] = m_direction->x();
-      tmp[1] = m_direction->y();
-      tmp[2] = m_direction->z();
+      tmp[0] = m_direction->x;
+      tmp[1] = m_direction->y;
+      tmp[2] = m_direction->z;
       tmp[3] = 0.0f;
       glRun(glLightfv(GL_LIGHT0+m_id, GL_POSITION, tmp));
     }
@@ -157,19 +160,19 @@ namespace Shaderkit
     m_specular = color;
   }
 
-  void Light::setLocation(const Eigen::Vector3f& loc)
+  void Light::setLocation(const glm::vec3& loc)
   {
     m_location = loc;
     //m_type = Spot;
   }
 
-  void Light::setTarget(const Eigen::Vector3f& target)
+  void Light::setTarget(const glm::vec3& target)
   {
     m_target = target;
     //m_type = Spot;
   }
 
-  void Light::setDirection(const Eigen::Vector3f& dir)
+  void Light::setDirection(const glm::vec3& dir)
   {
     m_direction = dir;
     m_type = Direction;

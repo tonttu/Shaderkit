@@ -22,8 +22,6 @@
 #include "gl/opengl.hpp"
 #include "core/renderpass.hpp"
 
-#include "Eigen/Geometry"
-
 #include <QGLWidget>
 
 namespace Shaderkit
@@ -78,7 +76,7 @@ namespace Shaderkit
     ScenePtr m_scene;
     QTimer* m_timer;
 
-    QMap<Qt::MouseButton, Eigen::Vector2f> m_button_down;
+    QMap<Qt::MouseButton, glm::vec2> m_button_down;
 
     Viewport* m_view;
     CameraPtr m_debug_camera;
@@ -87,8 +85,8 @@ namespace Shaderkit
     bool m_initialized;
   };
 
-  extern QVector<Eigen::Vector2f> g_debug_qt;
-  extern QVector<Eigen::Vector2f> g_debug_2d;
+  extern QVector<glm::vec2> g_debug_qt;
+  extern QVector<glm::vec2> g_debug_2d;
 
 } // namespace Shaderkit
 

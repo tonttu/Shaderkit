@@ -19,7 +19,8 @@
 
 #include "core/utils.hpp"
 
-#include "Eigen/OpenGLSupport"
+#include "glm/gtx/transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #include <cassert>
 
@@ -33,13 +34,11 @@ namespace Shaderkit
   Camera::Camera(const QString& name)
     : SceneObject(name),
       m_type(*this, Perspective),
-      m_target(*this, Eigen::Vector3f(0, 0, 0)),
+      m_target(*this, glm::vec3(0, 0, 0)),
       m_up(0, 1, 0),
       m_dx(*this, 0),
       m_dy(*this, 0),
       m_dist(*this, 0.0f),
-      m_projection(Eigen::Projective3f::Identity()),
-      m_view(Eigen::Affine3f::Identity()),
       m_width(-1),
       m_height(-1),
       m_fov(*this, 45),
@@ -79,46 +78,43 @@ namespace Shaderkit
     glViewport(0, 0, width, height);
     if (m_type == Perspective) {
       float f = 1.0f / tanf(m_fov*0.5f);
-      Eigen::Projective3f p;
-      p.matrix() <<
+      auto p = glm::mat4(
           f* height/width, 0.0f,                          0.0f,                              0.0f,
                      0.0f,    f,                          0.0f,                              0.0f,
                      0.0f, 0.0f, (m_far+m_near)/(m_near-m_far), 2.0f*m_far* m_near/(m_near-m_far),
-                     0.0f, 0.0f,                         -1.0f,                              0.0f;
+                     0.0f, 0.0f,                         -1.0f,                              0.0f);
 
-      Eigen::Affine3f v;
-      v.matrix() <<
+      auto v = glm::mat4(
            float(m_right[0]),  float(m_right[1]),  float(m_right[2]), 0.0f,
               float(m_up[0]),     float(m_up[1]),     float(m_up[2]), 0.0f,
           float(-m_front[0]), float(-m_front[1]), float(-m_front[2]), 0.0f,
-                        0.0f,               0.0f,               0.0f, 1.0f;
+                        0.0f,               0.0f,               0.0f, 1.0f);
 
       m_projection = p;
-      Eigen::Vector3f eye = m_target.value() - m_front*m_dist.value();
-      m_view = v * Eigen::Translation3f(-eye);
+      glm::vec3 eye = m_target.value() - m_front*m_dist.value();
+      m_view = v * glm::translate(-eye);
     } else if (m_type == Rect) {
       float tz = -(m_far+m_near)/(m_far-m_near);
-      Eigen::Projective3f p;
-      p.matrix() <<
+      glm::mat4 p(
           2.0f/width,           0,                    0, -1.0f,
                    0, 2.0f/height,                    0, -1.0f,
                    0,           0, -2.0f/(m_far-m_near),    tz,
-                   0,           0,                    0,     1;
+                   0,           0,                    0,     1);
 
       m_projection = p;
-      m_view = Eigen::Affine3f::Identity();
+      m_view = glm::mat4();
     } else {
       /// @todo implement ortho camera
-      m_projection = Eigen::Projective3f::Identity();
-      m_view = Eigen::Affine3f::Identity();
+      m_projection = glm::mat4();
+      m_view = glm::mat4();
       assert(false && "Ortho Camera not implemented");
     }
 
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrix(m_projection);
+    glLoadMatrixf(glm::value_ptr(m_projection));
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrix(m_view);
+    glLoadMatrixf(glm::value_ptr(m_view));
   }
 
   void Camera::setRect(float near_, float far_)
@@ -153,7 +149,7 @@ namespace Shaderkit
     else if (m_type == Rect)
       map["type"] = "rect";
 
-    Eigen::Vector3f eye = m_target.value() - m_front*m_dist.value();
+    glm::vec3 eye = m_target.value() - m_front*m_dist.value();
     map["location"] = Utils::toList(eye);
     map["target"] = Utils::toList(m_target);
     map["fov"] = m_fov.value();
@@ -185,9 +181,9 @@ namespace Shaderkit
     m_front[0] =-c*x;
     m_front[1] = -sin(m_dy);
     m_front[2] = -c*z;
-    m_front.normalize();
-    m_right = m_front.cross(Eigen::Vector3f(0, 1, 0)).normalized();
-    m_up = m_right.cross(m_front).normalized();
+    m_front = glm::normalize(m_front);
+    m_right = glm::normalize(glm::cross(m_front, glm::vec3(0, 1, 0)));
+    m_up = glm::normalize(glm::cross(m_right, m_front));
   }
 
   CameraPtr Camera::clone() const
@@ -205,9 +201,9 @@ namespace Shaderkit
       return QIcon(":/icons/2dpass.png");
   }
 
-  void Camera::rotate(const Eigen::Vector2f& diff)
+  void Camera::rotate(const glm::vec2& diff)
   {
-    const Eigen::Vector2f tmp = diff * 5.0f;
+    const glm::vec2 tmp = diff * 5.0f;
     m_dx = m_dx.value() + tmp[0];
     m_dy = m_dy.value() + tmp[1];
     if (m_dy < -M_PI*0.499f) m_dy = -M_PI*0.499f;
@@ -215,9 +211,9 @@ namespace Shaderkit
     updateVectors();
   }
 
-  void Camera::translate(const Eigen::Vector2f& diff)
+  void Camera::translate(const glm::vec2& diff)
   {
-    const Eigen::Vector2f tmp = diff * m_dist;
+    const glm::vec2 tmp = diff * m_dist.value();
     m_target = m_target.value() + m_up*tmp[1] + m_right*tmp[0];
   }
 
@@ -226,42 +222,42 @@ namespace Shaderkit
     m_dist = m_dist.value() + diff*m_dist*0.01f;
   }
 
-  void Camera::setTarget(const Eigen::Vector3f& target)
+  void Camera::setTarget(const glm::vec3& target)
   {
     m_target = target;
   }
 
-  const Eigen::Vector3f& Camera::target() const
+  const glm::vec3& Camera::target() const
   {
     return m_target;
   }
 
-  void Camera::setLocation(const Eigen::Vector3f& location)
+  void Camera::setLocation(const glm::vec3& location)
   {
-    Eigen::Vector3f to = m_target.value() - location;
-    m_dist = to.norm();
+    glm::vec3 to = m_target.value() - location;
+    m_dist = glm::length(to);
     m_dx = atan2f(to[2], -to[0]);
     m_dy = asinf(-to[1] / m_dist);
 
     updateVectors();
   }
 
-  const Eigen::Vector3f Camera::location() const
+  const glm::vec3 Camera::location() const
   {
     return m_target.value() - m_front*m_dist.value();
   }
 
-  const Eigen::Vector3f Camera::up() const
+  const glm::vec3 Camera::up() const
   {
     return m_up;
   }
 
-  const Eigen::Vector3f Camera::right() const
+  const glm::vec3 Camera::right() const
   {
     return m_right;
   }
 
-  const Eigen::Vector3f Camera::front() const
+  const glm::vec3 Camera::front() const
   {
     return m_front;
   }
@@ -277,21 +273,21 @@ namespace Shaderkit
     return m_dist;
   }
 
-  Eigen::Projective3f Camera::normToWindow(bool swap_y) const
+  glm::mat4 Camera::normToWindow(bool swap_y) const
   {
     float f = swap_y ? -1.0f : 1.0f;
 
-    Eigen::Projective3f window_scale;
-    window_scale.matrix() << m_width * 0.5f,                   0, 0, 0,
+    auto window_scale = glm::mat4(
+           m_width * 0.5f,                   0, 0, 0,
                         0, m_height * 0.5f * f, 0, 0,
                         0,                   0, 1, 0,
-                        0,                   0, 0, 1;
+                        0,                   0, 0, 1);
 
     // -1..1 to window coordinates
-    return window_scale * Eigen::Translation3f(1, f, 0);
+    return window_scale * glm::translate(glm::vec3(1, f, 0));
   }
 
-  Eigen::Projective3f Camera::transform(bool swap_y) const
+  glm::mat4 Camera::transform(bool swap_y) const
   {
     return normToWindow(swap_y) * projection() * view();
   }

@@ -23,7 +23,7 @@
 
 #include <core/attribute.hpp>
 
-#include "Eigen/Geometry"
+#include "glm/glm.hpp"
 
 #include <QVariantMap>
 
@@ -68,12 +68,10 @@ namespace Shaderkit
     void setModel(const ModelPtr& model);
     ModelPtr model() { return m_model; }
 
-    void setTransform(const Eigen::Affine3f& transform);
-    const Eigen::Affine3f& transform() const { return m_transform; }
+    void setTransform(const glm::mat4& transform);
+    const glm::mat4& transform() const { return m_transform; }
 
     virtual void attributeChanged();
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   signals:
     void changed(ObjectPtr);
@@ -82,7 +80,7 @@ namespace Shaderkit
     explicit Object3D(const Object3D& o);
 
   private:
-    Attribute<Eigen::Affine3f> m_transform;
+    Attribute<glm::mat4> m_transform;
     ModelPtr m_model;
     QMap<QString, MaterialPtr> m_materials;
     MaterialPtr m_default_material;

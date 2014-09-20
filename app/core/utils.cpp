@@ -39,23 +39,23 @@ namespace Shaderkit
       return name;
     }
 
-    Eigen::Vector3f toVector3(QVariant in)
+    glm::vec3 toVector3(QVariant in)
     {
       QVariantList lst = in.toList();
       if (lst.size() == 3) {
-        return Eigen::Vector3f(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
+        return glm::vec3(lst[0].toFloat(), lst[1].toFloat(), lst[2].toFloat());
       }
-      return Eigen::Vector3f(0, 0, 0);
+      return glm::vec3(0, 0, 0);
     }
 
-    QVariantList toList(const Eigen::Vector3f& in)
+    QVariantList toList(const glm::vec3& in)
     {
       QVariantList ret;
       ret << in[0] << in[1] << in[2];
       return ret;
     }
 
-    QVariantList toList(const Eigen::Vector4f& in)
+    QVariantList toList(const glm::vec4& in)
     {
       QVariantList ret;
       ret << in[0] << in[1] << in[2] << in[3];

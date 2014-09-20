@@ -23,37 +23,37 @@
 namespace Shaderkit
 {
 
-  QVariantMap saveTransform(const Eigen::Affine3f& affine)
+  QVariantMap saveTransform(const glm::mat4& m)
   {
-    const Eigen::Matrix4f& m = affine.matrix();
     QStringList tmp;
+    const float* v = &m[0].x;
     for (int i = 0; i < 16; ++i)
-      tmp << QString::number(m.data()[i]);
+      tmp << QString::number(v[i]);
     QVariantMap ret;
     ret["matrix"] = tmp.join(" ");
     return ret;
   }
 
-  Eigen::Affine3f loadTransform(const QVariant& var)
+  glm::mat4 loadTransform(const QVariant& var)
   {
     QVariantMap map = var.toMap();
     if (map.contains("matrix")) {
       QStringList tmp;
       tmp = map["matrix"].toString().split(QRegExp("\\s+"));
       if (tmp.size() == 16) {
-        Eigen::Affine3f affine;
-        Eigen::Matrix4f& m = affine.matrix();
+        glm::mat4 m(glm::mat4::_null);
+        float* v = &m[0].x;
         for (int i = 0; i < 16; ++i)
-          m.data()[i] = tmp[i].toFloat();
-        return affine;
+          v[i] = tmp[i].toFloat();
+        return m;
       }
     }
-    return Eigen::Affine3f::Identity();
+    return glm::mat4();
   }
 
   Object3D::Object3D(const QString& name, const ModelPtr& model)
     : SceneObject(name),
-      m_transform(*this, Eigen::Affine3f::Identity()),
+      m_transform(*this, glm::mat4()),
       m_model(model)
   {
   }
@@ -158,7 +158,7 @@ namespace Shaderkit
     emit changed(shared_from_this());
   }
 
-  void Object3D::setTransform(const Eigen::Affine3f& transform)
+  void Object3D::setTransform(const glm::mat4& transform)
   {
     m_transform = transform;
   }

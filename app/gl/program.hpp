@@ -25,7 +25,7 @@
 #include "gl/error.hpp"
 #include "gl/opengl.hpp"
 
-#include "Eigen/Geometry"
+#include "glm/gtc/type_ptr.hpp"
 
 #include <QObject>
 #include <QSet>
@@ -100,13 +100,12 @@ namespace Shaderkit
     void setUniform(GLint loc, GLint v0, GLint v1, GLint v2) { glRun(glUniform3i(loc, v0, v1, v2)); }
     void setUniform(GLint loc, GLint v0, GLint v1, GLint v2, GLint v3) { glRun(glUniform4i(loc, v0, v1, v2, v3)); }
 
-    void setUniform(GLint loc, const Eigen::Vector2f& v) { glRun(glUniform2fv(loc, 1, v.data())); }
-    void setUniform(GLint loc, const Eigen::Vector3f& v) { glRun(glUniform3fv(loc, 1, v.data())); }
-    void setUniform(GLint loc, const Eigen::Vector4f& v) { glRun(glUniform4fv(loc, 1, v.data())); }
+    void setUniform(GLint loc, const glm::vec2& v) { glRun(glUniform2fv(loc, 1, glm::value_ptr(v))); }
+    void setUniform(GLint loc, const glm::vec3& v) { glRun(glUniform3fv(loc, 1, glm::value_ptr(v))); }
+    void setUniform(GLint loc, const glm::vec4& v) { glRun(glUniform4fv(loc, 1, glm::value_ptr(v))); }
 
-    void setUniform(GLint loc, const Eigen::Projective3f& m) { glRun(glUniformMatrix4fv(loc, 1, false, m.matrix().data())); }
-    void setUniform(GLint loc, const Eigen::Matrix4f& m) { glRun(glUniformMatrix4fv(loc, 1, false, m.data())); }
-    void setUniform(GLint loc, const Eigen::Affine3f& m) { glRun(glUniformMatrix3fv(loc, 1, false, m.matrix().data())); }
+    void setUniform(GLint loc, const glm::mat4& m) { glRun(glUniformMatrix4fv(loc, 1, false, glm::value_ptr(m))); }
+    void setUniform(GLint loc, const glm::mat3& m) { glRun(glUniformMatrix3fv(loc, 1, false, glm::value_ptr(m))); }
 
     template <typename T>
     void setUniform(State* state, QString name, int vector_dimension, const T& t, bool restore = false) {

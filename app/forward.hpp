@@ -119,18 +119,4 @@ namespace Shaderkit
   }
 } // namespace Shaderkit
 
-namespace Eigen
-{
-  template<typename S, int R, int C, int O, int MR, int MC> class Matrix;
-
-  typedef Matrix<float, 2, 1, 0, 2, 1> Vector2f;
-  typedef Matrix<float, 3, 1, 0, 3, 1> Vector3f;
-  typedef Matrix<float, 4, 1, 0, 4, 1> Vector4f;
-
-  template<typename S, int D, int M, int O> class Transform;
-  typedef Transform<float, 3, 0x20, 0> Projective3f;
-  typedef Transform<float, 3, 0x2, 0> Affine3f;
-}
-
-
 #endif

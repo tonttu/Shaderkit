@@ -19,6 +19,7 @@
 #define MODEL_HPP
 
 #include "forward.hpp"
+#include "bbox.hpp"
 #include "gl/buffer_object.hpp"
 #include "gl/scene_object.hpp"
 
@@ -26,25 +27,21 @@
 #include <QVector>
 #include <QVariantMap>
 
-#include "Eigen/Geometry"
-
 namespace Shaderkit
 {
 
   struct Node {
     Node();
     QString name;
-    Eigen::Affine3f transform;
+    glm::mat4 transform;
     QList<NodePtr> children;
     QList<MeshPtr> meshes;
 
-    Eigen::AlignedBox<float, 3> bbox();
-    void calcBbox(Eigen::AlignedBox<float, 3>& bbox,
-                  const Eigen::Affine3f& transform = Eigen::Affine3f::Identity()) const;
+    BBox3 bbox();
+    void calcBbox(BBox3& bbox,
+                  const glm::mat4& transform = glm::mat4()) const;
 
     NodePtr clone() const;
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
 
   namespace ObjectRenderer
@@ -75,7 +72,7 @@ namespace Shaderkit
     void load(QVariantMap map);
     ModelPtr clone();
 
-    const Eigen::AlignedBox<float, 3>& bbox();
+    const BBox3& bbox();
 
     static ModelPtr createBuiltin(const QString& name, const QString& model,
                                   const QVariantMap& map = QVariantMap());
@@ -90,7 +87,7 @@ namespace Shaderkit
 
   private:
     // bounding box in local coordinates
-    Eigen::AlignedBox<float, 3> m_bbox;
+    BBox3 m_bbox;
     bool m_bbox_dirty;
 
     QVariantMap m_map;
@@ -106,7 +103,7 @@ namespace Shaderkit
     virtual ~Mesh() {}
     virtual void render(State& state);
 
-    virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const = 0;
+    virtual void calcBbox(const glm::mat4& transform, BBox3& bbox) const = 0;
 
     void setName(const QString& name) { m_name = name; }
     const QString& name() const { return m_name; }
@@ -137,7 +134,7 @@ namespace Shaderkit
   public:
     Teapot() {}
     virtual ~Teapot() {}
-    virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
+    virtual void calcBbox(const glm::mat4& transform, BBox3& bbox) const;
 
     virtual MeshPtr clone() const;
 
@@ -150,9 +147,9 @@ namespace Shaderkit
   class Box : public BuiltIn
   {
   public:
-    Box(const Eigen::Vector3f size) : m_size(size) {}
+    Box(const glm::vec3 size) : m_size(size) {}
     virtual ~Box() {}
-    virtual void calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const;
+    virtual void calcBbox(const glm::mat4& transform, BBox3& bbox) const;
 
     virtual MeshPtr clone() const;
 
@@ -160,7 +157,7 @@ namespace Shaderkit
     explicit Box(const Box& b);
     void renderObj(State& state);
 
-    const Eigen::Vector3f m_size;
+    const glm::vec3 m_size;
   };
 
   class Sphere : public BuiltIn
@@ -168,8 +165,8 @@ namespace Shaderkit
   public:
     Sphere(float size) : m_size(size) {}
     virtual ~Sphere() {}
-    virtual void calcBbox(const Eigen::Affine3f& transform,
-                          Eigen::AlignedBox<float, 3>& bbox) const;
+    virtual void calcBbox(const glm::mat4& transform,
+                          BBox3& bbox) const;
 
     virtual MeshPtr clone() const;
 
@@ -185,8 +182,8 @@ namespace Shaderkit
   public:
     TriMesh();
     virtual ~TriMesh() {}
-    virtual void calcBbox(const Eigen::Affine3f& transform,
-                          Eigen::AlignedBox<float, 3>& bbox) const;
+    virtual void calcBbox(const glm::mat4& transform,
+                          BBox3& bbox) const;
 
     std::vector<float> vertices;
     std::vector<float> normals;

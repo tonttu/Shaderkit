@@ -587,8 +587,8 @@ namespace Shaderkit
         CameraPtr camera(new Camera("Default"));
 
         /// @todo use bounding box to calculate optimal location for the camera
-        camera->setTarget(Eigen::Vector3f(0, 30, 0));
-        camera->setLocation(Eigen::Vector3f(60, 45, -60));
+        camera->setTarget(glm::vec3(0, 30, 0));
+        camera->setLocation(glm::vec3(60, 45, -60));
 
         add(camera);
         pass->setView(camera);
@@ -599,19 +599,19 @@ namespace Shaderkit
         light->setAmbient(Color(0, 0, 0));
         light->setDiffuse(Color(0.8f, 0.8f, 1.0f));
         light->setSpecular(Color(0.8f, 0.8f, 1.0f));
-        light->setDirection(Eigen::Vector3f(0, 0.5f, 1.0f));
+        light->setDirection(glm::vec3(0, 0.5f, 1.0f));
 
         LightPtr light1(new Light("light 1"));
         light1->setAmbient(Color(0.2f, 0.2f, 0.2f));
         light1->setDiffuse(Color(1.0f, 0.8f, 1.0f));
         light1->setSpecular(Color(1.0f, 0.8f, 1.0f));
-        light1->setDirection(Eigen::Vector3f(0.3f, 0.4f, -1.0f));
+        light1->setDirection(glm::vec3(0.3f, 0.4f, -1.0f));
 
         LightPtr light2(new Light("light 2"));
         light2->setAmbient(Color(0, 0, 0));
         light2->setDiffuse(Color(1.0f, 1.0f, 0.8f));
         light2->setSpecular(Color(1.0f, 1.0f, 0.8f));
-        light2->setDirection(Eigen::Vector3f(-0.2f, 0.2f, -1.0f));
+        light2->setDirection(glm::vec3(-0.2f, 0.2f, -1.0f));
 
         add(light);
         add(light1);

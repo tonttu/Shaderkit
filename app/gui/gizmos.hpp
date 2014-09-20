@@ -20,10 +20,11 @@
 
 #include "forward.hpp"
 
+#include "core/bbox.hpp"
+#include "core/line.hpp"
+
 #include "gl/buffer_object.hpp"
 #include "gl/transform_feedback.hpp"
-
-#include "Eigen/Geometry"
 
 #include <QSize>
 #include <QVector>
@@ -32,23 +33,23 @@
 namespace Shaderkit
 {
 
-  class LineSegment
+  class GizmoLineSegment
   {
   public:
-    LineSegment(const Eigen::Vector3f& a = Eigen::Vector3f(0, 0, 0),
-                const Eigen::Vector3f& b = Eigen::Vector3f(0, 0, 0));
+    GizmoLineSegment(const glm::vec3& a = glm::vec3(0, 0, 0),
+                const glm::vec3& b = glm::vec3(0, 0, 0));
 
-    float hit(const Eigen::Vector2f& p, float threshold2) const;
-    bool hit(const Eigen::Vector2f& p, float threshold2, float& depth) const;
+    float hit(const glm::vec2& p, float threshold2) const;
+    bool hit(const glm::vec2& p, float threshold2, float& depth) const;
 
-    const Eigen::Vector2f& point() const { return m_point; }
-    const Eigen::Vector2f& point2() const { return m_point2; }
+    const glm::vec2& point() const { return m_point; }
+    const glm::vec2& point2() const { return m_point2; }
 
   private:
-    Eigen::Vector2f m_point, m_point2;
+    glm::vec2 m_point, m_point2;
     float m_depth, m_depth2;
 
-    Eigen::Vector2f m_unit;
+    glm::vec2 m_unit;
     float m_length;
   };
 
@@ -62,9 +63,9 @@ namespace Shaderkit
 
     void render(QSize size, State& state, const RenderOptions& render_opts);
 
-    void hover(const Eigen::Vector2f& point);
-    bool buttonDown(const Eigen::Vector2f& point);
-    virtual void input(const Eigen::Vector2f& diff);
+    void hover(const glm::vec2& point);
+    bool buttonDown(const glm::vec2& point);
+    virtual void input(const glm::vec2& diff);
     virtual void buttonUp();
 
     float size() const;
@@ -97,40 +98,38 @@ namespace Shaderkit
     } m_hit_mode;
 
     struct HitShape {
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-      HitShape(const QVector<Eigen::Vector3f>& points_ = QVector<Eigen::Vector3f>(),
+      HitShape(const QVector<glm::vec3>& points_ = QVector<glm::vec3>(),
                Constraint group_ = NONE)
         : points(points_), group(group_) {}
 
-      void transform(const Eigen::Projective3f& window_projection);
+      void transform(const glm::mat4& window_projection);
 
-      QVector<Eigen::Vector3f> points;
-      QVector<LineSegment> transformed;
-      Eigen::AlignedBox<float, 2> bbox;
+      QVector<glm::vec3> points;
+      QVector<GizmoLineSegment> transformed;
+      BBox2 bbox;
       Constraint group;
     };
 
-    std::vector<HitShape, Eigen::aligned_allocator<HitShape>> m_hit_shapes;
+    std::vector<HitShape> m_hit_shapes;
 
     ProgramPtr m_prog;
 
     // gizmo to window
-    Eigen::Projective3f m_window_projection;
+    glm::mat4 m_window_projection;
     float m_scale, m_scale_factor;
-    Eigen::Vector2f m_start_cursor, m_current_cursor;
-    Eigen::Affine3f m_object_orig_transform;
+    glm::vec2 m_start_cursor, m_current_cursor;
+    glm::mat4 m_object_orig_transform;
 
     // Transform from gizmo to object coordinates
-    Eigen::Affine3f m_gizmo_to_obj;
+    glm::mat4 m_gizmo_to_obj;
 
     bool m_update_inv_projection;
     // inverse of m_window_projection, only updated when starting interaction
-    Eigen::Projective3f m_window_to_gizmo;
+    glm::mat4 m_window_to_gizmo;
 
     BufferObject m_verts, m_colors;
 
-    const HitShape* pick(const Eigen::Vector2f& point) const;
+    const HitShape* pick(const glm::vec2& point) const;
     virtual bool makeActive(Constraint type);
     virtual void renderImpl(State& state) = 0;
   };
@@ -139,14 +138,14 @@ namespace Shaderkit
   {
   public:
     TranslateGizmo();
-    virtual void input(const Eigen::Vector2f& diff);
+    virtual void input(const glm::vec2& diff);
 
   private:
     virtual void renderImpl(State& state);
     virtual bool makeActive(Constraint type);
 
-    Eigen::ParametrizedLine<float, 3> m_line;
-    Eigen::Hyperplane<float, 3> m_plane;
+    Line m_line;
+    Plane m_plane;
 
     bool m_update_line;
   };
@@ -155,7 +154,7 @@ namespace Shaderkit
   {
   public:
     RotateGizmo();
-    virtual void input(const Eigen::Vector2f& diff);
+    virtual void input(const glm::vec2& diff);
 
   protected:
     virtual void renderImpl(State& state);
@@ -164,7 +163,7 @@ namespace Shaderkit
     bool m_update_center;
     bool m_reversed;
     float m_angle, m_start_angle;
-    Eigen::Vector2f m_center;
+    glm::vec2 m_center;
   };
 
   class ScaleGizmo : public Gizmo

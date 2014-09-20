@@ -23,7 +23,7 @@
 
 #include "core/attribute.hpp"
 
-#include "Eigen/Geometry"
+#include "glm/glm.hpp"
 
 #include <QVariant>
 
@@ -74,19 +74,19 @@ namespace Shaderkit
     void setFov(float fov);
     float fov() const { return m_fov.value(); }
 
-    void rotate(const Eigen::Vector2f& diff);
-    void translate(const Eigen::Vector2f& diff);
+    void rotate(const glm::vec2& diff);
+    void translate(const glm::vec2& diff);
     void zoom(float diff);
 
-    void setTarget(const Eigen::Vector3f& target);
-    const Eigen::Vector3f& target() const;
+    void setTarget(const glm::vec3& target);
+    const glm::vec3& target() const;
 
-    void setLocation(const Eigen::Vector3f& location);
-    const Eigen::Vector3f location() const;
+    void setLocation(const glm::vec3& location);
+    const glm::vec3 location() const;
 
-    const Eigen::Vector3f up() const;
-    const Eigen::Vector3f right() const;
-    const Eigen::Vector3f front() const;
+    const glm::vec3 up() const;
+    const glm::vec3 right() const;
+    const glm::vec3 front() const;
 
     Type type() const { return m_type.value(); }
     void setType(Type type);
@@ -95,18 +95,16 @@ namespace Shaderkit
 
     //void setPickDisplay(float x, float y);
 
-    const Eigen::Projective3f& projection() const { return m_projection; }
+    const glm::mat4& projection() const { return m_projection; }
 
-    const Eigen::Affine3f& view() const { return m_view; }
+    const glm::mat4& view() const { return m_view; }
 
     /// @param swap_y enable if you want to project to Qt coordinates
-    Eigen::Projective3f normToWindow(bool swap_y = false) const;
+    glm::mat4 normToWindow(bool swap_y = false) const;
 
     /// Matrix from view coordinates to window coordinates
     /// @param swap_y enable if you want to project to Qt coordinates
-    Eigen::Projective3f transform(bool swap_y = false) const;
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    glm::mat4 transform(bool swap_y = false) const;
 
     virtual void attributeChanged();
 
@@ -121,18 +119,18 @@ namespace Shaderkit
     Attribute<Type> m_type;
 
     /// The point the camera is looking at (Perspective)
-    Attribute<Eigen::Vector3f> m_target;
+    Attribute<glm::vec3> m_target;
 
     /// Camera up vector (Perspective)
     /// There are cached values
-    Eigen::Vector3f m_up;
-    Eigen::Vector3f m_right;
-    Eigen::Vector3f m_front;
+    glm::vec3 m_up;
+    glm::vec3 m_right;
+    glm::vec3 m_front;
 
     Attribute<float> m_dx, m_dy, m_dist;
 
-    Eigen::Projective3f m_projection;
-    Eigen::Affine3f m_view;
+    glm::mat4 m_projection;
+    glm::mat4 m_view;
 
     float m_width, m_height;
 

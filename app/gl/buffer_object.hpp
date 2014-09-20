@@ -22,7 +22,8 @@
 #include "forward.hpp"
 #include "core/color.hpp"
 
-#include <Eigen/Geometry>
+#include "glm/glm.hpp"
+#include "glm/gtx/vec1.hpp"
 
 #include <cassert>
 #include <vector>
@@ -37,20 +38,39 @@ namespace Shaderkit
                           Color1, Color2, Color3, Color4,
                           Normal };
 
+  template <int C>
+  struct VectorByComponents;
+
+  template <>
+  struct VectorByComponents<1>
+  { typedef glm::vec1 type; };
+
+  template <>
+  struct VectorByComponents<2>
+  { typedef glm::vec2 type; };
+
+  template <>
+  struct VectorByComponents<3>
+  { typedef glm::vec3 type; };
+
+  template <>
+  struct VectorByComponents<4>
+  { typedef glm::vec4 type; };
+
   template <VertexType type>
   struct VertexImpl;
 
   template <> struct VertexImpl<VertexType::None> {};
-  template <> struct VertexImpl<VertexType::UV1> { Eigen::Matrix<float, 1, 1, 0, 1, 1> uv; };
-  template <> struct VertexImpl<VertexType::UV2> { Eigen::Vector2f uv; };
-  template <> struct VertexImpl<VertexType::UV3> { Eigen::Vector3f uv; };
-  template <> struct VertexImpl<VertexType::UV4> { Eigen::Vector4f uv; };
+  template <> struct VertexImpl<VertexType::UV1> { glm::vec1 uv; };
+  template <> struct VertexImpl<VertexType::UV2> { glm::vec2 uv; };
+  template <> struct VertexImpl<VertexType::UV3> { glm::vec3 uv; };
+  template <> struct VertexImpl<VertexType::UV4> { glm::vec4 uv; };
 
   template <> struct VertexImpl<VertexType::Color1> { float color; };
-  template <> struct VertexImpl<VertexType::Color2> { Eigen::Vector2f color; };
-  template <> struct VertexImpl<VertexType::Color3> { Eigen::Vector3f color; };
+  template <> struct VertexImpl<VertexType::Color2> { glm::vec2 color; };
+  template <> struct VertexImpl<VertexType::Color3> { glm::vec3 color; };
   template <> struct VertexImpl<VertexType::Color4> { Color color; };
-  template <> struct VertexImpl<VertexType::Normal> { Eigen::Vector3f normal; };
+  template <> struct VertexImpl<VertexType::Normal> { glm::vec3 normal; };
 
   template <size_t components, VertexType type = VertexType::None,
             VertexType type2 = VertexType::None, VertexType type3 = VertexType::None>
@@ -59,25 +79,25 @@ namespace Shaderkit
   template <size_t components, VertexType type, VertexType type2, VertexType type3>
   struct Vertex: public VertexImpl<type>, public VertexImpl<type2>, public VertexImpl<type3>
   {
-    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+    typename VectorByComponents<components>::type point;
   };
 
   template <size_t components, VertexType type, VertexType type2>
   struct Vertex<components, type, type2, VertexType::None>: public VertexImpl<type>, public VertexImpl<type2>
   {
-    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+    typename VectorByComponents<components>::type point;
   };
 
   template <size_t components, VertexType type>
   struct Vertex<components, type, VertexType::None, VertexType::None>: public VertexImpl<type>
   {
-    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+    typename VectorByComponents<components>::type point;
   };
 
   template <size_t components>
   struct Vertex<components, VertexType::None, VertexType::None, VertexType::None>
   {
-    Eigen::Matrix<float, components, 1, 0, components, 1> point;
+    typename VectorByComponents<components>::type point;
   };
 
   class BufferObject

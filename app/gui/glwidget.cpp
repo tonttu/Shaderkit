@@ -26,14 +26,17 @@
 #include "gui/viewport.hpp"
 #include "core/object_creator.hpp"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 /// @todo include something less massive
 #include <QtGui>
 
 namespace Shaderkit
 {
 
-  QVector<Eigen::Vector2f> g_debug_qt;
-  QVector<Eigen::Vector2f> g_debug_2d;
+  QVector<glm::vec2> g_debug_qt;
+  QVector<glm::vec2> g_debug_2d;
 
   GLWidget::GLWidget(const QGLFormat& format, QWidget* parent, const QGLWidget* shareWidget)
     : QGLWidget(format, parent, shareWidget),
@@ -147,10 +150,10 @@ namespace Shaderkit
         glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
         float h = height();
         glBegin(GL_POINTS);
-        foreach (const Eigen::Vector2f& p, g_debug_qt)
+        foreach (const glm::vec2& p, g_debug_qt)
           glVertex2f(p[0], h - p[1]);
-        foreach (const Eigen::Vector2f& p, g_debug_2d)
-          glVertex2fv(p.data());
+        foreach (const glm::vec2& p, g_debug_2d)
+          glVertex2fv(glm::value_ptr(p));
         glEnd();
         g_debug_qt.clear();
         g_debug_2d.clear();
@@ -166,8 +169,8 @@ namespace Shaderkit
 
   void GLWidget::mouseMoveEvent(QMouseEvent* event)
   {
-    const Eigen::Vector2f pos(event->posF().x(), height() - event->posF().y());
-    const Eigen::Vector2f diff = pos - m_render_options.hover;
+    const glm::vec2 pos(event->posF().x(), height() - event->posF().y());
+    const glm::vec2 diff = pos - m_render_options.hover;
     m_render_options.hover = pos;
     if (event->buttons() != Qt::NoButton)
       m_render_options.mousedown = pos;
@@ -188,7 +191,7 @@ namespace Shaderkit
     }
 
     const float d = height() < d ? height() : width();
-    const Eigen::Vector2f diff2(diff / d);
+    const glm::vec2 diff2(diff / d);
 
     CameraPtr cam;
     if (m_scene && (cam = m_scene->camera())) {
@@ -208,7 +211,7 @@ namespace Shaderkit
 
   void GLWidget::mousePressEvent(QMouseEvent* event)
   {
-    const Eigen::Vector2f pos(event->posF().x(), height() - event->posF().y());
+    const glm::vec2 pos(event->posF().x(), height() - event->posF().y());
     m_button_down[event->button()] = pos;
 
     if (m_render_options.focus_grabber) {
@@ -234,7 +237,7 @@ namespace Shaderkit
 
   void GLWidget::mouseReleaseEvent(QMouseEvent* event)
   {
-    const Eigen::Vector2f pos(event->posF().x(), height() - event->posF().y());
+    const glm::vec2 pos(event->posF().x(), height() - event->posF().y());
     if (m_render_options.gizmo && m_render_options.gizmo->active()) {
       m_render_options.gizmo->buttonUp();
     }
@@ -252,7 +255,7 @@ namespace Shaderkit
     // select objects
     if (event->modifiers() == 0 && event->button() == Qt::LeftButton) {
       event->accept();
-      const Eigen::Vector2f diff = pos - m_button_down[event->button()];
+      const glm::vec2 diff = pos - m_button_down[event->button()];
       if (pos[0]*pos[0] + pos[1]*pos[1] < 3*3) {
         struct hate_too_old_gcc {
           static void func(ScenePtr scene, ObjectPtr obj, MeshPtr /*mesh*/) {
@@ -303,7 +306,7 @@ namespace Shaderkit
 
   void GLWidget::dropEvent(QDropEvent* event)
   {
-    const Eigen::Vector2f pos(event->pos().x(), height() - event->pos().y());
+    const glm::vec2 pos(event->pos().x(), height() - event->pos().y());
     MaterialPtr material = m_scene->material(event->mimeData()->data("text/x-shaderkit-material"));
     if (material) {
       /* m_scene->pick(float(event->pos().x())/width(), 1.0f-float(event->pos().y())/height(), true,

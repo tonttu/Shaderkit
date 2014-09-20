@@ -99,7 +99,7 @@ namespace Shaderkit
   void CameraEditor::create()
   {
     CameraPtr cam(new Camera("Camera"));
-    cam->setLocation(Eigen::Vector3f(30, 30, 30));
+    cam->setLocation(glm::vec3(30, 30, 30));
     MainWindow::scene()->add(cam);
     bool set_to_default = m_render_pass && !m_render_pass->view();
     foreach (QListWidgetItem* item, m_ui->list->findItems(cam->name(), Qt::MatchExactly)) {
@@ -190,12 +190,12 @@ namespace Shaderkit
                 1 : 2;
       m_ui->type->setCurrentIndex(idx);
       if (idx == 0) {
-        m_ui->locx->setText(QString::number(m_camera->location().x()));
-        m_ui->locy->setText(QString::number(m_camera->location().y()));
-        m_ui->locz->setText(QString::number(m_camera->location().z()));
-        m_ui->targetx->setText(QString::number(m_camera->target().x()));
-        m_ui->targety->setText(QString::number(m_camera->target().y()));
-        m_ui->targetz->setText(QString::number(m_camera->target().z()));
+        m_ui->locx->setText(QString::number(m_camera->location().x));
+        m_ui->locy->setText(QString::number(m_camera->location().y));
+        m_ui->locz->setText(QString::number(m_camera->location().z));
+        m_ui->targetx->setText(QString::number(m_camera->target().x));
+        m_ui->targety->setText(QString::number(m_camera->target().y));
+        m_ui->targetz->setText(QString::number(m_camera->target().z));
         m_ui->fov->setText(QString::number(m_camera->fov()));
         m_ui->near_plane->setText(QString::number(m_camera->near()));
         m_ui->far_plane->setText(QString::number(m_camera->far()));
@@ -261,7 +261,7 @@ namespace Shaderkit
   void CameraEditor::locChanged()
   {
     if (!m_camera) return;
-    Eigen::Vector3f loc(m_ui->locx->text().toFloat(),
+    glm::vec3 loc(m_ui->locx->text().toFloat(),
                         m_ui->locy->text().toFloat(),
                         m_ui->locz->text().toFloat());
     m_camera->setLocation(loc);
@@ -270,7 +270,7 @@ namespace Shaderkit
   void CameraEditor::targetChanged()
   {
     if (!m_camera) return;
-    Eigen::Vector3f target(m_ui->targetx->text().toFloat(),
+    glm::vec3 target(m_ui->targetx->text().toFloat(),
                            m_ui->targety->text().toFloat(),
                            m_ui->targetz->text().toFloat());
     m_camera->setTarget(target);

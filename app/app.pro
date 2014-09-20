@@ -77,7 +77,10 @@ HEADERS += \
     core/color.hpp \
     gl/attribute_var.hpp \
     core/attribute.hpp \
-    core/json_exporter.hpp
+    core/json_exporter.hpp \
+    core/bbox.hpp \
+    core/line.hpp \
+    core/plane.hpp
 !win32:HEADERS += gl/sandbox_compiler.hpp
 
 SOURCES += \

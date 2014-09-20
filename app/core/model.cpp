@@ -28,9 +28,7 @@
 
 #include "ext/glut_teapot.hpp"
 
-#include "Eigen/OpenGLSupport"
-
-// #include <GL/glut.h>
+#include "glm/gtc/type_ptr.hpp"
 
 namespace Shaderkit
 {
@@ -41,14 +39,14 @@ namespace Shaderkit
     /// @todo delete
     void drawBox(float x, float y, float z)
     {
-#define N(a, b, c) for (int j=0;j<4;++j) normals[i+j] = Eigen::Vector3f(a, b, c)
-#define V(a, b, c) vertices[i] = Eigen::Vector3f((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
-  uv3d[i] = Eigen::Vector3f(a,b,c), \
-  uv2d[i] = Eigen::Vector2f(((i + 3) / 2) % 2, (i / 2) % 2), ++i
+#define N(a, b, c) for (int j=0;j<4;++j) normals[i+j] = glm::vec3(a, b, c)
+#define V(a, b, c) vertices[i] = glm::vec3((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
+  uv3d[i] = glm::vec3(a,b,c), \
+  uv2d[i] = glm::vec2(((i + 3) / 2) % 2, (i / 2) % 2), ++i
 
       using std::abs;
-      Eigen::Vector3f normals[4*6], vertices[4*6], uv3d[4*6];
-      Eigen::Vector2f uv2d[4*6];
+      glm::vec3 normals[4*6], vertices[4*6], uv3d[4*6];
+      glm::vec2 uv2d[4*6];
 
       int i = 0;
       N(1,0,0);
@@ -90,19 +88,19 @@ namespace Shaderkit
     }
 
     struct Vertex {
-      Eigen::Vector3f point;
-      Eigen::Vector2f uv2d;
-      Eigen::Vector3f uv3d;
-      Eigen::Vector3f normal;
+      glm::vec3 point;
+      glm::vec2 uv2d;
+      glm::vec3 uv3d;
+      glm::vec3 normal;
     };
 
     /// Renders a rectangular box.
     void drawBox(float x, float y, float z, State& state)
     {
-#define N(a, b, c) for (int j=0;j<4;++j) data[j].normal = Eigen::Vector3f(a, b, c)
-#define V(a, b, c) data->point = Eigen::Vector3f((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
-  data->uv3d = Eigen::Vector3f(a,b,c), \
-  data->uv2d = Eigen::Vector2f(((data.pos() + 3) / 2) % 2, (data.pos() / 2) % 2), ++data
+#define N(a, b, c) for (int j=0;j<4;++j) data[j].normal = glm::vec3(a, b, c)
+#define V(a, b, c) data->point = glm::vec3((2*a-1)*x, (2*b-1)*y, (2*c-1)*z), \
+  data->uv3d = glm::vec3(a,b,c), \
+  data->uv2d = glm::vec2(((data.pos() + 3) / 2) % 2, (data.pos() / 2) % 2), ++data
 
       BufferObject2& bo = MeshManager::fetch("drawBox", x, y, z);
 
@@ -176,10 +174,10 @@ namespace Shaderkit
             float z = layer_radius * sin(segment_angle * segment);
             float x = layer_radius * cos(segment_angle * segment);
 
-            Eigen::Vector3f point(x, y, z);
-            Eigen::Vector3f normal = point.normalized();
-            Eigen::Vector3f uv3(0.5f + x * r2, 0.5f + y * r2, 0.5f + z * r2);
-            Eigen::Vector2f uv2(float(segment) / segments, float(layer) / stripes);
+            glm::vec3 point(x, y, z);
+            glm::vec3 normal = glm::normalize(point);
+            glm::vec3 uv3(0.5f + x * r2, 0.5f + y * r2, 0.5f + z * r2);
+            glm::vec2 uv2(float(segment) / segments, float(layer) / stripes);
 
             data->point = point;
             data->uv2d = uv2;
@@ -207,20 +205,20 @@ namespace Shaderkit
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-  Node::Node() : transform(Eigen::Affine3f::Identity())
+  Node::Node()
   {
   }
 
-  Eigen::AlignedBox<float, 3> Node::bbox()
+  BBox3 Node::bbox()
   {
-    Eigen::AlignedBox<float, 3> bb;
+    BBox3 bb;
     calcBbox(bb);
     return bb;
   }
 
-  void Node::calcBbox(Eigen::AlignedBox<float, 3>& bbox, const Eigen::Affine3f& p) const
+  void Node::calcBbox(BBox3& bbox, const glm::mat4& p) const
   {
-    const Eigen::Affine3f& t = transform * p;
+    const glm::mat4& t = transform * p;
 
     foreach (MeshPtr m, meshes)
       m->calcBbox(t, bbox);
@@ -270,7 +268,7 @@ namespace Shaderkit
     /// @todo forget pushmatrix etc, use state
     state.pushModel(node.transform);
     glPushMatrix();
-    glMultMatrix(state.model());
+    glMultMatrixf(glm::value_ptr(state.model()));
 
     foreach (MeshPtr m, node.meshes) {
       MaterialPtr material = o->materialForMesh(m->name());
@@ -316,11 +314,11 @@ namespace Shaderkit
       glColor4f(1, 1, 1, 0.5f);
 
       glPushMatrix();
-      glMultMatrix(state.model());
+      glMultMatrixf(glm::value_ptr(state.model()));
 
       std::vector<float> vertices(8*3*2*3);
       float* v = &vertices[0];
-      Eigen::Vector3f mm[2] = {bbox().min(), bbox().max()};
+      glm::vec3 mm[2] = {bbox().min(), bbox().max()};
       for (int i = 0; i < 8; ++i) {
         float a[3] = { mm[i&1][0], mm[(i>>1)&1][1], mm[(i>>2)&1][2] };
         float b[3] = { mm[1-(i&1)][0], mm[1-((i>>1)&1)][1], mm[1-((i>>2)&1)][2] };
@@ -365,7 +363,7 @@ namespace Shaderkit
     return ModelPtr(new Model(*this));
   }
 
-  const Eigen::AlignedBox<float, 3>& Model::bbox()
+  const BBox3& Model::bbox()
   {
     if (m_bbox_dirty) {
       m_bbox_dirty = false;
@@ -377,7 +375,7 @@ namespace Shaderkit
   ModelPtr Model::createBuiltin(const QString& name, const QString& model_name, const QVariantMap& map)
   {
     auto vec3 = map.value("size", QVariantList() << 1.0f << 1.0f << 1.0f);
-    const Eigen::Vector3f size = Utils::toVector3(vec3);
+    const glm::vec3 size = Utils::toVector3(vec3);
     ModelPtr m(new Model(name));
     m->m_map["size"] = vec3;
 
@@ -421,10 +419,10 @@ namespace Shaderkit
     : BuiltIn(t)
   {}
 
-  void Teapot::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
+  void Teapot::calcBbox(const glm::mat4 & transform, BBox3& bbox) const
   {
     for (int i = 0; i < 8; ++i)
-      bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*7.4-3.7f, ((i>>1)&1)*7.4-3.7f, (i&1)*7.4-3.7f));
+      bbox.extend(transform * glm::vec4(((i>>2)&1)*7.4-3.7f, ((i>>1)&1)*7.4-3.7f, (i&1)*7.4-3.7f, 1));
   }
 
   MeshPtr Teapot::clone() const
@@ -442,12 +440,12 @@ namespace Shaderkit
       m_size(b.m_size)
   {}
 
-  void Box::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
+  void Box::calcBbox(const glm::mat4& transform, BBox3& bbox) const
   {
     for (int i = 0; i < 8; ++i)
-      bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*m_size[0]-m_size[0]*0.5f,
+      bbox.extend(transform * glm::vec4(((i>>2)&1)*m_size[0]-m_size[0]*0.5f,
                                               ((i>>1)&1)*m_size[1]-m_size[1]*0.5f,
-                                              (i&1)*m_size[2]-m_size[2]*0.5f));
+                                              (i&1)*m_size[2]-m_size[2]*0.5f, 1));
   }
 
   MeshPtr Box::clone() const
@@ -465,12 +463,12 @@ namespace Shaderkit
       m_size(s.m_size)
   {}
 
-  void Sphere::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
+  void Sphere::calcBbox(const glm::mat4& transform, BBox3& bbox) const
   {
     for (int i = 0; i < 8; ++i)
-      bbox.extend(transform * Eigen::Vector3f(((i>>2)&1)*m_size-m_size*0.5f,
+      bbox.extend(transform * glm::vec4(((i>>2)&1)*m_size-m_size*0.5f,
                                               ((i>>1)&1)*m_size-m_size*0.5f,
-                                              (i&1)*m_size-m_size*0.5f));
+                                              (i&1)*m_size-m_size*0.5f, 1));
   }
 
   MeshPtr Sphere::clone() const
@@ -505,10 +503,10 @@ namespace Shaderkit
       m_indices(GL_ELEMENT_ARRAY_BUFFER)
   {}
 
-  void TriMesh::calcBbox(const Eigen::Affine3f& transform, Eigen::AlignedBox<float, 3>& bbox) const
+  void TriMesh::calcBbox(const glm::mat4& transform, BBox3& bbox) const
   {
     for (int i = 0, m = vertices.size(); i < m; i += 3)
-      bbox.extend(transform * Eigen::Vector3f(vertices[i], vertices[i+1], vertices[i+2]));
+      bbox.extend(transform * glm::vec4(vertices[i], vertices[i+1], vertices[i+2], 1));
   }
 
   MeshPtr TriMesh::clone() const

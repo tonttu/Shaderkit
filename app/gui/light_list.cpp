@@ -202,19 +202,19 @@ namespace Shaderkit
       m_ui->diffuse->setText(m_light->diffuse().name());
       m_ui->specular->setText(m_light->specular().name());
       if (spot) {
-        m_ui->locx->setText(QString::number(m_light->location().x()));
-        m_ui->locy->setText(QString::number(m_light->location().y()));
-        m_ui->locz->setText(QString::number(m_light->location().z()));
-        m_ui->targetx->setText(QString::number(m_light->target().x()));
-        m_ui->targety->setText(QString::number(m_light->target().y()));
-        m_ui->targetz->setText(QString::number(m_light->target().z()));
+        m_ui->locx->setText(QString::number(m_light->location().x));
+        m_ui->locy->setText(QString::number(m_light->location().y));
+        m_ui->locz->setText(QString::number(m_light->location().z));
+        m_ui->targetx->setText(QString::number(m_light->target().x));
+        m_ui->targety->setText(QString::number(m_light->target().y));
+        m_ui->targetz->setText(QString::number(m_light->target().z));
         m_ui->cutoff->setText(QString::number(m_light->spotCutoff()));
         m_ui->dir_group->hide();
         m_ui->spot_group->show();
       } else {
-        m_ui->dirx->setText(QString::number(m_light->direction().x()));
-        m_ui->diry->setText(QString::number(m_light->direction().y()));
-        m_ui->dirz->setText(QString::number(m_light->direction().z()));
+        m_ui->dirx->setText(QString::number(m_light->direction().x));
+        m_ui->diry->setText(QString::number(m_light->direction().y));
+        m_ui->dirz->setText(QString::number(m_light->direction().z));
         m_ui->spot_group->hide();
         m_ui->dir_group->show();
       }
@@ -286,7 +286,7 @@ namespace Shaderkit
   void LightList::locChanged()
   {
     if (!m_light) return;
-    Eigen::Vector3f loc(m_ui->locx->text().toFloat(),
+    glm::vec3 loc(m_ui->locx->text().toFloat(),
                         m_ui->locy->text().toFloat(),
                         m_ui->locz->text().toFloat());
     m_light->setLocation(loc);
@@ -296,7 +296,7 @@ namespace Shaderkit
   void LightList::targetChanged()
   {
     if (!m_light) return;
-    Eigen::Vector3f target(m_ui->targetx->text().toFloat(),
+    glm::vec3 target(m_ui->targetx->text().toFloat(),
                            m_ui->targety->text().toFloat(),
                            m_ui->targetz->text().toFloat());
     m_light->setTarget(target);
@@ -312,7 +312,7 @@ namespace Shaderkit
   void LightList::dirChanged()
   {
     if (!m_light) return;
-    Eigen::Vector3f dir(m_ui->dirx->text().toFloat(),
+    glm::vec3 dir(m_ui->dirx->text().toFloat(),
                         m_ui->diry->text().toFloat(),
                         m_ui->dirz->text().toFloat());
     m_light->setDirection(dir);

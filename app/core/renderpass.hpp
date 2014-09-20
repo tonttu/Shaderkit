@@ -49,8 +49,8 @@ namespace Shaderkit
     } gizmo_type;
     GizmoPtr gizmo;
     FocusGrabberPtr focus_grabber;
-    Eigen::Vector2f hover;
-    Eigen::Vector2f mousedown;
+    glm::vec2 hover;
+    glm::vec2 mousedown;
   };
 
   /**

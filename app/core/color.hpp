@@ -1,16 +1,17 @@
 #ifndef COLOR_HPP
 #define COLOR_HPP
 
-#include <Eigen/Geometry>
+#include "glm/vec4.hpp"
 
 #include <cstdint>
 
 #include <QRgb>
+#include <QColor>
 
 namespace Shaderkit
 {
 
-  class Color : public Eigen::Vector4f
+  class Color : public glm::vec4
   {
   public:
     Color(float r = 0, float g = 0, float b = 0, float a = 1.f);
@@ -25,6 +26,8 @@ namespace Shaderkit
     uint8_t gb() const;
     uint8_t bb() const;
     uint8_t ab() const;
+
+    const float* data() const;
 
   public:
     static Color fromQVariant(const QVariant& in);

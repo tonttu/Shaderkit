@@ -42,6 +42,4 @@ include(assimp/assimp.pri)
 # glm (header only library, this is mostly for QtCreator)
 include(glm.pri)
 
-include(eigen.pri)
-
 # find -type f '!' -name CMakeLists.txt|sed "s/.*/    \0 \\\\/"

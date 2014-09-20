@@ -80,8 +80,8 @@ namespace
 namespace Shaderkit
 {
 
-  Eigen::Vector3f project3(const Eigen::Projective3f& projection,
-                           const Eigen::Vector3f& vector);
+  glm::vec3 project3(const glm::mat4& projection,
+                           const glm::vec3& vector);
 
 
   RenderPass::RenderPass(const QString& name, ScenePtr scene)

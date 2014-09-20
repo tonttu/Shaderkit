@@ -21,15 +21,16 @@
 #include "core/scene.hpp"
 #include "core/object3d.hpp"
 #include "core/mesh_manager.hpp"
+#include "core/line.hpp"
 
 #include "gl/state.hpp"
 #include "gl/program.hpp"
 
-#include <Eigen/OpenGLSupport>
+#include "glm/gtx/transform.hpp"
 
 #include <QMouseEvent>
 
-inline Eigen::Vector3f v3(float x, float y, float z) { return Eigen::Vector3f(x, y, z); }
+inline glm::vec3 v3(float x, float y, float z) { return glm::vec3(x, y, z); }
 
 #define SHADER(x) #x
 
@@ -95,8 +96,8 @@ namespace
 namespace Shaderkit
 {
 
-  Eigen::Vector3f project3(const Eigen::Projective3f& projection,
-                           const Eigen::Vector3f& vector);
+  glm::vec3 project3(const glm::mat4& projection,
+                           const glm::vec3& vector);
 
   ObjectCreator::ObjectCreator(ScenePtr scene, const QString& name)
     : m_state(0),
@@ -104,23 +105,21 @@ namespace Shaderkit
       m_name(name),
       m_hover(0, 0, 0),
       m_prog(new GLProgram("object-creator")),
-      m_prog2(new GLProgram("object-creator2")),
-      m_window_to_obj(Eigen::Projective3f::Identity())
+      m_prog2(new GLProgram("object-creator2"))
   {
-    for (int i = 0; i < 5; ++i) m_points[i] = Eigen::Vector3f(0, 0, 0);
     m_prog->addShaderSrc(vertex_shader, Shader::Vertex);
     m_prog->addShaderSrc(fragment_shader, Shader::Fragment);
     m_prog2->addShaderSrc(vertex_shader_norm, Shader::Vertex);
     m_prog2->addShaderSrc(fragment_shader_norm, Shader::Fragment);
   }
 
-  bool ObjectCreator::move(const Eigen::Vector2f& loc)
+  bool ObjectCreator::move(const glm::vec2& loc)
   {
     m_points[m_state] = hit(loc);
     return true;
   }
 
-  bool ObjectCreator::btn(QEvent::Type type, Qt::MouseButton btn, const Eigen::Vector2f& loc)
+  bool ObjectCreator::btn(QEvent::Type type, Qt::MouseButton btn, const glm::vec2& loc)
   {
     if (btn != Qt::LeftButton) return false;
     m_points[m_state] = hit(loc);
@@ -128,15 +127,15 @@ namespace Shaderkit
       if (m_state == 0 || m_state == 2) ++m_state;
     } else {
       if (m_name == "sphere") {
-        float r = (m_points[1] - m_points[0]).norm();
+        float r = glm::length(m_points[1] - m_points[0]);
         QVariantMap map;
         map["size"] = QVariantList() << 2*r << 2*r << 2*r;
         ModelPtr model = Model::createBuiltin(m_name, m_name, map);
         m_scene->add(model);
         ObjectPtr obj(new Object3D(model->name(), model));
-        Eigen::Vector3f c = m_points[0];
+        glm::vec3 c = m_points[0];
         c[1] += r;
-        obj->setTransform(Eigen::Affine3f(Eigen::Translation3f(c)));
+        obj->setTransform(glm::translate(c));
 
         m_scene->add(obj);
         RenderPassPtr rp = m_scene->selectedRenderPass(RenderPass::Normal);
@@ -146,16 +145,16 @@ namespace Shaderkit
       } else {
         if (m_state == 1) ++m_state;
         else if (m_name == "box" && m_state == 3) {
-          Eigen::AlignedBox<float, 3> box;
+          BBox3 box;
           for (int i = 0; i < 3; ++i) box.extend(m_points[i]);
           // we are not re-using models, since we don't want to change the scale here
-          auto vec3 = box.sizes();
+          auto vec3 = box.size();
           QVariantMap map;
-          map["size"] = QVariantList() << vec3[0] << vec3[1] << vec3[2];
+          map["size"] = QVariantList() << vec3.x << vec3.y << vec3.z;
           ModelPtr model = Model::createBuiltin(m_name, m_name, map);
           m_scene->add(model);
           ObjectPtr obj(new Object3D(model->name(), model));
-          obj->setTransform(Eigen::Affine3f(Eigen::Translation3f(box.center())));
+          obj->setTransform(glm::translate(box.center()));
 
           m_scene->add(obj);
           RenderPassPtr rp = m_scene->selectedRenderPass(RenderPass::Normal);
@@ -177,7 +176,7 @@ namespace Shaderkit
 
   void ObjectCreator::render(State& state, const RenderOptions& render_opts)
   {
-    m_window_to_obj = state.transform().inverse();
+    m_window_to_obj = glm::inverse(state.transform());
 
     m_hover = hit(render_opts.hover);
     float s = 100.0f;
@@ -232,11 +231,11 @@ namespace Shaderkit
     box_bo.setUsage(GL_DYNAMIC_DRAW);
     box_bo.set<GL_FLOAT>(VertexAttrib::Vertex0, 3);
 
-    const Eigen::Vector3f p = m_points[0];
-    Eigen::Vector3f p2 = m_state == 1 ? m_hover : m_points[1];
+    const glm::vec3 p = m_points[0];
+    glm::vec3 p2 = m_state == 1 ? m_hover : m_points[1];
 
     {
-      BufferObject2::Array<Eigen::Vector3f> points = box_bo.mapWrite<Eigen::Vector3f>(0, 5);
+      BufferObject2::Array<glm::vec3> points = box_bo.mapWrite<glm::vec3>(0, 5);
       points << p << v3(p2[0], p[1], p[2]) << p2 << v3(p[0], p[1], p2[2]) << p;
     }
 
@@ -258,9 +257,9 @@ namespace Shaderkit
 
     if (m_state > 1) {
       {
-        BufferObject2::Array<Eigen::Vector3f> points = box_bo.mapWrite<Eigen::Vector3f>(0, 15);
+        BufferObject2::Array<glm::vec3> points = box_bo.mapWrite<glm::vec3>(0, 15);
 
-        Eigen::Vector3f p3 = m_state == 2 ? m_hover : m_points[2];
+        glm::vec3 p3 = m_state == 2 ? m_hover : m_points[2];
 
         points << p << v3(p[0], p3[1], p[2]);
 
@@ -300,8 +299,8 @@ namespace Shaderkit
 
   void ObjectCreator::renderSphere(State& state, const RenderOptions&)
   {
-    Eigen::Vector3f p = m_points[0];
-    const float r = (m_hover - p).norm();
+    glm::vec3 p = m_points[0];
+    const float r = glm::length(m_hover - p);
 
     m_prog2->bind(&state);
     state.attr()[VertexAttrib::Vertex0] = "vertex";
@@ -310,7 +309,7 @@ namespace Shaderkit
     p[1] += r;
 
     glPushMatrix();
-    glMultMatrix(Eigen::Projective3f(Eigen::Translation3f(p)));
+    glMultMatrixf(glm::value_ptr(glm::translate(p)));
 
     if (r > 0.05f) {
       ObjectRenderer::drawSphere(r, 32, 32, state);
@@ -323,23 +322,22 @@ namespace Shaderkit
   }
 
 
-  float closestLineParam(const Eigen::ParametrizedLine<float, 3>& p,
-                         const Eigen::ParametrizedLine<float, 3>& q);
+  float closestLineParam(const Line& p,
+                         const Line& q);
 
-  Eigen::Vector3f ObjectCreator::hit(const Eigen::Vector2f& c)
+  glm::vec3 ObjectCreator::hit(const glm::vec2& c)
   {
-    Eigen::Vector3f p = project3(m_window_to_obj, Eigen::Vector3f(c[0], c[1], 1.0f));
-    Eigen::Vector3f p2 = project3(m_window_to_obj, Eigen::Vector3f(c[0], c[1], 0.0f));
+    glm::vec3 p = project3(m_window_to_obj, glm::vec3(c[0], c[1], 1.0f));
+    glm::vec3 p2 = project3(m_window_to_obj, glm::vec3(c[0], c[1], 0.0f));
 
-    Eigen::ParametrizedLine<float, 3> ray = Eigen::ParametrizedLine<float, 3>::Through(p, p2);
+    Line ray = Line::through(p, p2);
 
     if (m_state > 1) {
-      Eigen::ParametrizedLine<float, 3> up(m_points[1], Eigen::Vector3f(0, 1, 0));
+      Line up = Line::originAndDirection(m_points[1], glm::vec3(0, 1, 0));
       float height = closestLineParam(up, ray);
       return up.origin() + up.direction() * height;
     } else {
-      Eigen::Hyperplane<float, 3> plane = Eigen::Hyperplane<float, 3>(
-                                            Eigen::Vector3f(0, 1, 0), Eigen::Vector3f(0, 0, 0));
+      Plane plane(glm::vec3(0, 1, 0), glm::vec3(0, 0, 0));
 
       return ray.origin() + ray.direction() * ray.intersection(plane);
     }

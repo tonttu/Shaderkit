@@ -547,7 +547,7 @@ namespace Shaderkit
       /// assimp keeps the matrix in row-major format, we use column-major format. transpose.
       /// @todo the transform should be affine? We should maybe create a matrix and
       ///       assign that to transform?
-      float* d = dest->transform.data();
+      float* d = &dest->transform[0].x;
       const float* s = &src.mTransformation.a1;
       d[0] = s[0];
       d[4] = s[1];

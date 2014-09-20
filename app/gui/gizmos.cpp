@@ -23,7 +23,9 @@
 #include "gl/program.hpp"
 #include "gui/glwidget.hpp"
 
-#include "Eigen/OpenGLSupport"
+#include "glm/gtx/norm.hpp"
+#include "glm/gtx/transform.hpp"
+#include "glm/gtx/rotate_normalized_axis.hpp"
 
 namespace
 {
@@ -64,36 +66,35 @@ namespace
 namespace Shaderkit
 {
 
-  Eigen::Vector2f project2(const Eigen::Projective3f& projection,
-                           const Eigen::Vector3f& vector)
+  glm::vec2 project2(const glm::mat4& projection,
+                           const glm::vec3& vector)
   {
-    Eigen::Vector4f tmp = projection * Eigen::Vector4f(vector[0], vector[1], vector[2], 1.0f);
-    return Eigen::Vector2f(tmp[0]/tmp[3], tmp[1]/tmp[3]);
+    glm::vec4 tmp = projection * glm::vec4(vector[0], vector[1], vector[2], 1.0f);
+    return glm::vec2(tmp[0]/tmp[3], tmp[1]/tmp[3]);
   }
 
-  Eigen::Vector3f project3(const Eigen::Projective3f& projection,
-                           const Eigen::Vector3f& vector)
+  glm::vec3 project3(const glm::mat4& projection,
+                           const glm::vec3& vector)
   {
-    Eigen::Vector4f tmp = projection * Eigen::Vector4f(vector[0], vector[1], vector[2], 1.0f);
-    return Eigen::Vector3f(tmp[0]/tmp[3], tmp[1]/tmp[3], tmp[2]/tmp[3]);
+    glm::vec4 tmp = projection * glm::vec4(vector[0], vector[1], vector[2], 1.0f);
+    return glm::vec3(tmp[0]/tmp[3], tmp[1]/tmp[3], tmp[2]/tmp[3]);
   }
 
 /// p.origin() + p.direction() * closestLineParam(p, q) == closest point of line q on line p
 /// @see http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm#Distance%20between%20Lines
-  float closestLineParam(const Eigen::ParametrizedLine<float, 3>& p,
-                         const Eigen::ParametrizedLine<float, 3>& q)
+  float closestLineParam(const Line& p,
+                         const Line& q)
   {
-    const Eigen::Vector3f w0 = p.origin() - q.origin();
-    float a = p.direction().dot(p.direction());
-    float b = p.direction().dot(q.direction());
-    float c = q.direction().dot(q.direction());
-    float d = p.direction().dot(w0);
-    float e = q.direction().dot(w0);
+    const glm::vec3 w0 = p.origin() - q.origin();
+    float a = glm::dot(p.direction(), p.direction());
+    float b = glm::dot(p.direction(), q.direction());
+    float c = glm::dot(q.direction(), q.direction());
+    float d = glm::dot(p.direction(), w0);
+    float e = glm::dot(q.direction(), w0);
     float denom = a*c - b*b; // always nonnegative
 
     if (denom < 1.0e-6f) return 0;
     return (b*e - c*d) / denom; // s
-    // t = ((a*e - b*d) / denom);
   }
 
   const char* vertex_shader_translate =
@@ -153,48 +154,48 @@ namespace Shaderkit
     "  }\n"
     "}\n";
 
-  LineSegment::LineSegment(const Eigen::Vector3f& a, const Eigen::Vector3f& b)
+  GizmoLineSegment::GizmoLineSegment(const glm::vec3& a, const glm::vec3& b)
     : m_point(a[0], a[1]), m_point2(b[0], b[1]),
       m_depth(a[2]), m_depth2(b[2])
   {
-    Eigen::Vector2f tmp = m_point2 - m_point;
-    m_length = tmp.norm();
+    glm::vec2 tmp = m_point2 - m_point;
+    m_length = glm::length(tmp);
     m_unit = tmp / m_length;
   }
 
-  float LineSegment::hit(const Eigen::Vector2f& p, float threshold2) const
+  float GizmoLineSegment::hit(const glm::vec2& p, float threshold2) const
   {
-    float project = m_unit.dot(p - m_point);
+    float project = glm::dot(m_unit, p - m_point);
     if (project < 0.0f) {
       if (project * project > threshold2) return -1.0f;
-      float tmp = (p - m_point).squaredNorm();
+      float tmp = glm::length2(p - m_point);
       return tmp < threshold2 ? tmp : -1.0f;
     } else if (project > m_length) {
       if ((project - m_length) * (project - m_length) > threshold2) return -1.0f;
-      float tmp = (p - m_point2).squaredNorm();
+      float tmp = glm::length2(p - m_point2);
       return tmp < threshold2 ? tmp : -1.0f;
     } else {
-      float tmp = Eigen::Vector2f(m_unit[1], -m_unit[0]).dot(p - m_point);
+      float tmp = glm::dot(glm::vec2(m_unit[1], -m_unit[0]), p - m_point);
       tmp *= tmp;
       return tmp < threshold2 ? tmp : -1.0f;
     }
   }
 
-  bool LineSegment::hit(const Eigen::Vector2f& p, float threshold2, float& depth) const
+  bool GizmoLineSegment::hit(const glm::vec2& p, float threshold2, float& depth) const
   {
-    float project = m_unit.dot(p - m_point);
+    float project = glm::dot(m_unit, p - m_point);
     if (project < 0.0f) {
       if (depth < m_depth || project * project > threshold2) return false;
-      float tmp = (p - m_point).squaredNorm();
+      float tmp = glm::length2(p - m_point);
       if (tmp > threshold2) return false;
       depth = m_depth;
     } else if (project > m_length) {
       if (depth < m_depth2 || (project - m_length) * (project - m_length) > threshold2) return false;
-      float tmp = (p - m_point2).squaredNorm();
+      float tmp = glm::length2(p - m_point2);
       if (tmp > threshold2) return false;
       depth = m_depth2;
     } else {
-      float tmp = Eigen::Vector2f(m_unit[1], -m_unit[0]).dot(p - m_point);
+      float tmp = glm::dot(glm::vec2(m_unit[1], -m_unit[0]), p - m_point);
       tmp *= tmp;
       if (tmp > threshold2) return false;
       float factor = project / m_length;
@@ -206,11 +207,9 @@ namespace Shaderkit
   }
 
   Gizmo::Gizmo() : m_hover(NONE), m_selected(NONE), m_active(false), m_hit_mode(NEAREST),
-    m_window_projection(Eigen::Projective3f::Identity()), m_scale(-1.0f), m_scale_factor(1),
+    m_scale(-1.0f), m_scale_factor(1),
     m_start_cursor(0, 0), m_current_cursor(0, 0),
-    m_gizmo_to_obj(Eigen::Affine3f::Identity()),
-    m_update_inv_projection(false),
-    m_window_to_gizmo(Eigen::Projective3f::Identity())
+    m_update_inv_projection(false)
   {
     m_prog.reset(new GLProgram("gizmo"));
   }
@@ -237,11 +236,11 @@ namespace Shaderkit
     glDepthMask(GL_FALSE);
     glLineWidth(1.7f);
 
-    Eigen::Vector3f center = m_object->model()->bbox().center();
-    m_gizmo_to_obj = Eigen::Affine3f(Eigen::Translation3f(center));
+    glm::vec3 center = m_object->model()->bbox().center();
+    m_gizmo_to_obj = glm::translate(center);
 
     // -1..1 to window coordinates
-    Eigen::Projective3f normalized_to_window = state.camera()->normToWindow();
+    glm::mat4 normalized_to_window = state.camera()->normToWindow();
 
     state.pushModel(m_object->transform());
 
@@ -251,17 +250,17 @@ namespace Shaderkit
 
     if (m_scale < 0.0f || !m_active) {
       // gizmo center in global coordinates
-      const Eigen::Vector3f gizmo_center = project3(state.model() * m_gizmo_to_obj,
-                                           Eigen::Vector3f(0, 0, 0));
+      const glm::vec3 gizmo_center = project3(state.model() * m_gizmo_to_obj,
+                                           glm::vec3(0, 0, 0));
 
       // gizmo distance from camera
-      float dist = (gizmo_center - state.camera()->location()).norm();
+      float dist = glm::length(gizmo_center - state.camera()->location());
       dist *= m_scale_factor * 75.0f / size.height() * std::tan(state.camera()->fov());
 
       m_scale = dist;
     }
 
-    m_gizmo_to_obj = m_gizmo_to_obj * Eigen::Scaling(m_scale);
+    m_gizmo_to_obj = m_gizmo_to_obj * glm::scale(glm::vec3(m_scale));
 
     // Gizmo coordinates to window coordinates
     m_window_projection = normalized_to_window * transform * m_gizmo_to_obj;
@@ -269,14 +268,14 @@ namespace Shaderkit
 
     if (m_update_inv_projection) {
       // window to gizmo coordinates
-      m_window_to_gizmo = m_window_projection.inverse(Eigen::Projective);
+      m_window_to_gizmo = glm::inverse(m_window_projection);
 
       m_update_inv_projection = false;
     }
 
     state.pushModel(m_gizmo_to_obj);
     glPushMatrix();
-    glLoadMatrix(state.camera()->view() * state.model());
+    glLoadMatrixf(glm::value_ptr(state.camera()->view() * state.model()));
 
     m_prog->bind(&state);
     renderImpl(state);
@@ -288,20 +287,20 @@ namespace Shaderkit
     state.pop();
   }
 
-  void Gizmo::hover(const Eigen::Vector2f& point)
+  void Gizmo::hover(const glm::vec2& point)
   {
     const HitShape* hit = pick(point);
     m_hover = hit ? hit->group : m_selected;
   }
 
-  bool Gizmo::buttonDown(const Eigen::Vector2f& point)
+  bool Gizmo::buttonDown(const glm::vec2& point)
   {
     m_start_cursor = m_current_cursor = point;
     const HitShape* hit = pick(point);
     return hit && makeActive(hit->group);
   }
 
-  void Gizmo::input(const Eigen::Vector2f&)
+  void Gizmo::input(const glm::vec2&)
   {
   }
 
@@ -316,14 +315,14 @@ namespace Shaderkit
     return 100.0f;
   }
 
-  const Gizmo::HitShape* Gizmo::pick(const Eigen::Vector2f& point) const
+  const Gizmo::HitShape* Gizmo::pick(const glm::vec2& point) const
   {
     int hit = -1;
     float hit_dist2 = 9.0f * 9.0f;
     float depth = 10.0f;
     for (int i = 0, m = m_hit_shapes.size(); i < m; ++i) {
       if (!m_hit_shapes[i].bbox.contains(point)) continue;
-      foreach (const LineSegment& s, m_hit_shapes[i].transformed) {
+      foreach (const GizmoLineSegment& s, m_hit_shapes[i].transformed) {
         if (m_hit_mode == FRONT) {
           if (s.hit(point, hit_dist2, depth)) {
             hit = i;
@@ -370,13 +369,13 @@ namespace Shaderkit
       float* c = &cv[0];
 
       m_hit_shapes.clear();
-      QVector<Eigen::Vector3f> points[6];
+      QVector<glm::vec3> points[6];
 
       // X/Y/Z and XY/XZ/YZ
       for (int i = 0; i < 9; ++i) {
         for (int j = 0; j < 6; ++j) *v++ = src[j];
-        points[translate_gizmo_groups[i]] << Eigen::Vector3f(src[0], src[1], src[2]);
-        points[translate_gizmo_groups[i]] << Eigen::Vector3f(src[3], src[4], src[5]);
+        points[translate_gizmo_groups[i]] << glm::vec3(src[0], src[1], src[2]);
+        points[translate_gizmo_groups[i]] << glm::vec3(src[3], src[4], src[5]);
         src += 6;
       }
       c += 9*8;
@@ -477,33 +476,33 @@ namespace Shaderkit
     }
   }
 
-  void TranslateGizmo::input(const Eigen::Vector2f& diff)
+  void TranslateGizmo::input(const glm::vec2& diff)
   {
     m_current_cursor += diff;
     if (m_update_inv_projection) return;
     bool plane = m_selected == XY || m_selected == XZ || m_selected == YZ;
 
     if (m_update_line) {
-      Eigen::Vector3f p = project3(m_window_to_gizmo, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 1.0f));
-      Eigen::Vector3f p2 = project3(m_window_to_gizmo, Eigen::Vector3f(m_start_cursor[0], m_start_cursor[1], 0.0f));
+      glm::vec3 p = project3(m_window_to_gizmo, glm::vec3(m_start_cursor[0], m_start_cursor[1], 1.0f));
+      glm::vec3 p2 = project3(m_window_to_gizmo, glm::vec3(m_start_cursor[0], m_start_cursor[1], 0.0f));
 
       // in gizmo coordinates
-      Eigen::ParametrizedLine<float, 3> ray = Eigen::ParametrizedLine<float, 3>::Through(p, p2);
+      Line ray = Line::through(p, p2);
 
       if (plane) {
-        Eigen::Vector3f normal(m_selected == YZ ? 1.0f : 0.0f,
+        glm::vec3 normal(m_selected == YZ ? 1.0f : 0.0f,
                                m_selected == XZ ? 1.0f : 0.0f,
                                m_selected == XY ? 1.0f : 0.0f);
 
-        m_plane = Eigen::Hyperplane<float, 3>(normal, Eigen::Vector3f(0, 0, 0));
-        m_line = Eigen::ParametrizedLine<float, 3>(ray.origin() + ray.direction() * ray.intersection(m_plane),
-                 m_plane.normal());
+        m_plane = Plane(normal, glm::vec3(0, 0, 0));
+        m_line = Line::originAndDirection(ray.origin() + ray.direction() * ray.intersection(m_plane),
+                                          m_plane.normal());
       } else {
-        Eigen::Vector3f dir(m_selected == X ? 1.0f : 0.0f,
+        glm::vec3 dir(m_selected == X ? 1.0f : 0.0f,
                             m_selected == Y ? 1.0f : 0.0f,
                             m_selected == Z ? 1.0f : 0.0f);
         // in gizmo coordinates
-        m_line = Eigen::ParametrizedLine<float, 3>(Eigen::Vector3f(0, 0, 0), dir);
+        m_line = Line::originAndDirection(glm::vec3(0, 0, 0), dir);
         m_line.origin() = dir * closestLineParam(m_line, ray);
       }
       m_update_line = false;
@@ -511,27 +510,26 @@ namespace Shaderkit
 
     auto tmp = m_window_to_gizmo;
 
-    Eigen::Vector3f p1 = project3(tmp, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 1.0f));
-    Eigen::Vector3f p2 = project3(tmp, Eigen::Vector3f(m_current_cursor[0], m_current_cursor[1], 0.0f));
+    glm::vec3 p1 = project3(tmp, glm::vec3(m_current_cursor[0], m_current_cursor[1], 1.0f));
+    glm::vec3 p2 = project3(tmp, glm::vec3(m_current_cursor[0], m_current_cursor[1], 0.0f));
 
     // in gizmo coordinates
-    Eigen::ParametrizedLine<float, 3> ray =
-      Eigen::ParametrizedLine<float, 3>::Through(p1, p2);
+    Line ray = Line::through(p1, p2);
 
     if (plane) {
       // the point we have moved to, in gizmo coordinates
-      Eigen::Vector3f point = ray.origin() + ray.direction() * ray.intersection(m_plane);
+      glm::vec3 point = ray.intersection(m_plane);
 
       // rotate/scale that vector to object coordinates and move the object
       m_object->setTransform(m_object_orig_transform *
-                             Eigen::Translation3f(m_gizmo_to_obj.linear() * (point - m_line.origin())));
+                             glm::translate(glm::mat3(m_gizmo_to_obj) * (point - m_line.origin())));
     } else {
       // how much we have moved in gizmo coordinates
-      Eigen::Vector3f diff_gizmo = m_line.direction() * closestLineParam(m_line, ray);
+      glm::vec3 diff_gizmo = m_line.direction() * closestLineParam(m_line, ray);
 
       // rotate/scale that vector to object coordinates and move the object
       m_object->setTransform(m_object_orig_transform *
-                             Eigen::Translation3f(m_gizmo_to_obj.linear() * diff_gizmo));
+                             glm::translate(glm::mat3(m_gizmo_to_obj) * diff_gizmo));
     }
   }
 
@@ -560,7 +558,7 @@ namespace Shaderkit
       float* c = &cv[0];
 
       m_hit_shapes.clear();
-      QVector<Eigen::Vector3f> points[7];
+      QVector<glm::vec3> points[7];
 
       // X/Y/Z
       for (int i = 0; i < 3; ++i) {
@@ -571,8 +569,8 @@ namespace Shaderkit
           *v++ = i == 1 ? 0 : (i == 2 ? c : s);
           *v++ = i == 2 ? 0 : c;
 
-          if (j > 0 && j < segments) points[i] << Eigen::Vector3f(v[-3], v[-2], v[-1]);
-          points[i] << Eigen::Vector3f(v[-3], v[-2], v[-1]);
+          if (j > 0 && j < segments) points[i] << glm::vec3(v[-3], v[-2], v[-1]);
+          points[i] << glm::vec3(v[-3], v[-2], v[-1]);
         }
       }
 
@@ -623,27 +621,26 @@ namespace Shaderkit
     }
 
     // gizmo center in camera coordinates
-    const Eigen::Vector3f gizmo_center = project3(
-                                           state.camera()->view() * state.model(), Eigen::Vector3f(0, 0, 0));
+    const glm::vec3 gizmo_center = project3(
+                                           state.camera()->view() * state.model(), glm::vec3(0, 0, 0));
 
     {
-      Eigen::Vector2f window_loc = project2(m_window_projection, Eigen::Vector3f(0, 0, 0));
-      Eigen::Vector3f a = project3(m_window_to_gizmo, Eigen::Vector3f(window_loc[0], window_loc[1], 0));
-      Eigen::Vector3f b = project3(m_window_to_gizmo, Eigen::Vector3f(window_loc[0], window_loc[1], 1));
-      Eigen::Vector3f dir = b-a;
-      dir.normalize();
-      Eigen::Vector3f x = dir.unitOrthogonal();
-      Eigen::Vector3f y = dir.cross(x);
+      glm::vec2 window_loc = project2(m_window_projection, glm::vec3(0, 0, 0));
+      glm::vec3 a = project3(m_window_to_gizmo, glm::vec3(window_loc[0], window_loc[1], 0));
+      glm::vec3 b = project3(m_window_to_gizmo, glm::vec3(window_loc[0], window_loc[1], 1));
+      glm::vec3 dir = glm::normalize(b-a);
+      glm::vec3 x = glm::cross(glm::vec3(std::sqrt(3.f)), dir);
+      if (std::abs(glm::length2(x) - 1.0f) > 0.1) x = glm::cross(glm::vec3(1, 0, 0), dir);
+      glm::vec3 y = glm::cross(dir, x);
 
-      Eigen::Vector3f camera_loc_in_gizmo_coords = project3(
-            state.model().inverse(), state.camera()->location());
-      float d = camera_loc_in_gizmo_coords.norm();
+      glm::vec3 camera_loc_in_gizmo_coords = project3(
+            glm::inverse(state.model()), state.camera()->location());
+      float d = glm::length(camera_loc_in_gizmo_coords);
 
-      Eigen::Vector3f front = camera_loc_in_gizmo_coords;
-      front.normalize();
+      glm::vec3 front = glm::normalize(camera_loc_in_gizmo_coords);
 
       float radius = std::sqrt(1.0f - 1.0f/(d*d));
-      Eigen::Vector3f circle_center = front * (1.0f / d);
+      glm::vec3 circle_center = front * (1.0f / d);
 
       float* v = m_verts.mapRW();
       v += 3*3*(segments+1);
@@ -651,7 +648,7 @@ namespace Shaderkit
       for (int j = 0; j <= segments; ++j) {
         float a = M_PI*2.0f / segments * j;
         float s = std::sin(a) * radius, c = std::cos(a) * radius;
-        Eigen::Vector3f tmp = s*x + c*y + circle_center;
+        glm::vec3 tmp = s*x + c*y + circle_center;
         v[3*(segments+2)] = tmp[0];
         *v++ = tmp[0];
         v[3*(segments+2)] = tmp[1];
@@ -692,32 +689,32 @@ namespace Shaderkit
     }
   }
 
-  void RotateGizmo::input(const Eigen::Vector2f& diff)
+  void RotateGizmo::input(const glm::vec2& diff)
   {
     m_current_cursor += diff;
     if (m_selected < X || m_selected > Z) return;
 
-    Eigen::Vector3f normal(m_selected == X ? 1.0f : 0.0f,
+    glm::vec3 normal(m_selected == X ? 1.0f : 0.0f,
                            m_selected == Y ? 1.0f : 0.0f,
                            m_selected == Z ? 1.0f : 0.0f);
 
     if (m_update_center) {
-      m_center = project2(m_window_projection, Eigen::Vector3f(0, 0, 0));
-      Eigen::Vector2f dir = m_current_cursor - m_center;
+      m_center = project2(m_window_projection, glm::vec3(0, 0, 0));
+      glm::vec2 dir = m_current_cursor - m_center;
       m_start_angle = std::atan2(dir[1], dir[0]);
 
-      auto tst = m_window_projection.linear() * normal;
+      auto tst = glm::mat3(m_window_projection) * normal;
       m_reversed = tst[2] > 0.0f;
 
       m_update_center = false;
     }
 
-    Eigen::Vector2f dir = m_current_cursor - m_center;
+    glm::vec2 dir = m_current_cursor - m_center;
     float angle = std::atan2(dir[1], dir[0]);
 
-    m_object->setTransform(m_object_orig_transform * m_gizmo_to_obj *
-                           Eigen::AngleAxis<float>((m_reversed ? -1.0f : 1.0f) * (angle - m_start_angle), normal) *
-                           m_gizmo_to_obj.inverse());
+    m_object->setTransform(glm::rotateNormalizedAxis(m_object_orig_transform * m_gizmo_to_obj,
+                                                     (m_reversed ? -1.0f : 1.0f) * (angle - m_start_angle), normal) *
+                           glm::inverse(m_gizmo_to_obj));
   }
 
   bool RotateGizmo::makeActive(Constraint type)
@@ -731,21 +728,21 @@ namespace Shaderkit
 
   }
 
-  void Gizmo::HitShape::transform(const Eigen::Projective3f& window_projection)
+  void Gizmo::HitShape::transform(const glm::mat4& window_projection)
   {
-    bbox.setEmpty();
+    bbox.clear();
 
     transformed.resize(points.size() / 2);
     for (int i = 0, s = points.size(); i < s; i += 2) {
       // project 3D coordinates to 3D window coordinates
-      transformed[i/2] = LineSegment(project3(window_projection, points[i]),
-                                     project3(window_projection, points[i+1]));
+      transformed[i/2] = GizmoLineSegment(project3(window_projection, points[i]),
+                                          project3(window_projection, points[i+1]));
 
       bbox.extend(transformed[i/2].point());
       bbox.extend(transformed[i/2].point2());
     }
-    bbox.extend(bbox.min() - Eigen::Vector2f(9.0f, 9.0f));
-    bbox.extend(bbox.max() + Eigen::Vector2f(9.0f, 9.0f));
+    bbox.extend(bbox.min() - glm::vec2(9.0f, 9.0f));
+    bbox.extend(bbox.max() + glm::vec2(9.0f, 9.0f));
   }
 
 } // namespace Shaderkit

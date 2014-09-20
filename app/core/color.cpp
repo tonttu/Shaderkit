@@ -16,12 +16,12 @@ namespace Shaderkit
 {
 
   Color::Color(float r, float g, float b, float a)
-    : Eigen::Vector4f(r, g, b, a)
+    : glm::vec4(r, g, b, a)
   {
   }
 
   Color::Color(const QColor& c)
-    : Eigen::Vector4f(c.redF(), c.greenF(), c.blueF(), c.alphaF())
+    : glm::vec4(c.redF(), c.greenF(), c.blueF(), c.alphaF())
   {
   }
 
@@ -108,6 +108,11 @@ namespace Shaderkit
   {
     long tmp = std::lround((*this)[3]*255);
     return clamp(tmp, 0l, 255l);
+  }
+
+  const float* Color::data() const
+  {
+    return &x;
   }
 
 } // namespace Shaderkit

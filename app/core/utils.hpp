@@ -22,7 +22,8 @@
 #include <QList>
 #include <QVariantList>
 
-#include "Eigen/Geometry"
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
 
 namespace Shaderkit
 {
@@ -32,10 +33,9 @@ namespace Shaderkit
     QString uniqueName(QString name, const QList<QString>& lst, QString def = "Untitled");
 
     /// Convert array of three doubles to vector
-    Eigen::Vector3f toVector3(QVariant in);
-    Eigen::Vector4f toVector34(const QVariant& in);
-    QVariantList toList(const Eigen::Vector3f& in);
-    QVariantList toList(const Eigen::Vector4f& in);
+    glm::vec3 toVector3(QVariant in);
+    QVariantList toList(const glm::vec3& in);
+    QVariantList toList(const glm::vec4& in);
 
     /// helper method to convert QColor to 4 element GLfloat array
     void getColor(const QColor& color, float* tmp);

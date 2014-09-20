@@ -28,8 +28,6 @@
 
 #include "gl/error.hpp"
 
-#include "Eigen/Geometry"
-
 #include <QString>
 #include <QVariantMap>
 #include <QTime>

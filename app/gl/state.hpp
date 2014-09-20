@@ -21,10 +21,9 @@
 #include "gl/opengl.hpp"
 #include "gl/buffer_object.hpp"
 
-#include "Eigen/Geometry"
-
 #include <QSet>
 #include <QMap>
+#include <QPoint>
 
 namespace Shaderkit
 {
@@ -71,18 +70,18 @@ namespace Shaderkit
     void popMaterial();
 
     /// Multiplies the current matrix from right
-    void pushModel(const Eigen::Affine3f& model);
+    void pushModel(const glm::mat4& model);
     void popModel();
 
     /// Return model matrix
-    const Eigen::Affine3f& model() const;
+    const glm::mat4& model() const;
 
     /// Vertex attributes of the currently bind program
     VertexAttrib& attr();
 
     /// Matrix from model coordinates to window coordinates
     /// @param swap_y enable if you want to project to Qt coordinates
-    Eigen::Projective3f transform(bool swap_y = false) const;
+    glm::mat4 transform(bool swap_y = false) const;
 
     void setSelection(QList<ObjectPtr> objects);
     QList<ObjectPtr> selection() const;
@@ -109,7 +108,7 @@ namespace Shaderkit
     unsigned int pickingQuery();
 
     void applyUniformsMappings();
-    void setUniform(GLProgram& prog, const QString& name, const Eigen::Affine3f& m);
+    void setUniform(GLProgram& prog, const QString& name, const glm::mat4& m);
 
   protected:
     struct Data {
@@ -132,7 +131,7 @@ namespace Shaderkit
     bool m_picking;
     QPair<ObjectPtr, MeshPtr> m_picked;
 
-    std::vector<Eigen::Affine3f, Eigen::aligned_allocator<Eigen::Affine3f>> m_transforms;
+    std::vector<glm::mat4> m_transforms;
 
     int nextFree(const QSet<int>& lst, int id = 0) const;
   };

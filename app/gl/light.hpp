@@ -25,6 +25,8 @@
 
 #include "gl/scene_object.hpp"
 
+#include "glm/glm.hpp"
+
 #include <QVariant>
 
 namespace Shaderkit
@@ -66,14 +68,14 @@ namespace Shaderkit
     const Color& diffuse() const { return m_diffuse.value(); }
     const Color& specular() const { return m_specular.value(); }
 
-    const Eigen::Vector3f& location() const { return m_location.value(); }
-    void setLocation(const Eigen::Vector3f& loc);
+    const glm::vec3& location() const { return m_location.value(); }
+    void setLocation(const glm::vec3& loc);
 
-    const Eigen::Vector3f& target() const { return m_target.value(); }
-    void setTarget(const Eigen::Vector3f& target);
+    const glm::vec3& target() const { return m_target.value(); }
+    void setTarget(const glm::vec3& target);
 
-    void setDirection(const Eigen::Vector3f& dir);
-    const Eigen::Vector3f& direction() const { return m_direction.value(); }
+    void setDirection(const glm::vec3& dir);
+    const glm::vec3& direction() const { return m_direction.value(); }
 
     float spotCutoff() const { return m_spot_cutoff.value(); }
     void setSpotCutoff(float v);
@@ -97,10 +99,10 @@ namespace Shaderkit
     Attribute<Color> m_ambient, m_diffuse, m_specular;
 
     /// if m_type == Spot, we control the light with location and the target vectors
-    Attribute<Eigen::Vector3f> m_location, m_target;
+    Attribute<glm::vec3> m_location, m_target;
 
     /// With direction lights (m_type == Direction) there is only direction vector
-    Attribute<Eigen::Vector3f> m_direction;
+    Attribute<glm::vec3> m_direction;
 
     /// The maximum spread angle of a light source, if m_type == Spot.
     Attribute<float> m_spot_cutoff;

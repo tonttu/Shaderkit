@@ -22,6 +22,8 @@
 #include "core/scene.hpp"
 #include "core/model.hpp"
 
+#include "glm/gtx/transform.hpp"
+
 #include <QFileInfo>
 #include <QSettings>
 #include <QFileDialog>
@@ -230,15 +232,15 @@ namespace Shaderkit
     if (m_ui->autoScale->isChecked()) {
       const float target_size = 50.0f;
 
-      const Eigen::AlignedBox<float, 3>& bbox = scene.node->bbox();
-      auto vec3 = bbox.sizes();
-      float m = std::max(std::max(vec3[0], vec3[1]), vec3[2]);
+      const BBox3& bbox = scene.node->bbox();
+      auto vec3 = bbox.size();
+      float m = std::max(std::max(vec3.x, vec3.y), vec3.z);
       if (m > std::numeric_limits<float>::epsilon()) {
         float scale = target_size/m;
         /// @todo should serialize nodes
         /// scene.node->transform = Eigen::Scaling(scale) * scene.node->transform;
         foreach (ObjectPtr obj, scene.objects)
-          obj->setTransform(Eigen::Scaling(scale) * obj->transform());
+          obj->setTransform(glm::scale(glm::vec3(scale)) * obj->transform());
       }
     }
 

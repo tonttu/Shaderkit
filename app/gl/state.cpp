@@ -28,37 +28,37 @@ namespace
   using namespace Shaderkit;
 
   void setUniformSel(State* state, GLProgram& prog, const QString& name,
-                     const Eigen::Vector4f& v, const std::vector<int>& sel)
+                     const glm::vec4& v, const std::vector<int>& sel)
   {
     if (sel.empty()) {
       prog.setUniform(state, name, v);
     } else if (sel.size() == 1) {
       prog.setUniform(state, name, v[sel[0]]);
     } else if (sel.size() == 2) {
-      prog.setUniform(state, name, Eigen::Vector2f(v[sel[0]], v[sel[1]]));
+      prog.setUniform(state, name, glm::vec2(v[sel[0]], v[sel[1]]));
     } else if (sel.size() == 3) {
-      prog.setUniform(state, name, Eigen::Vector3f(v[sel[0]], v[sel[1]], v[sel[2]]));
+      prog.setUniform(state, name, glm::vec3(v[sel[0]], v[sel[1]], v[sel[2]]));
     } else if (sel.size() == 4) {
-      prog.setUniform(state, name, Eigen::Vector4f(v[sel[0]], v[sel[1]], v[sel[2]], v[sel[3]]));
+      prog.setUniform(state, name, glm::vec4(v[sel[0]], v[sel[1]], v[sel[2]], v[sel[3]]));
     } else assert(false);
   }
 
   void setUniformSel(State* state, GLProgram& prog, const QString& name,
-                     const Eigen::Vector3f& v, const std::vector<int>& sel)
+                     const glm::vec3& v, const std::vector<int>& sel)
   {
     if (sel.empty())
       prog.setUniform(state, name, v);
     else
-      setUniformSel(state, prog, name, Eigen::Vector4f(v[0], v[1], v[2], 1.f), sel);
+      setUniformSel(state, prog, name, glm::vec4(v[0], v[1], v[2], 1.f), sel);
   }
 
   void setUniformSel(State* state, GLProgram& prog, const QString& name,
-                     const Eigen::Vector2f& v, const std::vector<int>& sel)
+                     const glm::vec2& v, const std::vector<int>& sel)
   {
     if (sel.empty())
       prog.setUniform(state, name, v);
     else
-      setUniformSel(state, prog, name, Eigen::Vector4f(v[0], v[1], 0.0f, 1.f), sel);
+      setUniformSel(state, prog, name, glm::vec4(v[0], v[1], 0.0f, 1.f), sel);
   }
 
   void setUniformSel(State* state, GLProgram& prog, const QString& name,
@@ -74,10 +74,10 @@ namespace
   }
 
   void assignValues(std::vector<float>::iterator& output,
-                    const Eigen::Vector4f& v, const std::vector<int>& sel)
+                    const glm::vec4& v, const std::vector<int>& sel)
   {
     if (sel.empty()) {
-      std::copy(v.data(), v.data() + 4, output);
+      std::copy(&v.x, &v.x + 4, output);
       output += 4;
     } else if (sel.size() <= 4) {
       for (std::size_t i = 0; i < sel.size(); ++i)
@@ -86,12 +86,12 @@ namespace
   }
 
   void assignValues(std::vector<float>::iterator& output,
-                    const Eigen::Vector3f& v, const std::vector<int>& sel)
+                    const glm::vec3& v, const std::vector<int>& sel)
   {
     if (sel.empty()) {
-      std::copy(v.data(), v.data() + 3, output);
+      std::copy(&v.x, &v.x + 3, output);
       output += 3;
-    } else assignValues(output, Eigen::Vector4f(v[0], v[1], v[2], 1.0f), sel);
+    } else assignValues(output, glm::vec4(v[0], v[1], v[2], 1.0f), sel);
   }
 
   template <typename T>
@@ -124,7 +124,7 @@ State::State(Scene& scene, float time, float dt)
   : m_scene(scene), m_time(time), m_dt(dt), m_picking(false)
 {
   m_data.push_back(Data());
-  m_transforms.push_back(Eigen::Affine3f::Identity());
+  m_transforms.push_back(glm::mat4());
 }
 
 int State::nextFreeLight() const
@@ -240,7 +240,7 @@ namespace Shaderkit
     }
   }
 
-  void State::pushModel(const Eigen::Affine3f& transform)
+  void State::pushModel(const glm::mat4& transform)
   {
     m_transforms.push_back(m_transforms.back() * transform);
   }
@@ -254,7 +254,7 @@ namespace Shaderkit
     }
   }
 
-  const Eigen::Affine3f& State::model() const
+  const glm::mat4& State::model() const
   {
     return m_transforms.back();
   }
@@ -264,12 +264,12 @@ namespace Shaderkit
     return m_data.back().m_attr;
   }
 
-  Eigen::Projective3f State::transform(bool swap_y) const
+  glm::mat4 State::transform(bool swap_y) const
   {
     CameraPtr c = camera();
     if (!c) {
       Log::error("No valid camera in State::transform!");
-      return Eigen::Projective3f::Identity();
+      return glm::mat4();
     }
 
     return c->transform(swap_y) * model();
@@ -350,7 +350,7 @@ namespace Shaderkit
         if (map.var() == "transform")
           setUniform(prog, it.key(), model());
         else if (map.var() == "modelview" && c) {
-          Eigen::Matrix4f m = (c->view() * model()).matrix();
+          glm::mat4 m = (c->view() * model());
           prog.setUniform(this, it.key(), m);
         } else ok = false;
       }
@@ -386,7 +386,7 @@ namespace Shaderkit
       else if (map.src() == "scene") {
         if (map.var() == "size")
           setUniformSel(this, prog, it.key(),
-                        Eigen::Vector2f(m_scene.width(), m_scene.height()), map.select());
+                        glm::vec2(m_scene.width(), m_scene.height()), map.select());
         else if (map.var() == "time")
           prog.setUniform(this, it.key(), m_time);
         else if (map.var() == "dt")
@@ -419,7 +419,7 @@ namespace Shaderkit
           prog.setUniform(this, it.key(), c->far());
         else if (map.var() == "size")
           setUniformSel(this, prog, it.key(),
-                        Eigen::Vector2f(c->width(), c->height()), map.select());
+                        glm::vec2(c->width(), c->height()), map.select());
         else ok = false;
       }
 
@@ -453,7 +453,7 @@ namespace Shaderkit
     }
   }
 
-  void State::setUniform(GLProgram& prog, const QString& name, const Eigen::Affine3f& m)
+  void State::setUniform(GLProgram& prog, const QString& name, const glm::mat4& m)
   {
     /// @todo should work with mat4 and mat3
     prog.setUniform(this, name, m);

@@ -22,8 +22,6 @@
 
 #include "gl/buffer_object.hpp"
 
-#include "Eigen/Geometry"
-
 #include <QEvent>
 
 class QString;
@@ -34,8 +32,8 @@ namespace Shaderkit
   class FocusGrabber
   {
   public:
-    virtual bool move(const Eigen::Vector2f& loc) = 0;
-    virtual bool btn(QEvent::Type type, Qt::MouseButton btn, const Eigen::Vector2f& loc) = 0;
+    virtual bool move(const glm::vec2& loc) = 0;
+    virtual bool btn(QEvent::Type type, Qt::MouseButton btn, const glm::vec2& loc) = 0;
     virtual void render(State& state, const RenderOptions& render_opts) = 0;
     virtual bool done() const = 0;
   };
@@ -44,8 +42,8 @@ namespace Shaderkit
   {
   public:
     ObjectCreator(ScenePtr scene, const QString& name);
-    virtual bool move(const Eigen::Vector2f& loc);
-    virtual bool btn(QEvent::Type type, Qt::MouseButton btn, const Eigen::Vector2f& loc);
+    virtual bool move(const glm::vec2& loc);
+    virtual bool btn(QEvent::Type type, Qt::MouseButton btn, const glm::vec2& loc);
     virtual void render(State& state, const RenderOptions& render_opts);
     virtual bool done() const;
 
@@ -53,15 +51,15 @@ namespace Shaderkit
     int m_state;
     ScenePtr m_scene;
     QString m_name;
-    Eigen::Vector3f m_points[5];
-    Eigen::Vector3f m_hover;
+    glm::vec3 m_points[5];
+    glm::vec3 m_hover;
 
     ProgramPtr m_prog;
     ProgramPtr m_prog2;
 
-    Eigen::Projective3f m_window_to_obj;
+    glm::mat4 m_window_to_obj;
 
-    Eigen::Vector3f hit(const Eigen::Vector2f& c);
+    glm::vec3 hit(const glm::vec2& c);
     void renderBox(State& state, const RenderOptions& render_opts);
     void renderSphere(State& state, const RenderOptions& render_opts);
   };
