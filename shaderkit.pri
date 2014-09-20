@@ -4,11 +4,12 @@ INCLUDEPATH += \
     $$PWD/ext/glew/include \
     $$PWD/ext/assimp/include \
     $$PWD/ext/eigen \
-    $$PWD/ext/eigen/unsupported
+    $$PWD/ext/eigen/unsupported \
+    $$PWD/ext/glm
 
 QT += opengl
 
-DEFINES += GLEW_STATIC QJSON_EXPORT= EIGEN_QT_SUPPORT
+DEFINES += GLEW_STATIC QJSON_EXPORT= EIGEN_QT_SUPPORT GLM_FORCE_RADIANS GLM_FORCE_CXX11
 
 unix {
   CONFIG(debug, debug|release) {

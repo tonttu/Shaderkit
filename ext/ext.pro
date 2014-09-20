@@ -39,5 +39,9 @@ SOURCES += glew/src/glew.c
 # assimp
 include(assimp/assimp.pri)
 
-#eigen -type f '!' -name CMakeLists.txt|sed "s/.*/    \0 \\\\/"
+# glm (header only library, this is mostly for QtCreator)
+include(glm.pri)
+
 include(eigen.pri)
+
+# find -type f '!' -name CMakeLists.txt|sed "s/.*/    \0 \\\\/"
