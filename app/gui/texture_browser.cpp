@@ -317,7 +317,6 @@ namespace Shaderkit
     connect(&MainWindow::instance(), SIGNAL(newScene(ScenePtr)),
             this, SLOT(newScene(ScenePtr)));
     newScene(MainWindow::instance().scene());
-    renderPassesChanged();
 
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -740,21 +739,22 @@ namespace Shaderkit
     disconnect(this, SLOT(renderPassesChanged()));
     if (scene) {
       connect(scene.get(), SIGNAL(textureListUpdated()), this, SLOT(updateContent()));
-      connect(scene.get(), SIGNAL(renderPassesListUpdated()), this, SLOT(renderPassesChanged()));
+      connect(scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)), this, SLOT(renderPassesChanged()));
+      renderPassesChanged(scene->renderPasses());
+    } else {
+      renderPassesChanged(QList<RenderPassPtr>());
     }
     updateContent(scene);
   }
 
-  void TextureBrowser::renderPassesChanged()
+  void TextureBrowser::renderPassesChanged(QList<RenderPassPtr> lst)
   {
     m_ui->renderpass->clear();
-    ScenePtr s = MainWindow::scene();
-    if (!s) return;
 
     /// @todo "None", change this to use different view/model
     /// @todo what happens to the current active selection?
     m_ui->renderpass->addItem("");
-    foreach (RenderPassPtr rp, s->renderPasses())
+    for (RenderPassPtr rp: lst)
       m_ui->renderpass->addItem(rp->icon(), rp->name(), rp->name());
   }
 

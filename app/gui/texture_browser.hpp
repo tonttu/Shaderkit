@@ -121,7 +121,7 @@ namespace Shaderkit
     void paramChanged(QString = "");
     void newParam(QString);
     void newScene(ScenePtr);
-    void renderPassesChanged();
+    void renderPassesChanged(QList<RenderPassPtr> lst);
 
     void create();
     void duplicate();

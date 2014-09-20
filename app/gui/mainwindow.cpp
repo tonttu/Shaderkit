@@ -294,7 +294,7 @@ namespace Shaderkit
       disconnect(m_scene.get(), SIGNAL(saved()), this, SLOT(saved()));
 
       disconnect(m_scene.get(), SIGNAL(renderPassesListUpdated(QList<RenderPassPtr>)),
-                 &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr> passes)));
+                 &RenderPassProperties::instance(), SLOT(listUpdated(QList<RenderPassPtr>)));
       disconnect(m_scene.get(), SIGNAL(materialListUpdated(ScenePtr)),
                  &MaterialProperties::instance(), SLOT(updateMaterialList(ScenePtr)));
 
