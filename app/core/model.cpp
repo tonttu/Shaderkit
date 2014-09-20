@@ -586,6 +586,8 @@ namespace Shaderkit
             handledColors = true;
           }
 
+          /// @todo should show it somehow, if we have "mesh.uv" but the mesh
+          ///       doesn't have uv coordinates
           else if ((map.var() == "uv" || map.var() == "uvs") &&
                    (std::size_t(std::max(0, map.varindex())) < uvs.size())) {
             int idx = std::max(0, map.varindex());
@@ -599,8 +601,10 @@ namespace Shaderkit
             handledUvs = true;
           }
 
-          else assert(false);
-        } else assert(false);
+          else {
+            Log::debug("No match for %s", map.toString().toUtf8().data());
+          }
+        } else Log::debug("No match for %s", map.toString().toUtf8().data());
       }
     }
 
@@ -649,7 +653,8 @@ namespace Shaderkit
       bool use_patches = false;
       if (mat && mat->prog()) {
         GLProgram& prog = *mat->prog();
-        use_patches = prog.hasShader(Shader::TessCtrl) || prog.hasShader(Shader::TessEval);
+        use_patches = (prog.hasShader(Shader::TessCtrl) || prog.hasShader(Shader::TessEval))
+          && glPatchParameteri;
       }
       if (use_patches) {
         glPatchParameteri(GL_PATCH_VERTICES, 3);

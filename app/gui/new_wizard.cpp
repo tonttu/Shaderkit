@@ -53,6 +53,9 @@ namespace Shaderkit
 
     m_ui->advanced->hide();
 
+    auto ok_btn = m_ui->buttonBox->button(QDialogButtonBox::Ok);
+    ok_btn->setEnabled(false);
+
     m_ui->empty_scene->setCheckable(true);
     m_group->addButton(m_ui->empty_scene);
     m_ui->empty_scene->setText("Empty project");
@@ -139,7 +142,8 @@ namespace Shaderkit
 
   void NewWizard::preview(QString /*file*/)
   {
-
+    auto ok_btn = m_ui->buttonBox->button(QDialogButtonBox::Ok);
+    ok_btn->setEnabled(true);
   }
 
   void NewWizard::create()

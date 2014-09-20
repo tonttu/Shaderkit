@@ -788,8 +788,8 @@ namespace Shaderkit
       QFileInfo fi(file);
 
       TextureFile* tex = new TextureFile(fi.baseName());
-      tex->setFilename(file);
       TexturePtr texp(tex);
+      tex->setFilename(file);
       m_select = texp;
       MainWindow::scene()->add(texp);
     }

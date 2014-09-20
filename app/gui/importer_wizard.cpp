@@ -17,6 +17,8 @@
 
 #include "gui/importer_wizard.hpp"
 #include "ui_importer_wizard.h"
+
+#include "core/object3d.hpp"
 #include "core/scene.hpp"
 #include "core/model.hpp"
 
@@ -233,7 +235,10 @@ namespace Shaderkit
       float m = std::max(std::max(vec3[0], vec3[1]), vec3[2]);
       if (m > std::numeric_limits<float>::epsilon()) {
         float scale = target_size/m;
-        scene.node->transform = Eigen::Scaling(scale) * scene.node->transform;
+        /// @todo should serialize nodes
+        /// scene.node->transform = Eigen::Scaling(scale) * scene.node->transform;
+        foreach (ObjectPtr obj, scene.objects)
+          obj->setTransform(Eigen::Scaling(scale) * obj->transform());
       }
     }
 
