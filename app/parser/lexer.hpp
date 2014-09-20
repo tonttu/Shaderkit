@@ -18,6 +18,8 @@
 #ifndef LEXER_HPP
 #define LEXER_HPP
 
+#include <cstdlib>
+
 namespace Parser
 {
   class Jump;
@@ -38,7 +40,7 @@ void glslset_scan_string(const char* str, int len, int state = 0);
 
 int glslget_state();
 int glsllex_wrapper(void);
-int glslget_leng(void);
+std::size_t glslget_leng(void);
 int glslget_column(void);
 int glslget_line(void);
 int glslget_pos(void);
