@@ -293,7 +293,6 @@ namespace Shaderkit
     int readfd = QString(argv[2]).toInt();
     int writefd = QString(argv[3]).toInt();
 
-    QApplication::setGraphicsSystem("native");
     QApplication app(argc, argv);
     Log log;
 

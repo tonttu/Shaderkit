@@ -169,7 +169,11 @@ namespace Shaderkit
 
   void GLWidget::mouseMoveEvent(QMouseEvent* event)
   {
+#if QT_VERSION >= 0x050000
+    const glm::vec2 pos(event->localPos().x(), height() - event->localPos().y());
+#else
     const glm::vec2 pos(event->posF().x(), height() - event->posF().y());
+#endif
     const glm::vec2 diff = pos - m_render_options.hover;
     m_render_options.hover = pos;
     if (event->buttons() != Qt::NoButton)
@@ -211,7 +215,11 @@ namespace Shaderkit
 
   void GLWidget::mousePressEvent(QMouseEvent* event)
   {
+#if QT_VERSION >= 0x050000
+    const glm::vec2 pos(event->localPos().x(), height() - event->localPos().y());
+#else
     const glm::vec2 pos(event->posF().x(), height() - event->posF().y());
+#endif
     m_button_down[event->button()] = pos;
 
     if (m_render_options.focus_grabber) {
@@ -237,7 +245,11 @@ namespace Shaderkit
 
   void GLWidget::mouseReleaseEvent(QMouseEvent* event)
   {
+#if QT_VERSION >= 0x050000
+    const glm::vec2 pos(event->localPos().x(), height() - event->localPos().y());
+#else
     const glm::vec2 pos(event->posF().x(), height() - event->posF().y());
+#endif
     if (m_render_options.gizmo && m_render_options.gizmo->active()) {
       m_render_options.gizmo->buttonUp();
     }

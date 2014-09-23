@@ -2,6 +2,8 @@ include(../shaderkit.pri)
 
 TARGET = shaderkit
 
+QT += core-private concurrent
+
 unix {
 QMAKE_LEX = flex
 QMAKE_YACC = bison

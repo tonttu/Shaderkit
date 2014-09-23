@@ -5,6 +5,7 @@
 #include "gl/opengl.hpp"
 
 #include <QVector>
+#include <QString>
 
 namespace Shaderkit
 {

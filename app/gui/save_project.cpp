@@ -60,7 +60,7 @@ namespace Shaderkit
     if (m_ui->filename->hasFocus() &&
         (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)) {
 
-      QList<QPushButton*> list = qFindChildren<QPushButton*>(this);
+      QList<QPushButton*> list = findChildren<QPushButton*>();
       for (int i = 0; i < list.size(); ++i) {
         QPushButton* pb = list.at(i);
         if (pb->isDefault()) {

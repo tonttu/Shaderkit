@@ -43,7 +43,7 @@ namespace
                                      " Info     ",
                                      " Debug    "
                                     };
-    QByteArray ts = QTime::currentTime().toString("HH:mm:ss.zzz").toAscii();
+    QByteArray ts = QTime::currentTime().toString("HH:mm:ss.zzz").toUtf8();
 
     QByteArray str(prefixes[l]);
     int p = str.size();

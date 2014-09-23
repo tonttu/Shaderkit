@@ -13,6 +13,18 @@
 #include <QMessageBox>
 #include <QFile>
 
+namespace
+{
+  static QString escape(const QString & str)
+  {
+#if QT_VERSION > 0x050000
+    return str.toHtmlEscaped();
+#else
+    return Qt::escape(str);
+#endif
+  }
+}
+
 namespace Shaderkit
 {
 
@@ -208,20 +220,20 @@ namespace Shaderkit
               const GLSLpp::MacroValue& value = *it;
               QString txt;
               if (value.params.empty()) {
-                txt = QString("#define %1 <b>%2</b>").arg(Qt::escape(value.name.c_str()),
-                      Qt::escape(value.src.c_str()));
+                txt = QString("#define %1 <b>%2</b>").arg(escape(value.name.c_str()),
+                      escape(value.src.c_str()));
               } else {
                 QStringList tmp;
                 for (std::size_t i = 0; i < value.params.size(); ++i)
                   tmp << value.params[i].c_str();
                 if (value.value.empty()) {
                   txt = QString("#define %1(%2) %3").arg(
-                          Qt::escape(value.name.c_str()), Qt::escape(tmp.join(", ")),
-                          Qt::escape(value.src.c_str()));
+                          escape(value.name.c_str()), escape(tmp.join(", ")),
+                          escape(value.src.c_str()));
                 } else {
                   txt = QString("#define %1(%2) %3\n\n &raquo; <b>%4</b>").arg(
-                          Qt::escape(value.name.c_str()), Qt::escape(tmp.join(", ")),
-                          Qt::escape(value.src.c_str()), Qt::escape(value.value.c_str()));
+                          escape(value.name.c_str()), escape(tmp.join(", ")),
+                          escape(value.src.c_str()), escape(value.value.c_str()));
                 }
               }
               QToolTip::showText(he->globalPos(), "<p style=\"white-space:pre\">"+txt+"</p>");

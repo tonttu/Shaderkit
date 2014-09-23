@@ -20,6 +20,7 @@
 
 #include <QPair>
 #include <QVector>
+#include <QByteArray>
 
 namespace Shaderkit
 {

@@ -32,9 +32,10 @@ namespace Shaderkit
     : m_orig(orig), m_src(src), m_var(var), m_srcindex(srcindex), m_varindex(varindex),
       m_select(selection.size())
   {
-    const QString tst = "xrsygtzbpwaq";
-    for (int i = 0; i < selection.size(); ++i) {
-      m_select[i] = tst.indexOf(selection[i].toAscii()) / 3;
+    const QByteArray tst = "xrsygtzbpwaq";
+    const QByteArray sel = selection.toUtf8();
+    for (int i = 0; i < sel.size(); ++i) {
+      m_select[i] = tst.indexOf(sel[i]) / 3;
     }
   }
 

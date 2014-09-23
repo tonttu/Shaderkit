@@ -23,9 +23,14 @@
 #include <QThread>
 #include <QDebug>
 #include <QFile>
-#include <QtConcurrentRun>
 #include <QtEndian>
 #include <QBuffer>
+
+#if QT_VERSION > 0x050000
+#include <QtConcurrent>
+#else
+#include <QtConcurrentRun>
+#endif
 
 namespace
 {

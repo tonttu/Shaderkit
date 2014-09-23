@@ -323,8 +323,13 @@ namespace Shaderkit
     QTableWidget* tw = new QTableWidget(this);
     tw->verticalHeader()->hide();
     tw->horizontalHeader()->hide();
+#if QT_VERSION >= 0x050000
+    tw->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    tw->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
     tw->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
     tw->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+#endif
     tw->setGridStyle(Qt::DotLine);
     tw->setFrameShape(QFrame::NoFrame);
     tw->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);

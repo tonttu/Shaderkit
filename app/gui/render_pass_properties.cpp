@@ -302,7 +302,11 @@ namespace Shaderkit
   {
     QTableWidget::paintEvent(e);
     if (m_firstRender) {
+#if QT_VERSION >= 0x050000
+      horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
       horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+#endif
       m_firstRender = false;
     }
   }

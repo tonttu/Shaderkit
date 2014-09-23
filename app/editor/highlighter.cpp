@@ -165,7 +165,7 @@ namespace Shaderkit
                                    &m_parenthesesFormat, &m_buildinVarFormat, &m_idFormat
                                  };
 
-    QByteArray ascii = text.toAscii();
+    QByteArray ascii = text.toUtf8();
 
     glslset_scan_string(ascii.data(), ascii.size(), previousBlockState());
     int token;

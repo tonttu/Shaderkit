@@ -42,6 +42,8 @@
 #include <QMenu>
 #include <QListWidget>
 #include <QStackedWidget>
+#include <QMimeData>
+#include <QDrag>
 
 namespace Shaderkit
 {
@@ -64,7 +66,7 @@ namespace Shaderkit
 
   namespace
   {
-    template <typename T> T& insert(QList<T>& l)
+    template <typename T> T& insert(QLinkedList<T>& l)
     {
       l.push_back(T());
       return l.back();
@@ -91,9 +93,9 @@ namespace Shaderkit
   PropertyLayout::~PropertyLayout()
   {
     qDeleteAll(m_row);
-    for (int i = 0; i < m_data->items.size(); ++i) {
-      if (&m_data->items[i] == &m_row) {
-        m_data->items.removeAt(i);
+    for (auto it = m_data->items.begin(); it != m_data->items.end(); ++it) {
+      if (&*it == &m_row) {
+        m_data->items.erase(it);
         break;
       }
     }
@@ -800,7 +802,11 @@ namespace Shaderkit
   {
     QTableWidget::paintEvent(e);
     if (m_firstRender) {
+#if QT_VERSION >= 0x050000
+      horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
       horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+#endif
       m_firstRender = false;
     }
   }

@@ -29,11 +29,11 @@
   s_enums[spname] = pname, s_enums[sparam] = param, \
   s_choices[spname] << sparam
 #define D(pname, param) D_(GL_##pname, GL_##param, \
-  QString::fromAscii(#pname), QString::fromAscii(#param))
+  QString::fromUtf8(#pname), QString::fromUtf8(#param))
 
 #define D2_(pname, spname, target) s_names[pname] = spname, \
   s_enums[spname] = pname, target << spname
-#define D2(pname, target) D2_(GL_##pname, QString::fromAscii(#pname), target)
+#define D2(pname, target) D2_(GL_##pname, QString::fromUtf8(#pname), target)
 
 #define I_(e, name) s_internalFormats[e] = #name, s_internalFormatsStr[#name] = e
 #define I(name) I_(GL_##name, name)

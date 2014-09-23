@@ -79,7 +79,7 @@ namespace Shaderkit
       if (!prog != m_prog)
         bind(state);
 
-      GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
+      GLint loc = glRun2(glGetUniformLocation(m_prog, name.toUtf8().data()));
       if (loc == -1) {
         //Log::error("Failed to query uniform variable %s location", name.toAscii().data());
       } else {
@@ -115,7 +115,7 @@ namespace Shaderkit
       if (!prog != m_prog)
         bind(state);
 
-      GLint loc = glRun2(glGetUniformLocation(m_prog, name.toAscii().data()));
+      GLint loc = glRun2(glGetUniformLocation(m_prog, name.toUtf8().data()));
       if (loc == -1) {
         //Log::error("Failed to query uniform variable %s location", name.toAscii().data());
       } else {

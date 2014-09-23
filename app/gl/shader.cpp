@@ -82,7 +82,7 @@ namespace Shaderkit
         }
       }
 
-      QByteArray src_ = m_src.toAscii();
+      QByteArray src_ = m_src.toUtf8();
 
 #ifndef _WIN32
       if (s_sandbox_compile && !SandboxCompiler::check(shared_from_this(), src_, errors)) {

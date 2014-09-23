@@ -18,7 +18,12 @@
 #ifndef RESOURCE_LOCATOR_HPP
 #define RESOURCE_LOCATOR_HPP
 
+#include <QtGlobal>
+#if QT_VERSION >= 0x050000
+#include <QtCore/private/qabstractfileengine_p.h>
+#else
 #include <QAbstractFileEngineHandler>
+#endif
 #include <QMap>
 
 namespace Shaderkit

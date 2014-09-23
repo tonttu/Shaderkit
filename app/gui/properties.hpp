@@ -28,6 +28,7 @@
 #include <QLayout>
 #include <QComboBox>
 #include <QStackedWidget>
+#include <QLinkedList>
 
 class QStackedWidget;
 
@@ -224,7 +225,7 @@ namespace Shaderkit
 
   private:
     int columns, stretch_column;
-    typedef QList<QVector<PropertyItem*> > Items;
+    typedef QLinkedList<QVector<PropertyItem*> > Items;
     Items items;
     QVector<QMargins> padding;
     QSize min_size;

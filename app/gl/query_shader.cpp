@@ -56,7 +56,7 @@ namespace Shaderkit
       }
     }
 
-    QByteArray bytes = src.toAscii();
+    QByteArray bytes = src.toUtf8();
     const char* data = bytes.data();
     GLint len = bytes.length();
     glRun(glShaderSource(m_shader, 1, &data, &len));

@@ -22,6 +22,7 @@
 
 #include <QByteArray>
 #include <QMap>
+#include <QIODevice>
 
 namespace Shaderkit
 {

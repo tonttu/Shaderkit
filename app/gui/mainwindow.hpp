@@ -27,7 +27,7 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 
-#include <QtGui/QDialog>
+#include <QDialog>
 #include <QGLWidget>
 
 class QGLContext;
