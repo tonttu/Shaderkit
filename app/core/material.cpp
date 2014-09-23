@@ -364,6 +364,7 @@ namespace Shaderkit
     }
 
     tmp = map["textures"].toMap();
+    m_textures.clear();
     for (auto it = tmp.begin(); it != tmp.end(); ++it)
       addTexture(it.key(), scene.genTexture(it.value().toString()));
   }
