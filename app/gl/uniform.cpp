@@ -110,10 +110,12 @@ namespace Shaderkit
 
     m_location.push_back(glRun2(glGetUniformLocation(prog->id(), name.toStdString().c_str())));
 
+    GLuint idx = glRun2(glGetProgramResourceIndex(prog->id(), GL_UNIFORM, name.toUtf8().data()));
+
     GLchar buf[256] = {'\0'};
     GLsizei size = 0;
     GLenum type_check = 0;
-    glRun(glGetActiveUniform(prog->id(), m_location[0], sizeof(buf), 0, &size, &type_check, buf));
+    glRun(glGetActiveUniform(prog->id(), idx, sizeof(buf), 0, &size, &type_check, buf));
 
     if (type_check == type) {
       /// @todo Do we know if the array locations are in adjacent locations?
@@ -136,7 +138,8 @@ namespace Shaderkit
         }
       }
     } else {
-      Log::error("Type check mismatch with %s (%s), %d != %d", name.toUtf8().data(), buf, type, type_check);
+      Log::error("Type check mismatch with %s (%s), %d != %d, in location %d",
+                 name.toUtf8().data(), buf, type, type_check, m_location[0]);
     }
 
     if (info.base_type == GL_FLOAT) {

@@ -129,13 +129,13 @@ namespace Shaderkit
 
     void setUniform(GLint loc, int vector_dimension, const std::vector<float>& v) {
       if (vector_dimension == 1)
-        glUniform1fv(loc, v.size(), v.data());
+        glRun(glUniform1fv(loc, v.size(), v.data()));
       else if (vector_dimension == 2)
-        glUniform2fv(loc, v.size()/2, v.data());
+        glRun(glUniform2fv(loc, v.size()/2, v.data()));
       else if (vector_dimension == 3)
-        glUniform3fv(loc, v.size()/3, v.data());
+        glRun(glUniform3fv(loc, v.size()/3, v.data()));
       else if (vector_dimension == 4)
-        glUniform4fv(loc, v.size()/4, v.data());
+        glRun(glUniform4fv(loc, v.size()/4, v.data()));
       else assert(false);
     }
 
