@@ -371,8 +371,8 @@ namespace Shaderkit
   {
     if (!passes.isEmpty() && passes[0]->scene() != m_scene) {
       if (m_scene) {
-        disconnect(SLOT(materialListUpdated()));
-        disconnect(SLOT(cameraListUpdated()));
+        disconnect(m_scene.get(), SIGNAL(materialListUpdated(ScenePtr)), this, SLOT(materialListUpdated()));
+        disconnect(m_scene.get(), SIGNAL(cameraListUpdated()), this, SLOT(cameraListUpdated()));
       }
       m_scene = passes[0]->scene();
       if (m_scene) {
@@ -381,7 +381,8 @@ namespace Shaderkit
       }
     } else if (m_list == passes) return;
 
-    disconnect(SLOT(changed(RenderPassPtr)));
+    for (auto p: m_list)
+      disconnect(p.get(), SIGNAL(changed(RenderPassPtr)), this, SLOT(changed(RenderPassPtr)));
 
     m_reorder->setDisabled(passes.isEmpty());
 
