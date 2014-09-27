@@ -175,6 +175,8 @@ int main(int argc, char* argv[])
   }
 #endif
 
+  qRegisterMetaType<MaterialPtr>("MaterialPtr");
+
 #ifdef _WIN32
   // For installer, do not (un)install running application
   CreateMutexA(0, false, "ShaderkitGlobalMutex");

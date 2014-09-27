@@ -215,4 +215,6 @@ namespace Shaderkit
 
 } // namespace Shaderkit
 
+Q_DECLARE_METATYPE(Shaderkit::MaterialPtr)
+
 #endif // MATERIAL_HPP

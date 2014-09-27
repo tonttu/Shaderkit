@@ -834,9 +834,6 @@ namespace Shaderkit
       /// @todo change icon when the type changes
       // sub.item->setIcon(0, mat->icon());
 
-      connect(mat.get(), SIGNAL(changed(MaterialPtr)),
-              this, SLOT(materialChanged(MaterialPtr)));
-
       MainWindow::instance().openMaterial(mat);
     }
 

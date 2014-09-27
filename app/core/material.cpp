@@ -108,6 +108,8 @@ namespace Shaderkit
       style(*this),
       m_prog_binded(false)
   {
+    connect(this, SIGNAL(changed(MaterialPtr)),
+            &MaterialProperties::instance(), SLOT(update(MaterialPtr)), Qt::QueuedConnection);
   }
 
   Material::Material(const Material& m)
@@ -124,6 +126,8 @@ namespace Shaderkit
       m_uniformMap(m.m_uniformMap),
       m_scene(m.m_scene)
   {
+    connect(this, SIGNAL(changed(MaterialPtr)),
+            &MaterialProperties::instance(), SLOT(update(MaterialPtr)), Qt::QueuedConnection);
     if (m.m_program) {
       m_program = m.m_program->clone();
       connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
@@ -239,7 +243,7 @@ namespace Shaderkit
       }
 
       if (changed)
-        MaterialProperties::instance().update(shared_from_this());
+        emit this->changed(shared_from_this());
     }
   }
 
