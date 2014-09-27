@@ -999,8 +999,9 @@ namespace Shaderkit
     changedSlot();
   }
 
-  void Scene::materialChanged(MaterialPtr)
+  void Scene::materialChanged(MaterialPtr material)
   {
+    emit sceneMaterialChanged(material);
     changedSlot();
   }
 

@@ -302,6 +302,8 @@ namespace Shaderkit
                  this, SLOT(updateErrors(ShaderErrorList)));
       disconnect(m_scene.get(), SIGNAL(progCompiled(ShaderErrorList)),
                  this, SLOT(updateErrors(ShaderErrorList)));
+      disconnect(m_scene.get(), SIGNAL(sceneMaterialChanged(MaterialPtr)),
+                 &MaterialProperties::instance(), SLOT(update(MaterialPtr)));
     }
 
     connect(scene.get(), SIGNAL(changed(bool)), this, SLOT(changed(bool)));
@@ -316,6 +318,8 @@ namespace Shaderkit
             this, SLOT(updateErrors(ShaderErrorList)));
     connect(scene.get(), SIGNAL(progCompiled(ShaderErrorList)),
             this, SLOT(updateErrors(ShaderErrorList)));
+    connect(scene.get(), SIGNAL(sceneMaterialChanged(MaterialPtr)),
+            &MaterialProperties::instance(), SLOT(update(MaterialPtr)), Qt::QueuedConnection);
 
     m_scene = scene;
     ResourceLocator::setPath("scene", scene->root());

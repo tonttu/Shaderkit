@@ -230,6 +230,7 @@ namespace Shaderkit
     void textureListUpdated();
     void materialListUpdated(ScenePtr);
     void renderPassesListUpdated(QList<RenderPassPtr>);
+    void sceneMaterialChanged(MaterialPtr);
 
     void changed(bool wasChangedBefore);
     void stateChanged();
