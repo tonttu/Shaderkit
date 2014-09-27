@@ -18,6 +18,7 @@
 #include "core/material.hpp"
 #include "core/utils.hpp"
 #include "core/scene.hpp"
+#include "core/template_builder.hpp"
 #include "gl/program.hpp"
 #include "gl/state.hpp"
 #include "gl/texture.hpp"
@@ -346,9 +347,7 @@ namespace Shaderkit
     foreach (QString filename, map["tess-eval"].toStringList())
       prog(true)->addShader(filename, Shader::TessEval);
 
-    Log::info("Shading model: %s", style.shading_model->toUtf8().data());
-    /// @todo add a default shader if the material has shader hint
-    ///       and prog is null
+    loadTemplateShader(scene.glFormat(), scene.templateBuilder());
 
     QVariantMap tmp = map["attributes"].toMap();
     for (auto it = tmp.begin(); it != tmp.end(); ++it) {
@@ -391,6 +390,21 @@ namespace Shaderkit
   void Material::attributeChanged()
   {
     emit changed(shared_from_this());
+  }
+
+  void Material::loadTemplateShader(const QGLFormat& format, const TemplateBuilder& builder)
+  {
+    if (prog())
+      return;
+
+    TemplateBuilder::Query q;
+    q.format = format;
+    q.textures = m_textures.size();
+    q.shading_model = style.shading_model;
+
+    auto tpl = builder.findBestTemplate(q);
+    if (tpl.id >= 0)
+      m_program = builder.create(tpl.id);
   }
 
 } // namespace Shaderkit

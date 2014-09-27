@@ -570,7 +570,11 @@ namespace Shaderkit
     foreach (auto m, s.models) m->setRef(name, m->name()), add(m);
 
     /// @todo animations
-    /// @todo add a default shader if the material has shader hint
+
+    /// @todo should we just iterate all materials found on objects, can there
+    ///       be extra meterials in this list?
+    for (auto m: s.materials)
+      m->loadTemplateShader(glFormat(), m_templateBuilder);
 
     RenderPassPtr pass;
     foreach (RenderPassPtr p, m_render_passes)

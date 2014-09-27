@@ -96,6 +96,8 @@ namespace Shaderkit
 
   ShaderPtr GLProgram::addShader(const QString& filename, Shader::Type type)
   {
+    if (type == Shader::Unknown)
+      type = Shader::guessType(filename);
     ShaderPtr shader(new Shader(shared_from_this(), type));
     shader->loadFile(filename);
     addShader(shader);

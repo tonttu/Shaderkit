@@ -26,6 +26,7 @@
 
 #include <memory>
 
+class QGLFormat;
 namespace Shaderkit
 {
 
@@ -110,6 +111,8 @@ namespace Shaderkit
   class MeshManager;
   class BufferObject;
   class BufferObject2;
+
+  class TemplateBuilder;
 
 /// Hash for QSet etc
   template <typename T>

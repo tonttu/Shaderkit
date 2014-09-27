@@ -25,6 +25,7 @@
 #include "core/renderpass.hpp"
 #include "core/file_resource.hpp"
 #include "core/scene_saver.hpp"
+#include "core/template_builder.hpp"
 
 #include "gl/error.hpp"
 
@@ -218,6 +219,9 @@ namespace Shaderkit
 
     const QGLFormat & glFormat() const { return m_glFormat; }
 
+    const TemplateBuilder& templateBuilder() const { return m_templateBuilder; }
+    TemplateBuilder& templateBuilder() { return m_templateBuilder; }
+
   signals:
     void shaderListUpdated();
     void objectListUpdated();
@@ -296,6 +300,8 @@ namespace Shaderkit
     RenderOptions m_lastRenderOpts;
 
     QGLFormat m_glFormat;
+
+    TemplateBuilder m_templateBuilder;
 
   private:
     void createDefaults();

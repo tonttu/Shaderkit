@@ -143,7 +143,7 @@ namespace Shaderkit
     void setUniform(UniformVar::List list, bool relocate = true);
 
     /// Creates a new Shader and adds it to this program.
-    virtual ShaderPtr addShader(const QString& filename, Shader::Type type);
+    virtual ShaderPtr addShader(const QString& filename, Shader::Type type = Shader::Unknown);
 
     virtual ShaderPtr addShaderSrc(const QString& data, Shader::Type type);
 

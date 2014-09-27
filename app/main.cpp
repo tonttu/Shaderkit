@@ -124,12 +124,12 @@ Commands parseCmd(int argc, char* argv[])
   return cmds;
 }
 
-void findPath(ShaderDB& db, const QString& root, bool add_root = true, const QString& name = "examples")
+void findPath(QStringList& paths, const QString& root, bool add_root, const QString& name)
 {
   QDir dir(root);
   for (int i = 0; i < 5 && dir.exists(); ++i) {
-    if (i == 0 && add_root) db.addPath(root);
-    if (dir.exists(name)) db.addPath(dir.path() + "/" + name);
+    if (i == 0 && add_root) paths << root;
+    if (dir.exists(name)) paths << (dir.path() + "/" + name);
     if (!dir.cdUp()) break;
   }
 }
@@ -137,7 +137,7 @@ void findPath(ShaderDB& db, const QString& root, bool add_root = true, const QSt
 // If we are developing the application and compiling it with shadow building,
 // it's tricky to try to determine the actual source directory. Let's see if
 // we can parse relevant information from Makefile
-void findSources(ShaderDB& db, const QString& root)
+void findSources(QStringList& paths, const QString& root, const QString& name)
 {
   QDir dir(root);
   QRegExp r("# Project:\\s+([^\\s].+)[\\\\/][^\\\\/]+");
@@ -150,9 +150,9 @@ void findSources(ShaderDB& db, const QString& root)
         for (int j = 0; j < 50 && !line.isNull(); ++j) {
           if (r.exactMatch(line)) {
             if (QDir::isRelativePath(r.cap(1))) {
-              findPath(db, dir.path() + "/" + r.cap(1), false);
+              findPath(paths, dir.path() + "/" + r.cap(1), false, name);
             } else {
-              findPath(db, r.cap(1), false);
+              findPath(paths, r.cap(1), false, name);
             }
             // Stop at the first match
             break;
@@ -208,20 +208,34 @@ int main(int argc, char* argv[])
   SandboxCompiler init(bin.absoluteFilePath());
 #endif
 
-  ShaderDB db;
+  if (QDir(bin.absolutePath()).exists()) {
+    app.addLibraryPath(bin.absolutePath() + "/../plugins");
+  }
+
   {
-    findPath(db, QDir::currentPath());
-    findSources(db, QDir::currentPath());
+    QSettings settings("HKEY_LOCAL_MACHINE\\Software\\Shaderkit",
+                       QSettings::NativeFormat);
+    QString root = settings.value("Root").toString();
+    if (!root.isEmpty())
+      app.addLibraryPath(root + "/plugins");
+  }
+
+  ShaderDB db;
+
+  QStringList paths[2];
+  const char * names[] = {"examples", "template-shaders"};
+  for (int i = 0; i < 2; ++i) {
+    findPath(paths[i], QDir::currentPath(), true, names[i]);
+    findSources(paths[i], QDir::currentPath(), names[i]);
 
     if (QDir(bin.absolutePath()).exists()) {
-      findPath(db, bin.absolutePath());
-      findPath(db, bin.absolutePath() + "/../share/shaderkit");
-      findSources(db, bin.absolutePath());
-      app.addLibraryPath(bin.absolutePath() + "/../plugins");
+      findPath(paths[i], bin.absolutePath(), true, names[i]);
+      findPath(paths[i], bin.absolutePath() + "/../share/shaderkit", true, names[i]);
+      findSources(paths[i], bin.absolutePath(), names[i]);
     } else {
 #ifdef INSTALL_PREFIX
 #define TO_STR(s) #s
-      findPath(db, TO_STR(INSTALL_PREFIX)"/share/shaderkit");
+      findPath(paths[i], TO_STR(INSTALL_PREFIX)"/share/shaderkit", true, names[i]);
 #endif
     }
 
@@ -229,24 +243,45 @@ int main(int argc, char* argv[])
     QSettings settings("HKEY_LOCAL_MACHINE\\Software\\Shaderkit",
                        QSettings::NativeFormat);
     QString root = settings.value("Root").toString();
-    if (!root.isEmpty()) {
-      findPath(db, root);
-      app.addLibraryPath(root + "/plugins");
-    }
+    if (!root.isEmpty())
+      findPath(paths[i], root, true, names[i]);
 #endif
 
-    const char* env = getenv("SHADERKIT_EXAMPLES");
-    if (env && *env)
-      findPath(db, env);
-
 #ifdef _WIN32
-    db.addPath(QDesktopServices::storageLocation(QDesktopServices::DataLocation)
-               + "/shaderdb", true);
+    QString tmp = QDesktopServices::storageLocation(QDesktopServices::DataLocation) +
+        "/shaderkit/" + names[i];
 #else
     // On linux QDesktopServices returns funny ~/.local/share/data -directory,
     // that seems to be nonstandard and weird
-    db.addPath(QDir::homePath() + "/.local/share/shaderkit/shaderdb", true);
+    QString tmp = QDir::homePath() + "/.config/shaderkit/" + names[i];
 #endif
+    if (QDir(tmp).exists())
+      paths[i] << tmp;
+  }
+
+  for (const auto & path: paths[0])
+    db.addPath(path);
+
+  for (const auto & path: paths[1])
+    TemplateBuilder::addDefaultPath(path);
+
+  {
+#ifdef _WIN32
+    QString tmp = QDesktopServices::storageLocation(QDesktopServices::DataLocation) +
+        "/shaderkit/shaderdb";
+#else
+    QString tmp = QDir::homePath() + "/.config/shaderkit/shaderdb";
+#endif
+    if (QDir(tmp).exists())
+      db.addPath(tmp, true);
+
+    const char* env = getenv("SHADERKIT_EXAMPLES");
+    if (env && *env)
+      db.addPath(env, true);
+
+    env = getenv("SHADERKIT_TEMPLATE_SHADERS");
+    if (env && *env)
+      TemplateBuilder::addDefaultPath(env);
   }
 
   ResourceLocator rl;

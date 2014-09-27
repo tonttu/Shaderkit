@@ -177,6 +177,8 @@ namespace Shaderkit
 
     virtual void attributeChanged();
 
+    void loadTemplateShader(const QGLFormat& format, const TemplateBuilder& builder);
+
   signals:
     void changed(MaterialPtr);
     void shaderChanged(ShaderPtr);

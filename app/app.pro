@@ -35,6 +35,7 @@ HEADERS += \
     core/resource_locator.hpp \
     core/scene.hpp \
     core/scene_saver.hpp \
+    core/template_builder.hpp \
     core/utils.hpp \
     core/watcher.hpp \
     editor/editor.hpp \
@@ -101,6 +102,7 @@ SOURCES += \
     core/resource_locator.cpp \
     core/scene.cpp \
     core/scene_saver.cpp \
+    core/template_builder.cpp \
     core/utils.cpp \
     core/watcher.cpp \
     editor/editor.cpp \
