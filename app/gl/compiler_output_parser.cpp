@@ -49,6 +49,7 @@ namespace Shaderkit
 
   bool SimpleParser::parse(const QStringList& lines, ShaderErrorList& errors)
   {
+    bool failed = false;
     foreach (const QString& msg, lines) {
       bool found = handleLine(msg);
       if (found) continue;
@@ -107,11 +108,12 @@ namespace Shaderkit
 
         if (!ok) {
           Log::error("Failed to parse error string: '%s'", msg.toUtf8().data());
+          failed = true;
           continue;
         }
       }
     }
-    return true;
+    return !failed;
   }
 
 
