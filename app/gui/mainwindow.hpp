@@ -80,6 +80,8 @@ namespace Shaderkit
 
     template <typename T>
     T* createGL(QWidget* parent) {
+      /// @todo why would they make this const? Are we doing something wrong here?
+      QGLContext * oldContext = const_cast<QGLContext*>(QGLContext::currentContext());
       T* t = 0;
       if (m_context)
         t = new T(m_context, parent);
@@ -101,6 +103,10 @@ namespace Shaderkit
 
       m_glwidgets << t;
       m_context = 0;
+
+      // Make sure to restore the old contest if we create a new one inside paintGL
+      if (oldContext && QGLContext::currentContext() != oldContext)
+        oldContext->makeCurrent();
       return t;
     }
 
