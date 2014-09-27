@@ -35,15 +35,13 @@ namespace Parser
 }
 
 #include "glsl_yacc.h"
-
 void glslset_scan_string(const char* str, int len, int state = 0);
 
 int glslget_state();
 int glsllex_wrapper(void);
-std::size_t glslget_leng(void);
+
 int glslget_column(void);
 int glslget_line(void);
 int glslget_pos(void);
-char* glslget_text(void);
 
 #endif // LEXER_HPP

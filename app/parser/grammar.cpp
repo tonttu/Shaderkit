@@ -17,6 +17,7 @@
 
 #include "parser/grammar.hpp"
 #include "parser/lexer.hpp"
+#include "glsl_lex.hpp"
 
 #include <QFile>
 
