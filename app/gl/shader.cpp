@@ -186,13 +186,18 @@ namespace Shaderkit
 
   Shader::Type Shader::guessType(const QString& filename)
   {
-    /// @todo tesselation shaders?
     if (filename.endsWith(".fs") || filename.endsWith(".frag"))
       return Fragment;
     if (filename.endsWith(".vs") || filename.endsWith(".vert"))
       return Vertex;
     if (filename.endsWith(".gs") || filename.endsWith(".geom"))
       return Geometry;
+    if (filename.endsWith(".tesc"))
+      return TessCtrl;
+    if (filename.endsWith(".tese"))
+      return TessEval;
+    if (filename.endsWith(".comp"))
+      return Compute;
 
     /// @todo we could parse the file and use some heuristic to determine the type by it's contents
     return Unknown;

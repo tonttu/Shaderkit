@@ -357,16 +357,18 @@ namespace Shaderkit
     menu.addAction(Shader::icon(Shader::TessEval), "New tesselation evaluation shader file")->setData(Shader::TessEval);
     menu.addAction(Shader::icon(Shader::Geometry), "New geometry shader file")->setData(Shader::Geometry);
     menu.addAction(Shader::icon(Shader::Fragment), "New fragment shader file")->setData(Shader::Fragment);
+    menu.addAction(Shader::icon(Shader::Compute), "New computer shader file")->setData(Shader::Compute);
     QAction* a = menu.exec(QCursor::pos());
     if (!a) return;
 
     int t = a->data().toInt();
     QString f;
     if (t == Shader::Vertex) f = ".vert";
-    else if (t == Shader::TessCtrl) f = ".tsctrl";
-    else if (t == Shader::TessEval) f = ".tseval";
+    else if (t == Shader::TessCtrl) f = ".tesc";
+    else if (t == Shader::TessEval) f = ".tese";
     else if (t == Shader::Geometry) f = ".geom";
     else if (t == Shader::Fragment) f = ".frag";
+    else if (t == Shader::Compute) f = ".comp";
     else return;
 
     f = ResourceLocator::unique("$scene/untitled" + f, MainWindow::scene()->filenames());
@@ -407,7 +409,7 @@ namespace Shaderkit
     QString dir = settings.value("history/last_import_dir",
                                  settings.value("history/last_dir",
                                      QVariant(QDir::currentPath()))).toString();
-    QString filter = "Shaders (*.frag *.vert *.geom *.fs *.vs *.gs);;All files (*)";
+    QString filter = "Shaders (*.frag *.vert *.geom *.tesc *.tese *.comp *.fs *.vs *.gs *.glsl);;All files (*)";
     QString file = QFileDialog::getOpenFileName(this, "Open a shader file", dir, filter);
     if (!file.isEmpty()) {
       QFileInfo fi(file);
@@ -420,6 +422,7 @@ namespace Shaderkit
         menu.addAction(Shader::icon(Shader::TessEval), "Tesselation evaluation shader")->setData(Shader::TessEval);
         menu.addAction(Shader::icon(Shader::Geometry), "Geometry shader")->setData(Shader::Geometry);
         menu.addAction(Shader::icon(Shader::Fragment), "Fragment shader")->setData(Shader::Fragment);
+        menu.addAction(Shader::icon(Shader::Compute), "Compute shader")->setData(Shader::Compute);
         QAction* a = menu.exec(QCursor::pos());
         if (!a) return;
         type = (Shader::Type)a->data().toInt();

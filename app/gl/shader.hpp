@@ -45,8 +45,9 @@ namespace Shaderkit
       Vertex = GL_VERTEX_SHADER,
       TessCtrl = GL_TESS_CONTROL_SHADER,
       TessEval = GL_TESS_EVALUATION_SHADER,
-      Geometry = GL_GEOMETRY_SHADER_EXT,
-      Fragment = GL_FRAGMENT_SHADER
+      Geometry = GL_GEOMETRY_SHADER,
+      Fragment = GL_FRAGMENT_SHADER,
+      Compute = GL_COMPUTE_SHADER
     };
 
     /// compile() returns the compile status

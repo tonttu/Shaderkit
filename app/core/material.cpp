@@ -350,6 +350,8 @@ namespace Shaderkit
       prog(true)->addShader(filename, Shader::TessCtrl);
     foreach (QString filename, map["tess-eval"].toStringList())
       prog(true)->addShader(filename, Shader::TessEval);
+    foreach (QString filename, map["compute"].toStringList())
+      prog(true)->addShader(filename, Shader::Compute);
 
     loadTemplateShader(scene.glFormat(), scene.templateBuilder());
 

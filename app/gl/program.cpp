@@ -271,6 +271,8 @@ namespace Shaderkit
       map["tess-ctrl"] = shaders[Shader::TessCtrl];
     if (shaders.contains(Shader::TessEval))
       map["tess-eval"] = shaders[Shader::TessEval];
+    if (shaders.contains(Shader::TessEval))
+      map["compute"] = shaders[Shader::Compute];
 
     return map;
   }
