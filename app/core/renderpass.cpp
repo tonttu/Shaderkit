@@ -39,6 +39,9 @@
 
 namespace
 {
+  static QList<std::function<void(Shaderkit::State&)>> s_callbacks;
+  static QMutex s_callbacksMutex;
+
   const char* vertex_shader =
     "#version 150 compatibility\n"
     SHADER(
@@ -574,4 +577,20 @@ namespace Shaderkit
     emit changed(shared_from_this());
   }
 
+  void RenderPass::addCallback(std::function<void(State&)> func)
+  {
+    QMutexLocker lock(&s_callbacksMutex);
+    s_callbacks << func;
+  }
+
+  void RenderPass::processCallbacks(State& state)
+  {
+    QList<std::function<void(State&)>> callbacks;
+    {
+      QMutexLocker lock(&s_callbacksMutex);
+      callbacks.swap(s_callbacks);
+    }
+    for (auto& f: callbacks)
+      f(state);
+  }
 } // namespace Shaderkit

@@ -177,6 +177,8 @@ namespace Shaderkit
 
     opts.grid = true;
 
+    RenderPass::processCallbacks(state);
+
     CameraPtr defcam = camera();
 
     /// @todo how stupid name is "Normal" for render pass. Extremely stupid. Fix it.

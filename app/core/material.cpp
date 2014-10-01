@@ -196,6 +196,8 @@ namespace Shaderkit
   void Material::progChanged()
   {
     emit changed(shared_from_this());
+
+    performAutomaticMapping();
   }
 
   void Material::bind(State& state)
@@ -238,9 +240,15 @@ namespace Shaderkit
         changed = true;
       }
 
-      if (changed)
+      if (changed) {
+        performAutomaticMapping();
         emit this->changed(shared_from_this());
+      }
     }
+  }
+
+  void Material::performAutomaticMapping()
+  {
   }
 
   ProgramPtr Material::prog(bool create_if_not_found)
@@ -254,7 +262,9 @@ namespace Shaderkit
             this, SIGNAL(progCompiled(ShaderErrorList)));
     connect(m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
             this, SIGNAL(shaderChanged(ShaderPtr)));
-    emit changed(shared_from_this());
+    auto ptr = shared_from_this();
+    RenderPass::addCallback([ptr] (State& state) { ptr->autoBuild(state); });
+    emit changed(ptr);
     return m_program;
   }
 
@@ -405,8 +415,19 @@ namespace Shaderkit
     q.shading_model = style.shading_model;
 
     auto tpl = builder.findBestTemplate(q);
-    if (tpl.id >= 0)
+    if (tpl.id >= 0) {
       m_program = builder.create(tpl.id);
+      if (m_program) {
+        auto ptr = shared_from_this();
+        RenderPass::addCallback([ptr] (State& state) { ptr->autoBuild(state); });
+      }
+    }
+  }
+
+  void Material::autoBuild(State& state)
+  {
+    bind(state);
+    unbind();
   }
 
 } // namespace Shaderkit

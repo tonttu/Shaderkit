@@ -149,6 +149,13 @@ namespace Shaderkit
 
     virtual void attributeChanged();
 
+    /// @param func will be executed on next frame in the main thread with
+    ///             active OpenGL context
+    /// Thread-safe
+    static void addCallback(std::function<void(State&)> func);
+
+    static void processCallbacks(State& state);
+
   signals:
     void changed(RenderPassPtr);
 

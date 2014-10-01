@@ -179,6 +179,8 @@ namespace Shaderkit
 
     void loadTemplateShader(const QGLFormat& format, const TemplateBuilder& builder);
 
+    void autoBuild(State& state);
+
   signals:
     void changed(MaterialPtr);
     void shaderChanged(ShaderPtr);
@@ -196,6 +198,7 @@ namespace Shaderkit
     friend void State::popMaterial();
     void bind(State& state);
     void unbind();
+    void performAutomaticMapping();
 
     /// The shader used to render this material
     /// @see m_uniform_list
