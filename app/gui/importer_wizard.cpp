@@ -91,6 +91,7 @@ namespace Shaderkit
   {
     m_ui->filename->setText(filename);
     show();
+    setWindowState(Qt::WindowActive);
   }
 
   void ImporterWizard::browse()

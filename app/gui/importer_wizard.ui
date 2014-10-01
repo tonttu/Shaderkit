@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Import</string>
+   <string>Import a model</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../gfx/gfx.qrc">
+    <normaloff>:/icons/logo.png</normaloff>:/icons/logo.png</iconset>
   </property>
   <property name="options">
    <set>QWizard::NoBackButtonOnLastPage|QWizard::NoBackButtonOnStartPage</set>
@@ -137,6 +141,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../gfx/gfx.qrc"/>
+ </resources>
  <connections/>
 </ui>
