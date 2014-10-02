@@ -199,6 +199,8 @@ namespace Shaderkit
     void bind(State& state);
     void unbind();
     void performAutomaticMapping();
+    void performAutomaticUniformMapping();
+    void performAutomaticAttributeMapping();
 
     /// The shader used to render this material
     /// @see m_uniform_list

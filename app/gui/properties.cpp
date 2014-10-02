@@ -495,7 +495,7 @@ namespace Shaderkit
       QMenu* sub = menu.addMenu(gd.name);
 
       foreach (const VarDescription& d, gd.vars) {
-        QAction* act = sub->addAction(QString("%2.%3: %1").arg(d.desc, gd.prefix, d.name));
+        QAction* act = sub->addAction(QString("%3.%4: %1 (%2)").arg(d.desc, d.type, gd.prefix, d.name));
         act->setData(gd.prefix + "." + d.name);
       }
     }

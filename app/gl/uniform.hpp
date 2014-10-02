@@ -82,19 +82,19 @@ namespace Shaderkit
   };
 
   struct VarDescription {
-    VarDescription(const QString& n, const QString& d)
-      : name(n), desc(d) {}
+    VarDescription(const QString& n, const QString& d, const QString& t)
+      : name(n), desc(d), type(t) {}
     QString name;
     QString desc;
-    QList<GLenum> types;
+    QString type;
   };
 
   struct VarGroupDescription {
     VarGroupDescription(const QString& p, const QString& n)
       : prefix(p), name(n) {}
 
-    VarGroupDescription& operator()(const QString& n, const QString& d) {
-      vars << VarDescription(n, d);
+    VarGroupDescription& operator()(const QString& n, const QString& d, const QString& type) {
+      vars << VarDescription(n, d, type);
       return *this;
     }
 
