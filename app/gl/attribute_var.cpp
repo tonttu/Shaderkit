@@ -11,12 +11,33 @@ namespace Shaderkit
   {
   }
 
+  const ShaderTypeInfo&AttributeVar::typeinfo() const
+  {
+    return ShaderTypeInfo::typeInfo(m_type);
+  }
+
   bool AttributeVar::operator==(const AttributeVar& other) const
   {
     return m_name == other.m_name &&
            m_type == other.m_type &&
            m_prog == other.m_prog &&
            m_builtin == other.m_builtin;
+  }
+
+  QList<VarGroupDescription> AttributeVar::builtInVars()
+  {
+    static QList<VarGroupDescription> s_vars;
+    if (s_vars.isEmpty()) {
+      VarGroupDescription g("mesh", "Mesh");
+      g("vertex", "Vertex coordinate", "vec3")
+          ("normal", "Normal vector", "vec3")
+          ("tangent", "Tangent vector", "vec3")
+          ("bitangent", "Bitangent vector", "vec3")
+          ("color", "Vertex color", "vec3")
+          ("uv", "UV coordinate", "vec1..4");
+      s_vars << g;
+    }
+    return s_vars;
   }
 
   /*vec4 gl_Color

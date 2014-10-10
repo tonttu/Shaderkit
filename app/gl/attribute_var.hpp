@@ -2,6 +2,7 @@
 #define ATTRIBUTE_VAR_HPP
 
 #include "forward.hpp"
+#include "uniform.hpp"
 #include "gl/opengl.hpp"
 
 #include <QVector>
@@ -29,11 +30,16 @@ namespace Shaderkit
      * "float bar[2]" both are arrays of size two.
      */
     //size_t arraySize() const { return m_size; }
+    size_t arraySize() const { return 1; }
+
+    const ShaderTypeInfo& typeinfo() const;
 
     /// The name of the uniform variable
     QString name() const { return m_name; }
 
     bool operator==(const AttributeVar& other) const;
+
+    static QList<VarGroupDescription> builtInVars();
 
   private:
     QString m_name;

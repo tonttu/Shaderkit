@@ -33,7 +33,8 @@ namespace Shaderkit
     return name.replace(camelCase, "\\1_\\2").toLower();
   }
 
-  static bool typesMatch(const UniformVar& var, const QString& type)
+  template <typename Var>
+  static bool typesMatch(const Var& var, const QString& type)
   {
     const int varNumElements = var.arraySize() * var.typeinfo().size;
     GLenum varBaseType = var.typeinfo().base_type;
@@ -83,15 +84,16 @@ namespace Shaderkit
 
     QSet<QString> aParts = a.split("_").toSet();
     QSet<QString> bParts = b.split("_").toSet();
-    if ((aParts & bParts).size()*2 >= std::min(aParts.size(), bParts.size()))
-      return 0.125f;
+    float match = (aParts & bParts).size() / float(std::min(aParts.size(), bParts.size()));
+    if (match >= 0.5f)
+      return 0.125f + match * 0.01f;
 
     return 0.f;
   }
 
   // Finds the best mapping by optimizing sum of individual scores from string matches
   static void solveMapping(QMap<QString, QStringList> choices,
-                           QMap<QString, QString>& bestMapping, float bestScore = 0.f,
+                           QMap<QString, QString>& bestMapping, float& bestScore,
                            const QMap<QString, QString>& mapping = QMap<QString, QString>(),
                            float score = 0.f)
   {
@@ -355,8 +357,6 @@ namespace Shaderkit
             availableUniforms[QString("light[%1].%2").arg(i).arg(v.name)] = v.type;
             availableUniforms[QString("lights[%1].%2").arg(i).arg(v.name)] = v.type;
           }
-        } else {
-          availableUniforms[QString("%1.%2").arg(g.prefix, v.name)] = v.type;
         }
       }
     }
@@ -378,7 +378,8 @@ namespace Shaderkit
     QMap<QString, QStringList> choices;
     for (const UniformVar& var: m_uniform_list) {
       auto it = uniforms.find(var.name());
-      assert(it != uniforms.end());
+      if (it == uniforms.end())
+        continue;
 
       for (auto it2 = availableUniforms.begin(); it2 != availableUniforms.end(); ++it2)
         if (typesMatch(var, it2.value()))
@@ -386,13 +387,46 @@ namespace Shaderkit
     }
 
     QMap<QString, QString> bestMapping;
-    solveMapping(choices, bestMapping);
+    float score = 0;
+    solveMapping(choices, bestMapping, score);
     for (auto it = bestMapping.begin(); it != bestMapping.end(); ++it)
       m_uniformMap[it.key()] = MappableValue::parse(it.value());
   }
 
   void Material::performAutomaticAttributeMapping()
   {
+    // name -> type
+    QMap<QString, QString> availableVars;
+    for (VarGroupDescription& g: AttributeVar::builtInVars())
+      for (VarDescription& v: g.vars)
+        availableVars[QString("%1.%2").arg(g.prefix, v.name)] = v.type;
+
+    // actual name -> normalized name
+    QMap<QString, QString> freeVars;
+    for (auto p: m_attribute_list)
+      freeVars[p.name()] = normalizeName(p.name());
+    for (auto& p: m_attributeMap.keys()) {
+      freeVars.remove(p);
+      availableVars.remove(p);
+    }
+
+    // actual name -> list of available vars that have the correct type
+    QMap<QString, QStringList> choices;
+    for (const auto& var: m_attribute_list) {
+      auto it = freeVars.find(var.name());
+      if (it == freeVars.end())
+        continue;
+
+      for (auto it2 = availableVars.begin(); it2 != availableVars.end(); ++it2)
+        if (typesMatch(var, it2.value()))
+          choices[it.key()] << it2.key();
+    }
+
+    QMap<QString, QString> bestMapping;
+    float score = 0;
+    solveMapping(choices, bestMapping, score);
+    for (auto it = bestMapping.begin(); it != bestMapping.end(); ++it)
+      m_attributeMap[it.key()] = MappableValue::parse(it.value());
   }
 
   ProgramPtr Material::prog(bool create_if_not_found)

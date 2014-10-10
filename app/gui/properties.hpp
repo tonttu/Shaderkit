@@ -111,12 +111,10 @@ namespace Shaderkit
 
   private slots:
     void editingFinished();
+    void menu(QPoint point);
 
   private:
-    void clear();
-
-  private:
-    QComboBox* m_combo;
+    MenuComboBox* m_combo;
   };
 
   class UniformEditor : public VarEditor

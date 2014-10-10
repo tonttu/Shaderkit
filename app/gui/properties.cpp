@@ -335,15 +335,16 @@ namespace Shaderkit
   AttributeEditor::AttributeEditor(MaterialProperties& prop, int row,
                                    MaterialPtr mat, AttributeVar& var)
     : VarEditor(prop, row, mat, var.name())
-    , m_combo(new QComboBox())
+    , m_combo(new MenuComboBox())
   {
     prop.setCellWidget(row, 1, m_combo);
 
-    clear();
     m_combo->setEditable(true);
 
     connect(m_combo, SIGNAL(currentIndexChanged(QString)),
             this, SLOT(editingFinished()));
+    connect(m_combo, SIGNAL(showPopup(QPoint)),
+            this, SLOT(menu(QPoint)));
   }
 
   void AttributeEditor::updateUI(AttributeVar&)
@@ -354,16 +355,13 @@ namespace Shaderkit
       if (attrs.contains(m_name))
         selection = attrs.value(m_name).toString();
     }
-    if (selection != m_combo->currentText()) {
-      for (int i = 0; i < m_combo->count(); ++i) {
-        if (m_combo->itemText(i) == selection) {
-          m_combo->setCurrentIndex(i);
-          return;
-        }
-      }
-      m_combo->addItem(selection);
-      m_combo->setCurrentIndex(m_combo->count()-1);
-    }
+    disconnect(m_combo, SIGNAL(currentIndexChanged(QString)),
+               this, SLOT(editingFinished()));
+    m_combo->clear();
+    m_combo->addItem(selection);
+    m_combo->setCurrentIndex(0);
+    connect(m_combo, SIGNAL(currentIndexChanged(QString)),
+            this, SLOT(editingFinished()));
   }
 
   void AttributeEditor::editingFinished()
@@ -372,14 +370,28 @@ namespace Shaderkit
       m_mat->setAttributeMapping(m_name, m_combo->currentText());
   }
 
-  void AttributeEditor::clear()
+  void AttributeEditor::menu(QPoint point)
   {
-    /// @todo better way to define these, with some type information
-    QStringList choices;
-    choices << "" << "mesh.vertex" << "mesh.normal" << "mesh.tangent" <<
-            "mesh.bitangent" << "mesh.color" << "mesh.uv";
-    m_combo->clear();
-    m_combo->addItems(choices);
+    QMenu menu;
+    menu.addAction("None")->setData("");
+    menu.addSeparator();
+
+    QList<VarGroupDescription> vars = AttributeVar::builtInVars();
+    foreach (const VarGroupDescription& gd, vars) {
+      QMenu* sub = menu.addMenu(gd.name);
+
+      foreach (const VarDescription& d, gd.vars) {
+        QAction* act = sub->addAction(QString("%3.%4: %1 (%2)").arg(d.desc, d.type, gd.prefix, d.name));
+        act->setData(gd.prefix + "." + d.name);
+      }
+    }
+
+    QWidget* widget = dynamic_cast<QWidget*>(sender());
+
+    QAction* selection = menu.exec((widget ? widget : m_combo)->mapToGlobal(point));
+    if (selection && selection->data().isValid() && m_mat) {
+      m_mat->setAttributeMapping(m_name, selection->data().toString());
+    }
   }
 
 ///////////////////////////////////////////////////////////////////////////////
