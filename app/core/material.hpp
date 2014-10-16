@@ -181,6 +181,8 @@ namespace Shaderkit
 
     void autoBuild(State& state);
 
+    void setProgram(ProgramPtr program);
+
   signals:
     void changed(MaterialPtr);
     void shaderChanged(ShaderPtr);

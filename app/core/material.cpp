@@ -216,14 +216,7 @@ namespace Shaderkit
       m_scene(m.m_scene)
   {
     if (m.m_program) {
-      m_program = m.m_program->clone();
-      connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
-      connect(m_program.get(), SIGNAL(linked(ShaderErrorList)),
-              this, SIGNAL(progLinked(ShaderErrorList)));
-      connect(m_program.get(), SIGNAL(compiled(ShaderErrorList)),
-              this, SIGNAL(progCompiled(ShaderErrorList)));
-      connect(m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
-              this, SIGNAL(shaderChanged(ShaderPtr)));
+      setProgram(m.m_program->clone());
     }
   }
 
@@ -432,14 +425,7 @@ namespace Shaderkit
   ProgramPtr Material::prog(bool create_if_not_found)
   {
     if (!create_if_not_found || m_program) return m_program;
-    m_program.reset(new GLProgram(name()));
-    connect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
-    connect(m_program.get(), SIGNAL(linked(ShaderErrorList)),
-            this, SIGNAL(progLinked(ShaderErrorList)));
-    connect(m_program.get(), SIGNAL(compiled(ShaderErrorList)),
-            this, SIGNAL(progCompiled(ShaderErrorList)));
-    connect(m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
-            this, SIGNAL(shaderChanged(ShaderPtr)));
+    setProgram(std::make_shared<GLProgram>(name()));
     auto ptr = shared_from_this();
     RenderPass::addCallback([ptr] (State& state) { ptr->autoBuild(state); });
     emit changed(ptr);
@@ -594,8 +580,9 @@ namespace Shaderkit
 
     auto tpl = builder.findBestTemplate(q);
     if (tpl.id >= 0) {
-      m_program = builder.create(tpl.id);
-      if (m_program) {
+      auto program = builder.create(tpl.id);
+      if (program) {
+        setProgram(program);
         auto ptr = shared_from_this();
         RenderPass::addCallback([ptr] (State& state) { ptr->autoBuild(state); });
       }
@@ -606,6 +593,33 @@ namespace Shaderkit
   {
     bind(state);
     unbind();
+  }
+
+  void Material::setProgram(ProgramPtr program)
+  {
+    if (m_program == program)
+      return;
+
+    if (m_program) {
+      disconnect(m_program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+      disconnect(m_program.get(), SIGNAL(linked(ShaderErrorList)),
+                 this, SIGNAL(progLinked(ShaderErrorList)));
+      disconnect(m_program.get(), SIGNAL(compiled(ShaderErrorList)),
+                 this, SIGNAL(progCompiled(ShaderErrorList)));
+      disconnect(m_program.get(), SIGNAL(shaderChanged(ShaderPtr)),
+                 this, SIGNAL(shaderChanged(ShaderPtr)));
+    }
+
+    if (program) {
+      connect(program.get(), SIGNAL(changed()), this, SLOT(progChanged()));
+      connect(program.get(), SIGNAL(linked(ShaderErrorList)),
+              this, SIGNAL(progLinked(ShaderErrorList)));
+      connect(program.get(), SIGNAL(compiled(ShaderErrorList)),
+              this, SIGNAL(progCompiled(ShaderErrorList)));
+      connect(program.get(), SIGNAL(shaderChanged(ShaderPtr)),
+              this, SIGNAL(shaderChanged(ShaderPtr)));
+    }
+    m_program = program;
   }
 
 } // namespace Shaderkit
