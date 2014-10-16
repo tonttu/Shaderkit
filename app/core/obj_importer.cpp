@@ -320,6 +320,7 @@ namespace Shaderkit
     QMap<aiTextureType, QString> roles = textureRoles();
 
     MaterialPtr m(new Material(m_names.materials.key(idx)));
+    m_materialIndex[idx] = m;
 
     getColor(m->colors.diffuse, src, AI_MATKEY_COLOR_DIFFUSE);
     getColor(m->colors.specular, src, AI_MATKEY_COLOR_SPECULAR);
