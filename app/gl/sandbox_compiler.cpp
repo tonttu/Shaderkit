@@ -23,7 +23,12 @@
 #include <QApplication>
 #include <QTime>
 #include <QMap>
+#if QT_VERSION >= 0x050100
+#include <QOpenGLContext>
+#include <QOffscreenSurface>
+#else
 #include <QGLContext>
+#endif
 
 #include <poll.h>
 #include <sys/wait.h>
@@ -298,11 +303,21 @@ namespace Shaderkit
 
     Log::info("Sandbox Compiler: Running on pid %d", getpid());
 
+#if QT_VERSION >= 0x050100
+    QOffscreenSurface surface;
+    surface.create();
+
+    QOpenGLContext context;
+    context.create();
+    context.makeCurrent(&surface);
+#else
     QPixmap p(10, 10);
     QGLContext context(QGLFormat::defaultFormat(), &p);
     context.create();
     context.makeCurrent();
+#endif
 
+    glewExperimental = GL_TRUE;
     GLenum err = glewInit();
     if (err != GLEW_OK) {
       Log::error("Sandbox Compiler, GLEW: %s\n", glewGetErrorString(err));
