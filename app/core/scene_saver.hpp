@@ -20,6 +20,7 @@
 
 #include "forward.hpp"
 
+#include <QObject>
 #include <QDateTime>
 
 #include <functional>
